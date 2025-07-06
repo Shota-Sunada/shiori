@@ -144,7 +144,6 @@ const Admin: React.FC = () => {
     { key: 'day3bus', label: '三日目バス' },
     { key: 'room_tokyo', label: '東京ドームホテル 号室' },
     { key: 'room_shizuoka', label: '静岡 ホテル 号室' },
-    { key: 'tag', label: '補足' }
   ];
 
   // day1id/day3idの選択肢
