@@ -31,8 +31,7 @@ const initialForm: Omit<student, 'class' | 'number' | 'gakuseki'> & { class: str
   day1bus: '',
   day3bus: '',
   room_shizuoka: '',
-  room_tokyo: '',
-  tag: ''
+  room_tokyo: ''
 };
 
 const Admin: React.FC = () => {
@@ -232,7 +231,6 @@ const Admin: React.FC = () => {
                 <td>{s.day3bus}</td>
                 <td>{s.room_tokyo}</td>
                 <td>{s.room_shizuoka}</td>
-                <td>{s.tag}</td>
                 <td>
                   <button onClick={() => handleEditClick(s)} disabled={modalMode !== null}>
                     {'編集'}

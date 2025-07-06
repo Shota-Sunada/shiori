@@ -12,8 +12,7 @@ const localInitialForm = {
   day1bus: '',
   day3bus: '',
   room_shizuoka: '',
-  room_tokyo: '',
-  tag: ''
+  room_tokyo: ''
 };
 
 type StudentFormData = typeof localInitialForm;
@@ -96,8 +95,6 @@ const StudentModal = ({
           <input name="room_tokyo" value={form.room_tokyo} required onChange={handleChange} />
           <label>静岡 ホテル 号室</label>
           <input name="room_shizuoka" value={form.room_shizuoka} required onChange={handleChange} />
-          <label>補足</label>
-          <input name="tag" value={form.tag} required onChange={handleChange} />
         </div>
         <div className="flex flex-row items-center justify-center mt-4">
           <button className="cursor-pointer m-2 bg-blue-400 text-white rounded-2xl p-2 min-w-[5dvw]" onClick={handleSave}>
