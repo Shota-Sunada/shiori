@@ -1,12 +1,10 @@
-import type { IntRange } from 'type-fest';
-
 export type student = {
   surname: string;
   forename: string;
-  class: IntRange<1, 8>;
-  number: IntRange<1, 42>;
+  class: '1' | '2' | '3' | '4' | '5' | '6' | '7';
+  number: string;
   day1id:
-    | ""
+    | ''
     | 'yrp_nifco'
     | 'yrp_yamashin'
     | 'yrp_air'
@@ -21,4 +19,8 @@ export type student = {
     | 'micro'
     | 'air';
   day3id: 'okutama' | 'yokosuka' | 'hakone' | 'kamakura' | 'hakkeijima' | 'yokohama';
+  day1bus: string;
+  day3bus: string;
+  room_shizuoka: string;
+  room_tokyo: string;
 };
