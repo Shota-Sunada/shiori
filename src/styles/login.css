@@ -1,0 +1,6 @@
+form input,
+form select {
+  border-radius: 6px;
+  padding: 7px;
+  margin: 1vh;
+}
