@@ -1,8 +1,10 @@
+import type { IntRange } from 'type-fest';
+
 export type student = {
   surname: string;
   forename: string;
-  class: '1' | '2' | '3' | '4' | '5' | '6' | '7';
-  number: string;
+  class: IntRange<1, 8>;
+  number: IntRange<1, 42>;
   day1id:
     | ''
     | 'yrp_nifco'
