@@ -1,0 +1,38 @@
+@import 'tailwindcss';
+
+* {
+  font-family:
+    Inter,
+    Noto Sans JP,
+    sans-serif;
+  user-select: none;
+  word-break: auto-phrase;
+}
+
+html,
+body,
+main,
+#root {
+  height: 100%;
+}
+
+.mobiry-button {
+  text-align: center;
+  margin: 10px;
+  padding: 8px;
+  width: 200px;
+  border-radius: 20px;
+  cursor: pointer;
+  color: #fff;
+  background-color: #219bce;
+  transition: 0.2s;
+  font-size: 15px;
+}
+
+.mobiry-button:hover {
+  background-color: #008fc0;
+}
+
+.anim {
+  transition: 0.2s;
+}
