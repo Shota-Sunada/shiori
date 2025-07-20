@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b --sourceMap false && vite build --sourcemap false",
     "preview": "vite preview",
     "format": "prettier . --write",
     "lint": "eslint src",
@@ -21,6 +21,7 @@
     "tailwindcss": "^4.1.10",
     "type-fest": "^4.41.0",
     "uuid": "^11.1.0",
+    "vite-plugin-javascript-obfuscator": "^3.1.0",
     "vite-tsconfig-paths": "^5.1.4"
   },
   "devDependencies": {
