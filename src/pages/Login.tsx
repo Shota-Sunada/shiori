@@ -1,39 +1,40 @@
-import { useRef, type FormEvent } from 'react';
+import { useRef, type FormEvent, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
 import '../styles/login.css';
 import { auth } from '../firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useAuth } from '../auth-context';
 
 const Login = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const student_id_ref = useRef<HTMLInputElement>(null);
   const password_ref = useRef<HTMLInputElement>(null);
-  // const user_class_ref = useRef<HTMLSelectElement>(null);
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/');
+    }
+  }, [user, loading, navigate]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     const student_id = student_id_ref?.current?.value;
     const password = password_ref?.current?.value;
-    // const user_class = user_class_ref?.current?.value;
-
-    // if (user_class == '0') {
-    //   alert('確認のため、クラスを選択してください。');
-    //   return;
-    // }
-
-    console.log(student_id);
-    console.log(password);
-    // console.log(user_class);
 
     const email = `${student_id}@st.shudo-h.ed.jp`;
     try {
       await signInWithEmailAndPassword(auth, email, `${password}`);
-      console.log("ログインに成功しました。")
+      console.log('ログインに成功しました。');
     } catch (error) {
       alert('ログインに失敗しました。');
       console.error(error);
     }
   };
+
+  if (loading) return null;
 
   return (
     <div className="flex flex-col items-center justify-center">
