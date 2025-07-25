@@ -3,6 +3,7 @@ import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } 
 import { app } from '../firebase';
 import type { student } from '../data/students';
 import type { IntRange } from 'type-fest';
+import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
 
 type StudentWithId = student & { id: string };
 
@@ -126,20 +127,19 @@ const Admin: React.FC = () => {
   const columns = [
     { key: 'surname', label: '姓' },
     { key: 'forename', label: '名' },
-    { key: 'class', label: 'クラス' },
+    { key: 'class', label: '組' },
     { key: 'number', label: '番号' },
-    { key: 'day1id', label: 'day1id' },
-    { key: 'day3id', label: 'day3id' },
-    { key: 'day1bus', label: 'day1bus' },
-    { key: 'day3bus', label: 'day3bus' },
-    { key: 'room_shizuoka', label: 'room_shizuoka' },
-    { key: 'room_tokyo', label: 'room_tokyo' },
-    { key: 'tag', label: 'tag' }
+    { key: 'day1id', label: '一日目研修先' },
+    { key: 'day3id', label: '三日目研修先' },
+    { key: 'day1bus', label: '一日目バス' },
+    { key: 'day3bus', label: '三日目バス' },
+    { key: 'room_tokyo', label: '東京ドームホテル 号室' },
+    { key: 'room_shizuoka', label: '静岡 ホテル 号室' },
+    { key: 'tag', label: '補足' }
   ];
 
   // day1id/day3idの選択肢
   const day1idOptions = [
-    '',
     'yrp_nifco',
     'yrp_yamashin',
     'yrp_air',
@@ -190,37 +190,37 @@ const Admin: React.FC = () => {
                 <input name="number" type="number" min={1} max={41} value={editRowForm.number} onChange={handleEditRowChange} required />
               </td>
               <td>
-                <select name="day1id" value={editRowForm.day1id} onChange={handleEditRowChange}>
+                <select name="day1id" value={editRowForm.day1id} required onChange={handleEditRowChange}>
                   {day1idOptions.map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt || '未選択'}
+                      {COURSES_DAY1.find((x) => x.key == opt)?.name}
                     </option>
                   ))}
                 </select>
               </td>
               <td>
-                <select name="day3id" value={editRowForm.day3id} onChange={handleEditRowChange}>
+                <select name="day3id" value={editRowForm.day3id} required onChange={handleEditRowChange}>
                   {day3idOptions.map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt}
+                      {COURSES_DAY3.find((x) => x.key == opt)?.name}
                     </option>
                   ))}
                 </select>
               </td>
               <td>
-                <input name="day1bus" value={editRowForm.day1bus} onChange={handleEditRowChange} />
+                <input name="day1bus" value={editRowForm.day1bus} required onChange={handleEditRowChange} />
               </td>
               <td>
-                <input name="day3bus" value={editRowForm.day3bus} onChange={handleEditRowChange} />
+                <input name="day3bus" value={editRowForm.day3bus} required onChange={handleEditRowChange} />
               </td>
               <td>
-                <input name="room_shizuoka" value={editRowForm.room_shizuoka} onChange={handleEditRowChange} />
+                <input name="room_tokyo" value={editRowForm.room_tokyo} required onChange={handleEditRowChange} />
               </td>
               <td>
-                <input name="room_tokyo" value={editRowForm.room_tokyo} onChange={handleEditRowChange} />
+                <input name="room_shizuoka" value={editRowForm.room_shizuoka} required onChange={handleEditRowChange} />
               </td>
               <td>
-                <input name="tag" value={editRowForm.tag} onChange={handleEditRowChange} />
+                <input name="tag" value={editRowForm.tag} required onChange={handleEditRowChange} />
               </td>
               <td>
                 <button onClick={handleAddRowSave}>保存</button>
@@ -245,37 +245,37 @@ const Admin: React.FC = () => {
                   <input name="number" type="number" min={1} max={41} value={editRowForm.number} onChange={handleEditRowChange} required />
                 </td>
                 <td>
-                  <select name="day1id" value={editRowForm.day1id} onChange={handleEditRowChange}>
+                  <select name="day1id" value={editRowForm.day1id} required onChange={handleEditRowChange}>
                     {day1idOptions.map((opt) => (
                       <option key={opt} value={opt}>
-                        {opt || '未選択'}
+                        {COURSES_DAY1.find((x) => x.key == opt)?.name}
                       </option>
                     ))}
                   </select>
                 </td>
                 <td>
-                  <select name="day3id" value={editRowForm.day3id} onChange={handleEditRowChange}>
+                  <select name="day3id" value={editRowForm.day3id} required onChange={handleEditRowChange}>
                     {day3idOptions.map((opt) => (
                       <option key={opt} value={opt}>
-                        {opt}
+                        {COURSES_DAY3.find((x) => x.key == opt)?.name}
                       </option>
                     ))}
                   </select>
                 </td>
                 <td>
-                  <input name="day1bus" value={editRowForm.day1bus} onChange={handleEditRowChange} />
+                  <input name="day1bus" value={editRowForm.day1bus} required onChange={handleEditRowChange} />
                 </td>
                 <td>
-                  <input name="day3bus" value={editRowForm.day3bus} onChange={handleEditRowChange} />
+                  <input name="day3bus" value={editRowForm.day3bus} required onChange={handleEditRowChange} />
                 </td>
                 <td>
-                  <input name="room_shizuoka" value={editRowForm.room_shizuoka} onChange={handleEditRowChange} />
+                  <input name="room_tokyo" value={editRowForm.room_tokyo} required onChange={handleEditRowChange} />
                 </td>
                 <td>
-                  <input name="room_tokyo" value={editRowForm.room_tokyo} onChange={handleEditRowChange} />
+                  <input name="room_shizuoka" value={editRowForm.room_shizuoka} required onChange={handleEditRowChange} />
                 </td>
                 <td>
-                  <input name="tag" value={editRowForm.tag} onChange={handleEditRowChange} />
+                  <input name="tag" value={editRowForm.tag} required onChange={handleEditRowChange} />
                 </td>
                 <td>
                   <button onClick={handleEditRowSave}>保存</button>
@@ -288,12 +288,12 @@ const Admin: React.FC = () => {
                 <td>{s.forename}</td>
                 <td>{s.class}</td>
                 <td>{s.number}</td>
-                <td>{s.day1id}</td>
-                <td>{s.day3id}</td>
+                <td>{COURSES_DAY1.find((x) => x.key == s.day1id)?.name}</td>
+                <td>{COURSES_DAY3.find((x) => x.key == s.day3id)?.name}</td>
                 <td>{s.day1bus}</td>
                 <td>{s.day3bus}</td>
-                <td>{s.room_shizuoka}</td>
                 <td>{s.room_tokyo}</td>
+                <td>{s.room_shizuoka}</td>
                 <td>{s.tag}</td>
                 <td>
                   <button onClick={() => handleEditClick(s)} disabled={editRowId !== null}>
