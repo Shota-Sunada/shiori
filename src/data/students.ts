@@ -25,4 +25,5 @@ export type student = {
   day3bus: string;
   room_shizuoka: string;
   room_tokyo: string;
+  tag: string;
 };
