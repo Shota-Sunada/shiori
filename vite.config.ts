@@ -25,7 +25,7 @@ export default defineConfig(({ command }) => ({
               rotateStringArray: true,
               selfDefending: true,
               stringArray: true,
-              stringArrayEncoding: ["none"],
+              stringArrayEncoding: ['none'],
               stringArrayThreshold: 0.75,
               unicodeEscapeSequence: false
               // compact: true,
