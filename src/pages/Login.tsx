@@ -63,7 +63,9 @@ const Login = () => {
             <option value={8}>{'教職員'}</option>
           </select>
         </div> */}
-        <Button text={'ログイン'} onClick={handleSubmit} />
+        <button type="submit">
+          <Button text={'ログイン'} onClick={() => {}} />
+        </button>
       </form>
     </div>
   );
