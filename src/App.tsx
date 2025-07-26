@@ -3,6 +3,7 @@ import { AuthProvider } from './auth-context';
 import Index from './pages/Index';
 import Login from './pages/Login';
 import Admin from './pages/Admin';
+import Header from './components/Header';
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
       <main>
         <div className="h-[100%] bg-[#f7f4e5] overflow-y-auto">
           <AuthProvider>
+            <Header />
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Index />} />
