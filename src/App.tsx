@@ -11,8 +11,8 @@ function App() {
       <main>
         <div className="h-[100%] bg-[#f7f4e5] overflow-y-auto">
           <AuthProvider>
-            <Header />
             <BrowserRouter>
+              <Header />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
