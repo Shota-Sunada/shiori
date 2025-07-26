@@ -5,11 +5,8 @@ import Login from './pages/Login';
 import Admin from './pages/Admin';
 import Header from './components/Header';
 import Page404 from './pages/Page404';
-import { useState } from 'react';
 
 function App() {
-  const [isFirstLogin, setIsFirstLogin] = useState<boolean>(false);
-
   return (
     <>
       <main>
@@ -18,8 +15,8 @@ function App() {
             <BrowserRouter>
               <Header />
               <Routes>
-                <Route path="/" element={<Index isFirstLogin={isFirstLogin} setIsFirstLogin={setIsFirstLogin} />} />
-                <Route path="/login" element={<Login setIsFirstLogin={setIsFirstLogin} />} />
+                <Route path="/" element={<Index  />} />
+                <Route path="/login" element={<Login  />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="*" element={<Page404 />} />
               </Routes>

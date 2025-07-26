@@ -6,7 +6,7 @@ import { auth } from '../firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useAuth } from '../auth-context';
 
-const Login = (props: { setIsFirstLogin: (value: boolean) => void }) => {
+const Login = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const student_id_ref = useRef<HTMLInputElement>(null);
@@ -27,7 +27,6 @@ const Login = (props: { setIsFirstLogin: (value: boolean) => void }) => {
     const email = `${student_id}@st.shudo-h.ed.jp`;
     try {
       await signInWithEmailAndPassword(auth, email, `${password}`);
-      props.setIsFirstLogin(true);
       console.log('ログインに成功しました。');
     } catch (error) {
       alert('ログインに失敗しました。');
