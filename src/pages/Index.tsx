@@ -22,7 +22,7 @@ const Index = () => {
   return (
     <div className="flex flex-col items-center justify-center pt-[20dvh]">
       <p>{'ようこそ、修学旅行のしおりへ！'}</p>
-      <button onClick={handleLogout}>ログアウト</button>
+      <button onClick={handleLogout}>{"ログアウト"}</button>
       {/* 必要に応じて他のコンテンツを追加 */}
     </div>
   );

@@ -184,27 +184,27 @@ const Admin: React.FC = () => {
   const day3idOptions = ['okutama', 'yokosuka', 'hakone', 'kamakura', 'hakkeijima', 'yokohama'];
 
   if (!authChecked) {
-    return <div>認証確認中...</div>;
+    return <div>{'認証確認中...'}</div>;
   }
   if (!isAdmin) {
-    return <div>権限がありません。</div>;
+    return <div>{'権限がありません。'}</div>;
   }
 
   return (
     <div>
-      <h1>生徒データ登録パネル</h1>
+      <h1>{'生徒データ登録パネル'}</h1>
       <button onClick={handleAddRow} disabled={editRowId !== null}>
-        新規追加
+        {'新規追加'}
       </button>
       <div>{status}</div>
-      <h2>登録済み生徒一覧</h2>
+      <h2>{'登録済み生徒一覧'}</h2>
       <table border={1}>
         <thead>
           <tr>
             {columns.map((col) => (
               <th key={col.key}>{col.label}</th>
             ))}
-            <th>操作</th>
+            <th>{'操作'}</th>
           </tr>
         </thead>
         <tbody>
@@ -257,8 +257,8 @@ const Admin: React.FC = () => {
                 <input name="tag" value={editRowForm.tag} required onChange={handleEditRowChange} />
               </td>
               <td>
-                <button onClick={handleAddRowSave}>保存</button>
-                <button onClick={handleEditRowCancel}>キャンセル</button>
+                <button onClick={handleAddRowSave}>{'保存'}</button>
+                <button onClick={handleEditRowCancel}>{'キャンセル'}</button>
               </td>
             </tr>
           )}
@@ -312,8 +312,8 @@ const Admin: React.FC = () => {
                   <input name="tag" value={editRowForm.tag} required onChange={handleEditRowChange} />
                 </td>
                 <td>
-                  <button onClick={handleEditRowSave}>保存</button>
-                  <button onClick={handleEditRowCancel}>キャンセル</button>
+                  <button onClick={handleEditRowSave}>{'保存'}</button>
+                  <button onClick={handleEditRowCancel}>{'キャンセル'}</button>
                 </td>
               </tr>
             ) : (
@@ -331,10 +331,10 @@ const Admin: React.FC = () => {
                 <td>{s.tag}</td>
                 <td>
                   <button onClick={() => handleEditClick(s)} disabled={editRowId !== null}>
-                    編集
+                    {'編集'}
                   </button>
                   <button onClick={() => handleDelete(s.id)} disabled={editRowId !== null}>
-                    削除
+                    {'削除'}
                   </button>
                 </td>
               </tr>
