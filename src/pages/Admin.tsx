@@ -15,7 +15,7 @@ async function sha256(str: string): Promise<string> {
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-const adminHashes = ['e0e2e7e2e3e6e7e2e3e6e7e2e3e6e7e2e3e6e7e2e3e6e7e2e3e6e7e2e3e6e7e2e3e6e7e2e3e6e7e2e3e6e7e2e3e6e7'];
+const adminHashes = ['0870101e9e5273808a04d54a147f4060c5442e30cf8ab81c693c534d2cb95222'];
 
 type StudentWithId = student & { id: string };
 
@@ -34,7 +34,7 @@ const initialForm: Omit<student, 'class' | 'number'> & { class: string; number: 
 };
 
 const Admin: React.FC = () => {
-  const [studentsList, setStudentsList] = useState<StudentWithId[]>([]);
+  const [studentsList, setStudentsList] = useState<StudentWithId[] | null>(null);
   const [editRowId, setEditRowId] = useState<string | null>(null); // 編集中の行ID
   const [editRowForm, setEditRowForm] = useState<typeof initialForm>(initialForm); // 編集用フォーム
   const [isAdding, setIsAdding] = useState(false); // 新規追加中か
@@ -188,6 +188,10 @@ const Admin: React.FC = () => {
   }
   if (!isAdmin) {
     return <div>{'権限がありません。'}</div>;
+  }
+
+  if (!studentsList) {
+    return <div>{"読込中..."}</div>
   }
 
   return (
