@@ -6,11 +6,20 @@ import type { IntRange } from 'type-fest';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
 import { getAuth } from 'firebase/auth';
 
-const adminUsers = ["20210119"];
+// SHA256ハッシュ化関数
+async function sha256(str: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+  const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+const adminHashes = ['e0e2e7e2e3e6e7e2e3e6e7e2e3e6e7e2e3e6e7e2e3e6e7e2e3e6e7e2e3e6e7e2e3e6e7e2e3e6e7e2e3e6e7e2e3e6e7'];
 
 type StudentWithId = student & { id: string };
 
-const initialForm: Omit<student, 'class' | 'number' > & { class: string; number: string;  } = {
+const initialForm: Omit<student, 'class' | 'number'> & { class: string; number: string } = {
   surname: '',
   forename: '',
   class: '',
@@ -49,10 +58,11 @@ const Admin: React.FC = () => {
 
   useEffect(() => {
     const auth = getAuth();
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user && user.email) {
         const beforeAt = user.email.split('@')[0];
-        setIsAdmin(adminUsers.includes(beforeAt));
+        const hash = await sha256(beforeAt);
+        setIsAdmin(adminHashes.includes(hash));
       } else {
         setIsAdmin(false);
       }
@@ -67,7 +77,7 @@ const Admin: React.FC = () => {
     setEditRowForm({
       ...s,
       class: String(s.class),
-      number: String(s.number),
+      number: String(s.number)
     });
     setIsAdding(false);
     setStatus('');
@@ -84,7 +94,7 @@ const Admin: React.FC = () => {
       const data: student = {
         ...editRowForm,
         class: Number(editRowForm.class) as IntRange<1, 8>,
-        number: Number(editRowForm.number) as IntRange<1, 42>,
+        number: Number(editRowForm.number) as IntRange<1, 42>
       };
       await updateDoc(doc(db, 'students', editRowId), data);
       setStatus('生徒データを更新しました。');
@@ -128,7 +138,7 @@ const Admin: React.FC = () => {
       const data: student = {
         ...editRowForm,
         class: Number(editRowForm.class) as IntRange<1, 8>,
-        number: Number(editRowForm.number) as IntRange<1, 42>,
+        number: Number(editRowForm.number) as IntRange<1, 42>
       };
       await addDoc(collection(db, 'students'), data);
       setStatus('生徒データを追加しました。');
