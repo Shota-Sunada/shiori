@@ -4,10 +4,13 @@ import { db } from '../firebase';
 import type { student } from '../data/students';
 import type { IntRange } from 'type-fest';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
+import { getAuth } from 'firebase/auth';
+
+const adminUsers = ["20210119"];
 
 type StudentWithId = student & { id: string };
 
-const initialForm: Omit<student, 'class' | 'number'> & { class: string; number: string } = {
+const initialForm: Omit<student, 'class' | 'number' > & { class: string; number: string;  } = {
   surname: '',
   forename: '',
   class: '',
@@ -27,6 +30,8 @@ const Admin: React.FC = () => {
   const [editRowForm, setEditRowForm] = useState<typeof initialForm>(initialForm); // 編集用フォーム
   const [isAdding, setIsAdding] = useState(false); // 新規追加中か
   const [status, setStatus] = useState<string>('');
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [authChecked, setAuthChecked] = useState<boolean>(false);
 
   // Firestoreから生徒データを取得
   const fetchStudents = async () => {
@@ -42,13 +47,27 @@ const Admin: React.FC = () => {
     fetchStudents();
   }, []);
 
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user && user.email) {
+        const beforeAt = user.email.split('@')[0];
+        setIsAdmin(adminUsers.includes(beforeAt));
+      } else {
+        setIsAdmin(false);
+      }
+      setAuthChecked(true);
+    });
+    return () => unsubscribe();
+  }, []);
+
   // 行内編集用
   const handleEditClick = (s: StudentWithId) => {
     setEditRowId(s.id);
     setEditRowForm({
       ...s,
       class: String(s.class),
-      number: String(s.number)
+      number: String(s.number),
     });
     setIsAdding(false);
     setStatus('');
@@ -65,7 +84,7 @@ const Admin: React.FC = () => {
       const data: student = {
         ...editRowForm,
         class: Number(editRowForm.class) as IntRange<1, 8>,
-        number: Number(editRowForm.number) as IntRange<1, 42>
+        number: Number(editRowForm.number) as IntRange<1, 42>,
       };
       await updateDoc(doc(db, 'students', editRowId), data);
       setStatus('生徒データを更新しました。');
@@ -109,7 +128,7 @@ const Admin: React.FC = () => {
       const data: student = {
         ...editRowForm,
         class: Number(editRowForm.class) as IntRange<1, 8>,
-        number: Number(editRowForm.number) as IntRange<1, 42>
+        number: Number(editRowForm.number) as IntRange<1, 42>,
       };
       await addDoc(collection(db, 'students'), data);
       setStatus('生徒データを追加しました。');
@@ -153,6 +172,13 @@ const Admin: React.FC = () => {
     'air'
   ];
   const day3idOptions = ['okutama', 'yokosuka', 'hakone', 'kamakura', 'hakkeijima', 'yokohama'];
+
+  if (!authChecked) {
+    return <div>認証確認中...</div>;
+  }
+  if (!isAdmin) {
+    return <div>権限がありません。</div>;
+  }
 
   return (
     <div>
