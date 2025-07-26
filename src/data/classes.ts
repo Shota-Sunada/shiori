@@ -1,5 +1,5 @@
 type CLASS = {
-  teacher: '';
+  teacher: string;
 };
 
 export const CLASSES: CLASS[] = [];

@@ -10,16 +10,14 @@ const Header = () => {
     <div>
       <p>{'修道高校79回生 黄色バッチ'}</p>
       <p>{'修学旅行のしおり'}</p>
-
-      <div
-        onClick={() => {
-          setIsMenuOpen(!isMenuOpen);
-        }}>
+      <div onClick={() => setIsMenuOpen(!isMenuOpen)}>
         {'メニュー'}
-        {isMenuOpen ? <div>
-          <p onClick={()=> navigate("/")}>{"メイン画面"}</p>
-          <p onClick={()=> navigate("/admin")}>{"管理画面"}</p>
-        </div> : <></>}
+        {isMenuOpen && (
+          <div>
+            <p onClick={() => navigate('/')}>{'メイン画面'}</p>
+            <p onClick={() => navigate('/admin')}>{'管理画面'}</p>
+          </div>
+        )}
       </div>
     </div>
   );
