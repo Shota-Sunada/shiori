@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-import { app } from '../firebase';
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { db } from '../firebase';
 import type { student } from '../data/students';
 import type { IntRange } from 'type-fest';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
 
 type StudentWithId = student & { id: string };
 
-const db = getFirestore(app);
-
 const initialForm: Omit<student, 'class' | 'number'> & { class: string; number: string } = {
   surname: '',
   forename: '',
   class: '',
   number: '',
-  day1id: '',
+  day1id: 'yrp_nifco',
   day3id: 'okutama',
   day1bus: '',
   day3bus: '',
