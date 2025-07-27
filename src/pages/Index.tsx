@@ -1,16 +1,33 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
-import { random } from '../random';
+import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import type { student } from '../data/students';
 
 const Index = () => {
   const { user, loading } = useAuth();
 
   const navigate = useNavigate();
 
-  const prefix = ['ようこそ!', 'おかえりなさいませ!', 'おはよう!'];
-  const postfix = ['君', '様', 'ちゃん', '殿'];
-  const messages = ['修学旅行、楽しんでるかい?'];
+  const [studentData, setStudentData] = useState<student | null>(null);
+
+  useEffect(() => {
+    const fetchStudent = async () => {
+      if (user && user.email) {
+        const gakuseki = user.email.split('@')[0];
+        const db = getFirestore();
+        const q = query(collection(db, 'students'), where('gakuseki', '==', Number(gakuseki)));
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          setStudentData(snapshot.docs[0].data() as student);
+        } else {
+          setStudentData(null);
+        }
+      }
+    };
+
+    fetchStudent();
+  }, [user]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -28,10 +45,8 @@ const Index = () => {
   return (
     <div className="flex flex-col items-center justify-center pt-[20dvh]">
       <p>
-        {prefix[random(0, prefix.length)]} {user?.email}{postfix[random(0, postfix.length)]}
-        {'。'}
-        {messages[random(0, messages.length)]}
-      </p>
+        {"ようこそ、"}{studentData?.surname}{studentData?.forename}{"さん。"}
+        </p>
     </div>
   );
 };

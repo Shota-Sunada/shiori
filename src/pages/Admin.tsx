@@ -19,11 +19,12 @@ const adminHashes = ['0870101e9e5273808a04d54a147f4060c5442e30cf8ab81c693c534d2c
 
 type StudentWithId = student & { id: string };
 
-const initialForm: Omit<student, 'class' | 'number'> & { class: string; number: string } = {
+const initialForm: Omit<student, 'class' | 'number' | 'gakuseki'> & { class: string; number: string; gakuseki: string } = {
   surname: '',
   forename: '',
   class: '',
   number: '',
+  gakuseki: '',
   day1id: 'yrp_nifco',
   day3id: 'okutama',
   day1bus: '',
@@ -77,7 +78,8 @@ const Admin: React.FC = () => {
     setEditRowForm({
       ...s,
       class: String(s.class),
-      number: String(s.number)
+      number: String(s.number),
+      gakuseki: String(s.gakuseki)
     });
     setIsAdding(false);
     setStatus('');
@@ -94,7 +96,8 @@ const Admin: React.FC = () => {
       const data: student = {
         ...editRowForm,
         class: Number(editRowForm.class) as IntRange<1, 8>,
-        number: Number(editRowForm.number) as IntRange<1, 42>
+        number: Number(editRowForm.number) as IntRange<1, 42>,
+        gakuseki: Number(editRowForm.gakuseki)
       };
       await updateDoc(doc(db, 'students', editRowId), data);
       setStatus('生徒データを更新しました。');
@@ -138,7 +141,8 @@ const Admin: React.FC = () => {
       const data: student = {
         ...editRowForm,
         class: Number(editRowForm.class) as IntRange<1, 8>,
-        number: Number(editRowForm.number) as IntRange<1, 42>
+        number: Number(editRowForm.number) as IntRange<1, 42>,
+        gakuseki: Number(editRowForm.gakuseki)
       };
       await addDoc(collection(db, 'students'), data);
       setStatus('生徒データを追加しました。');
@@ -152,6 +156,7 @@ const Admin: React.FC = () => {
 
   // テーブルのカラム名
   const columns = [
+    { key: 'gakuseki', label: '学籍番号' },
     { key: 'surname', label: '姓' },
     { key: 'forename', label: '名' },
     { key: 'class', label: '組' },
@@ -191,7 +196,7 @@ const Admin: React.FC = () => {
   }
 
   if (!studentsList) {
-    return <div>{"読込中..."}</div>
+    return <div>{'読込中...'}</div>;
   }
 
   return (
@@ -215,6 +220,9 @@ const Admin: React.FC = () => {
           {/* 新規追加用の空白行 */}
           {isAdding && editRowId === 'new' && (
             <tr>
+              <td>
+                <input name="gakuseki" value={editRowForm.gakuseki} onChange={handleEditRowChange} required />
+              </td>
               <td>
                 <input name="surname" value={editRowForm.surname} onChange={handleEditRowChange} required />
               </td>
@@ -271,6 +279,9 @@ const Admin: React.FC = () => {
             editRowId === s.id ? (
               <tr key={s.id}>
                 <td>
+                  <input name="gakuseki" value={editRowForm.gakuseki} onChange={handleEditRowChange} required />
+                </td>
+                <td>
                   <input name="surname" value={editRowForm.surname} onChange={handleEditRowChange} required />
                 </td>
                 <td>
@@ -322,6 +333,7 @@ const Admin: React.FC = () => {
               </tr>
             ) : (
               <tr key={s.id}>
+                <td>{s.gakuseki}</td>
                 <td>{s.surname}</td>
                 <td>{s.forename}</td>
                 <td>{s.class}</td>

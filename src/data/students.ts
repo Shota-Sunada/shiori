@@ -5,6 +5,7 @@ export type student = {
   forename: string;
   class: IntRange<1, 8>;
   number: IntRange<1, 42>;
+  gakuseki: number;
   day1id:
     | 'yrp_nifco'
     | 'yrp_yamashin'
