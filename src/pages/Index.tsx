@@ -45,8 +45,11 @@ const Index = () => {
   return (
     <div className="flex flex-col items-center justify-center pt-[20dvh]">
       <p>
-        {"ようこそ、"}{studentData?.surname}{studentData?.forename}{"さん。"}
-        </p>
+        {'ようこそ、'}
+        {studentData?.surname}
+        {studentData?.forename}
+        {'さん。'}
+      </p>
     </div>
   );
 };
