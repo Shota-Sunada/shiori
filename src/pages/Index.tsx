@@ -44,7 +44,7 @@ const Index = () => {
     );
 
   return (
-    <div className="flex flex-col items-center justify-center pt-[20dvh]">
+    <div className="flex flex-col items-center justify-center">
       <p>
         {'ようこそ、'}
         {studentData?.surname}
