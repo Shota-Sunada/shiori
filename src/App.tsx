@@ -10,7 +10,7 @@ function App() {
   return (
     <>
       <main>
-        <div className="h-[100%] bg-[#f7f4e5] overflow-y-auto">
+        <div className="h-[100%] bg-[#50141c] overflow-y-auto">
           <AuthProvider>
             <BrowserRouter>
               <Header />

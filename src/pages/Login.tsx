@@ -39,15 +39,30 @@ const Login = () => {
   return (
     <div className="flex flex-col items-center justify-center">
       <form className="w-[100%] flex flex-col items-center justify-center p-[10dvh]" onSubmit={handleSubmit}>
-        <p className="">{'修道高校79回生 修学旅行のしおり'}</p>
+        <img src="https://gakugai.shudo-h.ed.jp/hp_assets/images/common/menu_logo.png" alt="修道ロゴ" />
+        <p className="mt-[2dvh]">{'修道高校79回生 修学旅行のしおり'}</p>
         <p className="text-2xl pt-[2dvh]">{'ログイン'}</p>
-        <div className="flex flex-col">
-          <label htmlFor={'student_id'}>{'生徒ID (2021から始まる8桁の番号)'}</label>
-          <input type="number" name="student_id" id="student_id" placeholder={'生徒IDを入力'} required ref={student_id_ref} />
+        <div className="flex flex-col mt-[2dvh]">
+          <label htmlFor={'student_id'}>{'生徒ID'}</label>
+          <input
+            type="number"
+            name="student_id"
+            id="student_id"
+            placeholder={'生徒ID (2021****) を入力'}
+            required
+            ref={student_id_ref}
+          />
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col mb-[2dvh]">
           <label htmlFor={'password'}>{'パスワード'}</label>
-          <input type="password" name="password" id="password" placeholder={'パスワードを入力'} required ref={password_ref} />
+          <input
+            type="password"
+            name="password"
+            id="password"
+            placeholder={'パスワードを入力'}
+            required
+            ref={password_ref}
+          />
         </div>
         {/* <div className="flex flex-col">
           <label htmlFor={'class_number'}>{'クラスを選択してください'}</label>
