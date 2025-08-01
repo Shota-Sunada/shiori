@@ -39,7 +39,7 @@ const Login = () => {
   return (
     <div className="flex flex-col items-center justify-center">
       <form className="w-[100%] flex flex-col items-center justify-center p-[10dvh]" onSubmit={handleSubmit}>
-        <img src="https://gakugai.shudo-h.ed.jp/hp_assets/images/common/menu_logo.png" alt="修道ロゴ" />
+        <img className='bg-[#50141c] p-[2dvh] rounded-[10px]' src="https://gakugai.shudo-h.ed.jp/hp_assets/images/common/menu_logo.png" alt="修道ロゴ" />
         <p className="mt-[2dvh]">{'修道高校79回生 修学旅行のしおり'}</p>
         <p className="text-2xl pt-[2dvh]">{'ログイン'}</p>
         <div className="flex flex-col mt-[2dvh]">
