@@ -5,6 +5,7 @@ import type { student } from '../data/students';
 import type { IntRange } from 'type-fest';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
 import { getAuth } from 'firebase/auth';
+import '../styles/admin-table.css';
 
 // SHA256ハッシュ化関数
 async function sha256(str: string): Promise<string> {
@@ -207,77 +208,20 @@ const Admin: React.FC = () => {
       </button>
       <div>{status}</div>
       <h2>{'登録済み生徒一覧'}</h2>
-      <table border={1}>
-        <thead>
-          <tr>
-            {columns.map((col) => (
-              <th key={col.key}>{col.label}</th>
-            ))}
-            <th>{'操作'}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {/* 新規追加用の空白行 */}
-          {isAdding && editRowId === 'new' && (
+      <div className="table-root">
+        <table border={1}>
+          <thead>
             <tr>
-              <td>
-                <input name="gakuseki" value={editRowForm.gakuseki} onChange={handleEditRowChange} required />
-              </td>
-              <td>
-                <input name="surname" value={editRowForm.surname} onChange={handleEditRowChange} required />
-              </td>
-              <td>
-                <input name="forename" value={editRowForm.forename} onChange={handleEditRowChange} required />
-              </td>
-              <td>
-                <input name="class" type="number" min={1} max={7} value={editRowForm.class} onChange={handleEditRowChange} required />
-              </td>
-              <td>
-                <input name="number" type="number" min={1} max={41} value={editRowForm.number} onChange={handleEditRowChange} required />
-              </td>
-              <td>
-                <select name="day1id" value={editRowForm.day1id} required onChange={handleEditRowChange}>
-                  {day1idOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {COURSES_DAY1.find((x) => x.key == opt)?.name}
-                    </option>
-                  ))}
-                </select>
-              </td>
-              <td>
-                <select name="day3id" value={editRowForm.day3id} required onChange={handleEditRowChange}>
-                  {day3idOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {COURSES_DAY3.find((x) => x.key == opt)?.name}
-                    </option>
-                  ))}
-                </select>
-              </td>
-              <td>
-                <input name="day1bus" value={editRowForm.day1bus} required onChange={handleEditRowChange} />
-              </td>
-              <td>
-                <input name="day3bus" value={editRowForm.day3bus} required onChange={handleEditRowChange} />
-              </td>
-              <td>
-                <input name="room_tokyo" value={editRowForm.room_tokyo} required onChange={handleEditRowChange} />
-              </td>
-              <td>
-                <input name="room_shizuoka" value={editRowForm.room_shizuoka} required onChange={handleEditRowChange} />
-              </td>
-              <td>
-                <input name="tag" value={editRowForm.tag} required onChange={handleEditRowChange} />
-              </td>
-              <td>
-                <button onClick={handleAddRowSave}>{'保存'}</button>
-                <button onClick={handleEditRowCancel}>{'キャンセル'}</button>
-              </td>
+              {columns.map((col) => (
+                <th key={col.key}>{col.label}</th>
+              ))}
+              <th>{'操作'}</th>
             </tr>
-          )}
-          {/* 既存データ */}
-          {studentsList.map((s) =>
-            editRowId === s.id ? (
-              <tr key={s.id}>
+          </thead>
+          <tbody>
+            {/* 新規追加用の空白行 */}
+            {isAdding && editRowId === 'new' && (
+              <tr>
                 <td>
                   <input name="gakuseki" value={editRowForm.gakuseki} onChange={handleEditRowChange} required />
                 </td>
@@ -327,37 +271,96 @@ const Admin: React.FC = () => {
                   <input name="tag" value={editRowForm.tag} required onChange={handleEditRowChange} />
                 </td>
                 <td>
-                  <button onClick={handleEditRowSave}>{'保存'}</button>
+                  <button onClick={handleAddRowSave}>{'保存'}</button>
                   <button onClick={handleEditRowCancel}>{'キャンセル'}</button>
                 </td>
               </tr>
-            ) : (
-              <tr key={s.id}>
-                <td>{s.gakuseki}</td>
-                <td>{s.surname}</td>
-                <td>{s.forename}</td>
-                <td>{s.class}</td>
-                <td>{s.number}</td>
-                <td>{COURSES_DAY1.find((x) => x.key == s.day1id)?.name}</td>
-                <td>{COURSES_DAY3.find((x) => x.key == s.day3id)?.name}</td>
-                <td>{s.day1bus}</td>
-                <td>{s.day3bus}</td>
-                <td>{s.room_tokyo}</td>
-                <td>{s.room_shizuoka}</td>
-                <td>{s.tag}</td>
-                <td>
-                  <button onClick={() => handleEditClick(s)} disabled={editRowId !== null}>
-                    {'編集'}
-                  </button>
-                  <button onClick={() => handleDelete(s.id)} disabled={editRowId !== null}>
-                    {'削除'}
-                  </button>
-                </td>
-              </tr>
-            )
-          )}
-        </tbody>
-      </table>
+            )}
+            {/* 既存データ */}
+            {studentsList.map((s) =>
+              editRowId === s.id ? (
+                <tr key={s.id}>
+                  <td>
+                    <input name="gakuseki" value={editRowForm.gakuseki} onChange={handleEditRowChange} required />
+                  </td>
+                  <td>
+                    <input name="surname" value={editRowForm.surname} onChange={handleEditRowChange} required />
+                  </td>
+                  <td>
+                    <input name="forename" value={editRowForm.forename} onChange={handleEditRowChange} required />
+                  </td>
+                  <td>
+                    <input name="class" type="number" min={1} max={7} value={editRowForm.class} onChange={handleEditRowChange} required />
+                  </td>
+                  <td>
+                    <input name="number" type="number" min={1} max={41} value={editRowForm.number} onChange={handleEditRowChange} required />
+                  </td>
+                  <td>
+                    <select name="day1id" value={editRowForm.day1id} required onChange={handleEditRowChange}>
+                      {day1idOptions.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {COURSES_DAY1.find((x) => x.key == opt)?.name}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td>
+                    <select name="day3id" value={editRowForm.day3id} required onChange={handleEditRowChange}>
+                      {day3idOptions.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {COURSES_DAY3.find((x) => x.key == opt)?.name}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td>
+                    <input name="day1bus" value={editRowForm.day1bus} required onChange={handleEditRowChange} />
+                  </td>
+                  <td>
+                    <input name="day3bus" value={editRowForm.day3bus} required onChange={handleEditRowChange} />
+                  </td>
+                  <td>
+                    <input name="room_tokyo" value={editRowForm.room_tokyo} required onChange={handleEditRowChange} />
+                  </td>
+                  <td>
+                    <input name="room_shizuoka" value={editRowForm.room_shizuoka} required onChange={handleEditRowChange} />
+                  </td>
+                  <td>
+                    <input name="tag" value={editRowForm.tag} required onChange={handleEditRowChange} />
+                  </td>
+                  <td>
+                    <button onClick={handleEditRowSave}>{'保存'}</button>
+                    <button onClick={handleEditRowCancel}>{'キャンセル'}</button>
+                  </td>
+                </tr>
+              ) : (
+                <tr key={s.id}>
+                  <td>{s.gakuseki}</td>
+                  <td>{s.surname}</td>
+                  <td>{s.forename}</td>
+                  <td>{s.class}</td>
+                  <td>{s.number}</td>
+                  <td>{COURSES_DAY1.find((x) => x.key == s.day1id)?.name}</td>
+                  <td>{COURSES_DAY3.find((x) => x.key == s.day3id)?.name}</td>
+                  <td>{s.day1bus}</td>
+                  <td>{s.day3bus}</td>
+                  <td>{s.room_tokyo}</td>
+                  <td>{s.room_shizuoka}</td>
+                  <td>{s.tag}</td>
+                  <td>
+                    <button onClick={() => handleEditClick(s)} disabled={editRowId !== null}>
+                      {'編集'}
+                    </button>
+                    <button onClick={() => handleDelete(s.id)} disabled={editRowId !== null}>
+                      {'削除'}
+                    </button>
+                  </td>
+                </tr>
+              )
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
