@@ -1,6 +1,6 @@
 const YesNoModal = (props: { message: string; yes: () => void; no: () => void }) => {
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
+    <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm">
       <div className="border-[1px] bg-white text-black rounded-xl px-[5dvw] py-[5dvh]">
         <p>{props.message}</p>
         <div className="flex flex-row items-center justify-center">

@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { student } from '../data/students';
-import type { IntRange } from 'type-fest';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
 import { getAuth } from 'firebase/auth';
 import '../styles/admin-table.css';
+import StudentModal from '../components/StudentModal';
 
 // SHA256ハッシュ化関数
 async function sha256(str: string): Promise<string> {
@@ -39,10 +39,10 @@ const Admin: React.FC = () => {
   const [studentsList, setStudentsList] = useState<StudentWithId[] | null>(null);
   const [editRowId, setEditRowId] = useState<string | null>(null); // 編集中の行ID
   const [editRowForm, setEditRowForm] = useState<typeof initialForm>(initialForm); // 編集用フォーム
-  const [isAdding, setIsAdding] = useState(false); // 新規追加中か
   const [status, setStatus] = useState<string>('');
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [authChecked, setAuthChecked] = useState<boolean>(false);
+  const [authChecked, setAuthChecked] = useState<boolean>(false); // 追加モーダル表示状態
+  const [modalMode, setModalMode] = useState<'add' | 'edit' | null>(null);
 
   // Firestoreから生徒データを取得
   const fetchStudents = async () => {
@@ -73,7 +73,7 @@ const Admin: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // 行内編集用
+  // モーダル編集用
   const handleEditClick = (s: StudentWithId) => {
     setEditRowId(s.id);
     setEditRowForm({
@@ -82,37 +82,8 @@ const Admin: React.FC = () => {
       number: String(s.number),
       gakuseki: String(s.gakuseki)
     });
-    setIsAdding(false);
     setStatus('');
-  };
-
-  const handleEditRowChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setEditRowForm({ ...editRowForm, [e.target.name]: e.target.value });
-  };
-
-  const handleEditRowSave = async () => {
-    if (!editRowId) return;
-    setStatus('更新中...');
-    try {
-      const data: student = {
-        ...editRowForm,
-        class: Number(editRowForm.class) as IntRange<1, 8>,
-        number: Number(editRowForm.number) as IntRange<1, 42>,
-        gakuseki: Number(editRowForm.gakuseki)
-      };
-      await updateDoc(doc(db, 'students', editRowId), data);
-      setStatus('生徒データを更新しました。');
-      setEditRowId(null);
-      fetchStudents();
-    } catch (e) {
-      setStatus('エラーが発生しました: ' + (e as Error).message);
-    }
-  };
-
-  const handleEditRowCancel = () => {
-    setEditRowId(null);
-    setIsAdding(false);
-    setEditRowForm(initialForm);
+    setModalMode('edit');
   };
 
   // 削除処理
@@ -130,28 +101,34 @@ const Admin: React.FC = () => {
 
   // 新規追加
   const handleAddRow = () => {
-    setEditRowId('new');
+    setModalMode('add');
     setEditRowForm(initialForm);
-    setIsAdding(true);
     setStatus('');
   };
 
-  const handleAddRowSave = async () => {
-    setStatus('追加中...');
-    try {
-      const data: student = {
-        ...editRowForm,
-        class: Number(editRowForm.class) as IntRange<1, 8>,
-        number: Number(editRowForm.number) as IntRange<1, 42>,
-        gakuseki: Number(editRowForm.gakuseki)
-      };
-      await addDoc(collection(db, 'students'), data);
-      setStatus('生徒データを追加しました。');
-      setEditRowId(null);
-      setIsAdding(false);
-      fetchStudents();
-    } catch (e) {
-      setStatus('エラーが発生しました: ' + (e as Error).message);
+  const handleSave = async (data: student) => {
+    if (modalMode === 'add') {
+      setStatus('追加中...');
+      try {
+        await addDoc(collection(db, 'students'), data);
+        setStatus('生徒データを追加しました。');
+        setModalMode(null);
+        fetchStudents();
+      } catch (e) {
+        setStatus('エラーが発生しました: ' + (e as Error).message);
+      }
+    } else if (modalMode === 'edit') {
+      if (!editRowId) return;
+      setStatus('更新中...');
+      try {
+        await updateDoc(doc(db, 'students', editRowId), data);
+        setStatus('生徒データを更新しました。');
+        setModalMode(null);
+        setEditRowId(null);
+        fetchStudents();
+      } catch (e) {
+        setStatus('エラーが発生しました: ' + (e as Error).message);
+      }
     }
   };
 
@@ -203,10 +180,32 @@ const Admin: React.FC = () => {
   return (
     <div>
       <h1>{'生徒データ登録パネル'}</h1>
-      <button onClick={handleAddRow} disabled={editRowId !== null}>
+      <button onClick={handleAddRow} disabled={modalMode !== null}>
         {'新規追加'}
       </button>
       <div>{status}</div>
+      <StudentModal
+        open={modalMode !== null}
+        mode={modalMode || 'add'}
+        onSave={(formData) => {
+          const data: student = {
+            ...formData,
+            day1id: formData.day1id as student['day1id'],
+            day3id: formData.day3id as student['day3id'],
+            class: Number(formData.class) as student['class'],
+            number: Number(formData.number) as student['number'],
+            gakuseki: Number(formData.gakuseki)
+          };
+          handleSave(data);
+        }}
+        onCancel={() => {
+          setModalMode(null);
+          setEditRowId(null);
+        }}
+        initialData={modalMode === 'edit' ? editRowForm : initialForm}
+        day1idOptions={day1idOptions}
+        day3idOptions={day3idOptions}
+      />
       <h2>{'登録済み生徒一覧'}</h2>
       <div className="table-root">
         <table border={1}>
@@ -219,145 +218,31 @@ const Admin: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {/* 新規追加用の空白行 */}
-            {isAdding && editRowId === 'new' && (
-              <tr>
+            {/* 既存データ */}
+            {studentsList.map((s) => (
+              <tr key={s.id}>
+                <td>{s.gakuseki}</td>
+                <td>{s.surname}</td>
+                <td>{s.forename}</td>
+                <td>{s.class}</td>
+                <td>{s.number}</td>
+                <td>{COURSES_DAY1.find((x) => x.key == s.day1id)?.name}</td>
+                <td>{COURSES_DAY3.find((x) => x.key == s.day3id)?.name}</td>
+                <td>{s.day1bus}</td>
+                <td>{s.day3bus}</td>
+                <td>{s.room_tokyo}</td>
+                <td>{s.room_shizuoka}</td>
+                <td>{s.tag}</td>
                 <td>
-                  <input name="gakuseki" value={editRowForm.gakuseki} onChange={handleEditRowChange} required />
-                </td>
-                <td>
-                  <input name="surname" value={editRowForm.surname} onChange={handleEditRowChange} required />
-                </td>
-                <td>
-                  <input name="forename" value={editRowForm.forename} onChange={handleEditRowChange} required />
-                </td>
-                <td>
-                  <input name="class" type="number" min={1} max={7} value={editRowForm.class} onChange={handleEditRowChange} required />
-                </td>
-                <td>
-                  <input name="number" type="number" min={1} max={41} value={editRowForm.number} onChange={handleEditRowChange} required />
-                </td>
-                <td>
-                  <select name="day1id" value={editRowForm.day1id} required onChange={handleEditRowChange}>
-                    {day1idOptions.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {COURSES_DAY1.find((x) => x.key == opt)?.name}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-                <td>
-                  <select name="day3id" value={editRowForm.day3id} required onChange={handleEditRowChange}>
-                    {day3idOptions.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {COURSES_DAY3.find((x) => x.key == opt)?.name}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-                <td>
-                  <input name="day1bus" value={editRowForm.day1bus} required onChange={handleEditRowChange} />
-                </td>
-                <td>
-                  <input name="day3bus" value={editRowForm.day3bus} required onChange={handleEditRowChange} />
-                </td>
-                <td>
-                  <input name="room_tokyo" value={editRowForm.room_tokyo} required onChange={handleEditRowChange} />
-                </td>
-                <td>
-                  <input name="room_shizuoka" value={editRowForm.room_shizuoka} required onChange={handleEditRowChange} />
-                </td>
-                <td>
-                  <input name="tag" value={editRowForm.tag} required onChange={handleEditRowChange} />
-                </td>
-                <td>
-                  <button onClick={handleAddRowSave}>{'保存'}</button>
-                  <button onClick={handleEditRowCancel}>{'キャンセル'}</button>
+                  <button onClick={() => handleEditClick(s)} disabled={modalMode !== null}>
+                    {'編集'}
+                  </button>
+                  <button onClick={() => handleDelete(s.id)} disabled={modalMode !== null}>
+                    {'削除'}
+                  </button>
                 </td>
               </tr>
-            )}
-            {/* 既存データ */}
-            {studentsList.map((s) =>
-              editRowId === s.id ? (
-                <tr key={s.id}>
-                  <td>
-                    <input name="gakuseki" value={editRowForm.gakuseki} onChange={handleEditRowChange} required />
-                  </td>
-                  <td>
-                    <input name="surname" value={editRowForm.surname} onChange={handleEditRowChange} required />
-                  </td>
-                  <td>
-                    <input name="forename" value={editRowForm.forename} onChange={handleEditRowChange} required />
-                  </td>
-                  <td>
-                    <input name="class" type="number" min={1} max={7} value={editRowForm.class} onChange={handleEditRowChange} required />
-                  </td>
-                  <td>
-                    <input name="number" type="number" min={1} max={41} value={editRowForm.number} onChange={handleEditRowChange} required />
-                  </td>
-                  <td>
-                    <select name="day1id" value={editRowForm.day1id} required onChange={handleEditRowChange}>
-                      {day1idOptions.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {COURSES_DAY1.find((x) => x.key == opt)?.name}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td>
-                    <select name="day3id" value={editRowForm.day3id} required onChange={handleEditRowChange}>
-                      {day3idOptions.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {COURSES_DAY3.find((x) => x.key == opt)?.name}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td>
-                    <input name="day1bus" value={editRowForm.day1bus} required onChange={handleEditRowChange} />
-                  </td>
-                  <td>
-                    <input name="day3bus" value={editRowForm.day3bus} required onChange={handleEditRowChange} />
-                  </td>
-                  <td>
-                    <input name="room_tokyo" value={editRowForm.room_tokyo} required onChange={handleEditRowChange} />
-                  </td>
-                  <td>
-                    <input name="room_shizuoka" value={editRowForm.room_shizuoka} required onChange={handleEditRowChange} />
-                  </td>
-                  <td>
-                    <input name="tag" value={editRowForm.tag} required onChange={handleEditRowChange} />
-                  </td>
-                  <td>
-                    <button onClick={handleEditRowSave}>{'保存'}</button>
-                    <button onClick={handleEditRowCancel}>{'キャンセル'}</button>
-                  </td>
-                </tr>
-              ) : (
-                <tr key={s.id}>
-                  <td>{s.gakuseki}</td>
-                  <td>{s.surname}</td>
-                  <td>{s.forename}</td>
-                  <td>{s.class}</td>
-                  <td>{s.number}</td>
-                  <td>{COURSES_DAY1.find((x) => x.key == s.day1id)?.name}</td>
-                  <td>{COURSES_DAY3.find((x) => x.key == s.day3id)?.name}</td>
-                  <td>{s.day1bus}</td>
-                  <td>{s.day3bus}</td>
-                  <td>{s.room_tokyo}</td>
-                  <td>{s.room_shizuoka}</td>
-                  <td>{s.tag}</td>
-                  <td>
-                    <button onClick={() => handleEditClick(s)} disabled={editRowId !== null}>
-                      {'編集'}
-                    </button>
-                    <button onClick={() => handleDelete(s.id)} disabled={editRowId !== null}>
-                      {'削除'}
-                    </button>
-                  </td>
-                </tr>
-              )
-            )}
+            ))}
           </tbody>
         </table>
       </div>
