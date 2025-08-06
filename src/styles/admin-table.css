@@ -17,6 +17,7 @@
 .table-root > table > tbody > tr > td {
   border-bottom: 0.5px solid #ebebde;
   border-right: 0.5px solid #ebebde;
+  background-color: white;
 }
 
 .table-root > table > tbody > tr > td:last-child {
