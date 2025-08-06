@@ -352,7 +352,7 @@ const Admin: React.FC = () => {
         <Button text="新規追加" onClick={handleAddRow} />
       </button>
       <button className="m-[10px]" disabled={modalMode !== null}>
-        <Button text="JSONから追加" onClick={handleAddJSONData} />
+        <Button text="JSONでまとめて追加" onClick={handleAddJSONData} />
       </button>
       <input
         className="m-[10px]"
