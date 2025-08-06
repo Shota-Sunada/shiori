@@ -144,9 +144,12 @@ const Admin: React.FC = () => {
         const data = e.target?.result as string;
         const obj = JSON.parse(data) as student[];
 
+        setStatus('更新中...');
         obj.map(async (x) => {
           const colRef = collection(db, 'students');
-          const q = query(colRef, where('forename', '==', x.forename));
+          const q = query(colRef, where('forename', '==', x.forename), where('surname', '==', x.surname));
+          // TODO: 学籍番号に置き換え
+          // const q = query(colRef, where('gakuseki', '==', x.gakuseki));
           const snapshot = await getDocs(q);
           const list: StudentWithId[] = [];
           snapshot.forEach((x) => {
@@ -154,28 +157,26 @@ const Admin: React.FC = () => {
           });
 
           if (list.length > 0) {
-            setStatus('更新中...');
             try {
               await updateDoc(doc(db, 'students', list[0].id), x);
-              setStatus('生徒データを更新しました。');
-              setModalMode(null);
-              setEditRowId(null);
-              fetchStudents();
+              console.log("更新しました")
             } catch (e) {
               setStatus('エラーが発生しました: ' + (e as Error).message);
             }
           } else {
-            setStatus('追加中...');
             try {
               await addDoc(collection(db, 'students'), x);
-              setStatus('生徒データを追加しました。');
-              setModalMode(null);
-              fetchStudents();
+              console.log("追加しました")
             } catch (e) {
               setStatus('エラーが発生しました: ' + (e as Error).message);
             }
           }
         });
+
+        setStatus('生徒データを更新しました。');
+        setModalMode(null);
+        setEditRowId(null);
+        fetchStudents();
       };
       reader.readAsText(e.target.files[0]);
     }
