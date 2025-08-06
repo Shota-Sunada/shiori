@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, type ChangeEvent } from 'react';
+import React, { useState, useEffect, useRef, type ChangeEvent, useMemo } from 'react';
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { student } from '../data/students';
@@ -19,6 +19,58 @@ async function sha256(str: string): Promise<string> {
 const adminHashes = ['0870101e9e5273808a04d54a147f4060c5442e30cf8ab81c693c534d2cb95222'];
 
 type StudentWithId = student & { id: string };
+
+type SortKey = keyof StudentWithId;
+type SortDirection = 'asc' | 'desc';
+type SortConfig = {
+  key: SortKey;
+  direction: SortDirection;
+};
+
+const sortList = (list: StudentWithId[], configs: SortConfig[]): StudentWithId[] => {
+  const sortedList = [...list];
+  if (configs.length === 0) {
+    return sortedList;
+  }
+  sortedList.sort((a, b) => {
+    for (const config of configs) {
+      const { key, direction } = config;
+      const aValue = a[key];
+      const bValue = b[key];
+      const order = direction === 'asc' ? 1 : -1;
+
+      let comparison = 0;
+      // nulls/undefined to the end
+      if (aValue == null && bValue == null) {
+        comparison = 0;
+      } else if (aValue == null) {
+        comparison = 1;
+      } else if (bValue == null) {
+        comparison = -1;
+      } else if (key === 'day1id') {
+        const aName = COURSES_DAY1.find((c) => c.key === aValue)?.name ?? '';
+        const bName = COURSES_DAY1.find((c) => c.key === bValue)?.name ?? '';
+        comparison = aName.localeCompare(bName);
+      } else if (key === 'day3id') {
+        const aName = COURSES_DAY3.find((c) => c.key === aValue)?.name ?? '';
+        const bName = COURSES_DAY3.find((c) => c.key === bValue)?.name ?? '';
+        comparison = aName.localeCompare(bName);
+      } else if (typeof aValue === 'string' && typeof bValue === 'string') {
+        comparison = aValue.localeCompare(bValue, undefined, { numeric: true });
+      } else if (aValue < bValue) {
+        comparison = -1;
+      } else if (aValue > bValue) {
+        comparison = 1;
+      }
+
+      if (comparison !== 0) {
+        return comparison * order;
+      }
+    }
+    return 0;
+  });
+  return sortedList;
+};
 
 const initialForm: Omit<student, 'class' | 'number' | 'gakuseki'> & { class: string; number: string; gakuseki: string } = {
   surname: '',
@@ -43,7 +95,13 @@ const Admin: React.FC = () => {
   const [authChecked, setAuthChecked] = useState<boolean>(false); // 追加モーダル表示状態
   const [modalMode, setModalMode] = useState<'add' | 'edit' | null>(null);
 
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
   const inputRef = useRef<HTMLInputElement>(null);
+  const [sortConfigs, setSortConfigs] = useState<SortConfig[]>([
+    { key: 'class', direction: 'asc' },
+    { key: 'number', direction: 'asc' }
+  ]);
 
   // Firestoreから生徒データを取得
   const fetchStudents = async () => {
@@ -52,8 +110,62 @@ const Admin: React.FC = () => {
     snapshot.forEach((docSnap) => {
       list.push({ ...(docSnap.data() as student), id: docSnap.id });
     });
+
     setStudentsList(list);
   };
+
+  const handleSort = (key: SortKey, shiftKey: boolean) => {
+    setSortConfigs((prevConfigs) => {
+      if (!shiftKey) {
+        // 通常のクリック: 単一ソート
+        const current = prevConfigs.find((c) => c.key === key);
+        if (current && prevConfigs.length === 1) {
+          // すでにその列でソートされている場合は、方向を切り替える
+          return [{ key, direction: current.direction === 'asc' ? 'desc' : 'asc' }];
+        } else {
+          // 新しい列でソートを開始
+          return [{ key, direction: 'asc' }];
+        }
+      }
+
+      // Shift + クリック: 複数ソート
+      const newConfigs: SortConfig[] = [...prevConfigs];
+      const configIndex = newConfigs.findIndex((c) => c.key === key);
+
+      if (configIndex > -1) {
+        // 既にソート条件に含まれている場合
+        const current = newConfigs[configIndex];
+        if (current.direction === 'asc') {
+          // 昇順 -> 降順
+          newConfigs[configIndex] = { ...current, direction: 'desc' };
+        } else {
+          // 降順 -> ソート条件から削除
+          newConfigs.splice(configIndex, 1);
+        }
+      } else {
+        // 新しいソート条件を追加
+        newConfigs.push({ key, direction: 'asc' });
+      }
+
+      return newConfigs;
+    });
+  };
+
+  const sortedAndFilteredStudents = useMemo(() => {
+    if (!studentsList) {
+      return [];
+    }
+    const lowercasedQuery = searchQuery.toLowerCase();
+    const filtered = studentsList.filter(
+      (s) =>
+        `${s.surname} ${s.forename}`.toLowerCase().includes(lowercasedQuery) ||
+        `${s.surname}${s.forename}`.toLowerCase().includes(lowercasedQuery) ||
+        String(s.gakuseki).includes(lowercasedQuery) ||
+        String(s.class).includes(lowercasedQuery) ||
+        String(s.number).includes(lowercasedQuery)
+    );
+    return sortList(filtered, sortConfigs);
+  }, [studentsList, searchQuery, sortConfigs]);
 
   useEffect(() => {
     fetchStudents();
@@ -159,14 +271,14 @@ const Admin: React.FC = () => {
           if (list.length > 0) {
             try {
               await updateDoc(doc(db, 'students', list[0].id), x);
-              console.log("更新しました")
+              console.log('更新しました');
             } catch (e) {
               setStatus('エラーが発生しました: ' + (e as Error).message);
             }
           } else {
             try {
               await addDoc(collection(db, 'students'), x);
-              console.log("追加しました")
+              console.log('追加しました');
             } catch (e) {
               setStatus('エラーが発生しました: ' + (e as Error).message);
             }
@@ -181,21 +293,6 @@ const Admin: React.FC = () => {
       reader.readAsText(e.target.files[0]);
     }
   };
-
-  // テーブルのカラム名
-  const columns = [
-    { key: 'gakuseki', label: '学籍番号' },
-    { key: 'surname', label: '姓' },
-    { key: 'forename', label: '名' },
-    { key: 'class', label: '組' },
-    { key: 'number', label: '番号' },
-    { key: 'day1id', label: '一日目研修先' },
-    { key: 'day3id', label: '三日目研修先' },
-    { key: 'day1bus', label: '一日目バス' },
-    { key: 'day3bus', label: '三日目バス' },
-    { key: 'room_tokyo', label: '東京ドームホテル 号室' },
-    { key: 'room_shizuoka', label: '静岡 ホテル 号室' }
-  ];
 
   // day1id/day3idの選択肢
   const day1idOptions = [
@@ -226,6 +323,18 @@ const Admin: React.FC = () => {
     return <div>{'読込中...'}</div>;
   }
 
+  const getSortIndicator = (key: SortKey) => {
+    const configIndex = sortConfigs.findIndex((c) => c.key === key);
+    if (configIndex === -1) {
+      return '↕';
+    }
+    const config = sortConfigs[configIndex];
+    const directionIcon = config.direction === 'asc' ? '▲' : '▼';
+    if (sortConfigs.length > 1) {
+      return `${configIndex + 1}${directionIcon}`;
+    }
+    return directionIcon;
+  };
   return (
     <div>
       <h1>{'生徒データ登録パネル'}</h1>
@@ -270,19 +379,100 @@ const Admin: React.FC = () => {
         day3idOptions={day3idOptions}
       />
       <h2>{'登録済み生徒一覧'}</h2>
+      <div className="flex items-center">
+        <input
+          type="text"
+          placeholder="検索..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="border p-2 rounded mr-2"
+        />
+      </div>
+      <p className="text-sm text-gray-600 my-2">ヒント: Shiftキーを押しながら列名をクリックすると、複数の条件でソートできます。</p>
       <div className="table-root">
         <table border={1}>
           <thead>
             <tr>
-              {columns.map((col) => (
-                <th key={col.key}>{col.label}</th>
-              ))}
+              <th>
+                <div className="flex flex-row">
+                  <p>{'学籍番号'}</p>
+                  <button onClick={(e) => handleSort('gakuseki', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('gakuseki')}
+                  </button>
+                </div>
+              </th>
+              <th>{'姓'}</th>
+              <th>{'名'}</th>
+              <th>
+                <div className="flex flex-row">
+                  <p>{'組'}</p>
+                  <button onClick={(e) => handleSort('class', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('class')}
+                  </button>
+                </div>
+              </th>
+              <th>
+                <div className="flex flex-row">
+                  <p>{'番号'}</p>
+                  <button onClick={(e) => handleSort('number', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('number')}
+                  </button>
+                </div>
+              </th>
+              <th>
+                <div className="flex flex-row">
+                  <p>{'一日目研修先'}</p>
+                  <button onClick={(e) => handleSort('day1id', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('day1id')}
+                  </button>
+                </div>
+              </th>
+              <th>
+                <div className="flex flex-row">
+                  <p>{'三日目研修先'}</p>
+                  <button onClick={(e) => handleSort('day3id', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('day3id')}
+                  </button>
+                </div>
+              </th>
+              <th>
+                <div className="flex flex-row">
+                  <p>{'一日目バス'}</p>
+                  <button onClick={(e) => handleSort('day1bus', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('day1bus')}
+                  </button>
+                </div>
+              </th>
+              <th>
+                <div className="flex flex-row">
+                  <p>{'三日目バス'}</p>
+                  <button onClick={(e) => handleSort('day3bus', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('day3bus')}
+                  </button>
+                </div>
+              </th>
+              <th>
+                <div className="flex flex-row">
+                  <p>{'東京ドームホテル 号室'}</p>
+                  <button onClick={(e) => handleSort('room_tokyo', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('room_tokyo')}
+                  </button>
+                </div>
+              </th>
+              <th>
+                <div className="flex flex-row">
+                  <p>{'静岡 ホテル 号室'}</p>
+                  <button onClick={(e) => handleSort('room_shizuoka', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('room_shizuoka')}
+                  </button>
+                </div>
+              </th>
               <th>{'操作'}</th>
             </tr>
           </thead>
           <tbody>
             {/* 既存データ */}
-            {studentsList.map((s) => (
+            {sortedAndFilteredStudents.map((s) => (
               <tr key={s.id}>
                 <td>{s.gakuseki}</td>
                 <td>{s.surname}</td>
