@@ -4,6 +4,7 @@ import { useAuth } from '../auth-context';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import type { student } from '../data/students';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
+import "../styles/index-table.css"
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -45,7 +46,7 @@ const Index = () => {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <p>
+      <p className='m-[10px] text-2xl'>
         {'ようこそ、'}
         {studentData?.surname}
         {studentData?.forename}
@@ -53,9 +54,8 @@ const Index = () => {
       </p>
 
       <section id="table">
-        <p>{'個人データ確認表'}</p>
-        <table>
-          <thead>
+        <table className='index-table'>
+          <thead className='bg-amber-200'>
             <tr>
               <th colSpan={2}>
                 {'5年'}
@@ -68,7 +68,7 @@ const Index = () => {
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className='bg-white'>
             <tr>
               <td>{'1日目 バス号車'}</td>
               <td>{studentData?.day1bus}</td>

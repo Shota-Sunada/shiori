@@ -1,0 +1,14 @@
+.index-table th,
+td {
+  padding: 2dvh;
+}
+
+.index-table th {
+  border-bottom: 3px;
+  border-color: gray;
+  border-style: double;
+}
+
+.index-table td {
+    border-bottom: gray solid 1px;
+}
