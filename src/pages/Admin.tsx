@@ -349,10 +349,10 @@ const Admin: React.FC = () => {
   return (
     <div>
       <button className="m-[10px]" disabled={modalMode !== null}>
-        <Button text="新規追加" onClick={handleAddRow} />
+        <Button text="新規追加" onClick={handleAddRow} arrow={false} />
       </button>
       <button className="m-[10px]" disabled={modalMode !== null}>
-        <Button text="JSONでまとめて追加" onClick={handleAddJSONData} />
+        <Button text="JSONでまとめて追加" onClick={handleAddJSONData} arrow={false} />
       </button>
       <input
         className="m-[10px]"

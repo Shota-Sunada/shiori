@@ -70,7 +70,7 @@ const Login = () => {
           </select>
         </div> */}
         <button type="submit">
-          <Button text={'ログイン'} onClick={() => {}} />
+          <Button text={'ログイン'} onClick={() => {}} arrow />
         </button>
       </form>
     </div>
