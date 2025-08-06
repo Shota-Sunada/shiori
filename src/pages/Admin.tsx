@@ -6,6 +6,7 @@ import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
 import { getAuth } from 'firebase/auth';
 import '../styles/admin-table.css';
 import StudentModal from '../components/StudentModal';
+import Button from '../components/Button';
 
 // SHA256ハッシュ化関数
 async function sha256(str: string): Promise<string> {
@@ -347,14 +348,14 @@ const Admin: React.FC = () => {
   };
   return (
     <div>
-      <h1>{'生徒データ登録パネル'}</h1>
-      <button onClick={handleAddRow} disabled={modalMode !== null}>
-        {'新規追加'}
+      <button className="m-[10px]" disabled={modalMode !== null}>
+        <Button text="新規追加" onClick={handleAddRow} />
       </button>
-      <button onClick={handleAddJSONData} disabled={modalMode !== null}>
-        {'JSONから追加'}
+      <button className="m-[10px]" disabled={modalMode !== null}>
+        <Button text="JSONから追加" onClick={handleAddJSONData} />
       </button>
       <input
+        className="m-[10px]"
         ref={inputRef}
         type="file"
         name="json"
@@ -388,8 +389,8 @@ const Admin: React.FC = () => {
         day1idOptions={day1idOptions}
         day3idOptions={day3idOptions}
       />
-      <h2>{'登録済み生徒一覧'}</h2>
-      <div className="flex items-center">
+      <h2 className="m-[10px]">{'登録済み生徒一覧'}</h2>
+      <div className="flex items-center m-[10px]">
         <input
           type="text"
           placeholder="検索..."
@@ -399,15 +400,19 @@ const Admin: React.FC = () => {
         />
         <p className="text-sm text-gray-600 my-2">{'組と番号以外なら何でも検索できます。'}</p>
       </div>
-      <p className="text-sm text-gray-600 my-2">{'ヒント: Shiftキーを押しながら列名をクリックすると、複数の条件でソートできます。'}</p>
-      <div className="table-root">
-        <table border={1}>
-          <thead>
+      <p className="text-sm text-gray-600 my-2 m-[10px]">{'ヒント: Shiftキーを押しながら列名をクリックすると、複数の条件でソートできます。'}</p>
+      <div className="table-root m-[10px] max-h-[50dvh] overflow-y-auto">
+        <table border={1} className="w-full">
+          <thead className="sticky top-0 bg-white">
             <tr>
               <th>
                 <div className="flex flex-row">
-                  <p>{'学籍番号'}</p>
-                  <button onClick={(e) => handleSort('gakuseki', e.shiftKey)} disabled={modalMode !== null}>
+                  <p>
+                    {'学籍'}
+                    <br />
+                    {'番号'}
+                  </p>
+                  <button className="ml-[0.5dvw]" onClick={(e) => handleSort('gakuseki', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('gakuseki')}
                   </button>
                 </div>
@@ -417,7 +422,7 @@ const Admin: React.FC = () => {
               <th>
                 <div className="flex flex-row">
                   <p>{'組'}</p>
-                  <button onClick={(e) => handleSort('class', e.shiftKey)} disabled={modalMode !== null}>
+                  <button className="ml-[0.5dvw]" onClick={(e) => handleSort('class', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('class')}
                   </button>
                 </div>
@@ -425,7 +430,7 @@ const Admin: React.FC = () => {
               <th>
                 <div className="flex flex-row">
                   <p>{'番号'}</p>
-                  <button onClick={(e) => handleSort('number', e.shiftKey)} disabled={modalMode !== null}>
+                  <button className="ml-[0.5dvw]" onClick={(e) => handleSort('number', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('number')}
                   </button>
                 </div>
@@ -433,7 +438,7 @@ const Admin: React.FC = () => {
               <th>
                 <div className="flex flex-row">
                   <p>{'一日目研修先'}</p>
-                  <button onClick={(e) => handleSort('day1id', e.shiftKey)} disabled={modalMode !== null}>
+                  <button className="ml-[0.5dvw]" onClick={(e) => handleSort('day1id', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('day1id')}
                   </button>
                 </div>
@@ -441,39 +446,55 @@ const Admin: React.FC = () => {
               <th>
                 <div className="flex flex-row">
                   <p>{'三日目研修先'}</p>
-                  <button onClick={(e) => handleSort('day3id', e.shiftKey)} disabled={modalMode !== null}>
+                  <button className="ml-[0.5dvw]" onClick={(e) => handleSort('day3id', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('day3id')}
                   </button>
                 </div>
               </th>
               <th>
                 <div className="flex flex-row">
-                  <p>{'一日目バス'}</p>
-                  <button onClick={(e) => handleSort('day1bus', e.shiftKey)} disabled={modalMode !== null}>
+                  <p>
+                    {'一日目'}
+                    <br />
+                    {'バス'}
+                  </p>
+                  <button className="ml-[0.5dvw]" onClick={(e) => handleSort('day1bus', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('day1bus')}
                   </button>
                 </div>
               </th>
               <th>
                 <div className="flex flex-row">
-                  <p>{'三日目バス'}</p>
-                  <button onClick={(e) => handleSort('day3bus', e.shiftKey)} disabled={modalMode !== null}>
+                  <p>
+                    {'三日目'}
+                    <br />
+                    {'バス'}
+                  </p>
+                  <button className="ml-[0.5dvw]" onClick={(e) => handleSort('day3bus', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('day3bus')}
                   </button>
                 </div>
               </th>
               <th>
                 <div className="flex flex-row">
-                  <p>{'東京ドームホテル 号室'}</p>
-                  <button onClick={(e) => handleSort('room_tokyo', e.shiftKey)} disabled={modalMode !== null}>
+                  <p>
+                    {'TDH'}
+                    <br />
+                    {'号室'}
+                  </p>
+                  <button className="ml-[0.5dvw]" onClick={(e) => handleSort('room_tokyo', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('room_tokyo')}
                   </button>
                 </div>
               </th>
               <th>
                 <div className="flex flex-row">
-                  <p>{'静岡 ホテル 号室'}</p>
-                  <button onClick={(e) => handleSort('room_shizuoka', e.shiftKey)} disabled={modalMode !== null}>
+                  <p>
+                    {'SPH'}
+                    <br />
+                    {'号室'}
+                  </p>
+                  <button className="ml-[0.5dvw]" onClick={(e) => handleSort('room_shizuoka', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('room_shizuoka')}
                   </button>
                 </div>
@@ -482,7 +503,6 @@ const Admin: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {/* 既存データ */}
             {sortedAndFilteredStudents.map((s) => (
               <tr key={s.id}>
                 <td>{s.gakuseki}</td>
