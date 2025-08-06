@@ -162,7 +162,17 @@ const Admin: React.FC = () => {
         `${s.surname}${s.forename}`.toLowerCase().includes(lowercasedQuery) ||
         String(s.gakuseki).includes(lowercasedQuery) ||
         String(s.class).includes(lowercasedQuery) ||
-        String(s.number).includes(lowercasedQuery)
+        String(s.number).includes(lowercasedQuery) ||
+        String(COURSES_DAY1.find((x) => x.key == s.day1id)?.name)
+          .toLowerCase()
+          .includes(lowercasedQuery) ||
+        String(COURSES_DAY3.find((x) => x.key == s.day3id)?.name)
+          .toLowerCase()
+          .includes(lowercasedQuery) ||
+        String(s.day1bus).includes(lowercasedQuery) ||
+        String(s.day3bus).includes(lowercasedQuery) ||
+        String(s.room_tokyo).includes(lowercasedQuery) ||
+        String(s.room_shizuoka).includes(lowercasedQuery)
     );
     return sortList(filtered, sortConfigs);
   }, [studentsList, searchQuery, sortConfigs]);
@@ -387,8 +397,9 @@ const Admin: React.FC = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="border p-2 rounded mr-2"
         />
+        <p className="text-sm text-gray-600 my-2">{'組と番号以外なら何でも検索できます。'}</p>
       </div>
-      <p className="text-sm text-gray-600 my-2">ヒント: Shiftキーを押しながら列名をクリックすると、複数の条件でソートできます。</p>
+      <p className="text-sm text-gray-600 my-2">{'ヒント: Shiftキーを押しながら列名をクリックすると、複数の条件でソートできます。'}</p>
       <div className="table-root">
         <table border={1}>
           <thead>
