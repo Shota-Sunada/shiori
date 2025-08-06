@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import React, { useState, useEffect, useRef, type ChangeEvent } from 'react';
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { student } from '../data/students';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
@@ -42,6 +42,8 @@ const Admin: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [authChecked, setAuthChecked] = useState<boolean>(false); // 追加モーダル表示状態
   const [modalMode, setModalMode] = useState<'add' | 'edit' | null>(null);
+
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Firestoreから生徒データを取得
   const fetchStudents = async () => {
@@ -105,6 +107,10 @@ const Admin: React.FC = () => {
     setStatus('');
   };
 
+  const handleAddJSONData = () => {
+    inputRef.current?.click();
+  };
+
   const handleSave = async (data: student) => {
     if (modalMode === 'add') {
       setStatus('追加中...');
@@ -131,6 +137,50 @@ const Admin: React.FC = () => {
     }
   };
 
+  const handleJSONRead = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = e.target?.result as string;
+        const obj = JSON.parse(data) as student[];
+
+        obj.map(async (x) => {
+          const colRef = collection(db, 'students');
+          const q = query(colRef, where('forename', '==', x.forename));
+          const snapshot = await getDocs(q);
+          const list: StudentWithId[] = [];
+          snapshot.forEach((x) => {
+            list.push({ ...(x.data() as student), id: x.id });
+          });
+
+          if (list.length > 0) {
+            setStatus('更新中...');
+            try {
+              await updateDoc(doc(db, 'students', list[0].id), x);
+              setStatus('生徒データを更新しました。');
+              setModalMode(null);
+              setEditRowId(null);
+              fetchStudents();
+            } catch (e) {
+              setStatus('エラーが発生しました: ' + (e as Error).message);
+            }
+          } else {
+            setStatus('追加中...');
+            try {
+              await addDoc(collection(db, 'students'), x);
+              setStatus('生徒データを追加しました。');
+              setModalMode(null);
+              fetchStudents();
+            } catch (e) {
+              setStatus('エラーが発生しました: ' + (e as Error).message);
+            }
+          }
+        });
+      };
+      reader.readAsText(e.target.files[0]);
+    }
+  };
+
   // テーブルのカラム名
   const columns = [
     { key: 'gakuseki', label: '学籍番号' },
@@ -143,7 +193,7 @@ const Admin: React.FC = () => {
     { key: 'day1bus', label: '一日目バス' },
     { key: 'day3bus', label: '三日目バス' },
     { key: 'room_tokyo', label: '東京ドームホテル 号室' },
-    { key: 'room_shizuoka', label: '静岡 ホテル 号室' },
+    { key: 'room_shizuoka', label: '静岡 ホテル 号室' }
   ];
 
   // day1id/day3idの選択肢
@@ -181,6 +231,20 @@ const Admin: React.FC = () => {
       <button onClick={handleAddRow} disabled={modalMode !== null}>
         {'新規追加'}
       </button>
+      <button onClick={handleAddJSONData} disabled={modalMode !== null}>
+        {'JSONから追加'}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        name="json"
+        id="json"
+        hidden
+        accept=".json"
+        onChange={(e) => {
+          handleJSONRead(e);
+        }}
+      />
       <div>{status}</div>
       <StudentModal
         open={modalMode !== null}
@@ -192,7 +256,7 @@ const Admin: React.FC = () => {
             day3id: formData.day3id as student['day3id'],
             class: Number(formData.class) as student['class'],
             number: Number(formData.number) as student['number'],
-            gakuseki: Number(formData.gakuseki)
+            gakuseki: Number(formData.gakuseki) as student['gakuseki']
           };
           handleSave(data);
         }}
