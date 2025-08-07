@@ -162,8 +162,6 @@ const Admin: React.FC = () => {
         `${s.surname} ${s.forename}`.toLowerCase().includes(lowercasedQuery) ||
         `${s.surname}${s.forename}`.toLowerCase().includes(lowercasedQuery) ||
         String(s.gakuseki).includes(lowercasedQuery) ||
-        String(s.class).includes(lowercasedQuery) ||
-        String(s.number).includes(lowercasedQuery) ||
         String(COURSES_DAY1.find((x) => x.key == s.day1id)?.name)
           .toLowerCase()
           .includes(lowercasedQuery) ||
