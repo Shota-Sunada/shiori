@@ -402,7 +402,7 @@ const Admin: React.FC = () => {
         <p className="text-sm text-gray-600 my-2">{'組と番号以外なら何でも検索できます。'}</p>
       </div>
       <p className="text-sm text-gray-600 my-2 m-[10px]">{'ヒント: Shiftキーを押しながら列名をクリックすると、複数の条件でソートできます。'}</p>
-      <div className="table-root m-[10px] max-h-[50dvh] overflow-y-auto">
+      <div className="table-root m-[10px] max-h-[60dvh] overflow-y-auto">
         <table border={1} className="w-full">
           <thead className="sticky top-0 bg-white">
             <tr>
