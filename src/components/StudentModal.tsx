@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
+import '../styles/student-modal.css';
+import Button from './Button';
 
 const localInitialForm = {
   surname: '',
@@ -60,7 +62,7 @@ const StudentModal = ({
     <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm">
       <div className="border bg-white text-black rounded-xl px-[5dvw] py-[5dvh] min-w-[350px] max-h-[90dvh] overflow-y-auto">
         <h2 className="mb-4">{mode === 'add' ? '生徒データ新規追加' : '生徒データ編集'}</h2>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2 modal-root">
           <label>{'学籍番号'}</label>
           <input name="gakuseki" value={form.gakuseki} onChange={handleChange} required />
           <label>{'姓'}</label>
@@ -97,12 +99,11 @@ const StudentModal = ({
           <input name="room_shizuoka" value={form.room_shizuoka} required onChange={handleChange} />
         </div>
         <div className="flex flex-row items-center justify-center mt-4">
-          <button className="cursor-pointer m-2 bg-blue-400 text-white rounded-2xl p-2 min-w-[5dvw]" onClick={handleSave}>
+          {/* <button className="cursor-pointer m-2 bg-blue-400 text-white rounded-2xl p-2 min-w-[5dvw]" onClick={handleSave}>
             {'保存'}
-          </button>
-          <button className="cursor-pointer m-2 bg-gray-300 text-black rounded-2xl p-2 min-w-[5dvw]" onClick={handleCancel}>
-            {'キャンセル'}
-          </button>
+          </button> */}
+          <Button text="保存" onClick={handleSave} arrow />
+          <Button text="キャンセル" onClick={handleCancel} arrow={false} />
         </div>
       </div>
     </div>
