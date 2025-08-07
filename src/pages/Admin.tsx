@@ -346,8 +346,8 @@ const Admin: React.FC = () => {
   };
   return (
     <div>
-      <p className='m-[10px] text-4xl'>{"管理画面"}</p>
-      <div className='flex flex-row'>
+      <p className="m-[10px] text-4xl">{'管理画面'}</p>
+      <div className="flex flex-row">
         <button className="" disabled={modalMode !== null}>
           <Button text="新規追加" onClick={handleAddRow} arrow={false} />
         </button>
@@ -518,10 +518,16 @@ const Admin: React.FC = () => {
                 <td>{s.room_tokyo}</td>
                 <td>{s.room_shizuoka}</td>
                 <td>
-                  <button onClick={() => handleEditClick(s)} disabled={modalMode !== null}>
+                  <button
+                    className="mx-[5px] bg-gray-500 border-[1px] text-white p-[5px] cursor-pointer"
+                    onClick={() => handleEditClick(s)}
+                    disabled={modalMode !== null}>
                     {'編集'}
                   </button>
-                  <button onClick={() => handleDelete(s.id)} disabled={modalMode !== null}>
+                  <button
+                    className="mx-[5px] bg-red-500 border-[1px] text-white p-[5px] cursor-pointer"
+                    onClick={() => handleDelete(s.id)}
+                    disabled={modalMode !== null}>
                     {'削除'}
                   </button>
                 </td>
