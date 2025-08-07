@@ -491,7 +491,7 @@ const Admin: React.FC = () => {
               <th>
                 <div className="flex flex-row">
                   <p>
-                    {'SPH'}
+                    {'FPR'}
                     <br />
                     {'号室'}
                   </p>
