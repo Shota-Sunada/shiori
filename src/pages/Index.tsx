@@ -121,10 +121,10 @@ const Index = () => {
             <p>{'新幹線 座席表'}</p>
             <ol>
               <li>
-                <a href="#shinkansen-up">{'上り (東京行)'}</a>
+                <a href="#shinkansen-nobori">{'上り (東京行)'}</a>
               </li>
               <li>
-                <a href="#shinkansen-down">{'下り (広島行)'}</a>
+                <a href="#shinkansen-kudari">{'下り (広島行)'}</a>
               </li>
             </ol>
           </li>
@@ -139,8 +139,8 @@ const Index = () => {
       </section>
 
       <section id="shinkansen">
-        <h2 id="shinkansen-up">{'新幹線 (上り/東京行)'}</h2>
-        <h2 id="shinkansen-down">{'新幹線 (下り/広島行)'}</h2>
+        <h2 id="shinkansen-nobori">{'新幹線 (上り/東京行)'}</h2>
+        <h2 id="shinkansen-kudari">{'新幹線 (下り/広島行)'}</h2>
       </section>
     </div>
   );
