@@ -312,7 +312,7 @@ const Admin: React.FC = () => {
     'ntt_labo_i',
     'ntt_labo_b',
     'kayakku',
-    'iaxa',
+    'jaxa',
     'astro',
     'arda',
     'urth_jip',
