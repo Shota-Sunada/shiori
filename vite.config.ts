@@ -15,7 +15,7 @@ export default defineConfig(({ command }) => ({
       registerType: 'autoUpdate',
       manifest: {
         name: '修学旅行のしおり for 79th',
-        description: "修道高校79回生のための修学旅行のしおり",
+        description: '修道高校79回生のための修学旅行のしおり',
         icons: [
           {
             sizes: '192x192',

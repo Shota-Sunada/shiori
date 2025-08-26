@@ -14,13 +14,13 @@ export const COURSES_DAY1: { key: string; name: string; short_name: string }[] =
   { key: 'air', name: 'キャリア エアークローゼットコース', short_name: 'ｴｱｰｸﾛｰｾﾞｯﾄ' }
 ];
 
-export const COURSES_DAY3: { key: string; name: string;short_name:string }[] = [
-  { key: 'okutama', name: '奥多摩ラフティングコース' , short_name: "奥多摩ﾗﾌﾃｨﾝｸﾞ"},
-  { key: 'yokosuka', name: '横須賀・小田原コース' , short_name: "横須賀・小田原"},
-  { key: 'hakone', name: '箱根コース' , short_name: "箱根"},
-  { key: 'kamakura', name: '鎌倉・江の島コース' , short_name: "鎌倉・江の島"},
-  { key: 'hakkeijima', name: '八景島シーパラダイスコース' , short_name: "八景島ｼｰﾊﾟﾗ"},
-  { key: 'yokohama', name: '横浜コース', short_name: "横浜" }
+export const COURSES_DAY3: { key: string; name: string; short_name: string }[] = [
+  { key: 'okutama', name: '奥多摩ラフティングコース', short_name: '奥多摩ﾗﾌﾃｨﾝｸﾞ' },
+  { key: 'yokosuka', name: '横須賀・小田原コース', short_name: '横須賀・小田原' },
+  { key: 'hakone', name: '箱根コース', short_name: '箱根' },
+  { key: 'kamakura', name: '鎌倉・江の島コース', short_name: '鎌倉・江の島' },
+  { key: 'hakkeijima', name: '八景島シーパラダイスコース', short_name: '八景島ｼｰﾊﾟﾗ' },
+  { key: 'yokohama', name: '横浜コース', short_name: '横浜' }
   // 高尾山中止
 ];
 
