@@ -304,21 +304,7 @@ const Admin: React.FC = () => {
   };
 
   // day1id/day3idの選択肢
-  const day1idOptions = [
-    'yrp_nifco',
-    'yrp_yamashin',
-    'yrp_air',
-    'yrp_vtech',
-    'ntt_labo_i',
-    'ntt_labo_b',
-    'kayakku',
-    'jaxa',
-    'astro',
-    'arda',
-    'urth_jip',
-    'micro',
-    'air'
-  ];
+  const day1idOptions = ['yrp_nifco', 'yrp_yamashin', 'yrp_air', 'yrp_vtech', 'ntt_labo_i', 'ntt_labo_b', 'kayakku', 'jaxa', 'astro', 'arda', 'urth_jip', 'micro', 'air'];
   const day3idOptions = ['okutama', 'yokosuka', 'hakone', 'kamakura', 'hakkeijima', 'yokohama'];
 
   if (!authChecked) {
@@ -392,13 +378,7 @@ const Admin: React.FC = () => {
       />
       <h2 className="m-[10px]">{'登録済み生徒一覧'}</h2>
       <div className="flex items-center m-[10px]">
-        <input
-          type="text"
-          placeholder="検索..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="border p-2 rounded mr-2"
-        />
+        <input type="text" placeholder="検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="border p-2 rounded mr-2" />
         <p className="text-sm text-gray-600 my-2">{'組と番号以外なら何でも検索できます。'}</p>
       </div>
       <p className="text-sm text-gray-600 my-2 m-[10px]">{'ヒント: Shiftキーを押しながら列名をクリックすると、複数の条件でソートできます。'}</p>
@@ -518,16 +498,10 @@ const Admin: React.FC = () => {
                 <td>{s.room_tokyo}</td>
                 <td>{s.room_shizuoka}</td>
                 <td>
-                  <button
-                    className="mx-[5px] bg-gray-500 border-[1px] text-white p-[5px] cursor-pointer"
-                    onClick={() => handleEditClick(s)}
-                    disabled={modalMode !== null}>
+                  <button className="mx-[5px] bg-gray-500 border-[1px] text-white p-[5px] cursor-pointer" onClick={() => handleEditClick(s)} disabled={modalMode !== null}>
                     {'編集'}
                   </button>
-                  <button
-                    className="mx-[5px] bg-red-500 border-[1px] text-white p-[5px] cursor-pointer"
-                    onClick={() => handleDelete(s.id)}
-                    disabled={modalMode !== null}>
+                  <button className="mx-[5px] bg-red-500 border-[1px] text-white p-[5px] cursor-pointer" onClick={() => handleDelete(s.id)} disabled={modalMode !== null}>
                     {'削除'}
                   </button>
                 </td>
