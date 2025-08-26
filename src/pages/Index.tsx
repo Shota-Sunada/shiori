@@ -109,7 +109,10 @@ const Index = () => {
                   {'組 '}
                   {COURSES_DAY4.find((x) => x.key === DAY4_DATA[Number(studentData?.class) - 1])?.name}
                 </p>
-                <p className='text-gray-600 text-sm'>{"引率: "}{DAY4_TEACHERS[Number(studentData?.class) - 1]}</p>
+                <p className="text-gray-600 text-sm">
+                  {'引率: '}
+                  {DAY4_TEACHERS[Number(studentData?.class) - 1]}
+                </p>
               </td>
             </tr>
             <tr>
@@ -117,17 +120,26 @@ const Index = () => {
                 {'ホテル'}
               </td>
               <td>
-                <p className="text-sm">{'1泊目・2泊目'}</p>
-                <p>{'東京ﾄﾞｰﾑ ﾎﾃﾙ'}</p>
+                <p>{'1泊目'}</p>
+                <p>{'2泊目'}</p>
               </td>
-              <td>{studentData?.room_tokyo}</td>
+              <td>
+                <p>{'東京ドームホテル'}</p>
+                <p>
+                  {studentData?.room_tokyo}
+                  {'号室'}
+                </p>
+              </td>
             </tr>
             <tr>
+              <td>{'3泊目'}</td>
               <td>
-                <p className="text-sm">{'3泊目'}</p>
-                <p>{'ﾌｼﾞ ﾌﾟﾚﾐｱﾑ ﾘｿﾞｰﾄ'}</p>
+                <p>{'フジプレミアムリゾート'}</p>
+                <p>
+                  {studentData?.room_shizuoka}
+                  {'号室'}
+                </p>
               </td>
-              <td>{studentData?.room_shizuoka}</td>
             </tr>
             <tr>
               <td rowSpan={2} style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">

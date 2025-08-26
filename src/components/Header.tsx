@@ -76,7 +76,14 @@ const Header = ({ onLogoutModalChange, setLogoutModal }: { onLogoutModalChange?:
     return (
       <div className="relative">
         <div className={`bg-[#50141c] text-white flex flex-row items-center justify-between relative z-50 ${isLogoutModalShown ? 'pointer-events-none select-none' : ''}`}>
-          <img className="p-[10px] w-[60px] md:w-[80px]" src="https://www.shudo-h.ed.jp/portal_assets/images/logo.png" alt="" />
+          <img
+            className="p-[10px] w-[60px] md:w-[80px] cursor-pointer"
+            src="https://www.shudo-h.ed.jp/portal_assets/images/logo.png"
+            alt=""
+            onClick={() => {
+              navigate('/');
+            }}
+          />
           <div className="mx-2 flex flex-col">
             <p className="font-bold text-base md:text-lg lg:text-xl leading-tight">{'修道高校79回生'}</p>
             <p className="text-sm md:text-base lg:text-lg leading-tight">{'修学旅行のしおり'}</p>
@@ -88,7 +95,7 @@ const Header = ({ onLogoutModalChange, setLogoutModal }: { onLogoutModalChange?:
             {isMenuOpen && (
               <div ref={menuRef} className="absolute right-0 top-full mt-2 bg-white text-black rounded shadow-lg w-40 z-50 flex flex-col border">
                 <button
-                  className="text-left px-4 py-3 hover:bg-gray-100 border-b"
+                  className="text-left px-4 py-3 hover:bg-gray-100 border-b cursor-pointer"
                   onClick={() => {
                     setIsMenuOpen(false);
                     navigate('/');
@@ -96,7 +103,7 @@ const Header = ({ onLogoutModalChange, setLogoutModal }: { onLogoutModalChange?:
                   {'メイン画面'}
                 </button>
                 <button
-                  className="text-left px-4 py-3 hover:bg-gray-100 border-b"
+                  className="text-left px-4 py-3 hover:bg-gray-100 border-b cursor-pointer"
                   onClick={() => {
                     setIsMenuOpen(false);
                     navigate('/admin');
@@ -104,7 +111,7 @@ const Header = ({ onLogoutModalChange, setLogoutModal }: { onLogoutModalChange?:
                   {'管理画面'}
                 </button>
                 <button
-                  className="text-left px-4 py-3 hover:bg-gray-100"
+                  className="text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
                   onClick={() => {
                     setIsMenuOpen(false);
                     setIsLogoutModalShown(true);
