@@ -42,11 +42,11 @@ const sortList = (list: StudentWithId[], configs: SortConfig[]): StudentWithId[]
 
       let comparison = 0;
       // nulls/undefined to the end
-      if (aValue == null && bValue == null) {
+      if (aValue === null && bValue === null) {
         comparison = 0;
-      } else if (aValue == null) {
+      } else if (aValue === null) {
         comparison = 1;
-      } else if (bValue == null) {
+      } else if (bValue === null) {
         comparison = -1;
       } else if (key === 'day1id') {
         const aName = COURSES_DAY1.find((c) => c.key === aValue)?.name ?? '';
@@ -162,10 +162,10 @@ const Admin: React.FC = () => {
         `${s.surname} ${s.forename}`.toLowerCase().includes(lowercasedQuery) ||
         `${s.surname}${s.forename}`.toLowerCase().includes(lowercasedQuery) ||
         String(s.gakuseki).includes(lowercasedQuery) ||
-        String(COURSES_DAY1.find((x) => x.key == s.day1id)?.name)
+        String(COURSES_DAY1.find((x) => x.key === s.day1id)?.name)
           .toLowerCase()
           .includes(lowercasedQuery) ||
-        String(COURSES_DAY3.find((x) => x.key == s.day3id)?.name)
+        String(COURSES_DAY3.find((x) => x.key === s.day3id)?.name)
           .toLowerCase()
           .includes(lowercasedQuery) ||
         String(s.day1bus).includes(lowercasedQuery) ||
@@ -491,8 +491,8 @@ const Admin: React.FC = () => {
                 <td>{s.forename}</td>
                 <td>{s.class}</td>
                 <td>{s.number}</td>
-                <td>{COURSES_DAY1.find((x) => x.key == s.day1id)?.name}</td>
-                <td>{COURSES_DAY3.find((x) => x.key == s.day3id)?.name}</td>
+                <td>{COURSES_DAY1.find((x) => x.key === s.day1id)?.name}</td>
+                <td>{COURSES_DAY3.find((x) => x.key === s.day3id)?.name}</td>
                 <td>{s.day1bus}</td>
                 <td>{s.day3bus}</td>
                 <td>{s.room_tokyo}</td>

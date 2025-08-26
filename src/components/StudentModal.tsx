@@ -77,7 +77,7 @@ const StudentModal = ({
           <select name="day1id" value={form.day1id} required onChange={handleChange}>
             {day1idOptions.map((opt) => (
               <option key={opt} value={opt}>
-                {COURSES_DAY1.find((x) => x.key == opt)?.name}
+                {COURSES_DAY1.find((x) => x.key === opt)?.name}
               </option>
             ))}
           </select>
@@ -85,7 +85,7 @@ const StudentModal = ({
           <select name="day3id" value={form.day3id} required onChange={handleChange}>
             {day3idOptions.map((opt) => (
               <option key={opt} value={opt}>
-                {COURSES_DAY3.find((x) => x.key == opt)?.name}
+                {COURSES_DAY3.find((x) => x.key === opt)?.name}
               </option>
             ))}
           </select>

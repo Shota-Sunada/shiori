@@ -76,7 +76,7 @@ const Index = () => {
             </tr>
             <tr>
               <td>{'1日目 研修先'}</td>
-              <td>{COURSES_DAY1.find((x) => x.key == studentData?.day1id)?.name}</td>
+              <td>{COURSES_DAY1.find((x) => x.key === studentData?.day1id)?.name}</td>
             </tr>
             <tr>
               <td>{'3日目 バス号車'}</td>
@@ -84,7 +84,7 @@ const Index = () => {
             </tr>
             <tr>
               <td>{'3日目 研修先'}</td>
-              <td>{COURSES_DAY3.find((x) => x.key == studentData?.day3id)?.name}</td>
+              <td>{COURSES_DAY3.find((x) => x.key === studentData?.day3id)?.name}</td>
             </tr>
             <tr>
               <td>{'4日目 研修先'}</td>
