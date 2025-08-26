@@ -398,72 +398,86 @@ const Admin: React.FC = () => {
     return directionIcon;
   };
   return (
-    <div className="m-[10px]">
-      <div className="flex flex-row">
-        {/* <button className="" disabled={modalMode !== null}>
+    <div className="m-[10px] flex flex-col h-[70vh] overflow-hidden">
+      <div>
+        <div className="flex flex-row">
+          {/* <button className="" disabled={modalMode !== null}>
           <Button text="新規追加" onClick={handleAddRow} arrow={false} />
         </button>
         <button className="" disabled={modalMode !== null}>
           <Button text="JSONでまとめて追加" onClick={handleAddJSONData} arrow={false} />
         </button> */}
-        <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer " disabled={modalMode !== null} onClick={handleAddRow}>
-          {'新規追加'}
-        </button>
-        <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer" disabled={modalMode !== null} onClick={handleAddJSONData}>
-          {'JSONでまとめて追加'}
-        </button>
+          <button
+            className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer "
+            disabled={modalMode !== null}
+            onClick={handleAddRow}
+          >
+            {'新規追加'}
+          </button>
+          <button
+            className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer"
+            disabled={modalMode !== null}
+            onClick={handleAddJSONData}
+          >
+            {'JSONでまとめて追加'}
+          </button>
+        </div>
+        <input
+          className="m-[10px]"
+          ref={inputRef}
+          type="file"
+          name="json"
+          id="json"
+          hidden
+          accept=".json"
+          onChange={(e) => {
+            handleJSONRead(e);
+          }}
+        />
+        <div>{status}</div>
+        <StudentModal
+          open={modalMode !== null}
+          mode={modalMode || 'add'}
+          onSave={(formData) => {
+            const data: student = {
+              ...formData,
+              day1id: formData.day1id as student['day1id'],
+              day3id: formData.day3id as student['day3id'],
+              class: Number(formData.class) as student['class'],
+              number: Number(formData.number) as student['number'],
+              gakuseki: Number(formData.gakuseki) as student['gakuseki']
+            };
+            handleSave(data);
+          }}
+          onCancel={() => {
+            setModalMode(null);
+            setEditRowId(null);
+          }}
+          initialData={modalMode === 'edit' ? editRowForm : initialForm}
+          day1idOptions={day1idOptions}
+          day3idOptions={day3idOptions}
+        />
+        <h2 className="m-[10px]">{'登録済み生徒一覧'}</h2>
+        <div className="flex items-center m-[10px]">
+          <input
+            type="text"
+            placeholder="検索..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="border p-2 rounded mr-2 max-w-[50dvw]"
+          />
+          <p className="text-sm text-gray-600 my-2">{'組と番号以外なら何でも検索できます。'}</p>
+        </div>
+        <p className="text-sm text-gray-600 my-2 m-[10px]">{'ヒント: Shiftキーを押しながら列名をクリックすると、複数の条件でソートできます。'}</p>
       </div>
-      <input
-        className="m-[10px]"
-        ref={inputRef}
-        type="file"
-        name="json"
-        id="json"
-        hidden
-        accept=".json"
-        onChange={(e) => {
-          handleJSONRead(e);
-        }}
-      />
-      <div>{status}</div>
-      <StudentModal
-        open={modalMode !== null}
-        mode={modalMode || 'add'}
-        onSave={(formData) => {
-          const data: student = {
-            ...formData,
-            day1id: formData.day1id as student['day1id'],
-            day3id: formData.day3id as student['day3id'],
-            class: Number(formData.class) as student['class'],
-            number: Number(formData.number) as student['number'],
-            gakuseki: Number(formData.gakuseki) as student['gakuseki']
-          };
-          handleSave(data);
-        }}
-        onCancel={() => {
-          setModalMode(null);
-          setEditRowId(null);
-        }}
-        initialData={modalMode === 'edit' ? editRowForm : initialForm}
-        day1idOptions={day1idOptions}
-        day3idOptions={day3idOptions}
-      />
-      <h2 className="m-[10px]">{'登録済み生徒一覧'}</h2>
-      <div className="flex items-center m-[10px]">
-        <input type="text" placeholder="検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="border p-2 rounded mr-2 max-w-[50dvw]" />
-        <p className="text-sm text-gray-600 my-2">{'組と番号以外なら何でも検索できます。'}</p>
-      </div>
-      <p className="text-sm text-gray-600 my-2 m-[10px]">{'ヒント: Shiftキーを押しながら列名をクリックすると、複数の条件でソートできます。'}</p>
-      <div className="table-root m-[10px] max-h-[50dvh] overflow-y-auto">
+      <div className="table-root overflow-y-auto flex-grow">
         <table border={1} className="w-full">
           <thead className="sticky top-0 bg-white">
             <tr>
               <th className="w-24">
                 <div className="flex flex-col items-center justify-center">
                   <span>
-                    {'学籍'}
-                    <br />
-                    {'番号'}
+                    {'学籍番号'}
                   </span>
                   <button onClick={(e) => handleSort('gakuseki', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('gakuseki')}
@@ -494,7 +508,7 @@ const Admin: React.FC = () => {
               </th>
               <th className="w-40">
                 <div className="flex flex-col items-center justify-center">
-                  <span>{'一日目研修先'}</span>
+                  <span>{'1日目研修先'}</span>
                   <button onClick={(e) => handleSort('day1id', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('day1id')}
                   </button>
@@ -502,7 +516,7 @@ const Admin: React.FC = () => {
               </th>
               <th className="w-40">
                 <div className="flex flex-col items-center justify-center">
-                  <span>{'三日目研修先'}</span>
+                  <span>{'3日目研修先'}</span>
                   <button onClick={(e) => handleSort('day3id', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('day3id')}
                   </button>
@@ -511,9 +525,7 @@ const Admin: React.FC = () => {
               <th className="w-20">
                 <div className="flex flex-col items-center justify-center">
                   <span>
-                    {'一日目'}
-                    <br />
-                    {'バス'}
+                    {'1日目ﾊﾞｽ'}
                   </span>
                   <button onClick={(e) => handleSort('day1bus', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('day1bus')}
@@ -523,9 +535,7 @@ const Admin: React.FC = () => {
               <th className="w-20">
                 <div className="flex flex-col items-center justify-center">
                   <span>
-                    {'三日目'}
-                    <br />
-                    {'バス'}
+                    {'3日目ﾊﾞｽ'}
                   </span>
                   <button onClick={(e) => handleSort('day3bus', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('day3bus')}
@@ -535,9 +545,7 @@ const Admin: React.FC = () => {
               <th className="w-20">
                 <div className="flex flex-col items-center justify-center">
                   <span>
-                    {'TDH'}
-                    <br />
-                    {'号室'}
+                    {'TDH号室'}
                   </span>
                   <button onClick={(e) => handleSort('room_tokyo', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('room_tokyo')}
@@ -547,9 +555,7 @@ const Admin: React.FC = () => {
               <th className="w-20">
                 <div className="flex flex-col items-center justify-center">
                   <span>
-                    {'FPR'}
-                    <br />
-                    {'号室'}
+                    {'FPR号室'}
                   </span>
                   <button onClick={(e) => handleSort('room_shizuoka', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('room_shizuoka')}
@@ -572,42 +578,89 @@ const Admin: React.FC = () => {
               <tr key={s.id}>
                 <td onDoubleClick={() => handleCellDoubleClick(s, 'gakuseki')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'gakuseki' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
+                    <input
+                      type="text"
+                      value={editingValue}
+                      onChange={handleCellChange}
+                      onBlur={handleCellEditSave}
+                      onKeyDown={handleCellKeyDown}
+                      autoFocus
+                      className="inline-edit"
+                    />
                   ) : (
                     s.gakuseki
                   )}
                 </td>
                 <td onDoubleClick={() => handleCellDoubleClick(s, 'surname')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'surname' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
+                    <input
+                      type="text"
+                      value={editingValue}
+                      onChange={handleCellChange}
+                      onBlur={handleCellEditSave}
+                      onKeyDown={handleCellKeyDown}
+                      autoFocus
+                      className="inline-edit"
+                    />
                   ) : (
                     s.surname
                   )}
                 </td>
                 <td onDoubleClick={() => handleCellDoubleClick(s, 'forename')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'forename' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
+                    <input
+                      type="text"
+                      value={editingValue}
+                      onChange={handleCellChange}
+                      onBlur={handleCellEditSave}
+                      onKeyDown={handleCellKeyDown}
+                      autoFocus
+                      className="inline-edit"
+                    />
                   ) : (
                     s.forename
                   )}
                 </td>
                 <td onDoubleClick={() => handleCellDoubleClick(s, 'class')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'class' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
+                    <input
+                      type="text"
+                      value={editingValue}
+                      onChange={handleCellChange}
+                      onBlur={handleCellEditSave}
+                      onKeyDown={handleCellKeyDown}
+                      autoFocus
+                      className="inline-edit"
+                    />
                   ) : (
                     s.class
                   )}
                 </td>
                 <td onDoubleClick={() => handleCellDoubleClick(s, 'number')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'number' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
+                    <input
+                      type="text"
+                      value={editingValue}
+                      onChange={handleCellChange}
+                      onBlur={handleCellEditSave}
+                      onKeyDown={handleCellKeyDown}
+                      autoFocus
+                      className="inline-edit"
+                    />
                   ) : (
                     s.number
                   )}
                 </td>
                 <td onDoubleClick={() => handleCellDoubleClick(s, 'day1id')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'day1id' ? (
-                    <select value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit">
+                    <select
+                      value={editingValue}
+                      onChange={handleCellChange}
+                      onBlur={handleCellEditSave}
+                      onKeyDown={handleCellKeyDown}
+                      autoFocus
+                      className="inline-edit"
+                    >
                       {COURSES_DAY1.map((course) => (
                         <option key={course.key} value={course.key}>
                           {course.short_name}
@@ -620,7 +673,14 @@ const Admin: React.FC = () => {
                 </td>
                 <td onDoubleClick={() => handleCellDoubleClick(s, 'day3id')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'day3id' ? (
-                    <select value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit">
+                    <select
+                      value={editingValue}
+                      onChange={handleCellChange}
+                      onBlur={handleCellEditSave}
+                      onKeyDown={handleCellKeyDown}
+                      autoFocus
+                      className="inline-edit"
+                    >
                       {COURSES_DAY3.map((course) => (
                         <option key={course.key} value={course.key}>
                           {course.short_name}
@@ -633,41 +693,93 @@ const Admin: React.FC = () => {
                 </td>
                 <td onDoubleClick={() => handleCellDoubleClick(s, 'day1bus')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'day1bus' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
+                    <input
+                      type="text"
+                      value={editingValue}
+                      onChange={handleCellChange}
+                      onBlur={handleCellEditSave}
+                      onKeyDown={handleCellKeyDown}
+                      autoFocus
+                      className="inline-edit"
+                    />
                   ) : (
                     s.day1bus
                   )}
                 </td>
                 <td onDoubleClick={() => handleCellDoubleClick(s, 'day3bus')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'day3bus' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
+                    <input
+                      type="text"
+                      value={editingValue}
+                      onChange={handleCellChange}
+                      onBlur={handleCellEditSave}
+                      onKeyDown={handleCellKeyDown}
+                      autoFocus
+                      className="inline-edit"
+                    />
                   ) : (
                     s.day3bus
                   )}
                 </td>
                 <td onDoubleClick={() => handleCellDoubleClick(s, 'room_tokyo')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'room_tokyo' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
+                    <input
+                      type="text"
+                      value={editingValue}
+                      onChange={handleCellChange}
+                      onBlur={handleCellEditSave}
+                      onKeyDown={handleCellKeyDown}
+                      autoFocus
+                      className="inline-edit"
+                    />
                   ) : (
                     s.room_tokyo
                   )}
                 </td>
                 <td onDoubleClick={() => handleCellDoubleClick(s, 'room_shizuoka')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'room_shizuoka' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
+                    <input
+                      type="text"
+                      value={editingValue}
+                      onChange={handleCellChange}
+                      onBlur={handleCellEditSave}
+                      onKeyDown={handleCellKeyDown}
+                      autoFocus
+                      className="inline-edit"
+                    />
                   ) : (
                     s.room_shizuoka
                   )}
                 </td>
                 <td>
                   <div className="flex flex-row items-center justify-center">
-                    <button className="p-1 cursor-pointer mx-1" onClick={() => handleEditClick(s)} disabled={modalMode !== null || editingCell !== null} title="編集">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 hover:text-gray-800" viewBox="0 0 20 20" fill="currentColor">
+                    <button
+                      className="p-1 cursor-pointer mx-1"
+                      onClick={() => handleEditClick(s)}
+                      disabled={modalMode !== null || editingCell !== null}
+                      title="編集"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 text-gray-600 hover:text-gray-800"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                       </svg>
                     </button>
-                    <button className="p-1 cursor-pointer mx-1" onClick={() => handleDelete(s.id)} disabled={modalMode !== null || editingCell !== null} title="削除">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500 hover:text-red-700" viewBox="0 0 20 20" fill="currentColor">
+                    <button
+                      className="p-1 cursor-pointer mx-1"
+                      onClick={() => handleDelete(s.id)}
+                      disabled={modalMode !== null || editingCell !== null}
+                      title="削除"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 text-red-500 hover:text-red-700"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
                         <path
                           fillRule="evenodd"
                           d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
