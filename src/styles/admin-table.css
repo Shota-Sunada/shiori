@@ -1,13 +1,19 @@
 .table-root > table > thead > tr > th,
 .table-root > table > tbody > tr > td {
-  padding: 12px;
+  padding: 4px;
 }
 
 .table-root > table {
+  table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
   border-radius: 10px;
   border: 0.5px solid #ebebde;
+}
+
+.inline-edit {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .table-root > table > thead > tr {
@@ -38,4 +44,8 @@
 
 .table-root > table > tbody > tr:last-child > td:last-child {
   border-radius: 0 0 10px 0;
+}
+
+.inline-p-fix {
+  padding-left: 4px;
 }

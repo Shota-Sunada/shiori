@@ -1,5 +1,5 @@
 .modal-root input,
-select {
+.modal-root select {
   border: 1px solid black;
   border-radius: 10px;
   padding: 5px;
