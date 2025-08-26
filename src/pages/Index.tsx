@@ -71,7 +71,11 @@ const Index = () => {
           </thead>
           <tbody className="bg-white">
             <tr>
-              <td rowSpan={2}>{'1日目'}</td>
+              <td rowSpan={2}>
+                <span style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
+                  {'１日目'}
+                </span>
+              </td>
               <td>{'バス号車'}</td>
               <td>{studentData?.day1bus}</td>
             </tr>
@@ -80,7 +84,11 @@ const Index = () => {
               <td>{COURSES_DAY1.find((x) => x.key === studentData?.day1id)?.name}</td>
             </tr>
             <tr>
-              <td rowSpan={2}>{'3日目'}</td>
+              <td rowSpan={2}>
+                <span style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
+                  {'３日目'}
+                </span>
+              </td>
               <td>{'バス号車'}</td>
               <td>{studentData?.day3bus}</td>
             </tr>
@@ -89,7 +97,11 @@ const Index = () => {
               <td>{COURSES_DAY3.find((x) => x.key === studentData?.day3id)?.name}</td>
             </tr>
             <tr>
-              <td rowSpan={1}>{'4日目'}</td>
+              <td rowSpan={1}>
+                <span style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
+                  {'４日目'}
+                </span>
+              </td>
               <td>{'研修先'}</td>
               <td>
                 {studentData?.class}
@@ -98,7 +110,9 @@ const Index = () => {
               </td>
             </tr>
             <tr>
-              <td rowSpan={2}>{'ホテル'}</td>
+              <td rowSpan={2} style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
+                {'ホテル'}
+              </td>
               <td>{'東京ﾄﾞｰﾑﾎﾃﾙ'}</td>
               <td>{studentData?.room_tokyo}</td>
             </tr>
