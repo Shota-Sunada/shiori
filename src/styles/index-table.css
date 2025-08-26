@@ -1,6 +1,11 @@
+.index-table {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
 .index-table th,
 td {
-  padding: 2dvh;
+  padding: 1.5dvh;
 }
 
 .index-table th {
