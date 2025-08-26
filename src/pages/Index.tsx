@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import type { student } from '../data/students';
-import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
+import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4 } from '../data/courses';
 import '../styles/index-table.css';
+import { DAY4_DATA } from '../data/day4';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -84,6 +85,10 @@ const Index = () => {
             <tr>
               <td>{'3日目 研修先'}</td>
               <td>{COURSES_DAY3.find((x) => x.key == studentData?.day3id)?.name}</td>
+            </tr>
+            <tr>
+              <td>{"4日目 研修先"}</td>
+              <td>{COURSES_DAY4.find(x => x.key == DAY4_DATA.find(x => x.class == studentData?.class)?.key)?.name}</td>
             </tr>
             <tr>
               <td>{'東京ドームホテル 部屋番号'}</td>
