@@ -5,7 +5,7 @@ import { getFirestore, collection, query, where, getDocs } from 'firebase/firest
 import type { student } from '../data/students';
 import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4 } from '../data/courses';
 import '../styles/index-table.css';
-import { DAY4_DATA } from '../data/day4';
+import { DAY4_DATA, DAY4_TEACHERS } from '../data/day4';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -104,9 +104,12 @@ const Index = () => {
               </td>
               <td>{'研修先'}</td>
               <td>
-                {studentData?.class}
-                {'組 '}
-                {COURSES_DAY4.find((x) => x.key === DAY4_DATA[Number(studentData?.class) - 1])?.name}
+                <p>
+                  {studentData?.class}
+                  {'組 '}
+                  {COURSES_DAY4.find((x) => x.key === DAY4_DATA[Number(studentData?.class) - 1])?.name}
+                </p>
+                <p className='text-gray-600 text-sm'>{"引率: "}{DAY4_TEACHERS[Number(studentData?.class) - 1]}</p>
               </td>
             </tr>
             <tr>
@@ -115,14 +118,14 @@ const Index = () => {
               </td>
               <td>
                 <p className="text-sm">{'1泊目・2泊目'}</p>
-                <p>{'東京ﾄﾞｰﾑﾎﾃﾙ'}</p>
+                <p>{'東京ﾄﾞｰﾑ ﾎﾃﾙ'}</p>
               </td>
               <td>{studentData?.room_tokyo}</td>
             </tr>
             <tr>
               <td>
                 <p className="text-sm">{'3泊目'}</p>
-                <p>{'ﾌｼﾞﾌﾟﾚﾐｱﾑﾘｿﾞｰﾄ'}</p>
+                <p>{'ﾌｼﾞ ﾌﾟﾚﾐｱﾑ ﾘｿﾞｰﾄ'}</p>
               </td>
               <td>{studentData?.room_shizuoka}</td>
             </tr>
@@ -152,7 +155,7 @@ const Index = () => {
               <td
                 className="bg-gray-200 cursor-pointer"
                 onClick={() => {
-                  window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=84', '_blank', 'noreferrer');
+                  window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=77', '_blank', 'noreferrer');
                 }}>
                 <p>{'のぞみ77号'}</p>
                 <p className="text-gray-600 text-sm">{'新横浜駅15:48発 - 広島駅19:46着'}</p>

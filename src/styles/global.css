@@ -14,6 +14,7 @@ body,
 main,
 #root {
   height: 100%;
+  word-break: auto-phrase;
 }
 
 .mobiry-button {
