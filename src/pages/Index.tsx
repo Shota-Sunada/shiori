@@ -58,7 +58,7 @@ const Index = () => {
         <table className="index-table">
           <thead className="bg-amber-200">
             <tr>
-              <th colSpan={2}>
+              <th colSpan={3}>
                 {'5年'}
                 {studentData?.class}
                 {'組'}
@@ -71,31 +71,39 @@ const Index = () => {
           </thead>
           <tbody className="bg-white">
             <tr>
-              <td>{'1日目 バス号車'}</td>
+              <td rowSpan={2}>{'1日目'}</td>
+              <td>{'バス号車'}</td>
               <td>{studentData?.day1bus}</td>
             </tr>
             <tr>
-              <td>{'1日目 研修先'}</td>
+              <td>{'研修先'}</td>
               <td>{COURSES_DAY1.find((x) => x.key === studentData?.day1id)?.name}</td>
             </tr>
             <tr>
-              <td>{'3日目 バス号車'}</td>
+              <td rowSpan={2}>{'3日目'}</td>
+              <td>{'バス号車'}</td>
               <td>{studentData?.day3bus}</td>
             </tr>
             <tr>
-              <td>{'3日目 研修先'}</td>
+              <td>{'研修先'}</td>
               <td>{COURSES_DAY3.find((x) => x.key === studentData?.day3id)?.name}</td>
             </tr>
             <tr>
-              <td>{'4日目 研修先'}</td>
-              <td>{studentData?.class}{"組 "}{COURSES_DAY4.find((x) => x.key === DAY4_DATA[Number(studentData?.class) - 1])?.name}</td>
+              <td rowSpan={1}>{'4日目'}</td>
+              <td>{'研修先'}</td>
+              <td>
+                {studentData?.class}
+                {'組 '}
+                {COURSES_DAY4.find((x) => x.key === DAY4_DATA[Number(studentData?.class) - 1])?.name}
+              </td>
             </tr>
             <tr>
-              <td>{'東京ドームホテル 部屋番号'}</td>
+              <td rowSpan={2}>{'ホテル'}</td>
+              <td>{'東京ﾄﾞｰﾑﾎﾃﾙ'}</td>
               <td>{studentData?.room_tokyo}</td>
             </tr>
             <tr>
-              <td>{'静岡 部屋番号'}</td>
+              <td>{'ﾌｼﾞﾌﾟﾚﾐｱﾑﾘｿﾞｰﾄ'}</td>
               <td>{studentData?.room_shizuoka}</td>
             </tr>
           </tbody>
