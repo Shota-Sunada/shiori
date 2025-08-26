@@ -1,7 +1,6 @@
-import { useState, useEffect, type JSX, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
-import YesNoModal from './YesNoModal';
 
 // ハンバーガーアイコン
 const HamburgerIcon = ({ open }: { open: boolean }) => (
@@ -12,47 +11,22 @@ const HamburgerIcon = ({ open }: { open: boolean }) => (
   </div>
 );
 
-const Header = ({ onLogoutModalChange, setLogoutModal }: { onLogoutModalChange?: (shown: boolean) => void; setLogoutModal?: (modal: JSX.Element | null) => void }) => {
+const Header = () => {
   const { user, logout } = useAuth();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLogoutModalShown, setIsLogoutModalShown] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
   const hamburgerRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleLogout = async () => {
+    if (!window.confirm('本当にログアウトしますか？')) return;
     alert('ログアウトしました。');
     await logout();
     navigate('/login');
   };
-
-  useEffect(() => {
-    if (onLogoutModalChange) {
-      onLogoutModalChange(isLogoutModalShown);
-    }
-    if (setLogoutModal) {
-      if (isLogoutModalShown) {
-        setLogoutModal(
-          <YesNoModal
-            yes={() => {
-              handleLogout();
-              setIsLogoutModalShown(false);
-            }}
-            no={() => {
-              setIsLogoutModalShown(false);
-            }}
-            message={'ログアウトしてもよろしいですか?'}
-          />
-        );
-      } else {
-        setLogoutModal(null);
-      }
-    }
-  }, [isLogoutModalShown, onLogoutModalChange, setLogoutModal, handleLogout]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -70,7 +44,7 @@ const Header = ({ onLogoutModalChange, setLogoutModal }: { onLogoutModalChange?:
   if (user) {
     return (
       <div className="relative">
-        <div className={`bg-[#50141c] text-white flex flex-row items-center justify-between relative z-50 ${isLogoutModalShown ? 'pointer-events-none select-none' : ''}`}>
+        <div className={`bg-[#50141c] text-white flex flex-row items-center justify-between relative z-50`}>
           <img
             className="p-[10px] w-[60px] md:w-[80px] cursor-pointer"
             src="https://www.shudo-h.ed.jp/portal_assets/images/logo.png"
@@ -109,7 +83,7 @@ const Header = ({ onLogoutModalChange, setLogoutModal }: { onLogoutModalChange?:
                   className="text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
                   onClick={() => {
                     setIsMenuOpen(false);
-                    setIsLogoutModalShown(true);
+                    handleLogout();
                   }}>
                   {'ログアウト'}
                 </button>
