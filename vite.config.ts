@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react-swc';
 import tsconfigpaths from 'vite-tsconfig-paths';
 import tailwindcss from '@tailwindcss/vite';
 import obfuscatorPlugin from 'vite-plugin-javascript-obfuscator';
+import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
@@ -10,6 +11,20 @@ export default defineConfig(({ command }) => ({
     react(),
     tsconfigpaths(),
     tailwindcss(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      manifest: {
+        name: '修学旅行のしおり for 79th',
+        description: "修道高校79回生のための修学旅行のしおり",
+        icons: [
+          {
+            sizes: '192x192',
+            src: 'icon.png',
+            type: 'image/png'
+          }
+        ]
+      }
+    }),
     ...(command === 'build'
       ? [
           obfuscatorPlugin({
