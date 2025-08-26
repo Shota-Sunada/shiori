@@ -268,9 +268,9 @@ const Admin: React.FC = () => {
         setStatus('更新中...');
         obj.map(async (x) => {
           const colRef = collection(db, 'students');
-          const q = query(colRef, where('forename', '==', x.forename), where('surname', '==', x.surname));
+          // const q = query(colRef, where('forename', '==', x.forename), where('surname', '==', x.surname));
           // TODO: 学籍番号に置き換え
-          // const q = query(colRef, where('gakuseki', '==', x.gakuseki));
+          const q = query(colRef, where('gakuseki', '==', x.gakuseki));
           const snapshot = await getDocs(q);
           const list: StudentWithId[] = [];
           snapshot.forEach((x) => {
