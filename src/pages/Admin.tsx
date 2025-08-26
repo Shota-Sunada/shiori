@@ -331,7 +331,7 @@ const Admin: React.FC = () => {
     return directionIcon;
   };
   return (
-    <div>
+    <div className='m-[10px]'>
       <p className="m-[10px] text-4xl">{'管理画面'}</p>
       <div className="flex flex-row">
         <button className="" disabled={modalMode !== null}>
