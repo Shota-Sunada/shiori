@@ -76,12 +76,12 @@ const Index = () => {
                   {'１日目'}
                 </span>
               </td>
-              <td>{'バス号車'}</td>
-              <td>{studentData?.day1bus}</td>
-            </tr>
-            <tr>
               <td>{'研修先'}</td>
               <td>{COURSES_DAY1.find((x) => x.key === studentData?.day1id)?.name}</td>
+            </tr>
+            <tr>
+              <td>{'バス号車'}</td>
+              <td>{studentData?.day1bus}</td>
             </tr>
             <tr>
               <td rowSpan={2}>
@@ -89,12 +89,12 @@ const Index = () => {
                   {'３日目'}
                 </span>
               </td>
-              <td>{'バス号車'}</td>
-              <td>{studentData?.day3bus}</td>
-            </tr>
-            <tr>
               <td>{'研修先'}</td>
               <td>{COURSES_DAY3.find((x) => x.key === studentData?.day3id)?.name}</td>
+            </tr>
+            <tr>
+              <td>{'バス号車'}</td>
+              <td>{studentData?.day3bus}</td>
             </tr>
             <tr>
               <td rowSpan={1}>
@@ -113,12 +113,51 @@ const Index = () => {
               <td rowSpan={2} style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
                 {'ホテル'}
               </td>
-              <td>{'東京ﾄﾞｰﾑﾎﾃﾙ'}</td>
+              <td>
+                <p className="text-sm">{'1泊目・2泊目'}</p>
+                <p>{'東京ﾄﾞｰﾑﾎﾃﾙ'}</p>
+              </td>
               <td>{studentData?.room_tokyo}</td>
             </tr>
             <tr>
-              <td>{'ﾌｼﾞﾌﾟﾚﾐｱﾑﾘｿﾞｰﾄ'}</td>
+              <td>
+                <p className="text-sm">{'3泊目'}</p>
+                <p>{'ﾌｼﾞﾌﾟﾚﾐｱﾑﾘｿﾞｰﾄ'}</p>
+              </td>
               <td>{studentData?.room_shizuoka}</td>
+            </tr>
+            <tr>
+              <td rowSpan={2} style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
+                {'新幹線'}
+              </td>
+              <td>
+                <p>{'1日目 東京行'}</p>
+                <p className="text-sm">{'新横浜駅で下車'}</p>
+              </td>
+              <td
+                className="bg-gray-200 cursor-pointer"
+                onClick={() => {
+                  window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=84', '_blank', 'noreferrer');
+                }}>
+                <p>{'のぞみ84号'}</p>
+                <p className="text-gray-600 text-sm">{'広島駅7:57発 - 新横浜駅11:34着'}</p>
+                <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <p>{'4日目 広島行'}</p>
+                <p className="text-sm">{'新横浜駅で乗車'}</p>
+              </td>
+              <td
+                className="bg-gray-200 cursor-pointer"
+                onClick={() => {
+                  window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=84', '_blank', 'noreferrer');
+                }}>
+                <p>{'のぞみ77号'}</p>
+                <p className="text-gray-600 text-sm">{'新横浜駅15:48発 - 広島駅19:46着'}</p>
+                <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
+              </td>
             </tr>
           </tbody>
         </table>
