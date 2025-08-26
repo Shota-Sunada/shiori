@@ -1,4 +1,4 @@
-import { useState, useEffect, type JSX } from 'react';
+import { useState, useEffect, type JSX, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import YesNoModal from './YesNoModal';
@@ -17,6 +17,9 @@ const Header = ({ onLogoutModalChange, setLogoutModal }: { onLogoutModalChange?:
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLogoutModalShown, setIsLogoutModalShown] = useState(false);
+
+  const menuRef = useRef<HTMLDivElement>(null);
+  const hamburgerRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
 
@@ -51,6 +54,24 @@ const Header = ({ onLogoutModalChange, setLogoutModal }: { onLogoutModalChange?:
     }
   }, [isLogoutModalShown, onLogoutModalChange, setLogoutModal, handleLogout]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node) &&
+        hamburgerRef.current &&
+        !hamburgerRef.current.contains(event.target as Node)
+      ) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   if (user) {
     return (
       <div className="relative">
@@ -61,11 +82,11 @@ const Header = ({ onLogoutModalChange, setLogoutModal }: { onLogoutModalChange?:
             <p className="text-sm md:text-base lg:text-lg leading-tight">{'修学旅行のしおり'}</p>
           </div>
           <div className="relative mx-2">
-            <div onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            <div onClick={() => setIsMenuOpen(!isMenuOpen)} ref={hamburgerRef}>
               <HamburgerIcon open={isMenuOpen} />
             </div>
             {isMenuOpen && (
-              <div className="absolute right-0 top-full mt-2 bg-white text-black rounded shadow-lg w-40 z-50 flex flex-col border">
+              <div ref={menuRef} className="absolute right-0 top-full mt-2 bg-white text-black rounded shadow-lg w-40 z-50 flex flex-col border">
                 <button
                   className="text-left px-4 py-3 hover:bg-gray-100 border-b"
                   onClick={() => {
