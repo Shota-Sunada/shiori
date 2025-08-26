@@ -87,7 +87,7 @@ const initialForm: Omit<student, 'class' | 'number' | 'gakuseki'> & { class: str
   room_tokyo: ''
 };
 
-const Admin: React.FC = () => {
+const Admin = () => {
   const [studentsList, setStudentsList] = useState<StudentWithId[] | null>(null);
   const [editRowId, setEditRowId] = useState<string | null>(null); // 編集中の行ID
   const [editRowForm, setEditRowForm] = useState<typeof initialForm>(initialForm); // 編集用フォーム
