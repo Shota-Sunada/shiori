@@ -333,7 +333,7 @@ const Admin: React.FC = () => {
   return (
     <div className='m-[10px]'>
       <p className="m-[10px] text-4xl">{'管理画面'}</p>
-      <div className="flex flex-row">
+      <div className="flex flex-col">
         <button className="" disabled={modalMode !== null}>
           <Button text="新規追加" onClick={handleAddRow} arrow={false} />
         </button>
