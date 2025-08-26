@@ -23,3 +23,9 @@ export const COURSES_DAY3: { key: string; name: string }[] = [
   { key: 'yokohama', name: '横浜コース' }
   // 高尾山中止
 ];
+
+export const COURSES_DAY4: { key: string; name: string }[] = [
+  { key: 'doukutsu', name: '富士山洞窟体験コース' },
+  { key: 'fujikyu', name: '富士急ハイランドコース' },
+  { key: 'kanuu', name: '河口湖カヌーコース' }
+];
