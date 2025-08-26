@@ -87,8 +87,8 @@ const Index = () => {
               <td>{COURSES_DAY3.find((x) => x.key == studentData?.day3id)?.name}</td>
             </tr>
             <tr>
-              <td>{"4日目 研修先"}</td>
-              <td>{COURSES_DAY4.find(x => x.key == DAY4_DATA.find(x => x.class == studentData?.class)?.key)?.name}</td>
+              <td>{'4日目 研修先'}</td>
+              <td>{COURSES_DAY4.find((x) => x.key === DAY4_DATA[studentData?.class ?? -1])?.name}</td>
             </tr>
             <tr>
               <td>{'東京ドームホテル 部屋番号'}</td>
