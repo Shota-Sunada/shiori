@@ -69,7 +69,15 @@ const Header = () => {
                     setIsMenuOpen(false);
                     navigate('/');
                   }}>
-                  {'メイン画面'}
+                  {'ホーム'}
+                </button>
+                <button
+                  className="text-left px-4 py-3 hover:bg-gray-100 border-b cursor-pointer"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    navigate('/otanoshimi');
+                  }}>
+                  {'お楽しみ会'}
                 </button>
                 <button
                   className="text-left px-4 py-3 hover:bg-gray-100 border-b cursor-pointer"
@@ -77,7 +85,8 @@ const Header = () => {
                     setIsMenuOpen(false);
                     navigate('/admin');
                   }}>
-                  {'管理画面'}
+                  <p>{'管理パネル'}</p>
+                  <p className='text-sm'>{'※管理者専用'}</p>
                 </button>
                 <button
                   className="text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
