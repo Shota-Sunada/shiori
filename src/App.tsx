@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Admin from './pages/Admin';
 import Header from './components/Header';
 import Page404 from './pages/Page404';
+import Otanoshimi from './pages/Otanoshimi';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
                   <Route path="/" element={<Index />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/admin" element={<Admin />} />
+                  <Route path="/otanoshimi" element={<Otanoshimi />} />
                   <Route path="*" element={<Page404 />} />
                 </Routes>
             </BrowserRouter>

@@ -84,7 +84,7 @@ const Index = () => {
               <td>{studentData?.day1bus}</td>
             </tr>
             <tr>
-              <td rowSpan={2}>
+              <td rowSpan={3}>
                 <span style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
                   {'３日目'}
                 </span>
@@ -95,6 +95,16 @@ const Index = () => {
             <tr>
               <td>{'バス号車'}</td>
               <td>{studentData?.day3bus}</td>
+            </tr>
+            <tr>
+              <td>{'お楽しみ会'}</td>
+              <td
+                className="bg-gray-200 cursor-pointer"
+                onClick={() => {
+                  navigate("/otanoshimi")
+                }}>
+                {'詳細はここをクリック！'}
+              </td>
             </tr>
             <tr>
               <td rowSpan={1}>
