@@ -1,0 +1,1 @@
+export const ADMIN_HASHES: string[] = ['0870101e9e5273808a04d54a147f4060c5442e30cf8ab81c693c534d2cb95222'];

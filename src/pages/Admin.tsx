@@ -6,18 +6,9 @@ import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
 import { getAuth } from 'firebase/auth';
 import '../styles/admin-table.css';
 import StudentModal from '../components/StudentModal';
+import { sha256 } from '../sha256';
+import { ADMIN_HASHES } from '../accounts';
 // import Button from '../components/Button';
-
-// SHA256ハッシュ化関数
-async function sha256(str: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(str);
-  const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-const adminHashes = ['0870101e9e5273808a04d54a147f4060c5442e30cf8ab81c693c534d2cb95222'];
 
 type StudentWithId = student & { id: string };
 
@@ -189,7 +180,7 @@ const Admin = () => {
       if (user && user.email) {
         const beforeAt = user.email.split('@')[0];
         const hash = await sha256(beforeAt);
-        setIsAdmin(adminHashes.includes(hash));
+        setIsAdmin(ADMIN_HASHES.includes(hash));
       } else {
         setIsAdmin(false);
       }
@@ -407,10 +398,10 @@ const Admin = () => {
         <button className="" disabled={modalMode !== null}>
           <Button text="JSONでまとめて追加" onClick={handleAddJSONData} arrow={false} />
         </button> */}
-          <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer " disabled={modalMode !== null} onClick={handleAddRow}>
+          <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddRow}>
             {'新規追加'}
           </button>
-          <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer" disabled={modalMode !== null} onClick={handleAddJSONData}>
+          <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddJSONData}>
             {'JSONでまとめて追加'}
           </button>
         </div>
