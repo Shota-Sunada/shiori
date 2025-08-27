@@ -19,6 +19,31 @@ type SortConfig = {
   direction: SortDirection;
 };
 
+const CLASS_COLORS: string[] = ['bg-red-400', 'bg-gray-400', 'bg-blue-300', 'bg-green-400', 'bg-orange-400', 'bg-blue-600 text-white', 'bg-yellow-400'];
+const DAY1_COLORS: [id: string, css: string][] = [
+  ['yrp_nifco', 'bg-blue-200'],
+  ['yrp_yamashin', 'bg-blue-400'],
+  ['yrp_air', 'bg-blue-600 text-white'],
+  ['yrp_vtech', 'bg-blue-800 text-white'],
+  ['ntt_labo_i', 'bg-red-300'],
+  ['ntt_labo_b', 'bg-red-600 text-white'],
+  ['kayakku', 'bg-green-300'],
+  ['jaxa', 'bg-green-500'],
+  ['astro', 'bg-gray-600 text-white'],
+  ['arda', 'bg-yellow-300'],
+  ['urth_jip', 'bg-purple-300'],
+  ['micro', 'bg-gray-400'],
+  ['air', 'bg-orange-300']
+];
+const DAY3_COLORS: [id: string, css: string][] = [
+  ['okutama', 'bg-red-300'],
+  ['yokosuka', 'bg-blue-300'],
+  ['hakone', 'bg-yellow-300'],
+  ['kamakura', 'bg-orange-300'],
+  ['hakkeijima', 'bg-green-300'],
+  ['yokohama', 'bg-gray-400']
+];
+
 const sortList = (list: StudentWithId[], configs: SortConfig[]): StudentWithId[] => {
   const sortedList = [...list];
   if (configs.length === 0) {
@@ -543,42 +568,42 @@ const Admin = () => {
           <tbody>
             {sortedAndFilteredStudents.map((s) => (
               <tr key={s.id}>
-                <td onDoubleClick={() => handleCellDoubleClick(s, 'gakuseki')}>
+                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'gakuseki')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'gakuseki' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.gakuseki
                   )}
                 </td>
-                <td onDoubleClick={() => handleCellDoubleClick(s, 'surname')}>
+                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'surname')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'surname' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.surname
                   )}
                 </td>
-                <td onDoubleClick={() => handleCellDoubleClick(s, 'forename')}>
+                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'forename')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'forename' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.forename
                   )}
                 </td>
-                <td onDoubleClick={() => handleCellDoubleClick(s, 'class')}>
+                <td className={CLASS_COLORS[s.class - 1]} onDoubleClick={() => handleCellDoubleClick(s, 'class')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'class' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.class
                   )}
                 </td>
-                <td onDoubleClick={() => handleCellDoubleClick(s, 'number')}>
+                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'number')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'number' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.number
                   )}
                 </td>
-                <td onDoubleClick={() => handleCellDoubleClick(s, 'day1id')}>
+                <td className={DAY1_COLORS.find((x) => x[0] === s.day1id)?.[1]} onDoubleClick={() => handleCellDoubleClick(s, 'day1id')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'day1id' ? (
                     <select value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit">
                       {COURSES_DAY1.map((course) => (
@@ -591,7 +616,7 @@ const Admin = () => {
                     <p className="inline-p-fix">{COURSES_DAY1.find((x) => x.key === s.day1id)?.short_name}</p>
                   )}
                 </td>
-                <td onDoubleClick={() => handleCellDoubleClick(s, 'day3id')}>
+                <td className={DAY3_COLORS.find((x) => x[0] === s.day3id)?.[1]} onDoubleClick={() => handleCellDoubleClick(s, 'day3id')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'day3id' ? (
                     <select value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit">
                       {COURSES_DAY3.map((course) => (
@@ -604,35 +629,35 @@ const Admin = () => {
                     <p className="inline-p-fix">{COURSES_DAY3.find((x) => x.key === s.day3id)?.short_name}</p>
                   )}
                 </td>
-                <td onDoubleClick={() => handleCellDoubleClick(s, 'day1bus')}>
+                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'day1bus')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'day1bus' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.day1bus
                   )}
                 </td>
-                <td onDoubleClick={() => handleCellDoubleClick(s, 'day3bus')}>
+                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'day3bus')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'day3bus' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.day3bus
                   )}
                 </td>
-                <td onDoubleClick={() => handleCellDoubleClick(s, 'room_tokyo')}>
+                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'room_tokyo')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'room_tokyo' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.room_tokyo
                   )}
                 </td>
-                <td onDoubleClick={() => handleCellDoubleClick(s, 'room_shizuoka')}>
+                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'room_shizuoka')}>
                   {editingCell?.studentId === s.id && editingCell?.field === 'room_shizuoka' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.room_shizuoka
                   )}
                 </td>
-                <td>
+                <td className="bg-white">
                   <div className="flex flex-row items-center justify-center">
                     <button className="p-1 cursor-pointer mx-1" onClick={() => handleEditClick(s)} disabled={modalMode !== null || editingCell !== null} title="編集">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 hover:text-gray-800" viewBox="0 0 20 20" fill="currentColor">
