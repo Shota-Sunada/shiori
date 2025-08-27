@@ -38,10 +38,10 @@ const Index = () => {
     }
   }, [user, loading, navigate]);
 
-  if (loading)
+  if (loading || !user || !studentData)
     return (
-      <div>
-        <p>{'読込中...'}</p>
+      <div className="flex flex-col items-center justify-center h-[80dvh]">
+        <p className="text-xl">{'読込中...'}</p>
       </div>
     );
 
@@ -49,8 +49,8 @@ const Index = () => {
     <div className="flex flex-col items-center justify-center m-[10px]">
       <p className="m-[10px] text-2xl">
         {'ようこそ、'}
-        {studentData?.surname}
-        {studentData?.forename}
+        {studentData.surname}
+        {studentData.forename}
         {'さん。'}
       </p>
 
@@ -60,12 +60,12 @@ const Index = () => {
             <tr>
               <th colSpan={3}>
                 {'5年'}
-                {studentData?.class}
+                {studentData.class}
                 {'組'}
-                {studentData?.number}
+                {studentData.number}
                 {'番 '}
-                {studentData?.surname}
-                {studentData?.forename}
+                {studentData.surname}
+                {studentData.forename}
               </th>
             </tr>
           </thead>
@@ -77,11 +77,11 @@ const Index = () => {
                 </span>
               </td>
               <td>{'研修先'}</td>
-              <td>{COURSES_DAY1.find((x) => x.key === studentData?.day1id)?.name}</td>
+              <td>{COURSES_DAY1.find((x) => x.key === studentData.day1id)?.name}</td>
             </tr>
             <tr>
               <td>{'バス号車'}</td>
-              <td>{studentData?.day1bus}</td>
+              <td>{studentData.day1bus}</td>
             </tr>
             <tr>
               <td rowSpan={3}>
@@ -90,18 +90,18 @@ const Index = () => {
                 </span>
               </td>
               <td>{'研修先'}</td>
-              <td>{COURSES_DAY3.find((x) => x.key === studentData?.day3id)?.name}</td>
+              <td>{COURSES_DAY3.find((x) => x.key === studentData.day3id)?.name}</td>
             </tr>
             <tr>
               <td>{'バス号車'}</td>
-              <td>{studentData?.day3bus}</td>
+              <td>{studentData.day3bus}</td>
             </tr>
             <tr>
               <td>{'お楽しみ会'}</td>
               <td
                 className="bg-gray-200 cursor-pointer"
                 onClick={() => {
-                  navigate("/otanoshimi")
+                  navigate('/otanoshimi');
                 }}>
                 {'詳細はここをクリック！'}
               </td>
@@ -115,13 +115,13 @@ const Index = () => {
               <td>{'研修先'}</td>
               <td>
                 <p>
-                  {studentData?.class}
+                  {studentData.class}
                   {'組 '}
-                  {COURSES_DAY4.find((x) => x.key === DAY4_DATA[Number(studentData?.class) - 1])?.name}
+                  {COURSES_DAY4.find((x) => x.key === DAY4_DATA[studentData.class - 1])?.name}
                 </p>
                 <p className="text-gray-600 text-sm">
                   {'引率: '}
-                  {DAY4_TEACHERS[Number(studentData?.class) - 1]}
+                  {DAY4_TEACHERS[studentData.class - 1]}
                 </p>
               </td>
             </tr>
@@ -136,7 +136,7 @@ const Index = () => {
               <td>
                 <p>{'東京ドームホテル'}</p>
                 <p>
-                  {studentData?.room_tokyo}
+                  {studentData.room_tokyo}
                   {'号室'}
                 </p>
               </td>
@@ -146,7 +146,7 @@ const Index = () => {
               <td>
                 <p>{'フジプレミアムリゾート'}</p>
                 <p>
-                  {studentData?.room_shizuoka}
+                  {studentData.room_shizuoka}
                   {'号室'}
                 </p>
               </td>

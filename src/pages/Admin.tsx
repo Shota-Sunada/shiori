@@ -391,14 +391,21 @@ const Admin = () => {
   const day3idOptions = ['okutama', 'yokosuka', 'hakone', 'kamakura', 'hakkeijima', 'yokohama'];
 
   if (!authChecked) {
-    return <div>{'認証確認中...'}</div>;
+    return <div className='flex flex-col items-center justify-center h-[80dvh]'>
+      <p className='text-xl'>{'認証中...'}</p>
+      </div>;
   }
   if (!isAdmin) {
-    return <div>{'権限がありません。'}</div>;
+    return <div className='flex flex-col items-center justify-center h-[80dvh]'>
+      <p className='text-xl'>{'エラー'}</p>
+      <p className='text-xl'>{'閲覧権限がありません'}</p>
+      </div>;
   }
 
   if (!studentsList) {
-    return <div>{'読込中...'}</div>;
+    return <div className='flex flex-col items-center justify-center h-[80dvh]'>
+      <p className='text-xl'>{'読込中...'}</p>
+      </div>;
   }
 
   const getSortIndicator = (key: SortKey) => {
