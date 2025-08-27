@@ -7,7 +7,7 @@ import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4 } from '../data/courses';
 import '../styles/index-table.css';
 import { DAY4_DATA, DAY4_TEACHERS } from '../data/day4';
 
-const Index = () => {
+const Index = (props: { isTeacher: boolean }) => {
   const { user, loading } = useAuth();
 
   const navigate = useNavigate();
@@ -30,20 +30,45 @@ const Index = () => {
     };
 
     fetchStudent();
-  }, [user]);
+  }, [user, props]);
 
   useEffect(() => {
     if (!loading && !user) {
       navigate('/login');
     }
-  }, [user, loading, navigate]);
 
-  if (loading || !user || !studentData)
+    if (props.isTeacher) {
+      navigate("/teacher-index")
+    }
+  }, [user, loading, navigate, props]);
+
+  if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-[80dvh]">
         <p className="text-xl">{'読込中...'}</p>
       </div>
     );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[80dvh]">
+        <p className="text-xl">{'ユーザーデータ読込中...'}</p>
+      </div>
+    );
+  }
+
+  if (props.isTeacher) {
+    navigate('/teacher-index');
+  }
+
+  if (!studentData) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[80dvh]">
+        <p className="text-xl">{'生徒データ読込中...'}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">

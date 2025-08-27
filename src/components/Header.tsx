@@ -11,7 +11,7 @@ const HamburgerIcon = ({ open }: { open: boolean }) => (
   </div>
 );
 
-const Header = () => {
+const Header = (props: { isTeacher: boolean }) => {
   const { user, logout } = useAuth();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -50,7 +50,11 @@ const Header = () => {
             src="https://www.shudo-h.ed.jp/portal_assets/images/logo.png"
             alt=""
             onClick={() => {
-              navigate('/');
+              if (props.isTeacher) {
+                navigate('/teacher-index');
+              } else {
+                navigate('/');
+              }
             }}
           />
           <div className="mx-2 flex flex-col">
@@ -67,7 +71,11 @@ const Header = () => {
                   className="text-left px-4 py-3 hover:bg-gray-100 border-b cursor-pointer"
                   onClick={() => {
                     setIsMenuOpen(false);
-                    navigate('/');
+                    if (props.isTeacher) {
+                      navigate('/teacher-index');
+                    } else {
+                      navigate('/');
+                    }
                   }}>
                   {'ホーム'}
                 </button>
@@ -86,7 +94,7 @@ const Header = () => {
                     navigate('/admin');
                   }}>
                   <p>{'管理パネル'}</p>
-                  <p className='text-sm'>{'※管理者専用'}</p>
+                  <p className="text-sm">{'※管理者専用'}</p>
                 </button>
                 <button
                   className="text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"

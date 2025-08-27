@@ -1,1 +1,2 @@
 export const ADMIN_HASHES: string[] = ['0870101e9e5273808a04d54a147f4060c5442e30cf8ab81c693c534d2cb95222'];
+export const TEACHER_HASH: string = "f47b1a3b6ae2e7e1167d0d2625832381e03d5a56a7c452d91caeae821a7b82be";
