@@ -4,11 +4,13 @@ import tsconfigpaths from 'vite-tsconfig-paths';
 import tailwindcss from '@tailwindcss/vite';
 import obfuscatorPlugin from 'vite-plugin-javascript-obfuscator';
 import { VitePWA } from 'vite-plugin-pwa';
+import pkg from './package.json'; // package.jsonをインポート
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
   define: {
-    'import.meta.env.APP_VERSION': JSON.stringify(process.env.npm_package_version)
+    // process.envからpackage.jsonのインポートに切り替え
+    'import.meta.env.APP_VERSION': JSON.stringify(pkg.version)
   },
   build: {
     rollupOptions: {
@@ -62,25 +64,6 @@ export default defineConfig(({ command }) => ({
               stringArrayEncoding: ['none'],
               stringArrayThreshold: 0.75,
               unicodeEscapeSequence: false
-              // compact: true,
-              // controlFlowFlattening: true,
-              // controlFlowFlatteningThreshold: 0.75,
-              // deadCodeInjection: true,
-              // deadCodeInjectionThreshold: 0.4,
-              // debugProtection: true,
-              // disableConsoleOutput: true,
-              // identifierNamesGenerator: 'hexadecimal',
-              // // domainLock: ['.shudo-physics.com'],
-              // log: false,
-              // renameGlobals: false,
-              // rotateStringArray: true,
-              // sourceMap: false,
-              // selfDefending: true,
-              // stringArray: true,
-              // stringArrayEncoding: ['base64'],
-              // stringArrayThreshold: 0.75,
-              // transformObjectKeys: true,
-              // unicodeEscapeSequence: false
             }
           })
         ]
