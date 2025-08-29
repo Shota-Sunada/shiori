@@ -395,21 +395,27 @@ const Admin = () => {
   const day3idOptions = ['okutama', 'yokosuka', 'hakone', 'kamakura', 'hakkeijima', 'yokohama'];
 
   if (!authChecked) {
-    return <div className='flex flex-col items-center justify-center h-[80dvh]'>
-      <p className='text-xl'>{'認証中...'}</p>
-      </div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-[80dvh]">
+        <p className="text-xl">{'認証中...'}</p>
+      </div>
+    );
   }
   if (!isAdmin) {
-    return <div className='flex flex-col items-center justify-center h-[80dvh]'>
-      <p className='text-xl'>{'エラー'}</p>
-      <p className='text-xl'>{'閲覧権限がありません'}</p>
-      </div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-[80dvh]">
+        <p className="text-xl">{'エラー'}</p>
+        <p className="text-xl">{'閲覧権限がありません'}</p>
+      </div>
+    );
   }
 
   if (!studentsList) {
-    return <div className='flex flex-col items-center justify-center h-[80dvh]'>
-      <p className='text-xl'>{'読込中...'}</p>
-      </div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-[80dvh]">
+        <p className="text-xl">{'読込中...'}</p>
+      </div>
+    );
   }
 
   const getSortIndicator = (key: SortKey) => {
@@ -425,68 +431,9 @@ const Admin = () => {
     return directionIcon;
   };
   return (
-    <div className="m-[10px] flex flex-col h-[70vh] overflow-hidden">
-      <div>
-        <div className="flex flex-row">
-          {/* <button className="" disabled={modalMode !== null}>
-          <Button text="新規追加" onClick={handleAddRow} arrow={false} />
-        </button>
-        <button className="" disabled={modalMode !== null}>
-          <Button text="JSONでまとめて追加" onClick={handleAddJSONData} arrow={false} />
-        </button> */}
-          <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddRow}>
-            {'新規追加'}
-          </button>
-          <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddJSONData}>
-            {'JSONでまとめて追加'}
-          </button>
-          <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={()=> {navigate("/admin-sha256")}}>
-            {'SHA256'}
-          </button>
-        </div>
-        <input
-          className="m-[10px]"
-          ref={inputRef}
-          type="file"
-          name="json"
-          id="json"
-          hidden
-          accept=".json"
-          onChange={(e) => {
-            handleJSONRead(e);
-          }}
-        />
-        <div>{status}</div>
-        <StudentModal
-          open={modalMode !== null}
-          mode={modalMode || 'add'}
-          onSave={(formData) => {
-            const data: student = {
-              ...formData,
-              day1id: formData.day1id as student['day1id'],
-              day3id: formData.day3id as student['day3id'],
-              class: Number(formData.class) as student['class'],
-              number: Number(formData.number) as student['number'],
-              gakuseki: Number(formData.gakuseki) as student['gakuseki']
-            };
-            handleSave(data);
-          }}
-          onCancel={() => {
-            setModalMode(null);
-            setEditRowId(null);
-          }}
-          initialData={modalMode === 'edit' ? editRowForm : initialForm}
-          day1idOptions={day1idOptions}
-          day3idOptions={day3idOptions}
-        />
-        <h2 className="m-[10px]">{'登録済み生徒一覧'}</h2>
-        <div className="flex items-center m-[10px]">
-          <input type="text" placeholder="検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="border p-2 rounded mr-2 max-w-[50dvw]" />
-          <p className="text-sm text-gray-600 my-2">{'組と番号以外なら何でも検索できます。'}</p>
-        </div>
-        <p className="text-sm text-gray-600 my-2 m-[10px]">{'ヒント: Shiftキーを押しながら列名をクリックすると、複数の条件でソートできます。'}</p>
-      </div>
-      <div className="table-root overflow-y-auto flex-grow">
+    <div className="m-[10px] flex flex-col overflow-hidden">
+      <p className="text-sm text-gray-600 my-[10px]">{'ヒント: Shiftキーを押しながら列名をクリックすると、複数の条件でソートできます。'}</p>
+      <div className="table-root overflow-y-auto flex-grow h-[70vh]">
         <table border={1} className="w-full">
           <thead className="sticky top-0 bg-white">
             <tr>
@@ -693,6 +640,68 @@ const Admin = () => {
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="mt-[1dvh]">
+        <div className="flex flex-row">
+          <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddRow}>
+            {'新規追加'}
+          </button>
+          <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddJSONData}>
+            {'JSONでまとめて追加'}
+          </button>
+          <button
+            className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white"
+            disabled={modalMode !== null}
+            onClick={() => {
+              navigate('/admin-sha256');
+            }}>
+            {'SHA256'}
+          </button>
+        </div>
+        <input
+          className="m-[10px]"
+          ref={inputRef}
+          type="file"
+          name="json"
+          id="json"
+          hidden
+          accept=".json"
+          onChange={(e) => {
+            handleJSONRead(e);
+          }}
+        />
+        <div className="my-[10px]">
+          <p>
+            {'ステータス: '}
+            {status}
+          </p>
+        </div>
+        <StudentModal
+          open={modalMode !== null}
+          mode={modalMode || 'add'}
+          onSave={(formData) => {
+            const data: student = {
+              ...formData,
+              day1id: formData.day1id as student['day1id'],
+              day3id: formData.day3id as student['day3id'],
+              class: Number(formData.class) as student['class'],
+              number: Number(formData.number) as student['number'],
+              gakuseki: Number(formData.gakuseki) as student['gakuseki']
+            };
+            handleSave(data);
+          }}
+          onCancel={() => {
+            setModalMode(null);
+            setEditRowId(null);
+          }}
+          initialData={modalMode === 'edit' ? editRowForm : initialForm}
+          day1idOptions={day1idOptions}
+          day3idOptions={day3idOptions}
+        />
+        <div className="flex items-center my-[10px]">
+          <input type="text" placeholder="検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="border p-2 rounded mr-2 max-w-[50dvw]" />
+          <p className="text-sm text-gray-600 my-2">{'組と番号以外なら何でも検索できます。'}</p>
+        </div>
       </div>
     </div>
   );
