@@ -48,8 +48,8 @@ const Login = () => {
         <p className="mt-[2dvh]">{'修道高校79回生 修学旅行のしおり'}</p>
         <p className="text-2xl pt-[2dvh]">{'ログイン'}</p>
         <div className="flex flex-col mt-[2dvh]">
-          <label htmlFor={'student_id'}>{'生徒ID'}</label>
-          <input type="number" name="student_id" id="student_id" placeholder={'生徒ID (2021****) を入力'} required ref={student_id_ref} />
+          <label htmlFor={'student_id'}>{'生徒ID (数字8桁)'}</label>
+          <input type="number" name="student_id" id="student_id" placeholder={'生徒ID (202*****) を入力'} required ref={student_id_ref} />
         </div>
         <div className="flex flex-col mb-[2dvh]">
           <label htmlFor={'password'}>{'パスワード'}</label>
