@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { getAuth } from 'firebase/auth';
 import { TEACHER_HASH } from './accounts';
 import { sha256 } from './sha256';
+import SHA256 from './pages/SHA256';
 
 function App() {
   const [isTeacher, setIsTeacher] = useState<boolean>(false);
@@ -41,6 +42,7 @@ function App() {
                 <Route path="/" element={<Index isTeacher={isTeacher} />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/admin" element={<Admin />} />
+                <Route path="/admin-sha256" element={<SHA256 />} />
                 <Route path="/otanoshimi" element={<Otanoshimi />} />
                 <Route path="/teacher-index" element={<TeacherIndex />} />
                 <Route path="*" element={<Page404 />} />
