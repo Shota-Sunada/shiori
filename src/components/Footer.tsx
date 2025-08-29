@@ -8,7 +8,7 @@ const Footer = () => {
       </div>
       <div>
         <p className="text-xs">
-          v{import.meta.env.APP_VERSION}
+          {"v"}{import.meta.env.APP_VERSION}
         </p>
       </div>
     </footer>
