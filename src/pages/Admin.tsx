@@ -433,7 +433,7 @@ const Admin = () => {
   return (
     <div className="m-[10px] flex flex-col overflow-hidden">
       <p className="text-sm text-gray-600 my-[10px]">{'ヒント: Shiftキーを押しながら列名をクリックすると、複数の条件でソートできます。'}</p>
-      <div className="table-root overflow-y-auto flex-grow h-[70vh]">
+      <div className="table-root overflow-y-auto flex-grow max-h-[68dvh]">
         <table border={1} className="w-full">
           <thead className="sticky top-0 bg-white">
             <tr>
@@ -647,7 +647,7 @@ const Admin = () => {
             {'新規追加'}
           </button>
           <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddJSONData}>
-            {'JSONでまとめて追加'}
+            {'JSONで追加'}
           </button>
           <button
             className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white"
