@@ -5,6 +5,7 @@ import '../styles/login.css';
 import { auth } from '../firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useAuth } from '../auth-context';
+import { sha256 } from '../sha256';
 
 const Login = () => {
   const { user, loading } = useAuth();
@@ -21,12 +22,12 @@ const Login = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    const student_id = student_id_ref?.current?.value;
-    const password = password_ref?.current?.value;
+    const student_id = student_id_ref.current?.value;
+    const password = await sha256(password_ref.current!.value);
 
     const email = `${student_id}@st.shudo-h.ed.jp`;
     try {
-      await signInWithEmailAndPassword(auth, email, `${password}`);
+      await signInWithEmailAndPassword(auth, email, password);
       console.log('ログインに成功しました。');
     } catch (error) {
       alert('ログインに失敗しました。');

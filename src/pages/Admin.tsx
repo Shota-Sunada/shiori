@@ -7,7 +7,7 @@ import { getAuth } from 'firebase/auth';
 import '../styles/admin-table.css';
 import StudentModal from '../components/StudentModal';
 import { sha256 } from '../sha256';
-import { ADMIN_HASHES } from '../accounts';
+import { ADMIN_HASHES, TEACHER_HASH } from '../accounts';
 import { useNavigate } from 'react-router-dom';
 // import Button from '../components/Button';
 
@@ -208,7 +208,8 @@ const Admin = () => {
       if (user && user.email) {
         const beforeAt = user.email.split('@')[0];
         const hash = await sha256(beforeAt);
-        setIsAdmin(ADMIN_HASHES.includes(hash));
+        const canBeAdmin = ADMIN_HASHES.includes(hash) || TEACHER_HASH === hash;
+        setIsAdmin(canBeAdmin);
       } else {
         setIsAdmin(false);
       }
