@@ -444,7 +444,7 @@ const Admin = () => {
   };
   return (
     <div className="m-[10px] flex flex-col overflow-hidden">
-      <div className="table-root overflow-y-auto flex-grow max-h-[65dvh]">
+      <div className="table-root overflow-y-auto flex-grow max-h-[60dvh]">
         <table border={1} className="w-full">
           <thead className="sticky top-0 bg-white">
             <tr>
