@@ -1,12 +1,12 @@
 {
   "name": "shiori",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.1.3",
   "description": "修道高校79回生のための修学旅行のしおり",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b --sourceMap false && vite build --sourcemap false",
+    "build": "npm version patch --no-git-tag-version && tsc -b --sourceMap false && vite build --sourcemap false",
     "preview": "vite preview",
     "format": "prettier . --write",
     "lint": "eslint src",
