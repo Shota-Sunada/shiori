@@ -14,7 +14,11 @@ const localInitialForm = {
   day1bus: '',
   day3bus: '',
   room_shizuoka: '',
-  room_tokyo: ''
+  room_tokyo: '',
+  shinkansen_day1_car_number: '',
+  shinkansen_day4_car_number: '',
+  shinkansen_day1_seat: '',
+  shinkansen_day4_seat: ''
 };
 
 type StudentFormData = typeof localInitialForm;
@@ -60,7 +64,7 @@ const StudentModal = ({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm">
-      <div className="border bg-white text-black rounded-xl px-[5dvw] py-[5dvh] min-w-[350px] max-h-[90dvh] overflow-y-auto">
+      <div className="border bg-white text-black rounded-xl px-[5dvw] py-[5dvh] min-w-[350px] max-h-[90dvh] overflow-y-auto m-[10px]">
         <h2 className="mb-4">{mode === 'add' ? '生徒データ新規追加' : '生徒データ編集'}</h2>
         <div className="grid grid-cols-2 gap-2 modal-root">
           <label>{'学籍番号'}</label>
@@ -95,8 +99,24 @@ const StudentModal = ({
           <input name="day3bus" value={form.day3bus} required onChange={handleChange} />
           <label>{'東京ドームホテル 号室'}</label>
           <input name="room_tokyo" value={form.room_tokyo} required onChange={handleChange} />
-          <label>{'フジプレミアムリゾート 号室'}</label>
+          <label>{'ﾌｼﾞﾌﾟﾚﾐｱﾑﾘｿﾞｰﾄ 号室'}</label>
           <input name="room_shizuoka" value={form.room_shizuoka} required onChange={handleChange} />
+          <label>{'一日目 新幹線'}</label>
+          <div className="flex flex-row ">
+            <div className="flex flex-row items-center justify-start">
+              <input name="shinkansen_day1_car_number" value={form.shinkansen_day1_car_number} type="number" min={1} max={16} required onChange={handleChange} placeholder="" />
+              <p className="px-[5px]">{'号車'}</p>
+            </div>
+            <input className="w-full" name="shinkansen_day1_seat" value={form.shinkansen_day1_seat} required onChange={handleChange} placeholder="座席(A1など)" />
+          </div>
+          <label>{'四日目 新幹線'}</label>
+          <div className="flex flex-row">
+            <div className="flex flex-row items-center justify-start">
+              <input name="shinkansen_day4_car_number" value={form.shinkansen_day4_car_number} type="number" min={1} max={16} required onChange={handleChange} placeholder="" />
+              <p className="px-[5px]">{'号車'}</p>
+            </div>
+            <input className="w-full" name="shinkansen_day4_seat" value={form.shinkansen_day4_seat} required onChange={handleChange} placeholder="座席(A1など)" />
+          </div>
         </div>
         <div className="flex flex-row items-center justify-center mt-4">
           {/* <button className="cursor-pointer m-2 bg-blue-400 text-white rounded-2xl p-2 min-w-[5dvw]" onClick={handleSave}>

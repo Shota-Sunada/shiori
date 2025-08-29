@@ -90,7 +90,13 @@ const sortList = (list: StudentWithId[], configs: SortConfig[]): StudentWithId[]
   return sortedList;
 };
 
-const initialForm: Omit<student, 'class' | 'number' | 'gakuseki'> & { class: string; number: string; gakuseki: string } = {
+const initialForm: Omit<student, 'class' | 'number' | 'gakuseki' | 'shinkansen_day1_car_number' | 'shinkansen_day4_car_number'> & {
+  class: string;
+  number: string;
+  gakuseki: string;
+  shinkansen_day1_car_number: string;
+  shinkansen_day4_car_number: string;
+} = {
   surname: '',
   forename: '',
   class: '',
@@ -101,7 +107,11 @@ const initialForm: Omit<student, 'class' | 'number' | 'gakuseki'> & { class: str
   day1bus: '',
   day3bus: '',
   room_shizuoka: '',
-  room_tokyo: ''
+  room_tokyo: '',
+  shinkansen_day1_car_number: '',
+  shinkansen_day4_car_number: '',
+  shinkansen_day1_seat: '',
+  shinkansen_day4_seat: ''
 };
 
 const Admin = () => {
@@ -225,7 +235,9 @@ const Admin = () => {
       ...s,
       class: String(s.class),
       number: String(s.number),
-      gakuseki: String(s.gakuseki)
+      gakuseki: String(s.gakuseki),
+      shinkansen_day1_car_number: String(s.shinkansen_day1_car_number),
+      shinkansen_day4_car_number: String(s.shinkansen_day4_car_number)
     });
     setStatus('');
     setModalMode('edit');
@@ -432,8 +444,7 @@ const Admin = () => {
   };
   return (
     <div className="m-[10px] flex flex-col overflow-hidden">
-      <p className="text-sm text-gray-600 my-[10px]">{'ヒント: Shiftキーを押しながら列名をクリックすると、複数の条件でソートできます。'}</p>
-      <div className="table-root overflow-y-auto flex-grow max-h-[68dvh]">
+      <div className="table-root overflow-y-auto flex-grow max-h-[65dvh]">
         <table border={1} className="w-full">
           <thead className="sticky top-0 bg-white">
             <tr>
@@ -469,7 +480,7 @@ const Admin = () => {
               </th>
               <th className="w-40">
                 <div className="flex flex-col items-center justify-center">
-                  <span>{'1日目研修先'}</span>
+                  <span>{'①研修先'}</span>
                   <button onClick={(e) => handleSort('day1id', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('day1id')}
                   </button>
@@ -477,7 +488,7 @@ const Admin = () => {
               </th>
               <th className="w-40">
                 <div className="flex flex-col items-center justify-center">
-                  <span>{'3日目研修先'}</span>
+                  <span>{'③研修先'}</span>
                   <button onClick={(e) => handleSort('day3id', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('day3id')}
                   </button>
@@ -485,7 +496,7 @@ const Admin = () => {
               </th>
               <th className="w-20">
                 <div className="flex flex-col items-center justify-center">
-                  <span>{'1日目ﾊﾞｽ'}</span>
+                  <span>{'①バス'}</span>
                   <button onClick={(e) => handleSort('day1bus', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('day1bus')}
                   </button>
@@ -493,7 +504,7 @@ const Admin = () => {
               </th>
               <th className="w-20">
                 <div className="flex flex-col items-center justify-center">
-                  <span>{'3日目ﾊﾞｽ'}</span>
+                  <span>{'③バス'}</span>
                   <button onClick={(e) => handleSort('day3bus', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('day3bus')}
                   </button>
@@ -512,6 +523,38 @@ const Admin = () => {
                   <span>{'FPR号室'}</span>
                   <button onClick={(e) => handleSort('room_shizuoka', e.shiftKey)} disabled={modalMode !== null}>
                     {getSortIndicator('room_shizuoka')}
+                  </button>
+                </div>
+              </th>
+              <th className="w-20">
+                <div className="flex flex-col items-center justify-center">
+                  <span>{'NSX①車'}</span>
+                  <button onClick={(e) => handleSort('shinkansen_day1_car_number', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('shinkansen_day1_car_number')}
+                  </button>
+                </div>
+              </th>
+              <th className="w-20">
+                <div className="flex flex-col items-center justify-center">
+                  <span>{'NSX①席'}</span>
+                  <button onClick={(e) => handleSort('shinkansen_day1_seat', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('shinkansen_day1_seat')}
+                  </button>
+                </div>
+              </th>
+              <th className="w-20">
+                <div className="flex flex-col items-center justify-center">
+                  <span>{'NSX④車'}</span>
+                  <button onClick={(e) => handleSort('shinkansen_day4_car_number', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('shinkansen_day4_car_number')}
+                  </button>
+                </div>
+              </th>
+              <th className="w-20">
+                <div className="flex flex-col items-center justify-center">
+                  <span>{'NSX④席'}</span>
+                  <button onClick={(e) => handleSort('shinkansen_day4_seat', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('shinkansen_day4_seat')}
                   </button>
                 </div>
               </th>
@@ -618,6 +661,34 @@ const Admin = () => {
                     s.room_shizuoka
                   )}
                 </td>
+                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'shinkansen_day1_car_number')}>
+                  {editingCell?.studentId === s.id && editingCell?.field === 'shinkansen_day1_car_number' ? (
+                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
+                  ) : (
+                    s.shinkansen_day1_car_number
+                  )}
+                </td>
+                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'shinkansen_day1_seat')}>
+                  {editingCell?.studentId === s.id && editingCell?.field === 'shinkansen_day1_seat' ? (
+                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
+                  ) : (
+                    s.shinkansen_day1_seat
+                  )}
+                </td>
+                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'shinkansen_day4_car_number')}>
+                  {editingCell?.studentId === s.id && editingCell?.field === 'shinkansen_day4_car_number' ? (
+                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
+                  ) : (
+                    s.shinkansen_day4_car_number
+                  )}
+                </td>
+                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'shinkansen_day4_seat')}>
+                  {editingCell?.studentId === s.id && editingCell?.field === 'shinkansen_day4_seat' ? (
+                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
+                  ) : (
+                    s.shinkansen_day4_seat
+                  )}
+                </td>
                 <td className="bg-white">
                   <div className="flex flex-row items-center justify-center">
                     <button className="p-1 cursor-pointer mx-1" onClick={() => handleEditClick(s)} disabled={modalMode !== null || editingCell !== null} title="編集">
@@ -641,7 +712,13 @@ const Admin = () => {
           </tbody>
         </table>
       </div>
-      <div className="mt-[1dvh]">
+      <div className="text-sm text-gray-600 my-[10px]">
+        <p>{'Tips: Shiftキーを押しながら列名をクリックすると、最大2個の条件でソートできます。'}</p>
+        <p>{'※①: 1日目、②: 2日目、③: 3日目、④: 4日目 です。'}</p>
+        <p>{'※TDH: 東京ドームホテル、FPR: フジプレミアムリゾートです。'}</p>
+        <p>{'※NSXは、Nozomi Super Express (=新幹線) のことです。'}</p>
+      </div>
+      <div>
         <div className="flex flex-row">
           <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddRow}>
             {'新規追加'}
@@ -686,7 +763,9 @@ const Admin = () => {
               day3id: formData.day3id as student['day3id'],
               class: Number(formData.class) as student['class'],
               number: Number(formData.number) as student['number'],
-              gakuseki: Number(formData.gakuseki) as student['gakuseki']
+              gakuseki: Number(formData.gakuseki) as student['gakuseki'],
+              shinkansen_day1_car_number: Number(formData.shinkansen_day1_car_number) as student['shinkansen_day1_car_number'],
+              shinkansen_day4_car_number: Number(formData.shinkansen_day4_car_number) as student['shinkansen_day4_car_number']
             };
             handleSave(data);
           }}
