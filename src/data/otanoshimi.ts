@@ -5,7 +5,7 @@ export const OTANOSHIMI_TEAMS: string[] = [
   '濱桐ーず',
   'もう受験生',
   '５-４神楽団',
-  'Tugg Band',
+  'Jugg Band',
   '世界の裏側',
   'ソロシンガータックー',
   'プロ野球選手ものまねクイズ大会',
