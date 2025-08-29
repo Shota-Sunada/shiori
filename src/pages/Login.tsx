@@ -46,7 +46,10 @@ const Login = () => {
           src="https://gakugai.shudo-h.ed.jp/hp_assets/images/common/menu_logo.png"
           alt="修道ロゴ"
         />
-        <p className="mt-[2dvh]">{'修道高校79回生 修学旅行のしおり'}</p>
+        <div className="mt-[2dvh]">
+          <p>{'修道高校79回生'}</p>
+          <p>{'修学旅行のしおり'}</p>
+        </div>
         <p className="text-2xl pt-[2dvh]">{'ログイン'}</p>
         <div className="flex flex-col mt-[2dvh]">
           <label htmlFor={'student_id'}>{'生徒ID (数字8桁)'}</label>
@@ -73,9 +76,6 @@ const Login = () => {
         <button type="submit">
           <Button text={'ログイン'} onClick={() => {}} arrow />
         </button>
-        <p className="text-sm text-gray-500 mt-4">
-          {"バージョン: "}{import.meta.env.APP_VERSION}
-        </p>
       </form>
     </div>
   );

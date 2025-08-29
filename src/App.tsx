@@ -4,6 +4,7 @@ import Index from './pages/Index';
 import Login from './pages/Login';
 import Admin from './pages/Admin';
 import Header from './components/Header';
+import Footer from './components/Footer'; // Footerをインポート
 import Page404 from './pages/Page404';
 import Otanoshimi from './pages/Otanoshimi';
 import TeacherIndex from './pages/TeacherIndex';
@@ -32,26 +33,25 @@ function App() {
   });
 
   return (
-    <>
-      <main>
-        <div className="h-[100%] bg-[#f7f4e5] overflow-y-auto relative">
-          <AuthProvider>
-            <BrowserRouter>
-              <Header isTeacher={isTeacher} />
-              <Routes>
-                <Route path="/" element={<Index isTeacher={isTeacher} />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/admin-sha256" element={<SHA256 />} />
-                <Route path="/otanoshimi" element={<Otanoshimi />} />
-                <Route path="/teacher-index" element={<TeacherIndex />} />
-                <Route path="*" element={<Page404 />} />
-              </Routes>
-            </BrowserRouter>
-          </AuthProvider>
+    <AuthProvider>
+      <BrowserRouter>
+        <div className="flex flex-col min-h-screen bg-[#f7f4e5]">
+          <Header isTeacher={isTeacher} />
+          <main className="flex-grow overflow-y-auto">
+            <Routes>
+              <Route path="/" element={<Index isTeacher={isTeacher} />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/admin-sha256" element={<SHA256 />} />
+              <Route path="/otanoshimi" element={<Otanoshimi />} />
+              <Route path="/teacher-index" element={<TeacherIndex />} />
+              <Route path="*" element={<Page404 />} />
+            </Routes>
+          </main>
+          <Footer />
         </div>
-      </main>
-    </>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

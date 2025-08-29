@@ -41,26 +41,30 @@ const Header = (props: { isTeacher: boolean }) => {
     };
   }, []);
 
-  if (user) {
-    return (
-      <div className="relative">
-        <div className={`bg-[#50141c] text-white flex flex-row items-center justify-between relative z-50`}>
-          <img
-            className="p-[10px] w-[60px] md:w-[80px] cursor-pointer"
-            src="https://www.shudo-h.ed.jp/portal_assets/images/logo.png"
-            alt=""
-            onClick={() => {
-              if (props.isTeacher) {
-                navigate('/teacher-index');
-              } else {
-                navigate('/');
-              }
-            }}
-          />
-          <div className="mx-2 flex flex-col">
-            <p className="font-bold text-base md:text-lg lg:text-xl leading-tight">{'修道高校79回生'}</p>
-            <p className="text-sm md:text-base lg:text-lg leading-tight">{'修学旅行のしおり'}</p>
-          </div>
+  return (
+    <div className="relative">
+      <div className={`bg-[#50141c] text-white flex flex-row items-center justify-between relative z-50`}>
+        <img
+          className={`p-[10px] w-[60px] md:w-[80px] ${user ? 'cursor-pointer' : 'cursor-default'}`}
+          src="https://www.shudo-h.ed.jp/portal_assets/images/logo.png"
+          alt=""
+          onClick={
+            user
+              ? () => {
+                  if (props.isTeacher) {
+                    navigate('/teacher-index');
+                  } else {
+                    navigate('/');
+                  }
+                }
+              : undefined
+          }
+        />
+        <div className="mx-2 flex flex-col">
+          <p className="font-bold text-base md:text-lg lg:text-xl leading-tight">{'修道高校79回生'}</p>
+          <p className="text-sm md:text-base lg:text-lg leading-tight">{'修学旅行のしおり'}</p>
+        </div>
+        {user && (
           <div className="relative mx-2">
             <div onClick={() => setIsMenuOpen(!isMenuOpen)} ref={hamburgerRef}>
               <HamburgerIcon open={isMenuOpen} />
@@ -107,11 +111,11 @@ const Header = (props: { isTeacher: boolean }) => {
               </div>
             )}
           </div>
-        </div>
-        {/* モーダルはApp.tsxで表示 */}
+        )}
       </div>
-    );
-  }
+      {/* モーダルはApp.tsxで表示 */}
+    </div>
+  );
 };
 
 export default Header;
