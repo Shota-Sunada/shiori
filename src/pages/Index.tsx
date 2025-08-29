@@ -38,7 +38,7 @@ const Index = (props: { isTeacher: boolean }) => {
     }
 
     if (props.isTeacher) {
-      navigate("/teacher-index")
+      navigate('/teacher-index');
     }
   }, [user, loading, navigate, props]);
 
@@ -95,6 +95,7 @@ const Index = (props: { isTeacher: boolean }) => {
             </tr>
           </thead>
           <tbody className="bg-white">
+            {/* day1 START */}
             <tr>
               <td rowSpan={2}>
                 <span style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
@@ -108,6 +109,19 @@ const Index = (props: { isTeacher: boolean }) => {
               <td>{'バス号車'}</td>
               <td>{studentData.day1bus}</td>
             </tr>
+            {/* day1 END */}
+            {/* day2 START */}
+            <tr>
+              <td rowSpan={1}>
+                <span style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
+                  {'２日目'}
+                </span>
+              </td>
+              <td>{''}</td>
+              <td>{"班別自由行動"}</td>
+            </tr>
+            {/* day2 END */}
+            {/* day3 START */}
             <tr>
               <td rowSpan={3}>
                 <span style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
@@ -131,6 +145,8 @@ const Index = (props: { isTeacher: boolean }) => {
                 {'詳細はここをクリック！'}
               </td>
             </tr>
+            {/* day3 END */}
+            {/* day4 START */}
             <tr>
               <td rowSpan={1}>
                 <span style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
@@ -150,6 +166,8 @@ const Index = (props: { isTeacher: boolean }) => {
                 </p>
               </td>
             </tr>
+            {/* day4 END */}
+            {/* hotel START */}
             <tr>
               <td rowSpan={2} style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
                 {'ホテル'}
@@ -176,12 +194,14 @@ const Index = (props: { isTeacher: boolean }) => {
                 </p>
               </td>
             </tr>
+            {/* hotel END */}
+            {/* shinkansen START */}
             <tr>
               <td rowSpan={2} style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
                 {'新幹線'}
               </td>
               <td>
-                <p>{'1日目 東京行'}</p>
+                <p>{'1日目'}</p>
                 <p className="text-sm">{'新横浜駅で下車'}</p>
               </td>
               <td
@@ -189,14 +209,14 @@ const Index = (props: { isTeacher: boolean }) => {
                 onClick={() => {
                   window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=84', '_blank', 'noreferrer');
                 }}>
-                <p>{'のぞみ84号'}</p>
+                <p>{'東京駅行 のぞみ84号'}</p>
                 <p className="text-gray-600 text-sm">{'広島駅7:57発 - 新横浜駅11:34着'}</p>
                 <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
               </td>
             </tr>
             <tr>
               <td>
-                <p>{'4日目 広島行'}</p>
+                <p>{'4日目'}</p>
                 <p className="text-sm">{'新横浜駅で乗車'}</p>
               </td>
               <td
@@ -204,11 +224,12 @@ const Index = (props: { isTeacher: boolean }) => {
                 onClick={() => {
                   window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=77', '_blank', 'noreferrer');
                 }}>
-                <p>{'のぞみ77号'}</p>
+                <p>{'広島駅行 のぞみ77号'}</p>
                 <p className="text-gray-600 text-sm">{'新横浜駅15:48発 - 広島駅19:46着'}</p>
                 <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
               </td>
             </tr>
+            {/* shinkansen END */}
           </tbody>
         </table>
       </section>
