@@ -13,8 +13,11 @@ html,
 body,
 main,
 #root {
-  height: 100%;
   word-break: auto-phrase;
+}
+
+body {
+  overscroll-behavior-y: none;
 }
 
 .mobiry-button {

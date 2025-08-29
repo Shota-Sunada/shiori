@@ -48,23 +48,23 @@ const Login = () => {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <form className="w-[100%] flex flex-col items-center justify-center p-[10dvh]" onSubmit={handleSubmit}>
+      <form className="w-[100%] flex flex-col items-center justify-center mt-8" onSubmit={handleSubmit}>
         <img
           onClick={() => window.open('https://gakugai.shudo-h.ed.jp', '_blank')}
-          className="bg-[#50141c] p-[2dvh] rounded-[10px] cursor-pointer"
+          className="bg-[#50141c] p-4 rounded-[10px] cursor-pointer"
           src="https://gakugai.shudo-h.ed.jp/hp_assets/images/common/menu_logo.png"
           alt="修道ロゴ"
         />
-        <div className="mt-[2dvh] flex flex-col items-center justify-center text-xl">
+        <div className="mt-4 flex flex-col items-center justify-center text-xl">
           <p>{'修道高校79回生'}</p>
           <p>{'修学旅行のしおり'}</p>
         </div>
-        <p className="text-2xl pt-[1dvh]">{'ログイン'}</p>
-        <div className="flex flex-col mt-[2dvh]">
+        <p className="text-2xl pt-2">{'ログイン'}</p>
+        <div className="flex flex-col mt-4">
           <label htmlFor={'student_id'}>{'生徒ID (数字8桁)'}</label>
           <input type="number" name="student_id" id="student_id" placeholder={'生徒ID (202*****) を入力'} required ref={student_id_ref} />
         </div>
-        <div className="flex flex-col mb-[2dvh]">
+        <div className="flex flex-col mb-4">
           <label htmlFor={'password'}>{'パスワード'}</label>
           <div className="relative">
             <input

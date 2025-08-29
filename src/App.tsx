@@ -4,7 +4,7 @@ import Index from './pages/Index';
 import Login from './pages/Login';
 import Admin from './pages/Admin';
 import Header from './components/Header';
-import Footer from './components/Footer'; // Footerをインポート
+import Footer from './components/Footer';
 import Page404 from './pages/Page404';
 import Otanoshimi from './pages/Otanoshimi';
 import TeacherIndex from './pages/TeacherIndex';
@@ -37,7 +37,7 @@ function App() {
       <BrowserRouter>
         <div className="flex flex-col min-h-screen bg-[#f7f4e5]">
           <Header isTeacher={isTeacher} />
-          <main className="flex-grow overflow-y-auto">
+          <main className="flex-grow">
             <Routes>
               <Route path="/" element={<Index isTeacher={isTeacher} />} />
               <Route path="/login" element={<Login />} />
