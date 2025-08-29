@@ -27,3 +27,4 @@ output.json
 
 .env
 tmp.csv
+sha256input.txt
