@@ -73,6 +73,9 @@ const Login = () => {
         <button type="submit">
           <Button text={'ログイン'} onClick={() => {}} arrow />
         </button>
+        <p className="text-sm text-gray-500 mt-4">
+          {"バージョン: "}{import.meta.env.APP_VERSION}
+        </p>
       </form>
     </div>
   );

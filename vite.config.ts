@@ -7,6 +7,9 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
+  define: {
+    'import.meta.env.APP_VERSION': JSON.stringify(process.env.npm_package_version)
+  },
   build: {
     rollupOptions: {
       output: {
