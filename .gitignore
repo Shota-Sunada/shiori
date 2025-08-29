@@ -29,3 +29,5 @@ output.json
 tmp.csv
 sha256input.txt
 sha256output.txt
+serviceAccountKey.json
+users.csv
