@@ -38,7 +38,7 @@ app.post('/register-token', async (req: Request, res: Response) => {
     await tokenRef.set({ token });
     res.status(200).send({ message: 'Token registered successfully in Firestore' });
   } catch (error) {
-    console.error('Error saving token to Firestore:', error);
+    console.error(`[${new Date().toLocaleString()}] Error saving token to Firestore:`, error);
     res.status(500).send({ error: 'Failed to save token' });
   }
 });
@@ -59,7 +59,7 @@ app.post('/send-notification', async (req: Request, res: Response) => {
     const tokenDoc = await tokenRef.get();
 
     if (!tokenDoc.exists) {
-      console.log(`No token found for user ${userId} in Firestore.`);
+      console.log(`[${new Date().toLocaleString()}] No token found for user ${userId} in Firestore.`);
       return res.status(404).send({ error: 'Token not found for user' });
     }
 
@@ -81,11 +81,11 @@ app.post('/send-notification', async (req: Request, res: Response) => {
     res.status(200).send({ message: 'Notification sent successfully' });
 
   } catch (error) {
-    console.error(`Error sending message to user ${userId}:`, error);
+    console.error(`[${new Date().toLocaleString()}] Error sending message to user ${userId}:`, error);
 
     // もしトークンが無効なら、Firestoreから削除する (自己修復)
     if ((error as admin.FirebaseError).code === 'messaging/registration-token-not-registered') {
-      console.log(`Invalid token for user ${userId}. Deleting from Firestore.`);
+      console.log(`[${new Date().toLocaleString()}] Invalid token for user ${userId}. Deleting from Firestore.`);
       await db.collection('fcmTokens').doc(userId).delete();
     }
 
@@ -94,5 +94,5 @@ app.post('/send-notification', async (req: Request, res: Response) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
+  console.log(`[${new Date().toLocaleString()}] Server is running at http://localhost:${port}`);
 });
