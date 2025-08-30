@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { getFirestore, collection, getDocs, query, orderBy } from 'firebase/firestore';
@@ -20,6 +20,8 @@ const TeacherIndex = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedKana, setSelectedKana] = useState('');
   const [isKanaSearchVisible, setKanaSearchVisible] = useState(false);
+
+  const teacher_name_ref = useRef<HTMLInputElement>(null);
 
   // Effects
   useEffect(() => {
@@ -83,6 +85,7 @@ const TeacherIndex = () => {
 
       <section id="search" className="m-2 flex flex-col items-center">
         <div className="flex flex-col items-center">
+          <p className="m-[10px] text-2xl">{'生徒情報検索'}</p>
           <button
             onClick={() => {
               setKanaSearchVisible(true);
@@ -305,6 +308,45 @@ const TeacherIndex = () => {
           </tbody>
         </table>
       </section>
+
+      <section id="call" className="m-2 w-full max-w-md mx-auto">
+        <div className="flex flex-col items-center bg-gray-100 p-6 rounded-lg shadow-md">
+          <p className="m-[10px] text-2xl font-bold">{'点呼システム'}</p>
+          <form className="w-full mt-4">
+            <div className="mb-4">
+              <label htmlFor="teacher_name" className="block text-gray-700 text-sm font-bold mb-2">
+                {'先生名前'}
+              </label>
+              <input
+                ref={teacher_name_ref}
+                type="text"
+                name="teacher_name"
+                id="teacher_name"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              />
+            </div>
+            <div className="mb-6">
+              <label htmlFor="target_students" className="block text-gray-700 text-sm font-bold mb-2">
+                {'対象の生徒'}
+              </label>
+              <select
+                name="target_students"
+                id="target_students"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <option value="all">{"全員"}</option>
+              </select>
+            </div>
+            <div className="flex items-center justify-center">
+              <button
+                type="submit"
+                className="p-2 px-4 text-white bg-blue-500 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline cursor-pointer">
+                {'呼び出し'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
       <KanaSearchModal
         isOpen={isKanaSearchVisible}
         onClose={() => setKanaSearchVisible(false)}

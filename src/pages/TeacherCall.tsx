@@ -1,7 +1,7 @@
-import React from 'react';
-
 const TeacherCall = () => {
-  return <div>TeacherCall</div>;
+  return <div className="flex items-center justify-center">
+    
+  </div>;
 };
 
 export default TeacherCall;

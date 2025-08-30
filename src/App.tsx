@@ -13,6 +13,8 @@ import { getAuth } from 'firebase/auth';
 import { TEACHER_HASH } from './accounts';
 import { sha256 } from './sha256';
 import SHA256 from './pages/SHA256';
+import TeacherCall from './pages/TeacherCall';
+import Call from './pages/Call';
 
 function App() {
   const [isTeacher, setIsTeacher] = useState<boolean>(false);
@@ -45,6 +47,8 @@ function App() {
               <Route path="/admin-sha256" element={<SHA256 />} />
               <Route path="/otanoshimi" element={<Otanoshimi />} />
               <Route path="/teacher-index" element={<TeacherIndex />} />
+              <Route path="/call" element={<Call />} />
+              <Route path="/teacher-call" element={<TeacherCall />} />
               <Route path="*" element={<Page404 />} />
             </Routes>
           </main>
