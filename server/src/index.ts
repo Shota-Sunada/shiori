@@ -13,7 +13,7 @@ admin.initializeApp({
 const db = admin.firestore();
 
 const app = express();
-const port = 3000;
+const port = 8080;
 
 // CORSを有効化
 app.use(cors());
