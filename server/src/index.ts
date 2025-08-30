@@ -16,7 +16,7 @@ const app = express();
 const port = 8080;
 
 // CORSを有効化
-app.use(cors());
+app.use(cors({ origin: ['http://localhost:5173', 'https://shiori.shudo-physics.com'] })); // クライアントのオリジンに合わせて変更してください
 app.use(express.json());
 
 // --- 再利用可能な関数 --- //
@@ -48,15 +48,14 @@ async function sendNotification(userId: string, title: string, body: string): Pr
     const message: admin.messaging.Message = {
       notification: {
         title,
-        body,
+        body
       },
-      token: token,
+      token: token
     };
 
     // メッセージを送信
     await admin.messaging().send(message);
     return true;
-
   } catch (error) {
     console.error(`[${new Date().toLocaleString()}] Error sending message to user ${userId}:`, error);
 
@@ -80,17 +79,20 @@ app.get('/', (req: Request, res: Response) => {
  */
 app.post('/register-token', async (req: Request, res: Response) => {
   const { userId, token } = req.body;
+  console.log(`[${new Date().toLocaleString()}] Received token registration request for userId: ${userId}`);
 
   if (!userId || !token) {
+    console.log(`[${new Date().toLocaleString()}] Missing userId or token in registration request.`);
     return res.status(400).send({ error: 'userId and token are required' });
   }
 
   try {
     const tokenRef = db.collection('fcmTokens').doc(userId);
     await tokenRef.set({ token });
+    console.log(`[${new Date().toLocaleString()}] Token for userId: ${userId} registered successfully.`);
     res.status(200).send({ message: 'Token registered successfully in Firestore' });
   } catch (error) {
-    console.error(`[${new Date().toLocaleString()}] Error saving token to Firestore:`, error);
+    console.error(`[${new Date().toLocaleString()}] Error saving token to Firestore for userId: ${userId}:`, error);
     res.status(500).send({ error: 'Failed to save token' });
   }
 });

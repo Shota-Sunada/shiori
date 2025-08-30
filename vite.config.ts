@@ -8,6 +8,7 @@ import pkg from './package.json'; // package.jsonをインポート
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
+  base: './', // ここにベースパスを追加
   define: {
     // process.envからpackage.jsonのインポートに切り替え
     'import.meta.env.APP_VERSION': JSON.stringify(pkg.version)

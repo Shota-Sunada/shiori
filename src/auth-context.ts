@@ -30,6 +30,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (user && user.email && !user.email.includes('teacher')) {
         // Assuming student ID (gakuseki) is the part of the email before '@'
         const gakuseki = user.email.split('@')[0];
+        console.log(`[auth-context] Calling requestAndRegisterToken for student ID: ${gakuseki}`);
         // This is a good place for more robust role checking, e.g., using custom claims
         requestAndRegisterToken(gakuseki);
       }
