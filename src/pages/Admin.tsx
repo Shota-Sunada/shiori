@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, type ChangeEvent, useMemo } from 'react';
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { student } from '../data/students';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
@@ -296,40 +296,41 @@ const Admin = () => {
   const handleJSONRead = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const data = e.target?.result as string;
         const obj = JSON.parse(data) as student[];
 
         setStatus('更新中...');
-        obj.map(async (x) => {
-          const colRef = collection(db, 'students');
-          // const q = query(colRef, where('forename', '==', x.forename), where('surname', '==', x.surname));
-          // TODO: 学籍番号に置き換え
-          const q = query(colRef, where('gakuseki', '==', x.gakuseki));
-          const snapshot = await getDocs(q);
-          const list: StudentWithId[] = [];
-          snapshot.forEach((x) => {
-            list.push({ ...(x.data() as student), id: x.id });
-          });
-
-          if (list.length > 0) {
-            try {
-              await updateDoc(doc(db, 'students', list[0].id), x);
-              console.log('更新しました');
-            } catch (e) {
-              setStatus('エラーが発生しました: ' + (e as Error).message);
-            }
-          } else {
-            try {
-              await addDoc(collection(db, 'students'), x);
-              console.log('追加しました');
-            } catch (e) {
-              setStatus('エラーが発生しました: ' + (e as Error).message);
-            }
+        const colRef = collection(db, 'students');
+        const existingStudentsSnapshot = await getDocs(colRef);
+        const existingStudentsMap = new Map<number, string>(); // gakuseki -> doc.id
+        existingStudentsSnapshot.forEach((docSnap) => {
+          const data = docSnap.data() as student;
+          if (data.gakuseki) {
+            existingStudentsMap.set(data.gakuseki, docSnap.id);
           }
         });
 
-        setStatus('生徒データを更新しました。');
+        const batch = writeBatch(db);
+        for (const studentData of obj) {
+          if (studentData.gakuseki && existingStudentsMap.has(studentData.gakuseki)) {
+            const docId = existingStudentsMap.get(studentData.gakuseki)!;
+            const studentRef = doc(db, 'students', docId);
+            batch.update(studentRef, studentData);
+            console.log(`更新しました: ${studentData.gakuseki}`);
+          } else {
+            const newDocRef = doc(colRef); // Firestore generates a new ID
+            batch.set(newDocRef, studentData);
+            console.log(`追加しました: ${studentData.gakuseki}`);
+          }
+        }
+
+        try {
+          await batch.commit();
+          setStatus('生徒データを更新しました。');
+        } catch (e) {
+          setStatus('エラーが発生しました: ' + (e as Error).message);
+        }
         setModalMode(null);
         setEditRowId(null);
         fetchStudents();
