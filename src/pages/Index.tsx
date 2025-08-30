@@ -79,7 +79,7 @@ const Index = (props: { isTeacher: boolean }) => {
         {'さん。'}
       </p>
 
-      <section id="table">
+      <section id="table" className="rounded-2xl overflow-hidden">
         <table className="index-table">
           <thead className="bg-amber-200">
             <tr>

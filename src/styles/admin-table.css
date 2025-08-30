@@ -7,7 +7,6 @@
   table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
-  border-radius: 10px;
   border: 0.5px solid #ebebde;
 }
 
@@ -29,22 +28,22 @@
   border-right: none;
 }
 
-.table-root > table > thead > tr > th:first-child {
-  border-radius: 10px 0 0 0;
-}
-
-.table-root > table > thead > tr > th:last-child {
-  border-radius: 0 10px 0 0;
-}
-
-.table-root > table > tbody > tr:last-child > td:first-child {
-  border-radius: 0 0 0 10px;
-}
-
-.table-root > table > tbody > tr:last-child > td:last-child {
-  border-radius: 0 0 10px 0;
-}
-
 .inline-p-fix {
   padding-left: 4px;
+}
+
+.sticky-col {
+  position: sticky;
+  right: 0;
+}
+
+.table-root > table > thead > tr > th.sticky-col {
+  z-index: 15;
+  background-color: #ebebde; /* Match header row background */
+}
+
+/* Ensure sticky body cells have a background */
+.table-root > table > tbody > tr > td.sticky-col {
+  background-color: white;
+  z-index: 5;
 }

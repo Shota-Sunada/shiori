@@ -1,10 +1,5 @@
-.index-table {
-  border-radius: 12px;
-  overflow: hidden;
-}
-
 .index-table th,
-td {
+.index-table td {
   padding: 1.5dvh 1dvw;
 }
 

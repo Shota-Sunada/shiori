@@ -35,9 +35,9 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <div className="flex flex-col min-h-screen bg-[#f7f4e5]">
+        <div className="grid grid-rows-[auto_1fr_auto] bg-[#f7f4e5] min-h-[100dvh]">
           <Header isTeacher={isTeacher} />
-          <main className="flex-grow">
+          <main>
             <Routes>
               <Route path="/" element={<Index isTeacher={isTeacher} />} />
               <Route path="/login" element={<Login />} />

@@ -442,11 +442,12 @@ const Admin = () => {
     }
     return directionIcon;
   };
+
   return (
-    <div className="m-[10px] flex flex-col overflow-hidden">
-      <div className="table-root overflow-y-auto flex-grow max-h-[60dvh]">
+    <div className="p-[5px] flex flex-col">
+      <div className="table-root overflow-y-auto flex flex-grow max-h-[60dvh] max-w-[90dvw] mx-auto rounded-xl">
         <table border={1} className="w-full">
-          <thead className="sticky top-0 bg-white">
+          <thead className="sticky top-0 bg-white z-10">
             <tr>
               <th className="w-24">
                 <div className="flex flex-col items-center justify-center">
@@ -558,7 +559,7 @@ const Admin = () => {
                   </button>
                 </div>
               </th>
-              <th className="w-20">
+              <th className="w-20 sticky-col">
                 <div className="flex flex-col items-center justify-center">
                   <span>
                     {'編集'}
@@ -689,7 +690,7 @@ const Admin = () => {
                     s.shinkansen_day4_seat
                   )}
                 </td>
-                <td className="bg-white">
+                <td className="bg-white sticky-col">
                   <div className="flex flex-row items-center justify-center">
                     <button className="p-1 cursor-pointer mx-1" onClick={() => handleEditClick(s)} disabled={modalMode !== null || editingCell !== null} title="編集">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 hover:text-gray-800" viewBox="0 0 20 20" fill="currentColor">

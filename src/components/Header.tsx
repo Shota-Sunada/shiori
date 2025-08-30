@@ -42,7 +42,7 @@ const Header = (props: { isTeacher: boolean }) => {
   }, []);
 
   return (
-    <div className="relative sticky top-0 z-40">
+    <div className="sticky top-0 z-40">
       <div className={`bg-[#50141c] text-white flex flex-row items-center justify-between relative z-50`}>
         <img
           className={`p-[10px] w-[60px] md:w-[80px] ${user ? 'cursor-pointer' : 'cursor-default'}`}
