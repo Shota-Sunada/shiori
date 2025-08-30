@@ -61,3 +61,8 @@ body {
 *::-webkit-scrollbar-button {
   display: none;
 }
+
+html.modal-open, body.modal-open {
+  overflow: hidden;
+  height: 100%;
+}

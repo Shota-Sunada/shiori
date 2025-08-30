@@ -1,38 +1,75 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
-import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, query, orderBy } from 'firebase/firestore';
 import type { student } from '../data/students';
 import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4 } from '../data/courses';
 import '../styles/index-table.css';
 import { DAY4_DATA, DAY4_TEACHERS } from '../data/day4';
+import KanaSearchModal from '../components/KanaSearchModal';
 
 const TeacherIndex = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+
+  // State
+  const [allStudents, setAllStudents] = useState<student[]>([]);
+  const [filteredBySurnameKana, setFilteredBySurnameKana] = useState<student[]>([]);
+  const [filteredByForenameKana, setFilteredByForenameKana] = useState<student[]>([]);
   const [studentData, setStudentData] = useState<student | null>(null);
-  const [searchGakuseki, setSearchGakuseki] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedKana, setSelectedKana] = useState('');
+  const [isKanaSearchVisible, setKanaSearchVisible] = useState(false);
 
-  const fetchStudent = async (gakuseki: string) => {
-    if (gakuseki) {
-      const db = getFirestore();
-      const q = query(collection(db, 'students'), where('gakuseki', '==', Number(gakuseki)));
-      const snapshot = await getDocs(q);
-      if (!snapshot.empty) {
-        setStudentData(snapshot.docs[0].data() as student);
-      } else {
-        setStudentData(null);
-      }
-    }
-  };
-
+  // Effects
   useEffect(() => {
     if (!loading && !user) {
       navigate('/login');
     }
   }, [user, loading, navigate]);
 
-  if (loading) {
+  useEffect(() => {
+    const fetchAllStudents = async () => {
+      const db = getFirestore();
+      const q = query(collection(db, 'students'), orderBy('gakuseki'));
+      const snapshot = await getDocs(q);
+      const students = snapshot.docs.map((doc) => doc.data() as student);
+      setAllStudents(students);
+    };
+    fetchAllStudents();
+  }, []);
+
+  useEffect(() => {
+    // Kana search
+    if (selectedKana) {
+      const surnameMatches = allStudents.filter((s) => s.surname_kana.startsWith(selectedKana));
+      const forenameMatches = allStudents.filter((s) => s.forename_kana.startsWith(selectedKana));
+      setFilteredBySurnameKana(surnameMatches);
+      setFilteredByForenameKana(forenameMatches);
+    } else {
+      setFilteredBySurnameKana([]);
+      setFilteredByForenameKana([]);
+    }
+  }, [searchTerm, selectedKana, allStudents]);
+
+  // Handlers
+  const handleKanaSelect = (kana: string) => {
+    if (selectedKana === kana) {
+      setSelectedKana(''); // Toggle off
+    } else {
+      setSelectedKana(kana);
+      setSearchTerm(''); // Clear text search
+    }
+  };
+
+  const handleStudentSelect = (student: student) => {
+    setStudentData(student);
+    setKanaSearchVisible(false);
+    window.scrollTo({ top: document.getElementById('table')?.offsetTop, behavior: 'smooth' });
+  }
+
+  // Render
+  if (loading || !user) {
     return (
       <div className="flex flex-col items-center justify-center h-[80dvh]">
         <p className="text-xl">{'読込中...'}</p>
@@ -40,35 +77,20 @@ const TeacherIndex = () => {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[80dvh]">
-        <p className="text-xl">{'ユーザーデータ読込中...'}</p>
-      </div>
-    );
-  }
-
-  const handleSearch = () => {
-    fetchStudent(searchGakuseki);
-  };
-
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">
       <p className="m-[10px] text-2xl">{'ようこそ、先生用ページへ'}</p>
 
-      <section id="search" className="m-4">
-        <input
-          type="text"
-          placeholder="学籍番号で検索"
-          value={searchGakuseki}
-          onChange={(e) => setSearchGakuseki(e.target.value)}
-          className="p-2 border rounded"
-        />
-        <button onClick={handleSearch} className="p-2 ml-2 text-white bg-blue-500 rounded">
-          {"検索"}
-        </button>
+      <section id="search" className="m-4 flex flex-col items-center">
+        <div className='flex items-center'>
+            <button onClick={() => {setKanaSearchVisible(true); setSelectedKana('');}} className="p-2 ml-2 text-white bg-green-500 rounded cursor-pointer">
+              {'カタカナ検索'}
+            </button>
+            <p></p>
+        </div>
       </section>
-      <section id="table" className="rounded-2xl overflow-hidden">
+
+      <section id="table" className="rounded-2xl overflow-hidden mt-8">
         <table className="index-table">
           <thead className="bg-amber-200">
             <tr>
@@ -235,9 +257,9 @@ const TeacherIndex = () => {
                 <p className="text-sm">{'新横浜駅で乗車'}</p>
               </td>
               <td
-                className="bg-gray-200 cursor-pointer"
+                className={studentData ? "bg-gray-200 cursor-pointer" : ""}
                 onClick={() => {
-                  window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=77', '_blank', 'noreferrer');
+                  if(studentData) window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=77', '_blank', 'noreferrer');
                 }}>
                 {studentData ? (
                   <>
@@ -265,6 +287,14 @@ const TeacherIndex = () => {
           </tbody>
         </table>
       </section>
+      <KanaSearchModal 
+        isOpen={isKanaSearchVisible} 
+        onClose={() => setKanaSearchVisible(false)} 
+        onKanaSelect={handleKanaSelect} 
+        surnameStudents={filteredBySurnameKana}
+        forenameStudents={filteredByForenameKana}
+        onStudentSelect={handleStudentSelect}
+      />
     </div>
   );
 };
