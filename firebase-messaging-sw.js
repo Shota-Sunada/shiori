@@ -1,34 +1,28 @@
-import { initializeApp } from "firebase/app";
-import { getMessaging, onBackgroundMessage } from "firebase/messaging/sw";
+// Import the Firebase scripts using the compatible (classic) version
+importScripts("https://www.gstatic.com/firebasejs/12.0.0/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/12.0.0/firebase-messaging-compat.js");
 
-// This configuration will be resolved by Vite
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
-};
+// Get Firebase config from URL query parameters
+const urlParams = new URLSearchParams(self.location.search);
+const firebaseConfigParam = urlParams.get('firebaseConfig');
 
-const app = initializeApp(firebaseConfig);
-const messaging = getMessaging(app);
+// Initialize Firebase if the config is present
+if (firebaseConfigParam) {
+  const firebaseConfig = JSON.parse(firebaseConfigParam);
+  firebase.initializeApp(firebaseConfig);
 
-onBackgroundMessage(messaging, (payload) => {
-  console.log(
-    "[firebase-messaging-sw.js] Received background message ",
-    payload
-  );
+  const messaging = firebase.messaging();
 
-  const notificationTitle = payload.notification?.title;
-  const notificationOptions = {
-    body: payload.notification?.body,
-    icon: "/icon.png",
-  };
-
-  if (notificationTitle) {
+  messaging.onBackgroundMessage((payload) => {
+    console.log(
+      "[firebase-messaging-sw.js] Received background message ",
+      payload
+    );
+    const notificationTitle = payload.notification.title;
+    const notificationOptions = {
+      body: payload.notification.body,
+      icon: "/icon.png",
+    };
     self.registration.showNotification(notificationTitle, notificationOptions);
-  }
-});
+  });
+}
