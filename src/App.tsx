@@ -15,6 +15,8 @@ import { sha256 } from './sha256';
 import SHA256 from './pages/SHA256';
 import TeacherCall from './pages/TeacherCall';
 import Call from './pages/Call';
+import { getToken, onMessage } from 'firebase/messaging';
+import { messaging } from './firebase';
 
 function App() {
   const [isTeacher, setIsTeacher] = useState<boolean>(false);
@@ -33,6 +35,57 @@ function App() {
     });
     return () => unsubscribe();
   });
+
+    useEffect(() => {
+    const requestPermission = async () => {
+      try {
+        // ルートのJSファイルを登録
+        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+          type: 'module',
+          scope: '/',
+        });
+
+        const token = await getToken(messaging, {
+          vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
+          serviceWorkerRegistration: registration,
+        });
+
+        if (token) {
+          console.log('Token generated:', token);
+        } else {
+          console.log('No registration token available.');
+        }
+      } catch (err) {
+        console.error('Error getting token:', err);
+      }
+    };
+
+    Notification.requestPermission().then((permission) => {
+      if (permission === 'granted') {
+        console.log('Notification permission granted.');
+        requestPermission();
+      } else {
+        console.log('Unable to get permission to notify.');
+      }
+    });
+  }, []);
+
+    useEffect(() => {
+      onMessage(messaging, (payload) => {
+        console.log('Message received. ', payload);
+        // Customize notification here
+        // You can display a toast or update the UI
+        const notificationTitle = payload.notification?.title;
+        const notificationOptions = {
+          body: payload.notification?.body,
+          icon: payload.notification?.icon,
+        };
+  
+        if (notificationTitle) {
+          new Notification(notificationTitle, notificationOptions);
+        }
+      });
+    }, []);
 
   return (
     <AuthProvider>
