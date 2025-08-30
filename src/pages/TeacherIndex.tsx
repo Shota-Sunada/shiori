@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { getFirestore, collection, getDocs, query, orderBy } from 'firebase/firestore';
@@ -20,6 +20,7 @@ const TeacherIndex = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedKana, setSelectedKana] = useState('');
   const [isKanaSearchVisible, setKanaSearchVisible] = useState(false);
+  const [specificStudentId, setSpecificStudentId] = useState(''); // For specific student call
 
   const teacher_name_ref = useRef<HTMLInputElement>(null);
 
@@ -68,6 +69,49 @@ const TeacherIndex = () => {
     setStudentData(student);
     setKanaSearchVisible(false);
     window.scrollTo({ top: document.getElementById('table')?.offsetTop, behavior: 'smooth' });
+  };
+
+  const handleCallSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+
+    const teacherName = teacher_name_ref.current?.value;
+    if (!teacherName) {
+      alert('先生の名前を入力してください。');
+      return;
+    }
+
+    // Use specific student ID if provided, otherwise use the selected student from the table
+    const studentIdToSend = specificStudentId || studentData?.gakuseki;
+
+    if (!studentIdToSend) {
+      alert('呼び出す生徒を選択または指定してください。');
+      return;
+    }
+
+    try {
+      const res = await fetch('http://localhost:3000/send-notification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: studentIdToSend,
+          title: '先生からの呼び出しです',
+          body: `${teacherName}先生があなたを呼んでいます。`,
+        }),
+      });
+
+      if (res.ok) {
+        alert(`生徒 (学籍番号: ${studentIdToSend}) に通知を送信しました。`);
+        setSpecificStudentId('');
+      } else {
+        const errorData = await res.json();
+        alert(`通知の送信に失敗しました: ${errorData.error || '不明なエラー'}`);
+      }
+    } catch (error) {
+      console.error('Failed to send notification', error);
+      alert('通知の送信中にエラーが発生しました。');
+    }
   };
 
   // Render
@@ -312,7 +356,7 @@ const TeacherIndex = () => {
       <section id="call" className="m-2 w-full max-w-md mx-auto">
         <div className="flex flex-col items-center bg-gray-100 p-6 rounded-lg shadow-md">
           <p className="m-[10px] text-2xl font-bold">{'点呼システム'}</p>
-          <form className="w-full mt-4">
+          <form className="w-full mt-4" onSubmit={handleCallSubmit}>
             <div className="mb-4">
               <label htmlFor="teacher_name" className="block text-gray-700 text-sm font-bold mb-2">
                 {'先生名前'}
@@ -325,16 +369,34 @@ const TeacherIndex = () => {
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
             </div>
-            <div className="mb-6">
+            <div className="mb-4">
               <label htmlFor="target_students" className="block text-gray-700 text-sm font-bold mb-2">
-                {'対象の生徒'}
+                {'対象の生徒 (全員に送信)'}
               </label>
               <select
                 name="target_students"
                 id="target_students"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                disabled
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-200">
                 <option value="all">{"全員"}</option>
               </select>
+            </div>
+            <div className="mb-6">
+              <label htmlFor="specific_student_id" className="block text-gray-700 text-sm font-bold mb-2">
+                {'特定生徒に送信 (学籍番号)'}
+              </label>
+              <input
+                type="text"
+                name="specific_student_id"
+                id="specific_student_id"
+                placeholder="学籍番号を入力..."
+                value={specificStudentId}
+                onChange={(e) => setSpecificStudentId(e.target.value)}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              />
+              <p className="text-xs text-gray-600 mt-1">
+                {'ここに学籍番号を入力すると、その生徒にのみ通知が送信されます。空の場合は、上で選択中の生徒に送信されます。'}
+              </p>
             </div>
             <div className="flex items-center justify-center">
               <button
