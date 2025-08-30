@@ -33,6 +33,7 @@ const KanaSearchModal: React.FC<KanaSearchModalProps> = ({
   onStudentSelect,
 }) => {
   const [showResults, setShowResults] = useState(false);
+  const [currentKana, setCurrentKana] = useState<string| undefined>("");
 
   useEffect(() => {
     const body = document.body;
@@ -74,6 +75,7 @@ const KanaSearchModal: React.FC<KanaSearchModalProps> = ({
 
   const handleClose = () => {
       onClose();
+      setCurrentKana(undefined);
   }
 
   return (
@@ -81,8 +83,9 @@ const KanaSearchModal: React.FC<KanaSearchModalProps> = ({
       <div className="bg-white p-[20px] rounded-md w-[90%] max-w-[500px] h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-300">
           <h2 className="m-0 text-xl">{"カタカナ検索"}</h2>
-          <button onClick={handleClose} className="bg-none border-none text-2xl cursor-pointer">
-            &times;
+          <button onClick={handleClose} className="flex flex-row items-center bg-none border-none cursor-pointer">
+            <p>{"閉じる"}</p>
+            <p className='ml-1 text-2xl'>&times;</p>
           </button>
         </div>
         <div className="min-h-0 flex flex-col">
@@ -93,7 +96,9 @@ const KanaSearchModal: React.FC<KanaSearchModalProps> = ({
                   <button
                     className='p-2.5 border-2 border-solid border-[#ccc] bg-[#f9f9f9] rounded-md cursor-pointer hover:bg-[#eee]'
                     key={index}
-                    onClick={() => handleKanaClick(kana)}
+                    onClick={() => {handleKanaClick(kana);
+                      setCurrentKana(kana);
+                    }}
                   >
                     {kana}
                   </button>
@@ -104,9 +109,10 @@ const KanaSearchModal: React.FC<KanaSearchModalProps> = ({
             </div>
           ) : (
             <div className="flex flex-col min-h-0">
-              <div className="flex flex-col min-h-0 h-[65%]">
+                <p>{`「${currentKana}」の検索結果`}</p>
+              <div className="flex flex-col min-h-0 overflow-y-auto">
                 <p>{"姓"}</p>
-                <div className="overflow-y-auto">
+                <div className="">
                   {surnameStudents.length > 0 ? (
                     surnameStudents.map((s) => (
                       <div key={s.gakuseki} className="p-2.5 border-b-2 border-solid border-[#eee] cursor-pointer hover:bg-[#f0f0f0]" onClick={() => handleStudentClick(s)}>
@@ -117,10 +123,8 @@ const KanaSearchModal: React.FC<KanaSearchModalProps> = ({
                     <p>{"該当する生徒は見つかりませんでした。"}</p>
                   )}
                 </div>
-              </div>
-              <div className="flex flex-col min-h-0 h-[35%]">
                 <p className="mt-4">{"名"}</p>
-                <div className="overflow-y-auto">
+                <div className="">
                   {forenameStudents.length > 0 ? (
                     forenameStudents.map((s) => (
                       <div key={s.gakuseki} className="p-2.5 border-b-2 border-solid border-[#eee] cursor-pointer hover:bg-[#f0f0f0]" onClick={() => handleStudentClick(s)}>

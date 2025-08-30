@@ -7,7 +7,7 @@ interface StudentCardContentProps {
 
 const StudentCardContent: React.FC<StudentCardContentProps> = ({ student }) => {
   return (
-    <div className="flex items-baseline w-full">
+    <div className="flex items-center justify-center w-full">
       <div className="basis-[8%]">{`${student.class}組`}</div>
       <div className="basis-[8%]">{`${student.number}番`}</div>
       <div className="basis-[35%] font-bold pl-3">{`${student.surname} ${student.forename}`}</div>
