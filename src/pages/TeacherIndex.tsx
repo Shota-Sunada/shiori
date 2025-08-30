@@ -81,16 +81,15 @@ const TeacherIndex = () => {
     <div className="flex flex-col items-center justify-center m-[10px]">
       <p className="m-[10px] text-2xl">{'ようこそ、先生用ページへ'}</p>
 
-      <section id="search" className="m-4 flex flex-col items-center">
-        <div className='flex items-center'>
+      <section id="search" className="m-2 flex flex-col items-center">
+        <div className='flex flex-col items-center'>
             <button onClick={() => {setKanaSearchVisible(true); setSelectedKana('');}} className="p-2 ml-2 text-white bg-green-500 rounded cursor-pointer">
-              {'カタカナ検索'}
+              {'生徒カタカナ検索'}
             </button>
-            <p></p>
         </div>
       </section>
 
-      <section id="table" className="rounded-2xl overflow-hidden mt-8">
+      <section id="table" className="rounded-2xl overflow-hidden mt-2">
         <table className="index-table">
           <thead className="bg-amber-200">
             <tr>
@@ -257,9 +256,9 @@ const TeacherIndex = () => {
                 <p className="text-sm">{'新横浜駅で乗車'}</p>
               </td>
               <td
-                className={studentData ? "bg-gray-200 cursor-pointer" : ""}
+                className={"bg-gray-200 cursor-pointer"}
                 onClick={() => {
-                  if(studentData) window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=77', '_blank', 'noreferrer');
+                  window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=77', '_blank', 'noreferrer');
                 }}>
                 {studentData ? (
                   <>
