@@ -14,8 +14,8 @@ export type student = {
   day3bus: string;
   room_shizuoka: string;
   room_tokyo: string;
-  shinkansen_day1_car_number: IntRange<1, 16>;
+  shinkansen_day1_car_number: IntRange<1, 17>;
   shinkansen_day1_seat: string;
-  shinkansen_day4_car_number: IntRange<1, 16>;
+  shinkansen_day4_car_number: IntRange<1, 17>;
   shinkansen_day4_seat: string;
 };
