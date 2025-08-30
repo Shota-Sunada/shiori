@@ -747,7 +747,7 @@ const Admin = () => {
             {'新規追加'}
           </button>
           <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddJSONData}>
-            {'JSONで追加'}
+            {'JSONで更新'}
           </button>
           <button
             className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white"
@@ -756,6 +756,16 @@ const Admin = () => {
               navigate('/admin-sha256');
             }}>
             {'SHA256'}
+          </button>
+          <button
+            className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white"
+            disabled={modalMode !== null}
+            onClick={async () => {
+              setStatus('リロード中...');
+              await fetchStudents();
+              setStatus('リロード完了');
+            }}>
+            {'リロード'}
           </button>
         </div>
         <input
