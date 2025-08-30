@@ -8,7 +8,7 @@ import '../styles/admin-table.css';
 import StudentModal from '../components/StudentModal';
 import { sha256 } from '../sha256';
 import { ADMIN_HASHES, TEACHER_HASH } from '../accounts';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 // import Button from '../components/Button';
 
 type StudentWithId = student & { id: string };
@@ -135,8 +135,6 @@ const Admin = () => {
     { key: 'class', direction: 'asc' },
     { key: 'number', direction: 'asc' }
   ]);
-
-  const navigate = useNavigate();
 
   // Firestoreから生徒データを取得
   const fetchStudents = async () => {
@@ -749,14 +747,11 @@ const Admin = () => {
           <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddJSONData}>
             {'JSONで更新'}
           </button>
-          <button
-            className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white"
-            disabled={modalMode !== null}
-            onClick={() => {
-              navigate('/admin-sha256');
-            }}>
+          <Link
+          to={modalMode !== null ? '/admin-sha256' : ""}
+            className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white">
             {'SHA256'}
-          </button>
+          </Link>
           <button
             className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white"
             disabled={modalMode !== null}
