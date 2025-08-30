@@ -19,6 +19,58 @@ const port = 3000;
 app.use(cors());
 app.use(express.json());
 
+// --- 再利用可能な関数 --- //
+
+/**
+ * 指定したユーザーに通知を送信する一般化された関数
+ * @param userId 通知を送信するユーザーのID
+ * @param title 通知のタイトル
+ * @param body 通知の本文
+ * @returns {Promise<boolean>} 送信が成功した場合はtrue、失敗した場合はfalse
+ */
+async function sendNotification(userId: string, title: string, body: string): Promise<boolean> {
+  try {
+    // Firestoreからトークンを取得
+    const tokenRef = db.collection('fcmTokens').doc(userId);
+    const tokenDoc = await tokenRef.get();
+
+    if (!tokenDoc.exists) {
+      console.log(`[${new Date().toLocaleString()}] No token found for user ${userId} in Firestore.`);
+      return false;
+    }
+
+    const token = tokenDoc.data()?.token;
+    if (!token) {
+      console.log(`[${new Date().toLocaleString()}] Token data is invalid for user ${userId}.`);
+      return false;
+    }
+
+    const message: admin.messaging.Message = {
+      notification: {
+        title,
+        body,
+      },
+      token: token,
+    };
+
+    // メッセージを送信
+    await admin.messaging().send(message);
+    return true;
+
+  } catch (error) {
+    console.error(`[${new Date().toLocaleString()}] Error sending message to user ${userId}:`, error);
+
+    // もしトークンが無効なら、Firestoreから削除する (自己修復)
+    if ((error as admin.FirebaseError).code === 'messaging/registration-token-not-registered') {
+      console.log(`[${new Date().toLocaleString()}] Invalid token for user ${userId}. Deleting from Firestore.`);
+      await db.collection('fcmTokens').doc(userId).delete();
+    }
+    return false;
+  }
+}
+
+// --- APIエンドポイント --- //
+
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello from Shiori Firebase Messaging Server!');
 });
@@ -53,43 +105,12 @@ app.post('/send-notification', async (req: Request, res: Response) => {
     return res.status(400).send({ error: 'userId, title, and body are required' });
   }
 
-  try {
-    // Firestoreからトークンを取得
-    const tokenRef = db.collection('fcmTokens').doc(userId);
-    const tokenDoc = await tokenRef.get();
+  const success = await sendNotification(userId, title, body);
 
-    if (!tokenDoc.exists) {
-      console.log(`[${new Date().toLocaleString()}] No token found for user ${userId} in Firestore.`);
-      return res.status(404).send({ error: 'Token not found for user' });
-    }
-
-    const token = tokenDoc.data()?.token;
-    if (!token) {
-      return res.status(404).send({ error: 'Token data is invalid for user' });
-    }
-
-    const message: admin.messaging.Message = {
-      notification: {
-        title,
-        body,
-      },
-      token: token,
-    };
-
-    // メッセージを送信
-    await admin.messaging().send(message);
+  if (success) {
     res.status(200).send({ message: 'Notification sent successfully' });
-
-  } catch (error) {
-    console.error(`[${new Date().toLocaleString()}] Error sending message to user ${userId}:`, error);
-
-    // もしトークンが無効なら、Firestoreから削除する (自己修復)
-    if ((error as admin.FirebaseError).code === 'messaging/registration-token-not-registered') {
-      console.log(`[${new Date().toLocaleString()}] Invalid token for user ${userId}. Deleting from Firestore.`);
-      await db.collection('fcmTokens').doc(userId).delete();
-    }
-
-    res.status(500).send({ error: 'Error sending notification' });
+  } else {
+    res.status(500).send({ error: 'Failed to send notification' });
   }
 });
 
