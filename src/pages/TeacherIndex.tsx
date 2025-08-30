@@ -66,7 +66,7 @@ const TeacherIndex = () => {
     setStudentData(student);
     setKanaSearchVisible(false);
     window.scrollTo({ top: document.getElementById('table')?.offsetTop, behavior: 'smooth' });
-  }
+  };
 
   // Render
   if (loading || !user) {
@@ -82,10 +82,15 @@ const TeacherIndex = () => {
       <p className="m-[10px] text-2xl">{'ようこそ、先生用ページへ'}</p>
 
       <section id="search" className="m-2 flex flex-col items-center">
-        <div className='flex flex-col items-center'>
-            <button onClick={() => {setKanaSearchVisible(true); setSelectedKana('');}} className="p-2 ml-2 text-white bg-green-500 rounded cursor-pointer">
-              {'生徒カタカナ検索'}
-            </button>
+        <div className="flex flex-col items-center">
+          <button
+            onClick={() => {
+              setKanaSearchVisible(true);
+              setSelectedKana('');
+            }}
+            className="p-2 ml-2 text-white bg-green-500 rounded cursor-pointer">
+            {'生徒カタカナ検索'}
+          </button>
         </div>
       </section>
 
@@ -203,14 +208,32 @@ const TeacherIndex = () => {
               </td>
               <td>
                 <p>{'東京ドームホテル'}</p>
-                <p>{studentData ? <>{studentData?.room_tokyo}{'号室'}</> : '◯◯◯号室'}</p>
+                <p>
+                  {studentData ? (
+                    <>
+                      {studentData?.room_tokyo}
+                      {'号室'}
+                    </>
+                  ) : (
+                    '◯◯◯号室'
+                  )}
+                </p>
               </td>
             </tr>
             <tr>
               <td>{'3泊目'}</td>
               <td>
                 <p>{'フジプレミアムリゾート'}</p>
-                <p>{studentData ? <>{studentData?.room_shizuoka}{'号室'}</> : '◯◯◯号室'}</p>
+                <p>
+                  {studentData ? (
+                    <>
+                      {studentData?.room_shizuoka}
+                      {'号室'}
+                    </>
+                  ) : (
+                    '◯◯◯号室'
+                  )}
+                </p>
               </td>
             </tr>
             {/* hotel END */}
@@ -241,9 +264,7 @@ const TeacherIndex = () => {
                   </>
                 ) : (
                   <>
-                    <p>
-                      {'東京駅行 のぞみ84号 - ◯号車 ◯◯'}
-                    </p>
+                    <p>{'東京駅行 のぞみ84号 - ◯号車 ◯◯'}</p>
                     <p className="text-gray-600 text-sm">{'広島駅7:57発 - 新横浜駅11:34着'}</p>
                     <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
                   </>
@@ -256,7 +277,7 @@ const TeacherIndex = () => {
                 <p className="text-sm">{'新横浜駅で乗車'}</p>
               </td>
               <td
-                className={"bg-gray-200 cursor-pointer"}
+                className={'bg-gray-200 cursor-pointer'}
                 onClick={() => {
                   window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=77', '_blank', 'noreferrer');
                 }}>
@@ -273,9 +294,7 @@ const TeacherIndex = () => {
                   </>
                 ) : (
                   <>
-                    <p>
-                      {'広島駅行 のぞみ77号 - ◯号車 ◯◯'}
-                    </p>
+                    <p>{'広島駅行 のぞみ77号 - ◯号車 ◯◯'}</p>
                     <p className="text-gray-600 text-sm">{'新横浜駅15:48発 - 広島駅19:46着'}</p>
                     <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
                   </>
@@ -286,10 +305,10 @@ const TeacherIndex = () => {
           </tbody>
         </table>
       </section>
-      <KanaSearchModal 
-        isOpen={isKanaSearchVisible} 
-        onClose={() => setKanaSearchVisible(false)} 
-        onKanaSelect={handleKanaSelect} 
+      <KanaSearchModal
+        isOpen={isKanaSearchVisible}
+        onClose={() => setKanaSearchVisible(false)}
+        onKanaSelect={handleKanaSelect}
         surnameStudents={filteredBySurnameKana}
         forenameStudents={filteredByForenameKana}
         onStudentSelect={handleStudentSelect}

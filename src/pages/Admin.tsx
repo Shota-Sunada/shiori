@@ -607,8 +607,8 @@ const Admin = () => {
                     s.surname_kana
                   )}
                 </td>
-                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, "forename_kana")}>
-                  {editingCell?.studentId === s.id && editingCell?.field === "forename_kana" ? (
+                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'forename_kana')}>
+                  {editingCell?.studentId === s.id && editingCell?.field === 'forename_kana' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.forename_kana
@@ -747,9 +747,7 @@ const Admin = () => {
           <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddJSONData}>
             {'JSONで更新'}
           </button>
-          <Link
-          to={modalMode !== null ? '/admin-sha256' : ""}
-            className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white">
+          <Link to={modalMode !== null ? '/admin-sha256' : ''} className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white">
             {'SHA256'}
           </Link>
           <button

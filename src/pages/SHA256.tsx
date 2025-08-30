@@ -4,8 +4,8 @@ import { sha256 } from '../sha256';
 const SHA256 = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const outputRef = useRef<HTMLInputElement>(null);
-  
-    return (
+
+  return (
     <div className="m-[10px] flex flex-col">
       <h2>{'SHA256生成ツール'}</h2>
       <div>
@@ -14,7 +14,7 @@ const SHA256 = () => {
         <button
           className="m-[10px] border p-2 rounded cursor-pointer"
           type="button"
-          onClick={async() => {
+          onClick={async () => {
             const hash = await sha256(inputRef.current?.value ?? '');
             outputRef.current?.setAttribute('value', hash);
           }}>

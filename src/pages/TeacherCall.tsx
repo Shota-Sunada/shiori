@@ -1,9 +1,7 @@
-import React from 'react'
+import React from 'react';
 
 const TeacherCall = () => {
-  return (
-    <div>TeacherCall</div>
-  )
-}
+  return <div>TeacherCall</div>;
+};
 
-export default TeacherCall
+export default TeacherCall;

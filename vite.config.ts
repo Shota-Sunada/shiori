@@ -24,9 +24,9 @@ export default defineConfig(({ command }) => ({
               return 'vendor_react';
             }
           }
-        },
-      },
-    },
+        }
+      }
+    }
   },
   plugins: [
     react(),

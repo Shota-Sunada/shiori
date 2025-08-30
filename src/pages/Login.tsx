@@ -67,17 +67,8 @@ const Login = () => {
         <div className="flex flex-col mb-4">
           <label htmlFor={'password'}>{'パスワード'}</label>
           <div className="relative">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              name="password"
-              id="password"
-              placeholder={'パスワードを入力'}
-              required
-              ref={password_ref}
-            />
-            <span
-              className="absolute top-1/2 right-4 -translate-y-1/2 cursor-pointer text-gray-500"
-              onClick={() => setShowPassword(!showPassword)}>
+            <input type={showPassword ? 'text' : 'password'} name="password" id="password" placeholder={'パスワードを入力'} required ref={password_ref} />
+            <span className="absolute top-1/2 right-4 -translate-y-1/2 cursor-pointer text-gray-500" onClick={() => setShowPassword(!showPassword)}>
               {showPassword ? <AiFillEyeInvisible size={24} /> : <AiFillEye size={24} />}
             </span>
           </div>

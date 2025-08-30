@@ -118,7 +118,7 @@ const Index = (props: { isTeacher: boolean }) => {
                 </span>
               </td>
               <td>{''}</td>
-              <td>{"班別自由行動"}</td>
+              <td>{'班別自由行動'}</td>
             </tr>
             {/* day2 END */}
             {/* day3 START */}
@@ -209,7 +209,12 @@ const Index = (props: { isTeacher: boolean }) => {
                 onClick={() => {
                   window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=84', '_blank', 'noreferrer');
                 }}>
-                <p>{'東京駅行 のぞみ84号 - '}{studentData.shinkansen_day1_car_number}{"号車 "}{studentData.shinkansen_day1_seat}</p>
+                <p>
+                  {'東京駅行 のぞみ84号 - '}
+                  {studentData.shinkansen_day1_car_number}
+                  {'号車 '}
+                  {studentData.shinkansen_day1_seat}
+                </p>
                 <p className="text-gray-600 text-sm">{'広島駅7:57発 - 新横浜駅11:34着'}</p>
                 <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
               </td>
@@ -224,7 +229,12 @@ const Index = (props: { isTeacher: boolean }) => {
                 onClick={() => {
                   window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=77', '_blank', 'noreferrer');
                 }}>
-                <p>{'広島駅行 のぞみ77号 - '}{studentData.shinkansen_day4_car_number}{"号車 "}{studentData.shinkansen_day4_seat}</p>
+                <p>
+                  {'広島駅行 のぞみ77号 - '}
+                  {studentData.shinkansen_day4_car_number}
+                  {'号車 '}
+                  {studentData.shinkansen_day4_seat}
+                </p>
                 <p className="text-gray-600 text-sm">{'新横浜駅15:48発 - 広島駅19:46着'}</p>
                 <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
               </td>
