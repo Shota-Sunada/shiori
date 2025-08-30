@@ -462,13 +462,13 @@ const Admin = () => {
               <th className="w-20">
                 <div className="flex flex-col items-center justify-center">{'姓'}</div>
               </th>
-              <th className="w-20">
+              <th className="w-28">
                 <div className="flex flex-col items-center justify-center">{'名'}</div>
               </th>
-              <th className="w-20">
+              <th className="w-24">
                 <div className="flex flex-col items-center justify-center">{'姓かな'}</div>
               </th>
-              <th className="w-20">
+              <th className="w-32">
                 <div className="flex flex-col items-center justify-center">{'名かな'}</div>
               </th>
               <th className="w-8">
