@@ -99,6 +99,8 @@ const initialForm: Omit<student, 'class' | 'number' | 'gakuseki' | 'shinkansen_d
 } = {
   surname: '',
   forename: '',
+  surname_kana: '',
+  forename_kana: '',
   class: '',
   number: '',
   gakuseki: '',
@@ -463,6 +465,12 @@ const Admin = () => {
               <th className="w-20">
                 <div className="flex flex-col items-center justify-center">{'名'}</div>
               </th>
+              <th className="w-20">
+                <div className="flex flex-col items-center justify-center">{'姓かな'}</div>
+              </th>
+              <th className="w-20">
+                <div className="flex flex-col items-center justify-center">{'名かな'}</div>
+              </th>
               <th className="w-8">
                 <div className="flex flex-col items-center justify-center">
                   <span>{'組'}</span>
@@ -592,6 +600,20 @@ const Admin = () => {
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.forename
+                  )}
+                </td>
+                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'surname_kana')}>
+                  {editingCell?.studentId === s.id && editingCell?.field === 'surname_kana' ? (
+                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
+                  ) : (
+                    s.surname_kana
+                  )}
+                </td>
+                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, "forename_kana")}>
+                  {editingCell?.studentId === s.id && editingCell?.field === "forename_kana" ? (
+                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
+                  ) : (
+                    s.forename_kana
                   )}
                 </td>
                 <td className={CLASS_COLORS[s.class - 1]} onDoubleClick={() => handleCellDoubleClick(s, 'class')}>

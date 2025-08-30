@@ -6,6 +6,8 @@ import Button from './Button';
 const localInitialForm = {
   surname: '',
   forename: '',
+  surname_kana: '',
+  forename_kana: '',
   class: '',
   number: '',
   gakuseki: '',

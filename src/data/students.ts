@@ -3,6 +3,8 @@ import type { IntRange } from 'type-fest';
 export type student = {
   surname: string;
   forename: string;
+  surname_kana: string;
+  forename_kana: string;
   class: IntRange<1, 8>;
   number: IntRange<1, 42>;
   gakuseki: number;
