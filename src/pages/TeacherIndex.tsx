@@ -7,6 +7,7 @@ import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4 } from '../data/courses';
 import '../styles/index-table.css';
 import { DAY4_DATA, DAY4_TEACHERS } from '../data/day4';
 import KanaSearchModal from '../components/KanaSearchModal';
+import { sendNotification } from '../lib/notifications';
 
 const TeacherIndex = () => {
   const { user, loading } = useAuth();
@@ -80,37 +81,22 @@ const TeacherIndex = () => {
       return;
     }
 
-    // Use specific student ID if provided, otherwise use the selected student from the table
-    const studentIdToSend = specificStudentId || studentData?.gakuseki;
-
-    if (!studentIdToSend) {
+    if (!specificStudentId) {
       alert('呼び出す生徒を選択または指定してください。');
       return;
     }
 
-    try {
-      const res = await fetch('http://localhost:3000/send-notification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: studentIdToSend,
-          title: '先生からの呼び出しです',
-          body: `${teacherName}先生があなたを呼んでいます。`,
-        }),
-      });
+    const result = await sendNotification({
+      userId: specificStudentId,
+      title: '先生からの呼び出しです',
+      body: `${teacherName}先生があなたを呼んでいます。`,
+    });
 
-      if (res.ok) {
-        alert(`生徒 (学籍番号: ${studentIdToSend}) に通知を送信しました。`);
-        setSpecificStudentId('');
-      } else {
-        const errorData = await res.json();
-        alert(`通知の送信に失敗しました: ${errorData.error || '不明なエラー'}`);
-      }
-    } catch (error) {
-      console.error('Failed to send notification', error);
-      alert('通知の送信中にエラーが発生しました。');
+    if (result.success) {
+      alert(`生徒 (学籍番号: ${specificStudentId}) に通知を送信しました。`);
+      setSpecificStudentId('');
+    } else {
+      alert(`通知の送信に失敗しました: ${result.error}`);
     }
   };
 
