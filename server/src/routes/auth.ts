@@ -10,6 +10,8 @@ const router = Router();
 interface User {
   id: number;
   passwordHash: string;
+  is_admin: boolean;
+  is_teacher: boolean;
 }
 
 // Secret key for JWT (should be in environment variables in production)
@@ -56,7 +58,7 @@ router.post('/login', async (req: Request, res: Response) => {
   }
 
   try {
-    const [rows] = await pool.execute<RowDataPacket[]>('SELECT id, passwordHash FROM users WHERE id = ?', [id]); // id で検索
+    const [rows] = await pool.execute<RowDataPacket[]>('SELECT id, passwordHash, is_admin, is_teacher FROM users WHERE id = ?', [id]); // id で検索
     const users = rows as User[];
 
     if (users.length === 0) {
@@ -71,7 +73,7 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     // Generate JWT
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '1h' }); // JWTペイロードから username を削除
+    const token = jwt.sign({ userId: user.id, is_admin: user.is_admin, is_teacher: user.is_teacher }, JWT_SECRET, { expiresIn: '1h' }); // JWTペイロードから username を削除
 
     res.status(200).json({ message: 'Login successful', token });
   } catch (error) {

@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken } from 'firebase/messaging';
+import { SERVER_ENDPOINT } from './app';
 
 // Firebaseプロジェクトの設定情報
 const firebaseConfig = {
@@ -25,7 +26,7 @@ export const registerFCMToken = async (userId: string) => {
     if (currentToken) {
       console.log('FCM Registration Token:', currentToken);
       // サーバーにトークンを送信
-      const response = await fetch('/register-token', { // サーバーのFCMトークン登録エンドポイント
+      const response = await fetch(`${SERVER_ENDPOINT}/register-token`, { // サーバーのFCMトークン登録エンドポイント
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -7,7 +7,8 @@ import { SERVER_ENDPOINT } from '../app';
 // ユーザーデータ型
 interface User {
   id: number;
-  // passwordHash はフロントエンドには公開しない
+  is_admin: boolean;
+  is_teacher: boolean;
 }
 
 type SortKey = keyof User;
@@ -48,6 +49,8 @@ const sortList = (list: User[], configs: SortConfig[]): User[] => {
 const initialForm = {
   id: '',
   password: '',
+  is_admin: false,
+  is_teacher: false,
 };
 
 const UserAdmin = () => {
@@ -116,7 +119,10 @@ const UserAdmin = () => {
     }
     const lowercasedQuery = searchQuery.toLowerCase();
     const filtered = usersList.filter(
-      (u) => String(u.id).includes(lowercasedQuery)
+      (u) =>
+        String(u.id).includes(lowercasedQuery) ||
+        (u.is_admin && 'admin'.includes(lowercasedQuery)) ||
+        (u.is_teacher && 'teacher'.includes(lowercasedQuery))
     );
     return sortList(filtered, sortConfigs);
   }, [usersList, searchQuery, sortConfigs]);
@@ -132,6 +138,8 @@ const UserAdmin = () => {
     setEditRowForm({
       id: String(u.id),
       password: '', // パスワードは編集時に再入力させる
+      is_admin: u.is_admin,
+      is_teacher: u.is_teacher,
     });
     setStatus('');
     setModalMode('edit');
@@ -142,7 +150,7 @@ const UserAdmin = () => {
     if (!window.confirm('本当に削除しますか？')) return;
     setStatus('削除中...');
     try {
-      const response = await fetch(`/api/users/${id}`, {
+      const response = await fetch(`${SERVER_ENDPOINT}/api/users/${id}`, {
         method: 'DELETE',
       });
       if (!response.ok) {
@@ -198,22 +206,21 @@ const UserAdmin = () => {
 
   const handleSave = async (formData: typeof initialForm) => {
     const id = Number(formData.id);
-    const password = formData.password;
-
-    if (isNaN(id) || !password) {
-      setStatus('IDとパスワードを正しく入力してください。');
-      return;
-    }
+    const { password, is_admin, is_teacher } = formData;
 
     if (modalMode === 'add') {
+      if (isNaN(id) || !password) {
+        setStatus('IDとパスワードを正しく入力してください。');
+        return;
+      }
       setStatus('追加中...');
       try {
-        const response = await fetch('/api/users', {
+        const response = await fetch(`${SERVER_ENDPOINT}/api/users`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ id, password }),
+          body: JSON.stringify({ id, password, is_admin, is_teacher }),
         });
         if (!response.ok) {
           const errorData = await response.json();
@@ -229,12 +236,20 @@ const UserAdmin = () => {
       if (editRowId === null) return;
       setStatus('更新中...');
       try {
-        const response = await fetch(`/api/users/${editRowId}`, {
+        const body: { password?: string; is_admin: boolean; is_teacher: boolean } = {
+          is_admin,
+          is_teacher,
+        };
+        if (password) {
+          body.password = password;
+        }
+
+        const response = await fetch(`${SERVER_ENDPOINT}/api/users/${editRowId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ password }), // パスワードのみ更新
+          body: JSON.stringify(body),
         });
         if (!response.ok) {
           const errorData = await response.json();
@@ -250,9 +265,6 @@ const UserAdmin = () => {
     }
   };
 
-  // UserModal は Admin.tsx の StudentModal とは異なるため、別途定義するか、汎用的なModalコンポーネントを作成する必要がある
-  // 今回は簡易的に、UserAdmin.tsx 内でモーダルを直接実装する
-
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-[80dvh]">
@@ -262,7 +274,6 @@ const UserAdmin = () => {
   }
 
   if (!user) {
-    // useRequireAuth が /login にリダイレクトするので、ここは通常表示されない
     return null;
   }
 
@@ -301,6 +312,22 @@ const UserAdmin = () => {
                   </button>
                 </div>
               </th>
+              <th className="w-24">
+                <div className="flex flex-col items-center justify-center">
+                  <span>{'管理者'}</span>
+                  <button onClick={(e) => handleSort('is_admin', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('is_admin')}
+                  </button>
+                </div>
+              </th>
+              <th className="w-24">
+                <div className="flex flex-col items-center justify-center">
+                  <span>{'教員'}</span>
+                  <button onClick={(e) => handleSort('is_teacher', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('is_teacher')}
+                  </button>
+                </div>
+              </th>
               <th className="w-20 sticky-col">
                 <div className="flex flex-col items-center justify-center">
                   <span>
@@ -316,6 +343,12 @@ const UserAdmin = () => {
             {sortedAndFilteredUsers.map((u) => (
               <tr key={u.id}>
                 <td className="bg-white">{u.id}</td>
+                <td className="bg-white">
+                  <input type="checkbox" checked={u.is_admin} readOnly className="mx-auto block" />
+                </td>
+                <td className="bg-white">
+                  <input type="checkbox" checked={u.is_teacher} readOnly className="mx-auto block" />
+                </td>
                 <td className="bg-white sticky-col">
                   <div className="flex flex-row items-center justify-center">
                     <button className="p-1 cursor-pointer mx-1" onClick={() => handleEditClick(u)} disabled={modalMode !== null} title="編集">
@@ -377,7 +410,6 @@ const UserAdmin = () => {
             {status}
           </p>
         </div>
-        {/* UserModal */}
         {modalMode !== null && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50">
             <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
@@ -402,12 +434,12 @@ const UserAdmin = () => {
                     onChange={(e) => setEditRowForm({ ...editRowForm, id: e.target.value })}
                     className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                     required
-                    disabled={modalMode === 'edit'} // 編集時はIDを変更不可にする
+                    disabled={modalMode === 'edit'}
                   />
                 </div>
                 <div className="mb-4">
                   <label htmlFor="password" className="block text-gray-700 text-sm font-bold mb-2">
-                    パスワード
+                    パスワード {modalMode === 'edit' && '(変更する場合のみ入力)'}
                   </label>
                   <div className="relative">
                     <input
@@ -417,12 +449,34 @@ const UserAdmin = () => {
                       value={editRowForm.password}
                       onChange={(e) => setEditRowForm({ ...editRowForm, password: e.target.value })}
                       className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                      required
+                      required={modalMode === 'add'}
                     />
                     <span className="absolute top-1/2 right-4 -translate-y-1/2 cursor-pointer text-gray-500" onClick={() => setShowPassword(!showPassword)}>
                       {showPassword ? <AiFillEyeInvisible size={24} /> : <AiFillEye size={24} />}
                     </span>
                   </div>
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    <input
+                      type="checkbox"
+                      checked={editRowForm.is_admin}
+                      onChange={(e) => setEditRowForm({ ...editRowForm, is_admin: e.target.checked })}
+                      className="mr-2 leading-tight"
+                    />
+                    管理者
+                  </label>
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    <input
+                      type="checkbox"
+                      checked={editRowForm.is_teacher}
+                      onChange={(e) => setEditRowForm({ ...editRowForm, is_teacher: e.target.checked })}
+                      className="mr-2 leading-tight"
+                    />
+                    教員
+                  </label>
                 </div>
                 <div className="flex items-center justify-between">
                   <button

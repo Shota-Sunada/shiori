@@ -40,7 +40,9 @@ ${dbName}
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS users (
         id INT PRIMARY KEY,
-        passwordHash VARCHAR(255) NOT NULL
+        passwordHash VARCHAR(255) NOT NULL,
+        is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+        is_teacher BOOLEAN NOT NULL DEFAULT FALSE
       );
     `);
     console.log("Table 'users' ensured to exist.");

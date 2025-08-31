@@ -4,10 +4,14 @@ import { jwtDecode } from 'jwt-decode';
 
 interface AuthUser {
   userId: string;
+  is_admin: boolean;
+  is_teacher: boolean;
 }
 
 interface JwtPayload {
   userId: string;
+  is_admin: boolean;
+  is_teacher: boolean;
   exp?: number; // Optional: expiration time
   iat?: number; // Optional: issued at time
 }
@@ -51,7 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('jwt_token', token);
     try {
       const decoded = jwtDecode<JwtPayload>(token);
-      setUser({ userId: decoded.userId });
+      setUser({ userId: decoded.userId, is_admin: decoded.is_admin, is_teacher: decoded.is_teacher });
     } catch (error) {
       console.error('Error decoding JWT:', error);
       setUser(null);
@@ -72,7 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (decoded.exp && decoded.exp * 1000 < Date.now()) {
           logout(); // Token expired, log out
         } else {
-          setUser({ userId: decoded.userId });
+          setUser({ userId: decoded.userId, is_admin: decoded.is_admin, is_teacher: decoded.is_teacher });
         }
       } catch (error) {
         console.error('Error decoding JWT from localStorage:', error);

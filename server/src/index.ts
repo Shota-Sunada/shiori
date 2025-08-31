@@ -3,6 +3,7 @@ import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import * as admin from 'firebase-admin';
 import cors from 'cors';
+import { ResultSetHeader } from 'mysql2';
 
 // Firebase Admin SDKを初期化
 // 注意: serviceAccountKey.jsonのパスが正しいことを確認してください
@@ -143,7 +144,7 @@ import{ pool} from './db'; // db プールをインポート
 
 app.listen(port, () => {
   console.log(`[${new Date().toLocaleString()}] Server is running at http://localhost:${port}`);
-  console.log('コンソールコマンドを入力してください (例: createuser <id> <password>)');
+  console.log('コンソールコマンドを入力してください (例: createuser <id> <password> [--admin] [--teacher])');
 
   const rl = readline.createInterface({
     input: process.stdin,
@@ -156,29 +157,58 @@ app.listen(port, () => {
     const command = parts[0].toLowerCase();
 
     if (command === 'createuser') {
-      if (parts.length === 3) {
-        const id = Number(parts[1]);
-        const password = parts[2];
+      const idArg = parts[1];
+      const passwordArg = parts[2];
+      const isAdmin = parts.includes('--admin');
+      const isTeacher = parts.includes('--teacher');
 
-        if (isNaN(id)) {
-          console.log('エラー: IDは数字である必要があります。');
-          return;
+      if (!idArg || !passwordArg) {
+        console.log('使用方法: createuser <id> <password> [--admin] [--teacher]');
+        return;
+      }
+
+      const id = Number(idArg);
+      if (isNaN(id)) {
+        console.log('エラー: IDは数字である必要があります。');
+        return;
+      }
+
+      try {
+        const passwordHash = await bcrypt.hash(passwordArg, 10);
+        await pool.execute(
+          'INSERT INTO users (id, passwordHash, is_admin, is_teacher) VALUES (?, ?, ?, ?)',
+          [id, passwordHash, isAdmin, isTeacher]
+        );
+        console.log(`ユーザー '${id}' が正常に作成されました。 管理者: ${isAdmin}, 教員: ${isTeacher}`);
+      } catch (error) {
+        console.error('ユーザー作成中にエラーが発生しました:', error);
+      }
+    } else if (command === 'deleteuser') {
+      const idArg = parts[1];
+      if (!idArg) {
+        console.log('使用方法: deleteuser <id>');
+        return;
+      }
+
+      const id = Number(idArg);
+      if (isNaN(id)) {
+        console.log('エラー: IDは数字である必要があります。');
+        return;
+      }
+
+      try {
+        const [result] = await pool.execute(
+          'DELETE FROM users WHERE id = ?',
+          [id]
+        );
+
+        if ((result as ResultSetHeader).affectedRows === 0) {
+          console.log(`ID '${id}' のユーザーが見つかりませんでした。`);
+        } else {
+          console.log(`ID '${id}' のユーザーが正常に削除されました。`);
         }
-
-        try {
-          const passwordHash = await bcrypt.hash(password, 10); // パスワードをハッシュ化
-
-          // ユーザーをデータベースに挿入
-          await pool.execute(
-            'INSERT INTO users (id, passwordHash) VALUES (?, ?)',
-            [id, passwordHash]
-          );
-          console.log(`ユーザー '${id}' が正常に作成されました。`);
-        } catch (error) {
-          console.error('ユーザー作成中にエラーが発生しました:', error);
-        }
-      } else {
-        console.log('使用方法: createuser <id> <password>');
+      } catch (error) {
+        console.error('ユーザー削除中にエラーが発生しました:', error);
       }
     } else if (command === 'exit') {
       console.log('サーバーを終了します...');

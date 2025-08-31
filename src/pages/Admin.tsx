@@ -2,13 +2,10 @@ import React, { useState, useEffect, useRef, type ChangeEvent, useMemo } from 'r
 
 import type { student } from '../data/students';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
-import { getAuth } from 'firebase/auth';
 import '../styles/admin-table.css';
 import StudentModal from '../components/StudentModal';
-import { sha256 } from '../sha256';
-import { ADMIN_HASHES, TEACHER_HASH } from '../accounts';
 import { Link } from 'react-router-dom';
-// import Button from '../components/Button';
+import { useAuth } from '../auth-context';
 
 type SortKey = keyof student;
 type SortDirection = 'asc' | 'desc';
@@ -116,12 +113,13 @@ const initialForm: Omit<student, 'class' | 'number' | 'gakuseki' | 'shinkansen_d
 import { SERVER_ENDPOINT } from '../app'; // SERVER_ENDPOINT をインポート
 
 const Admin = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.is_admin ?? false;
+
   const [studentsList, setStudentsList] = useState<student[] | null>(null);
   const [editRowId, setEditRowId] = useState<number | null>(null); // 編集中の行ID (gakuseki)
   const [editRowForm, setEditRowForm] = useState<typeof initialForm>(initialForm); // 編集用フォーム
   const [status, setStatus] = useState<string>('');
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [authChecked, setAuthChecked] = useState<boolean>(false); // 追加モーダル表示状態
   const [modalMode, setModalMode] = useState<'add' | 'edit' | null>(null);
 
   const [editingCell, setEditingCell] = useState<{ studentId: number; field: keyof student } | null>(null);
@@ -221,24 +219,9 @@ const Admin = () => {
     fetchStudents();
   }, []);
 
-  useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (user && user.email) {
-        const beforeAt = user.email.split('@')[0];
-        const hash = await sha256(beforeAt);
-        const canBeAdmin = ADMIN_HASHES.includes(hash) || TEACHER_HASH === hash;
-        setIsAdmin(canBeAdmin);
-      } else {
-        setIsAdmin(false);
-      }
-      setAuthChecked(true);
-    });
-    return () => unsubscribe();
-  }, []);
-
   // モーダル編集用
   const handleEditClick = (s: student) => {
+    if (!isAdmin) return;
     setEditRowId(s.gakuseki);
     setEditRowForm({
       ...s,
@@ -254,6 +237,7 @@ const Admin = () => {
 
   // 削除処理
   const handleDelete = async (gakuseki: number) => {
+    if (!isAdmin) return;
     if (!window.confirm('本当に削除しますか？')) return;
     setStatus('削除中...');
     try {
@@ -272,16 +256,19 @@ const Admin = () => {
 
   // 新規追加
   const handleAddRow = () => {
+    if (!isAdmin) return;
     setModalMode('add');
     setEditRowForm(initialForm);
     setStatus('');
   };
 
   const handleAddJSONData = () => {
+    if (!isAdmin) return;
     inputRef.current?.click();
   };
 
   const handleSave = async (data: student) => {
+    if (!isAdmin) return;
     if (modalMode === 'add') {
       setStatus('追加中...');
       try {
@@ -327,6 +314,7 @@ const Admin = () => {
   };
 
   const handleJSONRead = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!isAdmin) return;
     if (e.target.files) {
       const reader = new FileReader();
       reader.onload = async (e) => {
@@ -358,7 +346,7 @@ const Admin = () => {
   };
 
   const handleCellDoubleClick = (student: student, field: keyof student) => {
-    if (modalMode !== null) return;
+    if (!isAdmin || modalMode !== null) return;
     setEditingCell({ studentId: student.gakuseki, field });
     setEditingValue(student[field]);
   };
@@ -368,7 +356,7 @@ const Admin = () => {
   };
 
   const handleCellEditSave = async () => {
-    if (!editingCell) return;
+    if (!isAdmin || !editingCell) return;
 
     const { studentId, field } = editingCell; // studentId は gakuseki に対応
 
@@ -429,22 +417,6 @@ const Admin = () => {
   // day1id/day3idの選択肢
   const day1idOptions = ['yrp_nifco', 'yrp_yamashin', 'yrp_air', 'yrp_vtech', 'ntt_labo_i', 'ntt_labo_b', 'kayakku', 'jaxa', 'astro', 'arda', 'urth_jip', 'micro', 'air'];
   const day3idOptions = ['okutama', 'yokosuka', 'hakone', 'kamakura', 'hakkeijima', 'yokohama'];
-
-  if (!authChecked) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[80dvh]">
-        <p className="text-xl">{'認証中...'}</p>
-      </div>
-    );
-  }
-  if (!isAdmin) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[80dvh]">
-        <p className="text-xl">{'エラー'}</p>
-        <p className="text-xl">{'閲覧権限がありません'}</p>
-      </div>
-    );
-  }
 
   if (!studentsList) {
     return (
@@ -589,15 +561,17 @@ const Admin = () => {
                   </button>
                 </div>
               </th>
-              <th className="w-20 sticky-col">
-                <div className="flex flex-col items-center justify-center">
-                  <span>
-                    {'編集'}
-                    <br />
-                    {'削除'}
-                  </span>
-                </div>
-              </th>
+              {isAdmin && (
+                <th className="w-20 sticky-col">
+                  <div className="flex flex-col items-center justify-center">
+                    <span>
+                      {'編集'}
+                      <br />
+                      {'削除'}
+                    </span>
+                  </div>
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -734,24 +708,26 @@ const Admin = () => {
                     s.shinkansen_day4_seat
                   )}
                 </td>
-                <td className="bg-white sticky-col">
-                  <div className="flex flex-row items-center justify-center">
-                    <button className="p-1 cursor-pointer mx-1" onClick={() => handleEditClick(s)} disabled={modalMode !== null || editingCell !== null} title="編集">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 hover:text-gray-800" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                      </svg>
-                    </button>
-                    <button className="p-1 cursor-pointer mx-1" onClick={() => handleDelete(s.gakuseki)} disabled={modalMode !== null || editingCell !== null} title="削除">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500 hover:text-red-700" viewBox="0 0 20 20" fill="currentColor">
-                        <path
-                          fillRule="evenodd"
-                          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </td>
+                {isAdmin && (
+                  <td className="bg-white sticky-col">
+                    <div className="flex flex-row items-center justify-center">
+                      <button className="p-1 cursor-pointer mx-1" onClick={() => handleEditClick(s)} disabled={modalMode !== null || editingCell !== null} title="編集">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 hover:text-gray-800" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                        </svg>
+                      </button>
+                      <button className="p-1 cursor-pointer mx-1" onClick={() => handleDelete(s.gakuseki)} disabled={modalMode !== null || editingCell !== null} title="削除">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500 hover:text-red-700" viewBox="0 0 20 20" fill="currentColor">
+                          <path
+                            fillRule="evenodd"
+                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -764,27 +740,29 @@ const Admin = () => {
         <p>{'※NSXは、Nozomi Super Express (=新幹線) のことです。'}</p>
       </div>
       <div>
-        <div className="flex flex-row">
-          <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddRow}>
-            {'新規追加'}
-          </button>
-          <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddJSONData}>
-            {'JSONで更新'}
-          </button>
-          <Link to={modalMode !== null ? '/admin-sha256' : ''} className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white">
-            {'SHA256'}
-          </Link>
-          <button
-            className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white"
-            disabled={modalMode !== null}
-            onClick={async () => {
-              setStatus('リロード中...');
-              await fetchStudents();
-              setStatus('リロード完了');
-            }}>
-            {'リロード'}
-          </button>
-        </div>
+        {isAdmin && (
+          <div className="flex flex-row">
+            <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddRow}>
+              {'新規追加'}
+            </button>
+            <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddJSONData}>
+              {'JSONで更新'}
+            </button>
+            <Link to={modalMode !== null ? '/admin-sha256' : ''} className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white">
+              {'SHA256'}
+            </Link>
+            <button
+              className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white"
+              disabled={modalMode !== null}
+              onClick={async () => {
+                setStatus('リロード中...');
+                await fetchStudents();
+                setStatus('リロード完了');
+              }}>
+              {'リロード'}
+            </button>
+          </div>
+        )}
         <input
           className="m-[10px]"
           ref={inputRef}

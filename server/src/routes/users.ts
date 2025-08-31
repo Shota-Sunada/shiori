@@ -8,7 +8,7 @@ const router = Router();
 // 全ユーザーデータを取得
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const [rows] = await pool.execute<RowDataPacket[]>('SELECT id FROM users'); // パスワードハッシュは返さない
+    const [rows] = await pool.execute<RowDataPacket[]>('SELECT id, is_admin, is_teacher FROM users'); // パスワードハッシュは返さない
     res.status(200).json(rows);
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -18,7 +18,7 @@ router.get('/', async (req: Request, res: Response) => {
 
 // 新しいユーザーを追加
 router.post('/', async (req: Request, res: Response) => {
-  const { id, password } = req.body;
+  const { id, password, is_admin, is_teacher } = req.body;
 
   if (!id || !password) {
     return res.status(400).json({ message: 'ID and password are required' });
@@ -37,8 +37,8 @@ router.post('/', async (req: Request, res: Response) => {
     const passwordHash = await bcrypt.hash(password, 10); // パスワードをハッシュ化
 
     await pool.execute(
-      'INSERT INTO users (id, passwordHash) VALUES (?, ?)',
-      [id, passwordHash]
+      'INSERT INTO users (id, passwordHash, is_admin, is_teacher) VALUES (?, ?, ?, ?)',
+      [id, passwordHash, is_admin || false, is_teacher || false]
     );
     res.status(201).json({ message: 'User added successfully' });
   } catch (error) {
@@ -47,24 +47,44 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// 特定のユーザーデータを更新 (パスワードのみ)
+// 特定のユーザーデータを更新
 router.put('/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { password } = req.body;
+  const { password, is_admin, is_teacher } = req.body;
 
-  if (!password) {
-    return res.status(400).json({ message: 'Password is required for update' });
-  }
   if (isNaN(Number(id))) {
     return res.status(400).json({ message: 'ID must be a number' });
   }
 
   try {
-    const passwordHash = await bcrypt.hash(password, 10); // パスワードをハッシュ化
+    const updates = [];
+    const values = [];
+
+    if (password) {
+      const passwordHash = await bcrypt.hash(password, 10);
+      updates.push('passwordHash = ?');
+      values.push(passwordHash);
+    }
+
+    if (is_admin !== undefined) {
+      updates.push('is_admin = ?');
+      values.push(is_admin);
+    }
+
+    if (is_teacher !== undefined) {
+      updates.push('is_teacher = ?');
+      values.push(is_teacher);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ message: 'No update fields provided' });
+    }
+
+    values.push(id);
 
     const [result] = await pool.execute(
-      'UPDATE users SET passwordHash = ? WHERE id = ?',
-      [passwordHash, id]
+      `UPDATE users SET ${updates.join(', ')} WHERE id = ?`,
+      values
     );
 
     if ((result as ResultSetHeader).affectedRows === 0) {
@@ -112,7 +132,7 @@ router.post('/bulk', async (req: Request, res: Response) => {
   let errorCount = 0;
 
   for (const user of users) {
-    const { id, password } = user;
+    const { id, password, is_admin, is_teacher } = user;
 
     if (!id || !password) {
       results.push({ id, status: 'error', message: 'ID and password are required' });
@@ -137,8 +157,8 @@ router.post('/bulk', async (req: Request, res: Response) => {
       const passwordHash = await bcrypt.hash(password, 10);
 
       await pool.execute(
-        'INSERT INTO users (id, passwordHash) VALUES (?, ?)',
-        [id, passwordHash]
+        'INSERT INTO users (id, passwordHash, is_admin, is_teacher) VALUES (?, ?, ?, ?)',
+        [id, passwordHash, is_admin || false, is_teacher || false]
       );
       results.push({ id, status: 'success' });
       successCount++;
