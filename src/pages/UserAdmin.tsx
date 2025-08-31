@@ -50,7 +50,7 @@ const initialForm = {
   id: '',
   password: '',
   is_admin: false,
-  is_teacher: false,
+  is_teacher: false
 };
 
 const UserAdmin = () => {
@@ -65,9 +65,7 @@ const UserAdmin = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [sortConfigs, setSortConfigs] = useState<SortConfig[]>([
-    { key: 'id', direction: 'asc' },
-  ]);
+  const [sortConfigs, setSortConfigs] = useState<SortConfig[]>([{ key: 'id', direction: 'asc' }]);
 
   // APIからユーザーデータを取得
   const fetchUsers = async () => {
@@ -118,17 +116,13 @@ const UserAdmin = () => {
       return [];
     }
     const lowercasedQuery = searchQuery.toLowerCase();
-    const filtered = usersList.filter(
-      (u) =>
-        String(u.id).includes(lowercasedQuery) ||
-        (u.is_admin && 'admin'.includes(lowercasedQuery)) ||
-        (u.is_teacher && 'teacher'.includes(lowercasedQuery))
-    );
+    const filtered = usersList.filter((u) => String(u.id).includes(lowercasedQuery) || (u.is_admin && 'admin'.includes(lowercasedQuery)) || (u.is_teacher && 'teacher'.includes(lowercasedQuery)));
     return sortList(filtered, sortConfigs);
   }, [usersList, searchQuery, sortConfigs]);
 
   useEffect(() => {
-    if (!loading && user) { // 認証済みの場合のみデータを取得
+    if (!loading && user) {
+      // 認証済みの場合のみデータを取得
       fetchUsers();
     }
   }, [user, loading]);
@@ -139,7 +133,7 @@ const UserAdmin = () => {
       id: String(u.id),
       password: '', // パスワードは編集時に再入力させる
       is_admin: u.is_admin,
-      is_teacher: u.is_teacher,
+      is_teacher: u.is_teacher
     });
     setStatus('');
     setModalMode('edit');
@@ -151,7 +145,7 @@ const UserAdmin = () => {
     setStatus('削除中...');
     try {
       const response = await fetch(`${SERVER_ENDPOINT}/api/users/${id}`, {
-        method: 'DELETE',
+        method: 'DELETE'
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -186,9 +180,9 @@ const UserAdmin = () => {
           const response = await fetch(`${SERVER_ENDPOINT}/api/users/bulk`, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
+              'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ users: usersToProcess }),
+            body: JSON.stringify({ users: usersToProcess })
           });
           const result = await response.json();
           if (!response.ok && response.status !== 207) {
@@ -218,9 +212,9 @@ const UserAdmin = () => {
         const response = await fetch(`${SERVER_ENDPOINT}/api/users`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ id, password, is_admin, is_teacher }),
+          body: JSON.stringify({ id, password, is_admin, is_teacher })
         });
         if (!response.ok) {
           const errorData = await response.json();
@@ -238,7 +232,7 @@ const UserAdmin = () => {
       try {
         const body: { password?: string; is_admin: boolean; is_teacher: boolean } = {
           is_admin,
-          is_teacher,
+          is_teacher
         };
         if (password) {
           body.password = password;
@@ -247,9 +241,9 @@ const UserAdmin = () => {
         const response = await fetch(`${SERVER_ENDPOINT}/api/users/${editRowId}`, {
           method: 'PUT',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify(body),
+          body: JSON.stringify(body)
         });
         if (!response.ok) {
           const errorData = await response.json();
@@ -394,16 +388,7 @@ const UserAdmin = () => {
             {'リロード'}
           </button>
         </div>
-        <input
-          className="m-[10px]"
-          ref={inputRef}
-          type="file"
-          name="json"
-          id="json"
-          hidden
-          accept=".json"
-          onChange={handleJSONRead}
-        />
+        <input className="m-[10px]" ref={inputRef} type="file" name="json" id="json" hidden accept=".json" onChange={handleJSONRead} />
         <div className="my-[10px]">
           <p>
             {'ステータス: '}
@@ -413,15 +398,12 @@ const UserAdmin = () => {
         {modalMode !== null && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50">
             <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
-              <h2 className="text-2xl font-bold mb-4">
-                {modalMode === 'add' ? 'ユーザー追加' : 'ユーザー編集'}
-              </h2>
+              <h2 className="text-2xl font-bold mb-4">{modalMode === 'add' ? 'ユーザー追加' : 'ユーザー編集'}</h2>
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   handleSave(editRowForm);
-                }}
-              >
+                }}>
                 <div className="mb-4">
                   <label htmlFor="id" className="block text-gray-700 text-sm font-bold mb-2">
                     ユーザーID
@@ -458,38 +440,21 @@ const UserAdmin = () => {
                 </div>
                 <div className="mb-4">
                   <label className="block text-gray-700 text-sm font-bold mb-2">
-                    <input
-                      type="checkbox"
-                      checked={editRowForm.is_admin}
-                      onChange={(e) => setEditRowForm({ ...editRowForm, is_admin: e.target.checked })}
-                      className="mr-2 leading-tight"
-                    />
+                    <input type="checkbox" checked={editRowForm.is_admin} onChange={(e) => setEditRowForm({ ...editRowForm, is_admin: e.target.checked })} className="mr-2 leading-tight" />
                     管理者
                   </label>
                 </div>
                 <div className="mb-4">
                   <label className="block text-gray-700 text-sm font-bold mb-2">
-                    <input
-                      type="checkbox"
-                      checked={editRowForm.is_teacher}
-                      onChange={(e) => setEditRowForm({ ...editRowForm, is_teacher: e.target.checked })}
-                      className="mr-2 leading-tight"
-                    />
+                    <input type="checkbox" checked={editRowForm.is_teacher} onChange={(e) => setEditRowForm({ ...editRowForm, is_teacher: e.target.checked })} className="mr-2 leading-tight" />
                     教員
                   </label>
                 </div>
                 <div className="flex items-center justify-between">
-                  <button
-                    type="submit"
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                  >
+                  <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
                     {modalMode === 'add' ? '追加' : '更新'}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setModalMode(null)}
-                    className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                  >
+                  <button type="button" onClick={() => setModalMode(null)} className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
                     キャンセル
                   </button>
                 </div>

@@ -242,7 +242,7 @@ const Admin = () => {
     setStatus('削除中...');
     try {
       const response = await fetch(`${SERVER_ENDPOINT}/api/students/${gakuseki}`, {
-        method: 'DELETE',
+        method: 'DELETE'
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -275,9 +275,9 @@ const Admin = () => {
         const response = await fetch(`${SERVER_ENDPOINT}/api/students`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify(data),
+          body: JSON.stringify(data)
         });
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -296,9 +296,9 @@ const Admin = () => {
         const response = await fetch(`${SERVER_ENDPOINT}/api/students/${editRowId}`, {
           method: 'PUT',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify(data),
+          body: JSON.stringify(data)
         });
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -326,9 +326,9 @@ const Admin = () => {
           const response = await fetch(`${SERVER_ENDPOINT}/api/students/batch`, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
+              'Content-Type': 'application/json'
             },
-            body: JSON.stringify(studentsToProcess),
+            body: JSON.stringify(studentsToProcess)
           });
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -381,9 +381,9 @@ const Admin = () => {
       const response = await fetch(`${SERVER_ENDPOINT}/api/students/${studentId}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ [field]: valueToSave }),
+        body: JSON.stringify({ [field]: valueToSave })
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

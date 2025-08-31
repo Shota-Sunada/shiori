@@ -1,1 +1,1 @@
-export const SERVER_ENDPOINT = "https://api.shiori.shudo-physics.com"
+export const SERVER_ENDPOINT = 'https://api.shiori.shudo-physics.com';

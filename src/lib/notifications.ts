@@ -1,4 +1,4 @@
-import { SERVER_ENDPOINT } from "../app";
+import { SERVER_ENDPOINT } from '../app';
 
 interface NotificationPayload {
   userId: string;
@@ -11,9 +11,9 @@ export const sendNotification = async (payload: NotificationPayload): Promise<{ 
     const res = await fetch(`${SERVER_ENDPOINT}/send-notification`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload)
     });
 
     if (res.ok) {

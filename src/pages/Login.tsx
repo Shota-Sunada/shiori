@@ -37,12 +37,13 @@ const Login = () => {
     }
 
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/auth/login`, { // Assuming backend runs on 8080
+      const response = await fetch(`${SERVER_ENDPOINT}/api/auth/login`, {
+        // Assuming backend runs on 8080
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ id: Number(id), password }), // id を数値に変換して送信
+        body: JSON.stringify({ id: Number(id), password }) // id を数値に変換して送信
       });
 
       const data = await response.json();

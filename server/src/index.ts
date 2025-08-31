@@ -32,12 +32,14 @@ app.use('/api/users', usersRouter);
 import { initializeDatabase, pool } from './db';
 
 // Initialize the database and tables
-initializeDatabase().then(() => {
-  logger.log("Database initialization complete.");
-}).catch(error => {
-  logger.error("Failed to initialize database:", error);
-  process.exit(1);
-});
+initializeDatabase()
+  .then(() => {
+    logger.log('Database initialization complete.');
+  })
+  .catch((error) => {
+    logger.error('Failed to initialize database:', error);
+    process.exit(1);
+  });
 
 // --- 再利用可能な関数 --- //
 
@@ -52,7 +54,7 @@ async function sendNotification(userId: string, title: string, body: string): Pr
   try {
     // データベースからトークンを取得
     const [rows] = await pool.execute<RowDataPacket[]>('SELECT token FROM fcm_tokens WHERE user_id = ?', [userId]);
-    
+
     if (rows.length === 0) {
       logger.log(`No token found for user ${userId} in database.`);
       return false;
@@ -74,7 +76,7 @@ async function sendNotification(userId: string, title: string, body: string): Pr
 
     // メッセージを送信
     await admin.messaging().send(message);
-    logger.log(`Notification sent to user ${userId} was successful.`)
+    logger.log(`Notification sent to user ${userId} was successful.`);
     return true;
   } catch (error) {
     logger.error(`Error sending message to user ${userId}:`, error as Error);
@@ -107,10 +109,7 @@ app.post('/register-token', async (req: Request, res: Response) => {
   }
 
   try {
-    await pool.execute(
-      'INSERT INTO fcm_tokens (user_id, token) VALUES (?, ?) ON DUPLICATE KEY UPDATE token = VALUES(token)',
-      [userId, token]
-    );
+    await pool.execute('INSERT INTO fcm_tokens (user_id, token) VALUES (?, ?) ON DUPLICATE KEY UPDATE token = VALUES(token)', [userId, token]);
     logger.log(`Token for userId: ${userId} registered successfully.`);
     res.status(200).send({ message: 'Token registered successfully in database' });
   } catch (error) {
@@ -174,10 +173,7 @@ app.listen(port, () => {
 
       try {
         const passwordHash = await bcrypt.hash(passwordArg, 10);
-        await pool.execute(
-          'INSERT INTO users (id, passwordHash, is_admin, is_teacher) VALUES (?, ?, ?, ?)',
-          [id, passwordHash, isAdmin, isTeacher]
-        );
+        await pool.execute('INSERT INTO users (id, passwordHash, is_admin, is_teacher) VALUES (?, ?, ?, ?)', [id, passwordHash, isAdmin, isTeacher]);
         logger.log(`ユーザー '${id}' が正常に作成されました。 管理者: ${isAdmin}, 教員: ${isTeacher}`);
       } catch (error) {
         logger.error('ユーザー作成中にエラーが発生しました:', error as Error);
@@ -196,10 +192,7 @@ app.listen(port, () => {
       }
 
       try {
-        const [result] = await pool.execute<ResultSetHeader>(
-          'DELETE FROM users WHERE id = ?',
-          [id]
-        );
+        const [result] = await pool.execute<ResultSetHeader>('DELETE FROM users WHERE id = ?', [id]);
 
         if (result.affectedRows === 0) {
           logger.log(`ID '${id}' のユーザーが見つかりませんでした。`);

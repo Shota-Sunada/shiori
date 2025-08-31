@@ -14,7 +14,7 @@ const Call = () => {
         <div className="bg-red-500 text-white p-18 text-4xl font-bold rounded-[100%] w-[40dvh] h-[40dvh] flex items-center justify-center cursor-pointer flex-col" onClick={() => setIsDone(true)}>
           <p> {'点呼!'}</p>
           <p className="text-xl mt-5">{'残り時間'}</p>
-          <p className="text-xl">{"00:00"}</p>
+          <p className="text-xl">{'00:00'}</p>
         </div>
       )}
 

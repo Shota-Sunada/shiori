@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import {pool} from '../db'; // Import the database connection pool
+import { pool } from '../db'; // Import the database connection pool
 import { RowDataPacket } from 'mysql2';
 import { logger } from '../logger';
 
@@ -25,7 +25,8 @@ router.post('/register', async (req: Request, res: Response) => {
   if (!id || !password) {
     return res.status(400).json({ message: 'ID and password are required' });
   }
-  if (isNaN(Number(id))) { // id が数字であることを確認
+  if (isNaN(Number(id))) {
+    // id が数字であることを確認
     return res.status(400).json({ message: 'ID must be a number' });
   }
 
@@ -54,7 +55,8 @@ router.post('/login', async (req: Request, res: Response) => {
   if (!id || !password) {
     return res.status(400).json({ message: 'ID and password are required' });
   }
-  if (isNaN(Number(id))) { // id が数字であることを確認
+  if (isNaN(Number(id))) {
+    // id が数字であることを確認
     return res.status(400).json({ message: 'ID must be a number' });
   }
 

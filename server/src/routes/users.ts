@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import {pool} from '../db'; // Import the database connection pool
+import { pool } from '../db'; // Import the database connection pool
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import bcrypt from 'bcrypt';
 import { logger } from '../logger';
@@ -37,10 +37,7 @@ router.post('/', async (req: Request, res: Response) => {
 
     const passwordHash = await bcrypt.hash(password, 10); // パスワードをハッシュ化
 
-    await pool.execute(
-      'INSERT INTO users (id, passwordHash, is_admin, is_teacher) VALUES (?, ?, ?, ?)',
-      [id, passwordHash, is_admin || false, is_teacher || false]
-    );
+    await pool.execute('INSERT INTO users (id, passwordHash, is_admin, is_teacher) VALUES (?, ?, ?, ?)', [id, passwordHash, is_admin || false, is_teacher || false]);
     res.status(201).json({ message: 'User added successfully' });
   } catch (error) {
     logger.error('Error adding user:', error as Error);
@@ -83,10 +80,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 
     values.push(id);
 
-    const [result] = await pool.execute(
-      `UPDATE users SET ${updates.join(', ')} WHERE id = ?`,
-      values
-    );
+    const [result] = await pool.execute(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values);
 
     if ((result as ResultSetHeader).affectedRows === 0) {
       return res.status(404).json({ message: 'User not found' });
@@ -106,10 +100,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 
   try {
-    const [result] = await pool.execute(
-      'DELETE FROM users WHERE id = ?',
-      [id]
-    );
+    const [result] = await pool.execute('DELETE FROM users WHERE id = ?', [id]);
 
     if ((result as ResultSetHeader).affectedRows === 0) {
       return res.status(404).json({ message: 'User not found' });
@@ -157,10 +148,7 @@ router.post('/bulk', async (req: Request, res: Response) => {
 
       const passwordHash = await bcrypt.hash(password, 10);
 
-      await pool.execute(
-        'INSERT INTO users (id, passwordHash, is_admin, is_teacher) VALUES (?, ?, ?, ?)',
-        [id, passwordHash, is_admin || false, is_teacher || false]
-      );
+      await pool.execute('INSERT INTO users (id, passwordHash, is_admin, is_teacher) VALUES (?, ?, ?, ?)', [id, passwordHash, is_admin || false, is_teacher || false]);
       results.push({ id, status: 'success' });
       successCount++;
     } catch (error) {
@@ -172,7 +160,7 @@ router.post('/bulk', async (req: Request, res: Response) => {
 
   res.status(207).json({
     message: `Bulk operation completed. Success: ${successCount}, Error: ${errorCount}`,
-    results,
+    results
   });
 });
 

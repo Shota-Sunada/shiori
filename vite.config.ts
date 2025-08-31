@@ -37,7 +37,7 @@ export default defineConfig(({ command }) => ({
       registerType: 'autoUpdate',
       strategies: 'generateSW',
       workbox: {
-        importScripts: ['firebase-messaging-sw.js'],
+        importScripts: ['firebase-messaging-sw.js']
       },
       manifest: {
         name: '修学旅行のしおり for 79th',

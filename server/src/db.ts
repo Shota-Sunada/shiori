@@ -18,12 +18,12 @@ async function initializeDatabase() {
     connection = await mysql.createConnection({
       host: process.env.DB_HOST,
       user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
+      password: process.env.DB_PASSWORD
     });
 
     const dbName = process.env.DB_NAME;
     if (!dbName) {
-      throw new Error("DB_NAME is not defined in environment variables.");
+      throw new Error('DB_NAME is not defined in environment variables.');
     }
 
     await connection.execute(`CREATE DATABASE IF NOT EXISTS 
@@ -83,9 +83,8 @@ ${dbName}
       );
     `);
     logger.log("Table 'fcm_tokens' ensured to exist.");
-
   } catch (error) {
-    logger.error("Error initializing database:", error as Error);
+    logger.error('Error initializing database:', error as Error);
     process.exit(1); // Exit if database initialization fails
   } finally {
     if (connection) {

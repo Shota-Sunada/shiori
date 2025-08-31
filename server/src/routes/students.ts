@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import {pool} from '../db'; // Import the database connection pool
+import { pool } from '../db'; // Import the database connection pool
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import { logger } from '../logger';
 
@@ -35,11 +35,23 @@ router.get('/:gakuseki', async (req: Request, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
   const studentData = req.body;
   const {
-    gakuseki, surname, forename, surname_kana, forename_kana,
-    class: studentClass, number: studentNumber, day1id, day3id,
-    day1bus, day3bus, room_shizuoka, room_tokyo,
-    shinkansen_day1_car_number, shinkansen_day1_seat,
-    shinkansen_day4_car_number, shinkansen_day4_seat
+    gakuseki,
+    surname,
+    forename,
+    surname_kana,
+    forename_kana,
+    class: studentClass,
+    number: studentNumber,
+    day1id,
+    day3id,
+    day1bus,
+    day3bus,
+    room_shizuoka,
+    room_tokyo,
+    shinkansen_day1_car_number,
+    shinkansen_day1_seat,
+    shinkansen_day4_car_number,
+    shinkansen_day4_seat
   } = studentData;
 
   try {
@@ -52,11 +64,23 @@ router.post('/', async (req: Request, res: Response) => {
         shinkansen_day4_car_number, shinkansen_day4_seat
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        gakuseki, surname, forename, surname_kana, forename_kana,
-        studentClass, studentNumber, day1id, day3id,
-        day1bus, day3bus, room_shizuoka, room_tokyo,
-        shinkansen_day1_car_number, shinkansen_day1_seat,
-        shinkansen_day4_car_number, shinkansen_day4_seat
+        gakuseki,
+        surname,
+        forename,
+        surname_kana,
+        forename_kana,
+        studentClass,
+        studentNumber,
+        day1id,
+        day3id,
+        day1bus,
+        day3bus,
+        room_shizuoka,
+        room_tokyo,
+        shinkansen_day1_car_number,
+        shinkansen_day1_seat,
+        shinkansen_day4_car_number,
+        shinkansen_day4_seat
       ]
     );
     res.status(201).json({ message: 'Student added successfully' });
@@ -71,7 +95,9 @@ router.put('/:gakuseki', async (req: Request, res: Response) => {
   const { gakuseki } = req.params;
   const studentData = req.body; // 部分更新を考慮
 
-  const fields = Object.keys(studentData).map(key => `${key} = ?`).join(', ');
+  const fields = Object.keys(studentData)
+    .map((key) => `${key} = ?`)
+    .join(', ');
   const values = Object.values(studentData);
 
   if (fields.length === 0) {
@@ -79,10 +105,7 @@ router.put('/:gakuseki', async (req: Request, res: Response) => {
   }
 
   try {
-    const [result] = await pool.execute(
-      `UPDATE students SET ${fields} WHERE gakuseki = ?`,
-      [...values, gakuseki]
-    );
+    const [result] = await pool.execute(`UPDATE students SET ${fields} WHERE gakuseki = ?`, [...values, gakuseki]);
 
     if ((result as ResultSetHeader).affectedRows === 0) {
       return res.status(404).json({ message: 'Student not found' });
@@ -98,10 +121,7 @@ router.put('/:gakuseki', async (req: Request, res: Response) => {
 router.delete('/:gakuseki', async (req: Request, res: Response) => {
   const { gakuseki } = req.params;
   try {
-    const [result] = await pool.execute(
-      'DELETE FROM students WHERE gakuseki = ?',
-      [gakuseki]
-    );
+    const [result] = await pool.execute('DELETE FROM students WHERE gakuseki = ?', [gakuseki]);
 
     if ((result as ResultSetHeader).affectedRows === 0) {
       return res.status(404).json({ message: 'Student not found' });
@@ -122,28 +142,23 @@ router.post('/batch', async (req: Request, res: Response) => {
 
     for (const studentData of students) {
       const { gakuseki, ...rest } = studentData;
-      const [existing] = await connection.execute<RowDataPacket[]>(
-        'SELECT gakuseki FROM students WHERE gakuseki = ?',
-        [gakuseki]
-      );
+      const [existing] = await connection.execute<RowDataPacket[]>('SELECT gakuseki FROM students WHERE gakuseki = ?', [gakuseki]);
 
       if (existing.length > 0) {
         // Update
-        const fields = Object.keys(rest).map(key => `${key} = ?`).join(', ');
+        const fields = Object.keys(rest)
+          .map((key) => `${key} = ?`)
+          .join(', ');
         const values = Object.values(rest);
-        await connection.execute(
-          `UPDATE students SET ${fields} WHERE gakuseki = ?`,
-          [...values, gakuseki]
-        );
+        await connection.execute(`UPDATE students SET ${fields} WHERE gakuseki = ?`, [...values, gakuseki]);
       } else {
         // Insert
         const columns = Object.keys(studentData).join(', ');
-        const placeholders = Object.keys(studentData).map(() => '?').join(', ');
+        const placeholders = Object.keys(studentData)
+          .map(() => '?')
+          .join(', ');
         const values = Object.values(studentData);
-        await connection.execute(
-          `INSERT INTO students (${columns}) VALUES (${placeholders})`,
-          values
-        );
+        await connection.execute(`INSERT INTO students (${columns}) VALUES (${placeholders})`, values);
       }
     }
 

@@ -26,12 +26,13 @@ export const registerFCMToken = async (userId: string) => {
     if (currentToken) {
       console.log('FCM Registration Token:', currentToken);
       // サーバーにトークンを送信
-      const response = await fetch(`${SERVER_ENDPOINT}/register-token`, { // サーバーのFCMトークン登録エンドポイント
+      const response = await fetch(`${SERVER_ENDPOINT}/register-token`, {
+        // サーバーのFCMトークン登録エンドポイント
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ userId, token: currentToken }),
+        body: JSON.stringify({ userId, token: currentToken })
       });
 
       if (!response.ok) {

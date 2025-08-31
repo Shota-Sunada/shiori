@@ -21,7 +21,7 @@ class Logger {
   }
 
   private logToFile(level: string, message: string, ...args: object[]): void {
-    const logMessage = `[${this.getTimeStamp()}] [${level.toUpperCase()}] ${message} ${args.map(arg => JSON.stringify(arg, null, 2)).join(' ')}
+    const logMessage = `[${this.getTimeStamp()}] [${level.toUpperCase()}] ${message} ${args.map((arg) => JSON.stringify(arg, null, 2)).join(' ')}
 `;
     fs.appendFile(this.logFilePath, logMessage, (err) => {
       if (err) {

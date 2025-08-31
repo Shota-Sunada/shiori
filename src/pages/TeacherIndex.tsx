@@ -105,7 +105,7 @@ const TeacherIndex = () => {
     const result = await sendNotification({
       userId: specificStudentId,
       title: '先生からの呼び出しです',
-      body: `${teacherName}先生があなたを呼んでいます。`,
+      body: `${teacherName}先生があなたを呼んでいます。`
     });
 
     if (result.success) {
@@ -380,7 +380,7 @@ const TeacherIndex = () => {
                 id="target_students"
                 disabled
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-200">
-                <option value="all">{"全員"}</option>
+                <option value="all">{'全員'}</option>
               </select>
             </div>
             <div className="mb-6">
@@ -396,14 +396,10 @@ const TeacherIndex = () => {
                 onChange={(e) => setSpecificStudentId(e.target.value)}
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
-              <p className="text-xs text-gray-600 mt-1">
-                {'ここに学籍番号を入力すると、その生徒にのみ通知が送信されます。空の場合は、上で選択中の生徒に送信されます。'}
-              </p>
+              <p className="text-xs text-gray-600 mt-1">{'ここに学籍番号を入力すると、その生徒にのみ通知が送信されます。空の場合は、上で選択中の生徒に送信されます。'}</p>
             </div>
             <div className="flex items-center justify-center">
-              <button
-                type="submit"
-                className="p-2 px-4 text-white bg-blue-500 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline cursor-pointer">
+              <button type="submit" className="p-2 px-4 text-white bg-blue-500 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline cursor-pointer">
                 {'呼び出し'}
               </button>
             </div>

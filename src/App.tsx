@@ -66,11 +66,19 @@ function Main() {
             <Route path="/login" element={<Login />} />
             <Route
               path="/admin"
-              element={<AdminOrTeacherRoute><Admin /></AdminOrTeacherRoute>}
+              element={
+                <AdminOrTeacherRoute>
+                  <Admin />
+                </AdminOrTeacherRoute>
+              }
             />
             <Route
               path="/user-admin"
-              element={<AdminOrTeacherRoute><UserAdmin /></AdminOrTeacherRoute>}
+              element={
+                <AdminOrTeacherRoute>
+                  <UserAdmin />
+                </AdminOrTeacherRoute>
+              }
             />
             <Route path="/admin-sha256" element={<SHA256 />} />
             <Route path="/otanoshimi" element={<Otanoshimi />} />
