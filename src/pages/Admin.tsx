@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, type ChangeEvent, useMemo } from 'react';
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, writeBatch } from 'firebase/firestore';
-import { db } from '../firebase';
+
 import type { student } from '../data/students';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
 import { getAuth } from 'firebase/auth';
@@ -11,9 +10,9 @@ import { ADMIN_HASHES, TEACHER_HASH } from '../accounts';
 import { Link } from 'react-router-dom';
 // import Button from '../components/Button';
 
-type StudentWithId = student & { id: string };
 
-type SortKey = keyof StudentWithId;
+
+type SortKey = keyof student;
 type SortDirection = 'asc' | 'desc';
 type SortConfig = {
   key: SortKey;
@@ -45,7 +44,7 @@ const DAY3_COLORS: [id: string, css: string][] = [
   ['yokohama', 'bg-gray-400']
 ];
 
-const sortList = (list: StudentWithId[], configs: SortConfig[]): StudentWithId[] => {
+const sortList = (list: student[], configs: SortConfig[]): student[] => {
   const sortedList = [...list];
   if (configs.length === 0) {
     return sortedList;
@@ -117,15 +116,15 @@ const initialForm: Omit<student, 'class' | 'number' | 'gakuseki' | 'shinkansen_d
 };
 
 const Admin = () => {
-  const [studentsList, setStudentsList] = useState<StudentWithId[] | null>(null);
-  const [editRowId, setEditRowId] = useState<string | null>(null); // 編集中の行ID
+  const [studentsList, setStudentsList] = useState<student[] | null>(null);
+  const [editRowId, setEditRowId] = useState<number | null>(null); // 編集中の行ID (gakuseki)
   const [editRowForm, setEditRowForm] = useState<typeof initialForm>(initialForm); // 編集用フォーム
   const [status, setStatus] = useState<string>('');
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [authChecked, setAuthChecked] = useState<boolean>(false); // 追加モーダル表示状態
   const [modalMode, setModalMode] = useState<'add' | 'edit' | null>(null);
 
-  const [editingCell, setEditingCell] = useState<{ studentId: string; field: keyof student } | null>(null);
+  const [editingCell, setEditingCell] = useState<{ studentId: number; field: keyof student } | null>(null);
   const [editingValue, setEditingValue] = useState<string | number>('');
 
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -136,15 +135,19 @@ const Admin = () => {
     { key: 'number', direction: 'asc' }
   ]);
 
-  // Firestoreから生徒データを取得
+  // APIから生徒データを取得
   const fetchStudents = async () => {
-    const snapshot = await getDocs(collection(db, 'students'));
-    const list: StudentWithId[] = [];
-    snapshot.forEach((docSnap) => {
-      list.push({ ...(docSnap.data() as student), id: docSnap.id });
-    });
-
-    setStudentsList(list);
+    try {
+      const response = await fetch('/api/students');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data: student[] = await response.json();
+      setStudentsList(data);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      setStatus('生徒データの取得に失敗しました。');
+    }
   };
 
   const handleSort = (key: SortKey, shiftKey: boolean) => {
@@ -229,8 +232,8 @@ const Admin = () => {
   }, []);
 
   // モーダル編集用
-  const handleEditClick = (s: StudentWithId) => {
-    setEditRowId(s.id);
+  const handleEditClick = (s: student) => {
+    setEditRowId(s.gakuseki);
     setEditRowForm({
       ...s,
       class: String(s.class),
@@ -244,11 +247,16 @@ const Admin = () => {
   };
 
   // 削除処理
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (gakuseki: number) => {
     if (!window.confirm('本当に削除しますか？')) return;
     setStatus('削除中...');
     try {
-      await deleteDoc(doc(db, 'students', id));
+      const response = await fetch(`/api/students/${gakuseki}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       setStatus('生徒データを削除しました。');
       fetchStudents();
     } catch (e) {
@@ -271,7 +279,16 @@ const Admin = () => {
     if (modalMode === 'add') {
       setStatus('追加中...');
       try {
-        await addDoc(collection(db, 'students'), data);
+        const response = await fetch('/api/students', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         setStatus('生徒データを追加しました。');
         setModalMode(null);
         fetchStudents();
@@ -279,10 +296,20 @@ const Admin = () => {
         setStatus('エラーが発生しました: ' + (e as Error).message);
       }
     } else if (modalMode === 'edit') {
-      if (!editRowId) return;
+      // editRowId は gakuseki に対応
+      if (editRowId === null) return; // editRowIdがnullの場合は処理しない
       setStatus('更新中...');
       try {
-        await updateDoc(doc(db, 'students', editRowId), data);
+        const response = await fetch(`/api/students/${editRowId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         setStatus('生徒データを更新しました。');
         setModalMode(null);
         setEditRowId(null);
@@ -298,35 +325,20 @@ const Admin = () => {
       const reader = new FileReader();
       reader.onload = async (e) => {
         const data = e.target?.result as string;
-        const obj = JSON.parse(data) as student[];
+        const studentsToProcess = JSON.parse(data) as student[];
 
         setStatus('更新中...');
-        const colRef = collection(db, 'students');
-        const existingStudentsSnapshot = await getDocs(colRef);
-        const existingStudentsMap = new Map<number, string>(); // gakuseki -> doc.id
-        existingStudentsSnapshot.forEach((docSnap) => {
-          const data = docSnap.data() as student;
-          if (data.gakuseki) {
-            existingStudentsMap.set(data.gakuseki, docSnap.id);
-          }
-        });
-
-        const batch = writeBatch(db);
-        for (const studentData of obj) {
-          if (studentData.gakuseki && existingStudentsMap.has(studentData.gakuseki)) {
-            const docId = existingStudentsMap.get(studentData.gakuseki)!;
-            const studentRef = doc(db, 'students', docId);
-            batch.update(studentRef, studentData);
-            console.log(`更新しました: ${studentData.gakuseki}`);
-          } else {
-            const newDocRef = doc(colRef); // Firestore generates a new ID
-            batch.set(newDocRef, studentData);
-            console.log(`追加しました: ${studentData.gakuseki}`);
-          }
-        }
-
         try {
-          await batch.commit();
+          const response = await fetch('/api/students/batch', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(studentsToProcess),
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
           setStatus('生徒データを更新しました。');
         } catch (e) {
           setStatus('エラーが発生しました: ' + (e as Error).message);
@@ -339,9 +351,9 @@ const Admin = () => {
     }
   };
 
-  const handleCellDoubleClick = (student: StudentWithId, field: keyof student) => {
+  const handleCellDoubleClick = (student: student, field: keyof student) => {
     if (modalMode !== null) return;
-    setEditingCell({ studentId: student.id, field });
+    setEditingCell({ studentId: student.gakuseki, field });
     setEditingValue(student[field]);
   };
 
@@ -352,18 +364,16 @@ const Admin = () => {
   const handleCellEditSave = async () => {
     if (!editingCell) return;
 
-    const { studentId, field } = editingCell;
+    const { studentId, field } = editingCell; // studentId は gakuseki に対応
 
-    const originalStudent = studentsList?.find((s) => s.id === studentId);
+    const originalStudent = studentsList?.find((s) => s.gakuseki === studentId);
     if (originalStudent && originalStudent[field] === editingValue) {
       setEditingCell(null);
       return; // No change
     }
 
-    const studentRef = doc(db, 'students', studentId);
-
     let valueToSave: string | number = editingValue;
-    if (field === 'class' || field === 'number' || field === 'gakuseki') {
+    if (field === 'class' || field === 'number' || field === 'gakuseki' || field === 'shinkansen_day1_car_number' || field === 'shinkansen_day4_car_number') {
       valueToSave = Number(editingValue);
       if (isNaN(valueToSave)) {
         setStatus('無効な数値です。');
@@ -374,14 +384,21 @@ const Admin = () => {
 
     setStatus('更新中...');
     try {
-      await updateDoc(studentRef, {
-        [field]: valueToSave
+      const response = await fetch(`/api/students/${studentId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ [field]: valueToSave }),
       });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       setStudentsList((prevList) => {
         if (!prevList) return null;
         return prevList.map((student) => {
-          if (student.id === studentId) {
+          if (student.gakuseki === studentId) {
             return { ...student, [field]: valueToSave };
           }
           return student;
@@ -579,58 +596,58 @@ const Admin = () => {
           </thead>
           <tbody>
             {sortedAndFilteredStudents.map((s) => (
-              <tr key={s.id}>
+              <tr key={s.gakuseki}>
                 <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'gakuseki')}>
-                  {editingCell?.studentId === s.id && editingCell?.field === 'gakuseki' ? (
+                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'gakuseki' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.gakuseki
                   )}
                 </td>
                 <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'surname')}>
-                  {editingCell?.studentId === s.id && editingCell?.field === 'surname' ? (
+                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'surname' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.surname
                   )}
                 </td>
                 <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'forename')}>
-                  {editingCell?.studentId === s.id && editingCell?.field === 'forename' ? (
+                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'forename' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.forename
                   )}
                 </td>
                 <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'surname_kana')}>
-                  {editingCell?.studentId === s.id && editingCell?.field === 'surname_kana' ? (
+                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'surname_kana' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.surname_kana
                   )}
                 </td>
                 <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'forename_kana')}>
-                  {editingCell?.studentId === s.id && editingCell?.field === 'forename_kana' ? (
+                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'forename_kana' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.forename_kana
                   )}
                 </td>
                 <td className={CLASS_COLORS[s.class - 1]} onDoubleClick={() => handleCellDoubleClick(s, 'class')}>
-                  {editingCell?.studentId === s.id && editingCell?.field === 'class' ? (
+                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'class' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.class
                   )}
                 </td>
                 <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'number')}>
-                  {editingCell?.studentId === s.id && editingCell?.field === 'number' ? (
+                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'number' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.number
                   )}
                 </td>
                 <td className={DAY1_COLORS.find((x) => x[0] === s.day1id)?.[1]} onDoubleClick={() => handleCellDoubleClick(s, 'day1id')}>
-                  {editingCell?.studentId === s.id && editingCell?.field === 'day1id' ? (
+                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'day1id' ? (
                     <select value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit">
                       {COURSES_DAY1.map((course) => (
                         <option key={course.key} value={course.key}>
@@ -643,7 +660,7 @@ const Admin = () => {
                   )}
                 </td>
                 <td className={DAY3_COLORS.find((x) => x[0] === s.day3id)?.[1]} onDoubleClick={() => handleCellDoubleClick(s, 'day3id')}>
-                  {editingCell?.studentId === s.id && editingCell?.field === 'day3id' ? (
+                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'day3id' ? (
                     <select value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit">
                       {COURSES_DAY3.map((course) => (
                         <option key={course.key} value={course.key}>
@@ -656,56 +673,56 @@ const Admin = () => {
                   )}
                 </td>
                 <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'day1bus')}>
-                  {editingCell?.studentId === s.id && editingCell?.field === 'day1bus' ? (
+                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'day1bus' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.day1bus
                   )}
                 </td>
                 <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'day3bus')}>
-                  {editingCell?.studentId === s.id && editingCell?.field === 'day3bus' ? (
+                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'day3bus' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.day3bus
                   )}
                 </td>
                 <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'room_tokyo')}>
-                  {editingCell?.studentId === s.id && editingCell?.field === 'room_tokyo' ? (
+                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'room_tokyo' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.room_tokyo
                   )}
                 </td>
                 <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'room_shizuoka')}>
-                  {editingCell?.studentId === s.id && editingCell?.field === 'room_shizuoka' ? (
+                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'room_shizuoka' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.room_shizuoka
                   )}
                 </td>
                 <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'shinkansen_day1_car_number')}>
-                  {editingCell?.studentId === s.id && editingCell?.field === 'shinkansen_day1_car_number' ? (
+                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'shinkansen_day1_car_number' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.shinkansen_day1_car_number
                   )}
                 </td>
                 <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'shinkansen_day1_seat')}>
-                  {editingCell?.studentId === s.id && editingCell?.field === 'shinkansen_day1_seat' ? (
+                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'shinkansen_day1_seat' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.shinkansen_day1_seat
                   )}
                 </td>
                 <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'shinkansen_day4_car_number')}>
-                  {editingCell?.studentId === s.id && editingCell?.field === 'shinkansen_day4_car_number' ? (
+                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'shinkansen_day4_car_number' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.shinkansen_day4_car_number
                   )}
                 </td>
                 <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'shinkansen_day4_seat')}>
-                  {editingCell?.studentId === s.id && editingCell?.field === 'shinkansen_day4_seat' ? (
+                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'shinkansen_day4_seat' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
                     s.shinkansen_day4_seat
@@ -718,7 +735,7 @@ const Admin = () => {
                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                       </svg>
                     </button>
-                    <button className="p-1 cursor-pointer mx-1" onClick={() => handleDelete(s.id)} disabled={modalMode !== null || editingCell !== null} title="削除">
+                    <button className="p-1 cursor-pointer mx-1" onClick={() => handleDelete(s.gakuseki)} disabled={modalMode !== null || editingCell !== null} title="削除">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500 hover:text-red-700" viewBox="0 0 20 20" fill="currentColor">
                         <path
                           fillRule="evenodd"

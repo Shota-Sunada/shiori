@@ -8,44 +8,53 @@ import Footer from './components/Footer';
 import Page404 from './pages/Page404';
 import Otanoshimi from './pages/Otanoshimi';
 import TeacherIndex from './pages/TeacherIndex';
-import { useEffect, useState } from 'react';
-import { getAuth } from 'firebase/auth';
-import { TEACHER_HASH } from './accounts';
-import { sha256 } from './sha256';
+// import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import SHA256 from './pages/SHA256';
 import TeacherCall from './pages/TeacherCall';
 import Call from './pages/Call';
 import { onMessage } from 'firebase/messaging';
-import { messaging } from './firebase';
+import { messaging, registerFCMToken } from './firebase'; // registerFCMToken をインポート
+import { useAuth } from './auth-context'; // useAuth をインポート
 
 function App() {
-  const [isTeacher, setIsTeacher] = useState<boolean>(false);
+  // const [isTeacher, setIsTeacher] = useState<boolean>(false);
+  const isTeacher = false;
 
+  // Removed Firebase authentication useEffect
+  // useEffect(() => {
+  //   const auth = getAuth();
+  //   const unsubscribe = auth.onAuthStateChanged(async (user) => {
+  //     if (user && user.email) {
+  //       const beforeAt = user.email.split('@')[0];
+  //       const hash = await sha256(beforeAt);
+
+  //       setIsTeacher(TEACHER_HASH === hash);
+  //     } else {
+  //       setIsTeacher(false);
+  //     }
+  //   });
+  //   return () => unsubscribe();
+  // }, []);
+
+  const { user } = useAuth(); // useAuth フックを使用
+
+  // Handle foreground messages and register FCM token
   useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (user && user.email) {
-        const beforeAt = user.email.split('@')[0];
-        const hash = await sha256(beforeAt);
+    // FCMトークン登録
+    if (user && user.userId) {
+      registerFCMToken(user.userId);
+    }
 
-        setIsTeacher(TEACHER_HASH === hash);
-      } else {
-        setIsTeacher(false);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // Handle foreground messages
-  useEffect(() => {
+    // フォアグラウンドメッセージの処理
     onMessage(messaging, (payload) => {
-      // You can handle foreground messages here. 
+      // You can handle foreground messages here.
       // For example, showing an in-app notification or updating the UI.
       console.log('Foreground message received: ', payload);
       // The line below was commented out to prevent duplicate notifications.
       // new Notification(payload.notification?.title || '', { body: payload.notification?.body });
     });
-  }, []);
+  }, [user]); // user の変更を監視
 
   return (
     <AuthProvider>

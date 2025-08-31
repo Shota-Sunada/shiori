@@ -1,19 +1,16 @@
-import { useRef, type FormEvent, useEffect, useState } from 'react'; // useStateを追加
+import { useRef, type FormEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
 import '../styles/login.css';
-import { auth } from '../firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useAuth } from '../auth-context';
-import { sha256 } from '../sha256';
-import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai'; // アイコンをインポート
+import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 
 const Login = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, login } = useAuth(); // Destructure login from useAuth
   const navigate = useNavigate();
   const student_id_ref = useRef<HTMLInputElement>(null);
   const password_ref = useRef<HTMLInputElement>(null);
-  const [showPassword, setShowPassword] = useState(false); // パスワード表示切替用のstate
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (!loading && user) {
@@ -24,23 +21,41 @@ const Login = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    const student_id = student_id_ref.current?.value;
+    const username = student_id_ref.current?.value; // Use student_id as username
+    const password = password_ref.current?.value;
+
+    if (!username || !password) {
+      alert('ユーザー名とパスワードを入力してください。');
+      return;
+    }
 
     // 生徒IDが8桁でない場合はエラーを表示して処理を中断
-    if (student_id?.length !== 8) {
+    if (username.length !== 8) {
       alert('生徒IDは8桁で入力してください。');
       return;
     }
 
-    const password = await sha256(password_ref.current!.value);
-
-    const email = `${student_id}@st.shudo-h.ed.jp`;
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      console.log('ログインに成功しました。');
+      const response = await fetch('http://localhost:8080/api/auth/login', { // Assuming backend runs on 8080
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        login(data.token); // Use the login function from auth-context
+        console.log('ログインに成功しました。');
+      } else {
+        alert(`ログインに失敗しました.\n${data.message || 'ユーザー名またはパスワードが正しくありません。'}`);
+        console.error('Login failed:', data.message);
+      }
     } catch (error) {
-      alert('ログインに失敗しました。\n生徒IDとパスワードが正しく入力できているか確認してください。\n\n誤りがある場合は、先生や管理者に連絡してください。');
-      console.error(error);
+      alert('ログイン中にエラーが発生しました。ネットワーク接続を確認してください。');
+      console.error('Error during login:', error);
     }
   };
 

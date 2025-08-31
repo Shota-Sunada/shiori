@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 import express, { Request, Response } from 'express';
 import * as admin from 'firebase-admin';
 import cors from 'cors';
@@ -18,6 +20,22 @@ const port = 8080;
 // CORSを有効化
 app.use(cors({ origin: ['http://localhost:5173', 'https://shiori.shudo-physics.com'] })); // クライアントのオリジンに合わせて変更してください
 app.use(express.json());
+
+import authRouter from './routes/auth';
+app.use('/api/auth', authRouter);
+
+import studentsRouter from './routes/students';
+app.use('/api/students', studentsRouter);
+
+import { initializeDatabase } from './db';
+
+// Initialize the database and tables
+initializeDatabase().then(() => {
+  console.log("Database initialization complete.");
+}).catch(error => {
+  console.error("Failed to initialize database:", error);
+  process.exit(1);
+});
 
 // --- 再利用可能な関数 --- //
 

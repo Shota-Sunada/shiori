@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
-import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+
 import type { student } from '../data/students';
 import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4 } from '../data/courses';
 import '../styles/index-table.css';
@@ -16,16 +16,20 @@ const Index = (props: { isTeacher: boolean }) => {
 
   useEffect(() => {
     const fetchStudent = async () => {
-      if (user && user.email) {
-        const gakuseki = user.email.split('@')[0];
-        const db = getFirestore();
-        const q = query(collection(db, 'students'), where('gakuseki', '==', Number(gakuseki)));
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-          setStudentData(snapshot.docs[0].data() as student);
-        } else {
+      if (user && user.userId) {
+        try {
+          const response = await fetch(`/api/students/${user.userId}`);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data: student = await response.json();
+          setStudentData(data);
+        } catch (error) {
+          console.error('Error fetching student data:', error);
           setStudentData(null);
         }
+      } else {
+        setStudentData(null);
       }
     };
 
