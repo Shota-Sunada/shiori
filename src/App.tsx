@@ -14,7 +14,7 @@ import SHA256 from './pages/SHA256';
 import TeacherCall from './pages/TeacherCall';
 import Call from './pages/Call';
 import { onMessage } from 'firebase/messaging';
-import { messaging, registerFCMToken } from './firebase';
+import { firebaseConfig, messaging, registerFCMToken } from './firebase';
 
 const AdminOrTeacherRoute = ({ children }: { children: ReactNode }) => {
   const { user, loading } = useAuth();
@@ -47,12 +47,39 @@ function Main() {
   }, [user]);
 
   useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then((registration) => {
+        if (registration.active) {
+          console.log('Sending firebase config to service worker...');
+          registration.active.postMessage({
+            type: 'INIT_FIREBASE',
+            config: firebaseConfig
+          });
+        }
+      });
+    }
+  }, []);
+
+  useEffect(() => {
     if (user && user.userId) {
-      registerFCMToken(user.userId);
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then((registration) => {
+          registerFCMToken(user.userId, registration);
+        });
+      }
     }
 
     onMessage(messaging, (payload) => {
       console.log('Foreground message received: ', payload);
+      const notificationTitle = payload.notification?.title;
+      const notificationOptions = {
+        body: payload.notification?.body,
+        icon: '/icon.png'
+      };
+
+      if (notificationTitle) {
+        new Notification(notificationTitle, notificationOptions);
+      }
     });
   }, [user]);
 

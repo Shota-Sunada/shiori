@@ -3,7 +3,7 @@ import { getMessaging, getToken } from 'firebase/messaging';
 import { SERVER_ENDPOINT } from './app';
 
 // Firebaseプロジェクトの設定情報
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
@@ -20,9 +20,9 @@ const app = initializeApp(firebaseConfig);
 export const messaging = getMessaging(app);
 
 // FCMトークンを取得し、サーバーに登録する関数
-export const registerFCMToken = async (userId: string) => {
+export const registerFCMToken = async (userId: string, swRegistration: ServiceWorkerRegistration) => {
   try {
-    const currentToken = await getToken(messaging, { vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY });
+    const currentToken = await getToken(messaging, { vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY, serviceWorkerRegistration: swRegistration });
     if (currentToken) {
       console.log('FCM Registration Token:', currentToken);
       // サーバーにトークンを送信
@@ -41,9 +41,6 @@ export const registerFCMToken = async (userId: string) => {
       console.log('FCM token registered on server successfully.');
     } else {
       console.log('No registration token available. Request permission to generate one.');
-      // ユーザーに通知の許可を求める
-      // これは通常、ユーザーのアクションによってトリガーされるべきです
-      // Notification.requestPermission().then((permission) => { ... });
     }
   } catch (err) {
     console.error('An error occurred while retrieving token. ', err);

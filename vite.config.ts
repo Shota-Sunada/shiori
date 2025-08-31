@@ -35,10 +35,9 @@ export default defineConfig(({ command }) => ({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      strategies: 'generateSW',
-      workbox: {
-        importScripts: ['firebase-messaging-sw.js']
-      },
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       manifest: {
         name: '修学旅行のしおり for 79th',
         description: '修道高校79回生のための修学旅行のしおり',

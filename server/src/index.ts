@@ -71,6 +71,13 @@ async function sendNotification(userId: string, title: string, body: string): Pr
         title,
         body
       },
+      webpush: {
+        notification: {
+          title,
+          body,
+          icon: 'https://shiori.shudo-physics.com/icon.png' // Absolute URL for the icon
+        }
+      },
       token: token
     };
 
