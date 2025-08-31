@@ -15,7 +15,7 @@ const firebaseConfigParam = urlParams.get('firebaseConfig');
 
 if (firebaseConfigParam) {
   try {
-    const firebaseConfig = JSON.parse(firebaseConfigParam);
+    const firebaseConfig = JSON.parse(decodeURIComponent(firebaseConfigParam));
     console.log('[FCM SW] Initializing Firebase with config:', firebaseConfig);
 
     if (firebase.apps.length === 0) {
