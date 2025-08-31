@@ -1,4 +1,5 @@
 import mysql from 'mysql2/promise';
+import { logger } from './logger';
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
@@ -28,7 +29,7 @@ async function initializeDatabase() {
     await connection.execute(`CREATE DATABASE IF NOT EXISTS 
 ${dbName}
 `);
-    console.log(`Database '${dbName}' ensured to exist.`);
+    logger.log(`Database '${dbName}' ensured to exist.`);
 
     // Now select the database and create tables
     // Now select the database and create tables
@@ -45,7 +46,7 @@ ${dbName}
         is_teacher BOOLEAN NOT NULL DEFAULT FALSE
       );
     `);
-    console.log("Table 'users' ensured to exist.");
+    logger.log("Table 'users' ensured to exist.");
 
     // Create students table if it doesn't exist
     await connection.execute(`
@@ -69,7 +70,7 @@ ${dbName}
         shinkansen_day4_seat VARCHAR(255)
       );
     `);
-    console.log("Table 'students' ensured to exist.");
+    logger.log("Table 'students' ensured to exist.");
 
     // Create fcm_tokens table if it doesn't exist
     await connection.execute(`
@@ -81,10 +82,10 @@ ${dbName}
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       );
     `);
-    console.log("Table 'fcm_tokens' ensured to exist.");
+    logger.log("Table 'fcm_tokens' ensured to exist.");
 
   } catch (error) {
-    console.error("Error initializing database:", error);
+    logger.error("Error initializing database:", error as Error);
     process.exit(1); // Exit if database initialization fails
   } finally {
     if (connection) {

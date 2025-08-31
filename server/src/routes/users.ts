@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import {pool} from '../db'; // Import the database connection pool
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import bcrypt from 'bcrypt';
+import { logger } from '../logger';
 
 const router = Router();
 
@@ -11,7 +12,7 @@ router.get('/', async (req: Request, res: Response) => {
     const [rows] = await pool.execute<RowDataPacket[]>('SELECT id, is_admin, is_teacher FROM users'); // パスワードハッシュは返さない
     res.status(200).json(rows);
   } catch (error) {
-    console.error('Error fetching users:', error);
+    logger.error('Error fetching users:', error as Error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -42,7 +43,7 @@ router.post('/', async (req: Request, res: Response) => {
     );
     res.status(201).json({ message: 'User added successfully' });
   } catch (error) {
-    console.error('Error adding user:', error);
+    logger.error('Error adding user:', error as Error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -92,7 +93,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     }
     res.status(200).json({ message: 'User updated successfully' });
   } catch (error) {
-    console.error('Error updating user:', error);
+    logger.error('Error updating user:', error as Error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -115,7 +116,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
     }
     res.status(200).json({ message: 'User deleted successfully' });
   } catch (error) {
-    console.error('Error deleting user:', error);
+    logger.error('Error deleting user:', error as Error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -163,7 +164,7 @@ router.post('/bulk', async (req: Request, res: Response) => {
       results.push({ id, status: 'success' });
       successCount++;
     } catch (error) {
-      console.error(`Error adding user with id ${id}:`, error);
+      logger.error(`Error adding user with id ${id}:`, error as Error);
       results.push({ id, status: 'error', message: 'Internal server error' });
       errorCount++;
     }

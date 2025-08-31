@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import {pool} from '../db'; // Import the database connection pool
 import { RowDataPacket } from 'mysql2';
+import { logger } from '../logger';
 
 const router = Router();
 
@@ -38,10 +39,10 @@ router.post('/register', async (req: Request, res: Response) => {
     const passwordHash = await bcrypt.hash(password, 10); // Hash password
     await pool.execute('INSERT INTO users (id, passwordHash) VALUES (?, ?)', [id, passwordHash]); // id で挿入
 
-    console.log('Registered new user:', id); // ログも id に変更
+    logger.log('Registered new user:', id); // ログも id に変更
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
-    console.error('Error during registration:', error);
+    logger.error('Error during registration:', error as Error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -77,7 +78,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
     res.status(200).json({ message: 'Login successful', token });
   } catch (error) {
-    console.error('Error during login:', error);
+    logger.error('Error during login:', error as Error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

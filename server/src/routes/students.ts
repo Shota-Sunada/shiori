@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import {pool} from '../db'; // Import the database connection pool
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
+import { logger } from '../logger';
 
 const router = Router();
 
@@ -10,7 +11,7 @@ router.get('/', async (req: Request, res: Response) => {
     const [rows] = await pool.execute<RowDataPacket[]>('SELECT * FROM students');
     res.status(200).json(rows);
   } catch (error) {
-    console.error('Error fetching students:', error);
+    logger.error('Error fetching students:', error as Error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -25,7 +26,7 @@ router.get('/:gakuseki', async (req: Request, res: Response) => {
     }
     res.status(200).json(rows[0]); // 単一の生徒データを返す
   } catch (error) {
-    console.error('Error fetching single student:', error);
+    logger.error('Error fetching single student:', error as Error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -60,7 +61,7 @@ router.post('/', async (req: Request, res: Response) => {
     );
     res.status(201).json({ message: 'Student added successfully' });
   } catch (error) {
-    console.error('Error adding student:', error);
+    logger.error('Error adding student:', error as Error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -88,7 +89,7 @@ router.put('/:gakuseki', async (req: Request, res: Response) => {
     }
     res.status(200).json({ message: 'Student updated successfully' });
   } catch (error) {
-    console.error('Error updating student:', error);
+    logger.error('Error updating student:', error as Error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -107,7 +108,7 @@ router.delete('/:gakuseki', async (req: Request, res: Response) => {
     }
     res.status(200).json({ message: 'Student deleted successfully' });
   } catch (error) {
-    console.error('Error deleting student:', error);
+    logger.error('Error deleting student:', error as Error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -150,7 +151,7 @@ router.post('/batch', async (req: Request, res: Response) => {
     res.status(200).json({ message: 'Batch update successful' });
   } catch (error) {
     await connection.rollback();
-    console.error('Error during batch update:', error);
+    logger.error('Error during batch update:', error as Error);
     res.status(500).json({ message: 'Internal server error' });
   } finally {
     connection.release();
