@@ -64,18 +64,15 @@ function Main() {
 
     const unsubscribe = onMessage(messaging, (payload) => {
       console.log('Foreground message received: ', payload);
-      const notificationTitle = payload.notification?.title;
-      const notificationOptions = {
-        body: payload.notification?.body,
-        icon: '/icon.png'
-      };
-
-      if (notificationTitle) {
-        new Notification(notificationTitle, notificationOptions);
+      if (payload.data) {
+        const { type, originalTitle, originalBody } = payload.data;
+        if (type === 'default_notification') {
+          alert(`[In-App Notification] ${originalTitle || 'New Message'}: ${originalBody || ''}`);
+        }
+        // Add more conditions here for different types of notifications
       }
     });
 
-    // Cleanup subscription on component unmount
     return () => unsubscribe();
   }, []); // Runs once
 
@@ -89,7 +86,7 @@ function Main() {
         });
       }
     }
-  }, [user?.userId]);
+  }, [user]);
 
   return (
     <BrowserRouter>

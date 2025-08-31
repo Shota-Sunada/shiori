@@ -75,10 +75,15 @@ async function sendNotification(userId: string, title: string, body: string): Pr
         notification: {
           title,
           body,
-          icon: 'https://shiori.shudo-physics.com/icon.png' // Absolute URL for the icon
+          icon: 'https://shiori.shudo-physics.com/icon.png'
         }
       },
-      token: token
+      token: token,
+      data: {
+        type: 'default_notification',
+        originalTitle: title,
+        originalBody: body
+      }
     };
 
     // メッセージを送信
