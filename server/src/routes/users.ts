@@ -154,3 +154,5 @@ router.post('/bulk', async (req: Request, res: Response) => {
     results,
   });
 });
+
+export default router;
