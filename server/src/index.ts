@@ -140,7 +140,7 @@ app.post('/send-notification', async (req: Request, res: Response) => {
   if (success) {
     res.status(200).send({ message: 'Notification sent successfully' });
   } else {
-    res.status(500).send({ error: 'Failed to send notification' });
+    res.status(404).send({ error: `Failed to send notification. Token for userId ${userId} not found or invalid.` });
   }
 });
 
