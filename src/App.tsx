@@ -46,30 +46,23 @@ function Main() {
     setIsTeacher(user?.is_teacher ?? false);
   }, [user]);
 
+  // Effect 1: Register SW and set up foreground listener (runs once)
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then((registration) => {
-        if (registration.active) {
-          console.log('Sending firebase config to service worker...');
-          registration.active.postMessage({
-            type: 'INIT_FIREBASE',
-            config: firebaseConfig
-          });
-        }
-      });
-    }
-  }, []);
+      const firebaseConfigStr = encodeURIComponent(JSON.stringify(firebaseConfig));
+      const swUrl = `/firebase-messaging-sw.js?firebaseConfig=${firebaseConfigStr}`;
 
-  useEffect(() => {
-    if (user && user.userId) {
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then((registration) => {
-          registerFCMToken(user.userId, registration);
+      navigator.serviceWorker
+        .register(swUrl)
+        .then((registration) => {
+          console.log('Service Worker registered successfully:', registration);
+        })
+        .catch((err) => {
+          console.error('Service Worker registration failed:', err);
         });
-      }
     }
 
-    onMessage(messaging, (payload) => {
+    const unsubscribe = onMessage(messaging, (payload) => {
       console.log('Foreground message received: ', payload);
       const notificationTitle = payload.notification?.title;
       const notificationOptions = {
@@ -81,7 +74,22 @@ function Main() {
         new Notification(notificationTitle, notificationOptions);
       }
     });
-  }, [user]);
+
+    // Cleanup subscription on component unmount
+    return () => unsubscribe();
+  }, []); // Runs once
+
+  // Effect 2: Register token when user logs in
+  useEffect(() => {
+    if (user && user.userId) {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then((registration) => {
+          console.log('User logged in, attempting to register FCM token.');
+          registerFCMToken(user.userId, registration);
+        });
+      }
+    }
+  }, [user?.userId]);
 
   return (
     <BrowserRouter>

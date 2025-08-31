@@ -21,10 +21,13 @@ export const messaging = getMessaging(app);
 
 // FCMトークンを取得し、サーバーに登録する関数
 export const registerFCMToken = async (userId: string, swRegistration: ServiceWorkerRegistration) => {
+  console.log('Attempting to register FCM token for userId:', userId);
   try {
+    console.log('Calling getToken() with vapidKey and serviceWorkerRegistration...');
     const currentToken = await getToken(messaging, { vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY, serviceWorkerRegistration: swRegistration });
+
     if (currentToken) {
-      console.log('FCM Registration Token:', currentToken);
+      console.log('Successfully retrieved FCM Registration Token:', currentToken);
       // サーバーにトークンを送信
       const response = await fetch(`${SERVER_ENDPOINT}/register-token`, {
         // サーバーのFCMトークン登録エンドポイント
@@ -40,10 +43,10 @@ export const registerFCMToken = async (userId: string, swRegistration: ServiceWo
       }
       console.log('FCM token registered on server successfully.');
     } else {
-      console.log('No registration token available. Request permission to generate one.');
+      console.warn('getToken() returned no token. This usually means permission was not granted or the VAPID key is invalid.');
     }
   } catch (err) {
-    console.error('An error occurred while retrieving token. ', err);
+    console.error('An error occurred inside registerFCMToken while calling getToken():', err);
   }
 };
 
