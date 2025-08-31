@@ -16,6 +16,8 @@
     "@tailwindcss/vite": "^4.1.10",
     "csv-parse": "^6.1.0",
     "csv-parser": "^3.2.0",
+    "firebase": "^12.2.1",
+    "jwt-decode": "^4.0.0",
     "prettier": "^3.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -25,8 +27,7 @@
     "type-fest": "^4.41.0",
     "uuid": "^11.1.0",
     "vite-plugin-javascript-obfuscator": "^3.1.0",
-    "vite-tsconfig-paths": "^5.1.4",
-    "jwt-decode": "^4.0.0"
+    "vite-tsconfig-paths": "^5.1.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
