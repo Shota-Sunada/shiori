@@ -1,13 +1,13 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
-import { getFirestore, collection, getDocs, query, orderBy } from 'firebase/firestore';
 import type { student } from '../data/students';
 import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4 } from '../data/courses';
 import '../styles/index-table.css';
 import { DAY4_DATA, DAY4_TEACHERS } from '../data/day4';
 import KanaSearchModal from '../components/KanaSearchModal';
 import { sendNotification } from '../lib/notifications';
+import { SERVER_ENDPOINT } from '../app';
 
 const TeacherIndex = () => {
   const { user, loading } = useAuth();
@@ -34,11 +34,27 @@ const TeacherIndex = () => {
 
   useEffect(() => {
     const fetchAllStudents = async () => {
-      const db = getFirestore();
-      const q = query(collection(db, 'students'), orderBy('gakuseki'));
-      const snapshot = await getDocs(q);
-      const students = snapshot.docs.map((doc) => doc.data() as student);
-      setAllStudents(students);
+      try {
+        const response = await fetch(`${SERVER_ENDPOINT}/api/students`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const students = await response.json();
+        // sort by gakuseki
+        students.sort((a: student, b: student) => {
+          if (a.gakuseki < b.gakuseki) {
+            return -1;
+          }
+          if (a.gakuseki > b.gakuseki) {
+            return 1;
+          }
+          return 0;
+        });
+        setAllStudents(students);
+      } catch (error) {
+        console.error('Failed to fetch students:', error);
+        // Optionally, set an error state to show in the UI
+      }
     };
     fetchAllStudents();
   }, []);

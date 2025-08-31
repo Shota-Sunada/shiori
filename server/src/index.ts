@@ -74,6 +74,7 @@ async function sendNotification(userId: string, title: string, body: string): Pr
 
     // メッセージを送信
     await admin.messaging().send(message);
+    logger.log(`Notification sent to user ${userId} was successful.`)
     return true;
   } catch (error) {
     logger.error(`Error sending message to user ${userId}:`, error as Error);
