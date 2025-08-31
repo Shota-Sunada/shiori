@@ -71,6 +71,18 @@ ${dbName}
     `);
     console.log("Table 'students' ensured to exist.");
 
+    // Create fcm_tokens table if it doesn't exist
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS fcm_tokens (
+        user_id INT PRIMARY KEY,
+        token TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+    `);
+    console.log("Table 'fcm_tokens' ensured to exist.");
+
   } catch (error) {
     console.error("Error initializing database:", error);
     process.exit(1); // Exit if database initialization fails

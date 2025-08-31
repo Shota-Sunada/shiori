@@ -3,7 +3,7 @@ import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import * as admin from 'firebase-admin';
 import cors from 'cors';
-import { ResultSetHeader } from 'mysql2';
+import { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 
 // Firebase Admin SDKを初期化
 // 注意: serviceAccountKey.jsonのパスが正しいことを確認してください
@@ -11,9 +11,6 @@ import serviceAccount from '../serviceAccountKey.json';
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount as admin.ServiceAccount)
 });
-
-// Firestoreのインスタンスを取得
-const db = admin.firestore();
 
 const app = express();
 const port = 8080;
@@ -31,7 +28,7 @@ app.use('/api/students', studentsRouter);
 import usersRouter from './routes/users';
 app.use('/api/users', usersRouter);
 
-import { initializeDatabase } from './db';
+import { initializeDatabase, pool } from './db';
 
 // Initialize the database and tables
 initializeDatabase().then(() => {
@@ -52,16 +49,15 @@ initializeDatabase().then(() => {
  */
 async function sendNotification(userId: string, title: string, body: string): Promise<boolean> {
   try {
-    // Firestoreからトークンを取得
-    const tokenRef = db.collection('fcmTokens').doc(userId);
-    const tokenDoc = await tokenRef.get();
-
-    if (!tokenDoc.exists) {
-      console.log(`[${new Date().toLocaleString()}] No token found for user ${userId} in Firestore.`);
+    // データベースからトークンを取得
+    const [rows] = await pool.execute<RowDataPacket[]>('SELECT token FROM fcm_tokens WHERE user_id = ?', [userId]);
+    
+    if (rows.length === 0) {
+      console.log(`[${new Date().toLocaleString()}] No token found for user ${userId} in database.`);
       return false;
     }
 
-    const token = tokenDoc.data()?.token;
+    const token = rows[0].token;
     if (!token) {
       console.log(`[${new Date().toLocaleString()}] Token data is invalid for user ${userId}.`);
       return false;
@@ -81,10 +77,10 @@ async function sendNotification(userId: string, title: string, body: string): Pr
   } catch (error) {
     console.error(`[${new Date().toLocaleString()}] Error sending message to user ${userId}:`, error);
 
-    // もしトークンが無効なら、Firestoreから削除する (自己修復)
+    // もしトークンが無効なら、データベースから削除する (自己修復)
     if ((error as admin.FirebaseError).code === 'messaging/registration-token-not-registered') {
-      console.log(`[${new Date().toLocaleString()}] Invalid token for user ${userId}. Deleting from Firestore.`);
-      await db.collection('fcmTokens').doc(userId).delete();
+      console.log(`[${new Date().toLocaleString()}] Invalid token for user ${userId}. Deleting from database.`);
+      await pool.execute('DELETE FROM fcm_tokens WHERE user_id = ?', [userId]);
     }
     return false;
   }
@@ -97,7 +93,7 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 /**
- * ユーザーのFCMトークンをFirestoreに登録するエンドポイント
+ * ユーザーのFCMトークンをデータベースに登録するエンドポイント
  */
 app.post('/register-token', async (req: Request, res: Response) => {
   const { userId, token } = req.body;
@@ -109,12 +105,14 @@ app.post('/register-token', async (req: Request, res: Response) => {
   }
 
   try {
-    const tokenRef = db.collection('fcmTokens').doc(userId);
-    await tokenRef.set({ token });
+    await pool.execute(
+      'INSERT INTO fcm_tokens (user_id, token) VALUES (?, ?) ON DUPLICATE KEY UPDATE token = VALUES(token)',
+      [userId, token]
+    );
     console.log(`[${new Date().toLocaleString()}] Token for userId: ${userId} registered successfully.`);
-    res.status(200).send({ message: 'Token registered successfully in Firestore' });
+    res.status(200).send({ message: 'Token registered successfully in database' });
   } catch (error) {
-    console.error(`[${new Date().toLocaleString()}] Error saving token to Firestore for userId: ${userId}:`, error);
+    console.error(`[${new Date().toLocaleString()}] Error saving token to database for userId: ${userId}:`, error);
     res.status(500).send({ error: 'Failed to save token' });
   }
 });
@@ -140,7 +138,6 @@ app.post('/send-notification', async (req: Request, res: Response) => {
 
 import * as readline from 'readline'; // readline モジュールをインポート
 import bcrypt from 'bcrypt'; // bcrypt をインポート
-import{ pool} from './db'; // db プールをインポート
 
 app.listen(port, () => {
   console.log(`[${new Date().toLocaleString()}] Server is running at http://localhost:${port}`);
@@ -197,12 +194,12 @@ app.listen(port, () => {
       }
 
       try {
-        const [result] = await pool.execute(
+        const [result] = await pool.execute<ResultSetHeader>(
           'DELETE FROM users WHERE id = ?',
           [id]
         );
 
-        if ((result as ResultSetHeader).affectedRows === 0) {
+        if (result.affectedRows === 0) {
           console.log(`ID '${id}' のユーザーが見つかりませんでした。`);
         } else {
           console.log(`ID '${id}' のユーザーが正常に削除されました。`);
