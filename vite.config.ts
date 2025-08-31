@@ -36,6 +36,7 @@ export default defineConfig(({ command }) => ({
     VitePWA({
       registerType: 'autoUpdate',
       strategies: 'injectManifest',
+      srcDir: '',
       filename: 'firebase-messaging-sw.js',
       manifest: {
         name: '修学旅行のしおり for 79th',

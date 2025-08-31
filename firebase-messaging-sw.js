@@ -2,6 +2,11 @@
 importScripts('https://www.gstatic.com/firebasejs/12.0.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/12.0.0/firebase-messaging-compat.js');
 
+import { precacheAndRoute } from 'workbox-precaching';
+
+// This is the placeholder for the Workbox manifest
+precacheAndRoute(self.__WB_MANIFEST);
+
 console.log('[FCM SW] Service Worker starting...');
 
 // Get Firebase config from URL query parameters
