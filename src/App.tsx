@@ -3,6 +3,7 @@ import { AuthProvider } from './auth-context';
 import Index from './pages/Index';
 import Login from './pages/Login';
 import Admin from './pages/Admin';
+import UserAdmin from './pages/UserAdmin'; // UserAdmin をインポート
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Page404 from './pages/Page404';
@@ -66,6 +67,7 @@ function App() {
               <Route path="/" element={<Index isTeacher={isTeacher} />} />
               <Route path="/login" element={<Login />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/user-admin" element={<UserAdmin />} />
               <Route path="/admin-sha256" element={<SHA256 />} />
               <Route path="/otanoshimi" element={<Otanoshimi />} />
               <Route path="/teacher-index" element={<TeacherIndex />} />

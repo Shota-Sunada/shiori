@@ -1,0 +1,400 @@
+import { useState, useEffect, useMemo } from 'react';
+import { useRequireAuth } from '../auth-context';
+import '../styles/admin-table.css'; // Admin.tsx と同じスタイルを再利用
+
+// ユーザーデータ型
+interface User {
+  id: number;
+  // passwordHash はフロントエンドには公開しない
+}
+
+type SortKey = keyof User;
+type SortDirection = 'asc' | 'desc';
+type SortConfig = {
+  key: SortKey;
+  direction: SortDirection;
+};
+
+const sortList = (list: User[], configs: SortConfig[]): User[] => {
+  const sortedList = [...list];
+  if (configs.length === 0) {
+    return sortedList;
+  }
+  sortedList.sort((a, b) => {
+    for (const config of configs) {
+      const { key, direction } = config;
+      const aValue = a[key];
+      const bValue = b[key];
+      const order = direction === 'asc' ? 1 : -1;
+
+      let comparison = 0;
+      if (aValue < bValue) {
+        comparison = -1;
+      } else if (aValue > bValue) {
+        comparison = 1;
+      }
+
+      if (comparison !== 0) {
+        return comparison * order;
+      }
+    }
+    return 0;
+  });
+  return sortedList;
+};
+
+const initialForm = {
+  id: '',
+  password: '',
+};
+
+const UserAdmin = () => {
+  const { user, loading } = useRequireAuth(); // 認証チェック
+  const [usersList, setUsersList] = useState<User[] | null>(null);
+  const [editRowId, setEditRowId] = useState<number | null>(null); // 編集中の行ID
+  const [editRowForm, setEditRowForm] = useState<typeof initialForm>(initialForm); // 編集用フォーム
+  const [status, setStatus] = useState<string>('');
+  const [modalMode, setModalMode] = useState<'add' | 'edit' | null>(null);
+
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
+  const [sortConfigs, setSortConfigs] = useState<SortConfig[]>([
+    { key: 'id', direction: 'asc' },
+  ]);
+
+  // APIからユーザーデータを取得
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('/api/users');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data: User[] = await response.json();
+      setUsersList(data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setStatus('ユーザーデータの取得に失敗しました。');
+    }
+  };
+
+  const handleSort = (key: SortKey, shiftKey: boolean) => {
+    setSortConfigs((prevConfigs) => {
+      if (!shiftKey) {
+        const current = prevConfigs.find((c) => c.key === key);
+        if (current && prevConfigs.length === 1) {
+          return [{ key, direction: current.direction === 'asc' ? 'desc' : 'asc' }];
+        } else {
+          return [{ key, direction: 'asc' }];
+        }
+      }
+
+      const newConfigs: SortConfig[] = [...prevConfigs];
+      const configIndex = newConfigs.findIndex((c) => c.key === key);
+
+      if (configIndex > -1) {
+        const current = newConfigs[configIndex];
+        if (current.direction === 'asc') {
+          newConfigs[configIndex] = { ...current, direction: 'desc' };
+        } else {
+          newConfigs.splice(configIndex, 1);
+        }
+      } else {
+        newConfigs.push({ key, direction: 'asc' });
+      }
+
+      return newConfigs;
+    });
+  };
+
+  const sortedAndFilteredUsers = useMemo(() => {
+    if (!usersList) {
+      return [];
+    }
+    const lowercasedQuery = searchQuery.toLowerCase();
+    const filtered = usersList.filter(
+      (u) => String(u.id).includes(lowercasedQuery)
+    );
+    return sortList(filtered, sortConfigs);
+  }, [usersList, searchQuery, sortConfigs]);
+
+  useEffect(() => {
+    if (!loading && user) { // 認証済みの場合のみデータを取得
+      fetchUsers();
+    }
+  }, [user, loading]);
+
+  // モーダル編集用
+  const handleEditClick = (u: User) => {
+    setEditRowId(u.id);
+    setEditRowForm({
+      id: String(u.id),
+      password: '', // パスワードは編集時に再入力させる
+    });
+    setStatus('');
+    setModalMode('edit');
+  };
+
+  // 削除処理
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('本当に削除しますか？')) return;
+    setStatus('削除中...');
+    try {
+      const response = await fetch(`/api/users/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      setStatus('ユーザーを削除しました。');
+      fetchUsers();
+    } catch (e) {
+      setStatus('エラーが発生しました: ' + (e as Error).message);
+    }
+  };
+
+  // 新規追加
+  const handleAddRow = () => {
+    setModalMode('add');
+    setEditRowForm(initialForm);
+    setStatus('');
+  };
+
+  const handleSave = async (formData: typeof initialForm) => {
+    const id = Number(formData.id);
+    const password = formData.password;
+
+    if (isNaN(id) || !password) {
+      setStatus('IDとパスワードを正しく入力してください。');
+      return;
+    }
+
+    if (modalMode === 'add') {
+      setStatus('追加中...');
+      try {
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id, password }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+        setStatus('ユーザーを追加しました。');
+        setModalMode(null);
+        fetchUsers();
+      } catch (e) {
+        setStatus('エラーが発生しました: ' + (e as Error).message);
+      }
+    } else if (modalMode === 'edit') {
+      if (editRowId === null) return;
+      setStatus('更新中...');
+      try {
+        const response = await fetch(`/api/users/${editRowId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ password }), // パスワードのみ更新
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+        setStatus('ユーザーを更新しました。');
+        setModalMode(null);
+        setEditRowId(null);
+        fetchUsers();
+      } catch (e) {
+        setStatus('エラーが発生しました: ' + (e as Error).message);
+      }
+    }
+  };
+
+  // UserModal は Admin.tsx の StudentModal とは異なるため、別途定義するか、汎用的なModalコンポーネントを作成する必要がある
+  // 今回は簡易的に、UserAdmin.tsx 内でモーダルを直接実装する
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[80dvh]">
+        <p className="text-xl">{'認証中...'}</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    // useRequireAuth が /login にリダイレクトするので、ここは通常表示されない
+    return null;
+  }
+
+  if (!usersList) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[80dvh]">
+        <p className="text-xl">{'読込中...'}</p>
+      </div>
+    );
+  }
+
+  const getSortIndicator = (key: SortKey) => {
+    const configIndex = sortConfigs.findIndex((c) => c.key === key);
+    if (configIndex === -1) {
+      return '↕';
+    }
+    const config = sortConfigs[configIndex];
+    const directionIcon = config.direction === 'asc' ? '▲' : '▼';
+    if (sortConfigs.length > 1) {
+      return `${configIndex + 1}${directionIcon}`;
+    }
+    return directionIcon;
+  };
+
+  return (
+    <div className="p-[5px] flex flex-col">
+      <div className="table-root overflow-y-auto flex flex-grow max-h-[60dvh] max-w-[90dvw] mx-auto rounded-xl">
+        <table border={1} className="w-full">
+          <thead className="sticky top-0 bg-white z-10">
+            <tr>
+              <th className="w-24">
+                <div className="flex flex-col items-center justify-center">
+                  <span>{'ユーザーID'}</span>
+                  <button onClick={(e) => handleSort('id', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('id')}
+                  </button>
+                </div>
+              </th>
+              <th className="w-20 sticky-col">
+                <div className="flex flex-col items-center justify-center">
+                  <span>
+                    {'編集'}
+                    <br />
+                    {'削除'}
+                  </span>
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedAndFilteredUsers.map((u) => (
+              <tr key={u.id}>
+                <td className="bg-white">{u.id}</td>
+                <td className="bg-white sticky-col">
+                  <div className="flex flex-row items-center justify-center">
+                    <button className="p-1 cursor-pointer mx-1" onClick={() => handleEditClick(u)} disabled={modalMode !== null} title="編集">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 hover:text-gray-800" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                      </svg>
+                    </button>
+                    <button className="p-1 cursor-pointer mx-1" onClick={() => handleDelete(u.id)} disabled={modalMode !== null} title="削除">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500 hover:text-red-700" viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                          fillRule="evenodd"
+                          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="text-sm text-gray-600 my-[10px]">
+        <p>{'ユーザーIDは学籍番号と同じです。'}</p>
+      </div>
+      <div>
+        <div className="flex flex-row">
+          <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddRow}>
+            {'新規追加'}
+          </button>
+          <button
+            className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white"
+            disabled={modalMode !== null}
+            onClick={async () => {
+              setStatus('リロード中...');
+              await fetchUsers();
+              setStatus('リロード完了');
+            }}>
+            {'リロード'}
+          </button>
+        </div>
+        <div className="my-[10px]">
+          <p>
+            {'ステータス: '}
+            {status}
+          </p>
+        </div>
+        {/* UserModal */}
+        {modalMode !== null && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50">
+            <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+              <h2 className="text-2xl font-bold mb-4">
+                {modalMode === 'add' ? 'ユーザー追加' : 'ユーザー編集'}
+              </h2>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSave(editRowForm);
+                }}
+              >
+                <div className="mb-4">
+                  <label htmlFor="id" className="block text-gray-700 text-sm font-bold mb-2">
+                    ユーザーID
+                  </label>
+                  <input
+                    type="number"
+                    id="id"
+                    name="id"
+                    value={editRowForm.id}
+                    onChange={(e) => setEditRowForm({ ...editRowForm, id: e.target.value })}
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    required
+                    disabled={modalMode === 'edit'} // 編集時はIDを変更不可にする
+                  />
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="password" className="block text-gray-700 text-sm font-bold mb-2">
+                    パスワード
+                  </label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    value={editRowForm.password}
+                    onChange={(e) => setEditRowForm({ ...editRowForm, password: e.target.value })}
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    required
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <button
+                    type="submit"
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                  >
+                    {modalMode === 'add' ? '追加' : '更新'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModalMode(null)}
+                    className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                  >
+                    キャンセル
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+        <div className="flex items-center my-[10px]">
+          <input type="text" placeholder="検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="border p-2 rounded mr-2 max-w-[50dvw]" />
+          <p className="text-sm text-gray-600 my-2">{'ユーザーIDで検索できます。'}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default UserAdmin;

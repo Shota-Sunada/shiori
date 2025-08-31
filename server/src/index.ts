@@ -27,6 +27,9 @@ app.use('/api/auth', authRouter);
 import studentsRouter from './routes/students';
 app.use('/api/students', studentsRouter);
 
+import usersRouter from './routes/users';
+app.use('/api/users', usersRouter);
+
 import { initializeDatabase } from './db';
 
 // Initialize the database and tables
@@ -134,6 +137,54 @@ app.post('/send-notification', async (req: Request, res: Response) => {
   }
 });
 
+import * as readline from 'readline'; // readline モジュールをインポート
+import bcrypt from 'bcrypt'; // bcrypt をインポート
+import{ pool} from './db'; // db プールをインポート
+
 app.listen(port, () => {
   console.log(`[${new Date().toLocaleString()}] Server is running at http://localhost:${port}`);
+  console.log('コンソールコマンドを入力してください (例: createuser <id> <password>)');
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    terminal: false // ターミナルモードを無効にする (行単位の入力のため)
+  });
+
+  rl.on('line', async (line) => {
+    const parts = line.trim().split(/\s+/); // スペースで分割
+    const command = parts[0].toLowerCase();
+
+    if (command === 'createuser') {
+      if (parts.length === 3) {
+        const id = Number(parts[1]);
+        const password = parts[2];
+
+        if (isNaN(id)) {
+          console.log('エラー: IDは数字である必要があります。');
+          return;
+        }
+
+        try {
+          const passwordHash = await bcrypt.hash(password, 10); // パスワードをハッシュ化
+
+          // ユーザーをデータベースに挿入
+          await pool.execute(
+            'INSERT INTO users (id, passwordHash) VALUES (?, ?)',
+            [id, passwordHash]
+          );
+          console.log(`ユーザー '${id}' が正常に作成されました。`);
+        } catch (error) {
+          console.error('ユーザー作成中にエラーが発生しました:', error);
+        }
+      } else {
+        console.log('使用方法: createuser <id> <password>');
+      }
+    } else if (command === 'exit') {
+      console.log('サーバーを終了します...');
+      process.exit(0);
+    } else {
+      console.log(`不明なコマンド: ${command}`);
+    }
+  });
 });
