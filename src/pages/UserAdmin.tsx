@@ -1,6 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 import { useRequireAuth } from '../auth-context';
 import '../styles/admin-table.css'; // Admin.tsx と同じスタイルを再利用
+import { SERVER_ENDPOINT } from '../app';
 
 // ユーザーデータ型
 interface User {
@@ -55,8 +57,10 @@ const UserAdmin = () => {
   const [editRowForm, setEditRowForm] = useState<typeof initialForm>(initialForm); // 編集用フォーム
   const [status, setStatus] = useState<string>('');
   const [modalMode, setModalMode] = useState<'add' | 'edit' | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const [sortConfigs, setSortConfigs] = useState<SortConfig[]>([
     { key: 'id', direction: 'asc' },
@@ -65,7 +69,7 @@ const UserAdmin = () => {
   // APIからユーザーデータを取得
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/users');
+      const response = await fetch(`${SERVER_ENDPOINT}/api/users`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -123,7 +127,6 @@ const UserAdmin = () => {
     }
   }, [user, loading]);
 
-  // モーダル編集用
   const handleEditClick = (u: User) => {
     setEditRowId(u.id);
     setEditRowForm({
@@ -157,6 +160,40 @@ const UserAdmin = () => {
     setModalMode('add');
     setEditRowForm(initialForm);
     setStatus('');
+  };
+
+  const handleAddJSONData = () => {
+    inputRef.current?.click();
+  };
+
+  const handleJSONRead = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const data = e.target?.result as string;
+        const usersToProcess = JSON.parse(data);
+
+        setStatus('更新中...');
+        try {
+          const response = await fetch(`${SERVER_ENDPOINT}/api/users/bulk`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ users: usersToProcess }),
+          });
+          const result = await response.json();
+          if (!response.ok && response.status !== 207) {
+            throw new Error(result.message || `HTTP error! status: ${response.status}`);
+          }
+          setStatus(result.message);
+        } catch (e) {
+          setStatus('エラーが発生しました: ' + (e as Error).message);
+        }
+        fetchUsers();
+      };
+      reader.readAsText(e.target.files[0]);
+    }
   };
 
   const handleSave = async (formData: typeof initialForm) => {
@@ -310,6 +347,9 @@ const UserAdmin = () => {
           <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddRow}>
             {'新規追加'}
           </button>
+          <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddJSONData}>
+            {'JSONでまとめて追加'}
+          </button>
           <button
             className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white"
             disabled={modalMode !== null}
@@ -321,6 +361,16 @@ const UserAdmin = () => {
             {'リロード'}
           </button>
         </div>
+        <input
+          className="m-[10px]"
+          ref={inputRef}
+          type="file"
+          name="json"
+          id="json"
+          hidden
+          accept=".json"
+          onChange={handleJSONRead}
+        />
         <div className="my-[10px]">
           <p>
             {'ステータス: '}
@@ -359,15 +409,20 @@ const UserAdmin = () => {
                   <label htmlFor="password" className="block text-gray-700 text-sm font-bold mb-2">
                     パスワード
                   </label>
-                  <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    value={editRowForm.password}
-                    onChange={(e) => setEditRowForm({ ...editRowForm, password: e.target.value })}
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      id="password"
+                      name="password"
+                      value={editRowForm.password}
+                      onChange={(e) => setEditRowForm({ ...editRowForm, password: e.target.value })}
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                      required
+                    />
+                    <span className="absolute top-1/2 right-4 -translate-y-1/2 cursor-pointer text-gray-500" onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? <AiFillEyeInvisible size={24} /> : <AiFillEye size={24} />}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <button

@@ -100,4 +100,57 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
-export default router;
+router.post('/bulk', async (req: Request, res: Response) => {
+  const { users } = req.body;
+
+  if (!Array.isArray(users)) {
+    return res.status(400).json({ message: 'Request body must be an array of users' });
+  }
+
+  const results = [];
+  let successCount = 0;
+  let errorCount = 0;
+
+  for (const user of users) {
+    const { id, password } = user;
+
+    if (!id || !password) {
+      results.push({ id, status: 'error', message: 'ID and password are required' });
+      errorCount++;
+      continue;
+    }
+
+    if (isNaN(Number(id))) {
+      results.push({ id, status: 'error', message: 'ID must be a number' });
+      errorCount++;
+      continue;
+    }
+
+    try {
+      const [existingUsers] = await pool.execute<RowDataPacket[]>('SELECT id FROM users WHERE id = ?', [id]);
+      if (existingUsers.length > 0) {
+        results.push({ id, status: 'error', message: 'User with this ID already exists' });
+        errorCount++;
+        continue;
+      }
+
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      await pool.execute(
+        'INSERT INTO users (id, passwordHash) VALUES (?, ?)',
+        [id, passwordHash]
+      );
+      results.push({ id, status: 'success' });
+      successCount++;
+    } catch (error) {
+      console.error(`Error adding user with id ${id}:`, error);
+      results.push({ id, status: 'error', message: 'Internal server error' });
+      errorCount++;
+    }
+  }
+
+  res.status(207).json({
+    message: `Bulk operation completed. Success: ${successCount}, Error: ${errorCount}`,
+    results,
+  });
+});
