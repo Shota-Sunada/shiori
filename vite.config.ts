@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react-swc';
 import tsconfigpaths from 'vite-tsconfig-paths';
 import tailwindcss from '@tailwindcss/vite';
 import obfuscatorPlugin from 'vite-plugin-javascript-obfuscator';
-// import { VitePWA } from 'vite-plugin-pwa';
+import { VitePWA } from 'vite-plugin-pwa';
 import pkg from './package.json'; // package.jsonをインポート
 
 // https://vite.dev/config/
@@ -33,22 +33,22 @@ export default defineConfig(({ command }) => ({
     react(),
     tsconfigpaths(),
     tailwindcss(),
-    // VitePWA({
-    //   registerType: 'autoUpdate',
-    //   strategies: 'injectManifest',
-    //   filename: 'sw.ts',
-    //   manifest: {
-    //     name: '修学旅行のしおり for 79th',
-    //     description: '修道高校79回生のための修学旅行のしおり',
-    //     icons: [
-    //       {
-    //         sizes: '192x192',
-    //         src: 'icon.png',
-    //         type: 'image/png'
-    //       }
-    //     ]
-    //   }
-    // }),
+    VitePWA({
+      registerType: 'autoUpdate',
+      strategies: 'injectManifest',
+      filename: 'firebase-messaging-sw.js',
+      manifest: {
+        name: '修学旅行のしおり for 79th',
+        description: '修道高校79回生のための修学旅行のしおり',
+        icons: [
+          {
+            sizes: '192x192',
+            src: 'icon.png',
+            type: 'image/png'
+          }
+        ]
+      }
+    }),
     ...(command === 'build'
       ? [
           obfuscatorPlugin({
