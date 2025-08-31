@@ -1,5 +1,6 @@
 import OtanoshimiCard from '../components/OtanoshimiCard';
 import { OTANOSHIMI_TEAMS } from '../data/otanoshimi';
+import { v4 as uuid } from 'uuid';
 
 const Otanoshimi = () => {
   return (
@@ -11,7 +12,7 @@ const Otanoshimi = () => {
         <h2 className="text-xl text-center">{'出演団体一覧'}</h2>
         <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
           {OTANOSHIMI_TEAMS.map((x) => (
-            <OtanoshimiCard name={x} />
+            <OtanoshimiCard key={uuid()} name={x} />
           ))}
         </div>
         <div className="mt-4">
