@@ -7,26 +7,34 @@ import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4 } from '../data/courses';
 import '../styles/index-table.css';
 import { DAY4_DATA, DAY4_TEACHERS } from '../data/day4';
 
+import { SERVER_ENDPOINT } from '../app'; // SERVER_ENDPOINT をインポート
+
 const Index = (props: { isTeacher: boolean }) => {
   const { user, loading } = useAuth();
 
   const navigate = useNavigate();
 
-  const [studentData, setStudentData] = useState<student | null>(null);
+  const [studentData, setStudentData] = useState<student | null | undefined>(undefined);
 
   useEffect(() => {
     const fetchStudent = async () => {
       if (user && user.userId) {
         try {
-          const response = await fetch(`/api/students/${user.userId}`);
+          const response = await fetch(`${SERVER_ENDPOINT}/api/students/${user.userId}`);
           if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            if (response.status === 404) {
+              console.warn(`Student data for ID ${user.userId} not found.`);
+              setStudentData(null); // データが見つからない場合はnullに設定
+            } else {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+          } else {
+            const data: student = await response.json();
+            setStudentData(data);
           }
-          const data: student = await response.json();
-          setStudentData(data);
         } catch (error) {
           console.error('Error fetching student data:', error);
-          setStudentData(null);
+          setStudentData(null); // エラー発生時はnullに設定
         }
       } else {
         setStudentData(null);
@@ -66,7 +74,7 @@ const Index = (props: { isTeacher: boolean }) => {
     navigate('/teacher-index');
   }
 
-  if (!studentData) {
+  if (studentData === undefined) {
     return (
       <div className="flex flex-col items-center justify-center h-[80dvh]">
         <p className="text-xl">{'生徒データ読込中...'}</p>
@@ -76,25 +84,38 @@ const Index = (props: { isTeacher: boolean }) => {
 
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">
-      <p className="m-[10px] text-2xl">
-        {'ようこそ、'}
-        {studentData.surname}
-        {studentData.forename}
-        {'さん。'}
-      </p>
+      {studentData ? (
+        <p className="m-[10px] text-2xl">
+          {'ようこそ、'}
+          {studentData.surname}
+          {studentData.forename}
+          {'さん。'}
+        </p>
+      ) : (
+        <div className="m-[10px] flex flex-col items-center justify-center">
+          <p className=" text-2xl">{'生徒データが見つかりませんでした。'}</p>
+          <p className="text-sm">{'管理者にご連絡ください。'}</p>
+        </div>
+      )}
 
-      <section id="table" className="rounded-2xl overflow-hidden">
+      <section id="table" className="rounded-2xl overflow-hidden mt-2">
         <table className="index-table">
           <thead className="bg-amber-200">
             <tr>
               <th colSpan={3}>
-                {'5年'}
-                {studentData.class}
-                {'組'}
-                {studentData.number}
-                {'番 '}
-                {studentData.surname}
-                {studentData.forename}
+                {studentData ? (
+                  <>
+                    {'5年'}
+                    {studentData?.class}
+                    {'組'}
+                    {studentData?.number}
+                    {'番 '}
+                    {studentData?.surname}
+                    {studentData?.forename}
+                  </>
+                ) : (
+                  '5年◯組◯番 ◯◯◯◯'
+                )}
               </th>
             </tr>
           </thead>
@@ -107,11 +128,11 @@ const Index = (props: { isTeacher: boolean }) => {
                 </span>
               </td>
               <td>{'研修先'}</td>
-              <td>{COURSES_DAY1.find((x) => x.key === studentData.day1id)?.name}</td>
+              <td>{studentData ? COURSES_DAY1.find((x) => x.key === studentData?.day1id)?.name : '◯◯◯◯◯◯◯◯'}</td>
             </tr>
             <tr>
               <td>{'バス号車'}</td>
-              <td>{studentData.day1bus}</td>
+              <td>{studentData ? studentData.day1bus : '◯◯'}</td>
             </tr>
             {/* day1 END */}
             {/* day2 START */}
@@ -133,11 +154,11 @@ const Index = (props: { isTeacher: boolean }) => {
                 </span>
               </td>
               <td>{'研修先'}</td>
-              <td>{COURSES_DAY3.find((x) => x.key === studentData.day3id)?.name}</td>
+              <td>{studentData ? COURSES_DAY3.find((x) => x.key === studentData?.day3id)?.name : '◯◯◯◯◯◯◯◯'}</td>
             </tr>
             <tr>
               <td>{'バス号車'}</td>
-              <td>{studentData.day3bus}</td>
+              <td>{studentData ? studentData.day3bus : '◯◯'}</td>
             </tr>
             <tr>
               <td>{'お楽しみ会'}</td>
@@ -159,15 +180,24 @@ const Index = (props: { isTeacher: boolean }) => {
               </td>
               <td>{'研修先'}</td>
               <td>
-                <p>
-                  {studentData.class}
-                  {'組 '}
-                  {COURSES_DAY4.find((x) => x.key === DAY4_DATA[studentData.class - 1])?.name}
-                </p>
-                <p className="text-gray-600 text-sm">
-                  {'引率: '}
-                  {DAY4_TEACHERS[studentData.class - 1]}
-                </p>
+                {studentData ? (
+                  <>
+                    <p>
+                      {studentData?.class}
+                      {'組 '}
+                      {COURSES_DAY4.find((x) => x.key === DAY4_DATA[Number(studentData?.class) - 1])?.name}
+                    </p>
+                    <p className="text-gray-600 text-sm">
+                      {'引率: '}
+                      {DAY4_TEACHERS[Number(studentData?.class) - 1]}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p>{'◯組 ◯◯◯◯◯◯◯◯'}</p>
+                    <p className="text-gray-600 text-sm">{'引率: ◯◯先生 ◯◯先生 ◯◯先生'}</p>
+                  </>
+                )}
               </td>
             </tr>
             {/* day4 END */}
@@ -183,8 +213,14 @@ const Index = (props: { isTeacher: boolean }) => {
               <td>
                 <p>{'東京ドームホテル'}</p>
                 <p>
-                  {studentData.room_tokyo}
-                  {'号室'}
+                  {studentData ? (
+                    <>
+                      {studentData?.room_tokyo}
+                      {'号室'}
+                    </>
+                  ) : (
+                    '◯◯◯号室'
+                  )}
                 </p>
               </td>
             </tr>
@@ -193,8 +229,14 @@ const Index = (props: { isTeacher: boolean }) => {
               <td>
                 <p>{'フジプレミアムリゾート'}</p>
                 <p>
-                  {studentData.room_shizuoka}
-                  {'号室'}
+                  {studentData ? (
+                    <>
+                      {studentData?.room_shizuoka}
+                      {'号室'}
+                    </>
+                  ) : (
+                    '◯◯◯号室'
+                  )}
                 </p>
               </td>
             </tr>
@@ -213,14 +255,24 @@ const Index = (props: { isTeacher: boolean }) => {
                 onClick={() => {
                   window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=84', '_blank', 'noreferrer');
                 }}>
-                <p>
-                  {'東京駅行 のぞみ84号 - '}
-                  {studentData.shinkansen_day1_car_number}
-                  {'号車 '}
-                  {studentData.shinkansen_day1_seat}
-                </p>
-                <p className="text-gray-600 text-sm">{'広島駅7:57発 - 新横浜駅11:34着'}</p>
-                <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
+                {studentData ? (
+                  <>
+                    <p>
+                      {'東京駅行 のぞみ84号 - '}
+                      {studentData?.shinkansen_day1_car_number}
+                      {'号車 '}
+                      {studentData?.shinkansen_day1_seat}
+                    </p>
+                    <p className="text-gray-600 text-sm">{'広島駅7:57発 - 新横浜駅11:34着'}</p>
+                    <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
+                  </>
+                ) : (
+                  <>
+                    <p>{'東京駅行 のぞみ84号 - ◯号車 ◯◯'}</p>
+                    <p className="text-gray-600 text-sm">{'広島駅7:57発 - 新横浜駅11:34着'}</p>
+                    <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
+                  </>
+                )}
               </td>
             </tr>
             <tr>
@@ -229,18 +281,28 @@ const Index = (props: { isTeacher: boolean }) => {
                 <p className="text-sm">{'新横浜駅で乗車'}</p>
               </td>
               <td
-                className="bg-gray-200 cursor-pointer"
+                className={'bg-gray-200 cursor-pointer'}
                 onClick={() => {
                   window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=77', '_blank', 'noreferrer');
                 }}>
-                <p>
-                  {'広島駅行 のぞみ77号 - '}
-                  {studentData.shinkansen_day4_car_number}
-                  {'号車 '}
-                  {studentData.shinkansen_day4_seat}
-                </p>
-                <p className="text-gray-600 text-sm">{'新横浜駅15:48発 - 広島駅19:46着'}</p>
-                <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
+                {studentData ? (
+                  <>
+                    <p>
+                      {'広島駅行 のぞみ77号 - '}
+                      {studentData?.shinkansen_day4_car_number}
+                      {'号車 '}
+                      {studentData?.shinkansen_day4_seat}
+                    </p>
+                    <p className="text-gray-600 text-sm">{'新横浜駅15:48発 - 広島駅19:46着'}</p>
+                    <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
+                  </>
+                ) : (
+                  <>
+                    <p>{'広島駅行 のぞみ77号 - ◯号車 ◯◯'}</p>
+                    <p className="text-gray-600 text-sm">{'新横浜駅15:48発 - 広島駅19:46着'}</p>
+                    <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
+                  </>
+                )}
               </td>
             </tr>
             {/* shinkansen END */}

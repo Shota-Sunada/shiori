@@ -1,15 +1,9 @@
 import { Router, Request, Response } from 'express';
-import pool from '../db'; // Import the database connection pool
+import {pool} from '../db'; // Import the database connection pool
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import bcrypt from 'bcrypt';
 
 const router = Router();
-
-// ユーザーデータ型（データベースから取得する際）
-interface UserFromDB {
-  id: number;
-  passwordHash: string;
-}
 
 // 全ユーザーデータを取得
 router.get('/', async (req: Request, res: Response) => {

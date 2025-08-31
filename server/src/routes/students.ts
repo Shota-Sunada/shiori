@@ -15,6 +15,21 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+// 特定の生徒データを取得
+router.get('/:gakuseki', async (req: Request, res: Response) => {
+  const { gakuseki } = req.params;
+  try {
+    const [rows] = await pool.execute<RowDataPacket[]>('SELECT * FROM students WHERE gakuseki = ?', [gakuseki]);
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+    res.status(200).json(rows[0]); // 単一の生徒データを返す
+  } catch (error) {
+    console.error('Error fetching single student:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 // 新しい生徒データを追加
 router.post('/', async (req: Request, res: Response) => {
   const studentData = req.body;

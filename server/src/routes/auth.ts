@@ -8,8 +8,7 @@ const router = Router();
 
 // Define the User interface to match the database table structure
 interface User {
-  id: number; // Assuming auto-incremented ID from MySQL
-  username: string;
+  id: number;
   passwordHash: string;
 }
 
@@ -18,23 +17,26 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 
 // Register endpoint
 router.post('/register', async (req: Request, res: Response) => {
-  const { username, password } = req.body;
+  const { id, password } = req.body; // username の代わりに id を受け取る
 
-  if (!username || !password) {
-    return res.status(400).json({ message: 'Username and password are required' });
+  if (!id || !password) {
+    return res.status(400).json({ message: 'ID and password are required' });
+  }
+  if (isNaN(Number(id))) { // id が数字であることを確認
+    return res.status(400).json({ message: 'ID must be a number' });
   }
 
   try {
     // Check if user already exists
-    const [rows] = await pool.execute<RowDataPacket[]>('SELECT id FROM users WHERE username = ?', [username]);
+    const [rows] = await pool.execute<RowDataPacket[]>('SELECT id FROM users WHERE id = ?', [id]); // id でチェック
     if (rows.length > 0) {
       return res.status(409).json({ message: 'User already exists' });
     }
 
     const passwordHash = await bcrypt.hash(password, 10); // Hash password
-    await pool.execute('INSERT INTO users (username, passwordHash) VALUES (?, ?)', [username, passwordHash]);
+    await pool.execute('INSERT INTO users (id, passwordHash) VALUES (?, ?)', [id, passwordHash]); // id で挿入
 
-    console.log('Registered new user:', username);
+    console.log('Registered new user:', id); // ログも id に変更
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
     console.error('Error during registration:', error);
@@ -44,14 +46,17 @@ router.post('/register', async (req: Request, res: Response) => {
 
 // Login endpoint
 router.post('/login', async (req: Request, res: Response) => {
-  const { username, password } = req.body;
+  const { id, password } = req.body; // username の代わりに id を受け取る
 
-  if (!username || !password) {
-    return res.status(400).json({ message: 'Username and password are required' });
+  if (!id || !password) {
+    return res.status(400).json({ message: 'ID and password are required' });
+  }
+  if (isNaN(Number(id))) { // id が数字であることを確認
+    return res.status(400).json({ message: 'ID must be a number' });
   }
 
   try {
-    const [rows] = await pool.execute('SELECT id, username, passwordHash FROM users WHERE username = ?', [username]);
+    const [rows] = await pool.execute<RowDataPacket[]>('SELECT id, passwordHash FROM users WHERE id = ?', [id]); // id で検索
     const users = rows as User[];
 
     if (users.length === 0) {
@@ -66,7 +71,7 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     // Generate JWT
-    const token = jwt.sign({ userId: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '1h' }); // JWTペイロードから username を削除
 
     res.status(200).json({ message: 'Login successful', token });
   } catch (error) {

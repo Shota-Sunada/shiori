@@ -10,8 +10,6 @@ import { ADMIN_HASHES, TEACHER_HASH } from '../accounts';
 import { Link } from 'react-router-dom';
 // import Button from '../components/Button';
 
-
-
 type SortKey = keyof student;
 type SortDirection = 'asc' | 'desc';
 type SortConfig = {
@@ -115,6 +113,8 @@ const initialForm: Omit<student, 'class' | 'number' | 'gakuseki' | 'shinkansen_d
   shinkansen_day4_seat: ''
 };
 
+import { SERVER_ENDPOINT } from '../app'; // SERVER_ENDPOINT をインポート
+
 const Admin = () => {
   const [studentsList, setStudentsList] = useState<student[] | null>(null);
   const [editRowId, setEditRowId] = useState<number | null>(null); // 編集中の行ID (gakuseki)
@@ -138,15 +138,21 @@ const Admin = () => {
   // APIから生徒データを取得
   const fetchStudents = async () => {
     try {
-      const response = await fetch('/api/students');
+      const response = await fetch(`${SERVER_ENDPOINT}/api/students`);
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        if (response.status === 404) {
+          setStatus('生徒データが見つかりませんでした。');
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      } else {
+        const data: student[] = await response.json();
+        setStudentsList(data);
+        setStatus(''); // 成功時はステータスをクリア
       }
-      const data: student[] = await response.json();
-      setStudentsList(data);
     } catch (error) {
       console.error('Error fetching students:', error);
-      setStatus('生徒データの取得に失敗しました。');
+      setStatus('生徒データの取得中にエラーが発生しました。'); // より一般的なエラーメッセージ
     }
   };
 
@@ -251,7 +257,7 @@ const Admin = () => {
     if (!window.confirm('本当に削除しますか？')) return;
     setStatus('削除中...');
     try {
-      const response = await fetch(`/api/students/${gakuseki}`, {
+      const response = await fetch(`${SERVER_ENDPOINT}/api/students/${gakuseki}`, {
         method: 'DELETE',
       });
       if (!response.ok) {
@@ -279,7 +285,7 @@ const Admin = () => {
     if (modalMode === 'add') {
       setStatus('追加中...');
       try {
-        const response = await fetch('/api/students', {
+        const response = await fetch(`${SERVER_ENDPOINT}/api/students`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -300,7 +306,7 @@ const Admin = () => {
       if (editRowId === null) return; // editRowIdがnullの場合は処理しない
       setStatus('更新中...');
       try {
-        const response = await fetch(`/api/students/${editRowId}`, {
+        const response = await fetch(`${SERVER_ENDPOINT}/api/students/${editRowId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -329,7 +335,7 @@ const Admin = () => {
 
         setStatus('更新中...');
         try {
-          const response = await fetch('/api/students/batch', {
+          const response = await fetch(`${SERVER_ENDPOINT}/api/students/batch`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -384,7 +390,7 @@ const Admin = () => {
 
     setStatus('更新中...');
     try {
-      const response = await fetch(`/api/students/${studentId}`, {
+      const response = await fetch(`${SERVER_ENDPOINT}/api/students/${studentId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
