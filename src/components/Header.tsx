@@ -40,7 +40,11 @@ const Header = (props: { isTeacher: boolean }) => {
     if (permission === 'granted') {
       alert('通知が有効になりました。');
       if (user && user.userId) {
-        registerFCMToken(user.userId);
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then((registration) => {
+            registerFCMToken(user.userId, registration);
+          });
+        }
       } else {
         alert('ログイン後に再度お試しください。');
       }
