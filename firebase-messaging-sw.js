@@ -12,25 +12,25 @@ if (firebaseConfigParam) {
   try {
     const firebaseConfig = JSON.parse(firebaseConfigParam);
     console.log('[FCM SW] Initializing Firebase with config:', firebaseConfig);
-    
-    if (firebase.apps.length === 0) {
-        firebase.initializeApp(firebaseConfig);
-        const messaging = firebase.messaging();
-        console.log('[FCM SW] Firebase Messaging initialized.');
 
-        messaging.onBackgroundMessage((payload) => {
-          console.log('[FCM SW] Received background message:', payload);
-          const notificationTitle = payload.notification.title;
-          const notificationOptions = {
-            body: payload.notification.body,
-            icon: '/icon.png'
-          };
-          self.registration.showNotification(notificationTitle, notificationOptions);
-        });
+    if (firebase.apps.length === 0) {
+      firebase.initializeApp(firebaseConfig);
+      const messaging = firebase.messaging();
+      console.log('[FCM SW] Firebase Messaging initialized.');
+
+      messaging.onBackgroundMessage((payload) => {
+        console.log('[FCM SW] Received background message:', payload);
+        const notificationTitle = payload.notification.title;
+        const notificationOptions = {
+          body: payload.notification.body,
+          icon: '/icon.png'
+        };
+        self.registration.showNotification(notificationTitle, notificationOptions);
+      });
     }
   } catch (e) {
     console.error('[FCM SW] Error during initialization:', e);
   }
 } else {
-    console.error('[FCM SW] Firebase config not found in URL.');
+  console.error('[FCM SW] Firebase config not found in URL.');
 }
