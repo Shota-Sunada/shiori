@@ -1,6 +1,8 @@
 import { useState, useEffect, type ChangeEvent, type DragEvent } from 'react';
 import { SERVER_ENDPOINT } from '../App';
 import '../styles/admin-table.css';
+import KanaSearchModal from '../components/KanaSearchModal';
+import type { student } from '../data/students';
 
 interface OtanoshimiData {
   name: string;
@@ -16,6 +18,14 @@ const OtanoshimiAdmin = () => {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const dragItem = document.createElement('div');
 
+  // Student Search Modal
+  const [allStudents, setAllStudents] = useState<student[]>([]);
+  const [filteredBySurnameKana, setFilteredBySurnameKana] = useState<student[]>([]);
+  const [filteredByForenameKana, setFilteredByForenameKana] = useState<student[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedKana, setSelectedKana] = useState('');
+  const [modalTarget, setModalTarget] = useState<{ index: number; field: 'leader' | 'members' } | null>(null);
+
   const fetchTeams = async () => {
     try {
       const response = await fetch(`${SERVER_ENDPOINT}/api/otanoshimi`);
@@ -30,9 +40,36 @@ const OtanoshimiAdmin = () => {
     }
   };
 
+  const fetchAllStudents = async () => {
+    try {
+      const response = await fetch(`${SERVER_ENDPOINT}/api/students`);
+      if (!response.ok) {
+        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+      }
+      const studentsData = await response.json();
+      setAllStudents(studentsData);
+    } catch (error) {
+      console.error('生徒データの取得に失敗:', error);
+      setStatus('生徒データの取得中にエラーが発生しました。');
+    }
+  };
+
   useEffect(() => {
     fetchTeams();
+    fetchAllStudents();
   }, []);
+
+  useEffect(() => {
+    if (selectedKana) {
+      const surnameMatches = allStudents.filter((s) => s.surname_kana.startsWith(selectedKana));
+      const forenameMatches = allStudents.filter((s) => s.forename_kana.startsWith(selectedKana));
+      setFilteredBySurnameKana(surnameMatches);
+      setFilteredByForenameKana(forenameMatches);
+    } else {
+      setFilteredBySurnameKana([]);
+      setFilteredByForenameKana([]);
+    }
+  }, [selectedKana, allStudents]);
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement>,
@@ -121,6 +158,36 @@ const OtanoshimiAdmin = () => {
     e.preventDefault();
   };
 
+  const handleStudentSelect = (student: student) => {
+    if (!modalTarget) return;
+
+    const { index, field } = modalTarget;
+    const newTeams = [...teams];
+
+    if (field === 'leader') {
+      newTeams[index] = { ...newTeams[index], leader: student.gakuseki };
+    } else if (field === 'members') {
+      const currentMembers = newTeams[index].members;
+      // Add student only if not already in the list
+      if (!currentMembers.includes(student.gakuseki)) {
+        const newMembers = [...currentMembers, student.gakuseki];
+        newTeams[index] = { ...newTeams[index], members: newMembers };
+      }
+    }
+
+    setTeams(newTeams);
+    setIsModalOpen(false);
+    setModalTarget(null);
+  };
+
+  const handleKanaSelect = (kana: string) => {
+    if (selectedKana === kana) {
+      setSelectedKana('');
+    } else {
+      setSelectedKana(kana);
+    }
+  };
+
   return (
     <div className="p-[5px] flex flex-col">
       <div className="table-root overflow-y-auto flex flex-grow max-h-[80dvh] max-w-[90dvw] mx-auto rounded-xl">
@@ -150,20 +217,66 @@ const OtanoshimiAdmin = () => {
                       />
                     </td>
                     <td className="bg-white">
-                      <input
-                        type="number"
-                        value={team.leader}
-                        onChange={(e) => handleInputChange(e, index, 'leader')}
-                        className="w-full"
-                      />
+                      <div className="flex items-center">
+                        <input
+                          type="number"
+                          value={team.leader}
+                          onChange={(e) => handleInputChange(e, index, 'leader')}
+                          className="w-full"
+                        />
+                        <button
+                          onClick={() => {
+                            setIsModalOpen(true);
+                            setModalTarget({ index, field: 'leader' });
+                          }}
+                          className="p-1 ml-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                          title="生徒検索"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </button>
+                      </div>
                     </td>
                     <td className="bg-white">
-                      <input
-                        type="text"
-                        value={team.members.join(',')}
-                        onChange={(e) => handleInputChange(e, index, 'members')}
-                        className="w-full"
-                      />
+                      <div className="flex items-center">
+                        <input
+                          type="text"
+                          value={team.members.join(',')}
+                          onChange={(e) => handleInputChange(e, index, 'members')}
+                          className="w-full"
+                        />
+                        <button
+                          onClick={() => {
+                            setIsModalOpen(true);
+                            setModalTarget({ index, field: 'members' });
+                          }}
+                          className="p-1 ml-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                          title="生徒検索"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </button>
+                      </div>
                     </td>
                     <td className="bg-white">
                       <input
@@ -237,6 +350,14 @@ const OtanoshimiAdmin = () => {
           {status}
         </p>
       </div>
+      <KanaSearchModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onKanaSelect={handleKanaSelect}
+        surnameStudents={filteredBySurnameKana}
+        forenameStudents={filteredByForenameKana}
+        onStudentSelect={handleStudentSelect}
+      />
     </div>
   );
 };
