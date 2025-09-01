@@ -9,7 +9,7 @@ import Footer from './components/Footer';
 import Page404 from './pages/Page404';
 import Otanoshimi from './pages/Otanoshimi';
 import TeacherIndex from './pages/TeacherIndex';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import TeacherCall from './pages/TeacherCall';
 import Call from './pages/Call';
 import { onMessage } from 'firebase/messaging';
@@ -41,11 +41,6 @@ const AdminOrTeacherRoute = ({ children }: { children: ReactNode }) => {
 
 function App() {
   const { user } = useAuth();
-  const [isTeacher, setIsTeacher] = useState<boolean>(false);
-
-  useEffect(() => {
-    setIsTeacher(user?.is_teacher ?? false);
-  }, [user]);
 
   // Effect 1: Register SW and set up foreground listener (runs once)
   useEffect(() => {
@@ -92,10 +87,10 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <div className="grid grid-rows-[auto_1fr_auto] bg-[#f7f4e5] min-h-[100dvh]">
-          <Header isTeacher={isTeacher} />
+          <Header />
           <main>
             <Routes>
-              <Route path="/" element={<Index isTeacher={isTeacher} />} />
+              <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route
                 path="/admin"

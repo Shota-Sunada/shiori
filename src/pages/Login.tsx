@@ -10,7 +10,7 @@ const Login = () => {
   const USER_ID_MIN = 20200000;
   const USER_ID_MAX = 20219008;
 
-  const { user, loading, login } = useAuth(); // Destructure login from useAuth
+  const { user, loading, login } = useAuth();
   const navigate = useNavigate();
   const student_id_ref = useRef<HTMLInputElement>(null);
   const password_ref = useRef<HTMLInputElement>(null);

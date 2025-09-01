@@ -7,7 +7,7 @@ import '../styles/index-table.css';
 import { DAY4_DATA, DAY4_TEACHERS } from '../data/day4';
 import { SERVER_ENDPOINT } from '../App';
 
-const Index = (props: { isTeacher: boolean }) => {
+const Index = () => {
   const { user, loading } = useAuth();
 
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ const Index = (props: { isTeacher: boolean }) => {
 
   useEffect(() => {
     const fetchStudent = async () => {
-      if (user && user.userId) {
+      if (user && user.userId && !user.is_teacher) {
         try {
           const response = await fetch(`${SERVER_ENDPOINT}/api/students/${user.userId}`);
           if (!response.ok) {
@@ -40,17 +40,17 @@ const Index = (props: { isTeacher: boolean }) => {
     };
 
     fetchStudent();
-  }, [user, props]);
+  }, [user]);
 
   useEffect(() => {
     if (!loading && !user) {
       navigate('/login');
     }
 
-    if (props.isTeacher) {
+    if (user?.is_teacher) {
       navigate('/teacher-index');
     }
-  }, [user, loading, navigate, props]);
+  }, [user, loading, navigate]);
 
   if (loading) {
     return (
@@ -68,7 +68,7 @@ const Index = (props: { isTeacher: boolean }) => {
     );
   }
 
-  if (props.isTeacher) {
+  if (user?.is_teacher) {
     navigate('/teacher-index');
   }
 

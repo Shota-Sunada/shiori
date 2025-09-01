@@ -11,7 +11,7 @@ const HamburgerIcon = ({ open }: { open: boolean }) => (
   </div>
 );
 
-const Header = (props: { isTeacher: boolean }) => {
+const Header = () => {
   const { user, logout } = useAuth();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -69,7 +69,7 @@ const Header = (props: { isTeacher: boolean }) => {
   return (
     <div className="sticky top-0 z-40">
       <div className={`bg-[#50141c] text-white flex flex-row items-center justify-between relative z-50`}>
-        <Link to={props.isTeacher ? '/teacher-index' : '/'}>
+        <Link to={user?.is_teacher ? '/teacher-index' : '/'}>
           <img className={`p-[10px] w-[60px] md:w-[80px] ${user ? 'cursor-pointer' : 'cursor-default'}`} src="https://www.shudo-h.ed.jp/portal_assets/images/logo.png" alt="" />
         </Link>
         <div className="mx-2 flex flex-col">
@@ -84,7 +84,7 @@ const Header = (props: { isTeacher: boolean }) => {
             {isMenuOpen && (
               <div ref={menuRef} className="absolute right-0 top-full mt-2 bg-white text-black rounded shadow-lg w-48 z-50 flex flex-col border">
                 <Link
-                  to={props.isTeacher ? '/teacher-index' : '/'}
+                  to={user?.is_teacher ? '/teacher-index' : '/'}
                   className="text-left px-4 py-3 hover:bg-gray-100 border-b cursor-pointer"
                   onClick={() => {
                     setIsMenuOpen(false);
