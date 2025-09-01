@@ -18,7 +18,7 @@ interface OtanoshimiData {
 router.get('/', async (req: Request, res: Response) => {
   try {
     const [rows] = await pool.execute<RowDataPacket[]>('SELECT * FROM otanoshimi_teams ORDER BY appearance_order ASC');
-    const teams = rows.map(row => ({
+    const teams = rows.map((row) => ({
       ...row,
       members: JSON.parse(row.members || '[]'),
       custom_performers: JSON.parse(row.custom_performers || '[]')
@@ -41,10 +41,15 @@ router.post('/', async (req: Request, res: Response) => {
     for (const team of teams) {
       const membersJson = JSON.stringify(team.members);
       const customPerformersJson = JSON.stringify(team.custom_performers);
-      await connection.execute(
-        'INSERT INTO otanoshimi_teams (name, enmoku, leader, members, time, appearance_order, custom_performers) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [team.name, team.enmoku, team.leader, membersJson, team.time, team.appearance_order, customPerformersJson]
-      );
+      await connection.execute('INSERT INTO otanoshimi_teams (name, enmoku, leader, members, time, appearance_order, custom_performers) VALUES (?, ?, ?, ?, ?, ?, ?)', [
+        team.name,
+        team.enmoku,
+        team.leader,
+        membersJson,
+        team.time,
+        team.appearance_order,
+        customPerformersJson
+      ]);
     }
 
     await connection.commit();
