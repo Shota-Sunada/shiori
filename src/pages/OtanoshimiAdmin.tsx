@@ -25,7 +25,7 @@ const StudentChip: React.FC<StudentChipProps> = ({ studentId, studentMap, onDele
   return (
     <div className="flex items-center bg-blue-100 text-blue-800 text-sm font-semibold px-2.5 py-0.5 rounded-full">
       {studentName}
-      <button onClick={() => onDelete(studentId)} className="ml-2 text-blue-800 hover:text-blue-900">
+      <button onClick={() => onDelete(studentId)} className="ml-2 text-blue-800 hover:text-blue-900 cursor-pointer">
         &times;
       </button>
     </div>
@@ -264,7 +264,7 @@ const OtanoshimiAdmin = () => {
                               setIsModalOpen(true);
                               setModalTarget({ index, field: 'leader' });
                             }}
-                            className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                            className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer"
                             title="リーダーを追加">
                             {"+"}
                           </button>
@@ -281,7 +281,7 @@ const OtanoshimiAdmin = () => {
                             setIsModalOpen(true);
                             setModalTarget({ index, field: 'members' });
                           }}
-                          className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                          className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer"
                           title="メンバーを追加">
                           {"+"}
                         </button>
