@@ -13,6 +13,8 @@ import { useEffect, useState, type ReactNode } from 'react';
 import SHA256 from './pages/SHA256';
 import TeacherCall from './pages/TeacherCall';
 import Call from './pages/Call';
+import { onMessage } from 'firebase/messaging';
+import { firebaseConfig, messaging, registerFCMToken } from './firebase';
 
 const AdminOrTeacherRoute = ({ children }: { children: ReactNode }) => {
   const { user, loading } = useAuth();
@@ -42,6 +44,48 @@ function Main() {
 
   useEffect(() => {
     setIsTeacher(user?.is_teacher ?? false);
+  }, [user]);
+
+  // Effect 1: Register SW and set up foreground listener (runs once)
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      const firebaseConfigStr = encodeURIComponent(JSON.stringify(firebaseConfig));
+      const swUrl = `/firebase-messaging-sw.js?firebaseConfig=${firebaseConfigStr}`;
+
+      navigator.serviceWorker
+        .register(swUrl)
+        .then((registration) => {
+          console.log('Service Worker registered successfully:', registration);
+        })
+        .catch((err) => {
+          console.error('Service Worker registration failed:', err);
+        });
+    }
+
+    const unsubscribe = onMessage(messaging, (payload) => {
+      console.log('Foreground message received: ', payload);
+      if (payload.data) {
+        const { type, originalTitle, originalBody } = payload.data;
+        if (type === 'default_notification') {
+          alert(`[In-App Notification] ${originalTitle || 'New Message'}: ${originalBody || ''}`);
+        }
+        // Add more conditions here for different types of notifications
+      }
+    });
+
+    return () => unsubscribe();
+  }, []); // Runs once
+
+  // Effect 2: Register token when user logs in
+  useEffect(() => {
+    if (user && user.userId) {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then((registration) => {
+          console.log('User logged in, attempting to register FCM token.');
+          registerFCMToken(user.userId, registration);
+        });
+      }
+    }
   }, [user]);
 
   return (

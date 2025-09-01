@@ -18,6 +18,9 @@ export default defineConfig(({ command }) => ({
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
+            if (id.includes('firebase')) {
+              return 'vendor_firebase';
+            }
             if (id.includes('react')) {
               return 'vendor_react';
             }
@@ -32,6 +35,9 @@ export default defineConfig(({ command }) => ({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      strategies: 'injectManifest',
+      srcDir: '',
+      filename: 'firebase-messaging-sw.js',
       manifest: {
         name: '修学旅行のしおり for 79th',
         description: '修道高校79回生のための修学旅行のしおり',

@@ -66,121 +66,25 @@ async function sendNotification(userId: string, title: string, body: string): Pr
       return false;
     }
 
-    import 'dotenv/config';
-
-import express, { Request, Response } from 'express';
-import cors from 'cors';
-import { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
-import { logger } from './logger';
-
-const app = express();
-const port = 8080;
-
-// CORSを有効化
-app.use(cors({ origin: ['http://localhost:5173', 'https://shiori.shudo-physics.com'] })); // クライアントのオリジンに合わせて変更してください
-app.use(express.json());
-
-import authRouter from './routes/auth';
-app.use('/api/auth', authRouter);
-
-import studentsRouter from './routes/students';
-app.use('/api/students', studentsRouter);
-
-import usersRouter from './routes/users';
-app.use('/api/users', usersRouter);
-
-import { initializeDatabase, pool } from './db';
-
-// Initialize the database and tables
-initializeDatabase()
-  .then(() => {
-    logger.log('Database initialization complete.');
-  })
-  .catch((error) => {
-    logger.error('Failed to initialize database:', error);
-    process.exit(1);
-  });
-
-// --- APIエンドポイント --- //
-
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello from Shiori Server!');
-});
-
-import * as readline from 'readline'; // readline モジュールをインポート
-import bcrypt from 'bcrypt'; // bcrypt をインポート
-
-app.listen(port, () => {
-  logger.log(`Server is running at http://localhost:${port}`);
-  logger.log('コンソールコマンドを入力してください (例: createuser <id> <password> [--admin] [--teacher])');
-
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    terminal: false // ターミナルモードを無効にする (行単位の入力のため)
-  });
-
-  rl.on('line', async (line) => {
-    const parts = line.trim().split(/\s+/); // スペースで分割
-    const command = parts[0].toLowerCase();
-
-    if (command === 'createuser') {
-      const idArg = parts[1];
-      const passwordArg = parts[2];
-      const isAdmin = parts.includes('--admin');
-      const isTeacher = parts.includes('--teacher');
-
-      if (!idArg || !passwordArg) {
-        logger.log('使用方法: createuser <id> <password> [--admin] [--teacher]');
-        return;
-      }
-
-      const id = Number(idArg);
-      if (isNaN(id)) {
-        logger.log('エラー: IDは数字である必要があります。');
-        return;
-      }
-
-      try {
-        const passwordHash = await bcrypt.hash(passwordArg, 10);
-        await pool.execute('INSERT INTO users (id, passwordHash, is_admin, is_teacher) VALUES (?, ?, ?, ?)', [id, passwordHash, isAdmin, isTeacher]);
-        logger.log(`ユーザー '${id}' が正常に作成されました。 管理者: ${isAdmin}, 教員: ${isTeacher}`);
-      } catch (error) {
-        logger.error('ユーザー作成中にエラーが発生しました:', error as Error);
-      }
-    } else if (command === 'deleteuser') {
-      const idArg = parts[1];
-      if (!idArg) {
-        logger.log('使用方法: deleteuser <id>');
-        return;
-      }
-
-      const id = Number(idArg);
-      if (isNaN(id)) {
-        logger.log('エラー: IDは数字である必要があります。');
-        return;
-      }
-
-      try {
-        const [result] = await pool.execute<ResultSetHeader>('DELETE FROM users WHERE id = ?', [id]);
-
-        if (result.affectedRows === 0) {
-          logger.log(`ID '${id}' のユーザーが見つかりませんでした。`);
-        } else {
-          logger.log(`ID '${id}' のユーザーが正常に削除されました。`);
+    const message: admin.messaging.Message = {
+      notification: {
+        title,
+        body
+      },
+      webpush: {
+        notification: {
+          title,
+          body,
+          icon: 'https://shiori.shudo-physics.com/icon.png'
         }
-      } catch (error) {
-        logger.error('ユーザー削除中にエラーが発生しました:', error as Error);
+      },
+      token: token,
+      data: {
+        type: 'default_notification',
+        originalTitle: title,
+        originalBody: body
       }
-    } else if (command === 'exit') {
-      logger.log('サーバーを終了します...');
-      process.exit(0);
-    } else {
-      logger.log(`不明なコマンド: ${command}`);
-    }
-  });
-});
-
+    };
 
     // メッセージを送信
     await admin.messaging().send(message);
