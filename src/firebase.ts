@@ -3,14 +3,15 @@ import { getMessaging, getToken } from 'firebase/messaging';
 import { SERVER_ENDPOINT } from './app';
 
 // Firebaseプロジェクトの設定情報
-export const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID // Optional
+const firebaseConfig = {
+  apiKey: 'AIzaSyANQYjNkd9Ay-ctK_nwhYp6WQK9ufcs-rc',
+  authDomain: 'shudo-shiori-79.firebaseapp.com',
+  databaseURL: 'https://shudo-shiori-79-default-rtdb.firebaseio.com',
+  projectId: 'shudo-shiori-79',
+  storageBucket: 'shudo-shiori-79.firebasestorage.app',
+  messagingSenderId: '775436195688',
+  appId: '1:775436195688:web:d8cd3e6cab31e583b468dd',
+  measurementId: 'G-R1J4D68V93'
 };
 
 // Firebaseを初期化

@@ -14,7 +14,7 @@ import SHA256 from './pages/SHA256';
 import TeacherCall from './pages/TeacherCall';
 import Call from './pages/Call';
 import { onMessage } from 'firebase/messaging';
-import { firebaseConfig, messaging, registerFCMToken } from './firebase';
+import { messaging, registerFCMToken } from './firebase';
 
 const AdminOrTeacherRoute = ({ children }: { children: ReactNode }) => {
   const { user, loading } = useAuth();
@@ -49,8 +49,7 @@ function Main() {
   // Effect 1: Register SW and set up foreground listener (runs once)
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      const firebaseConfigStr = encodeURIComponent(JSON.stringify(firebaseConfig));
-      const swUrl = `/firebase-messaging-sw.js?firebaseConfig=${firebaseConfigStr}`;
+      const swUrl = `/firebase-messaging-sw.js`;
 
       navigator.serviceWorker
         .register(swUrl)
