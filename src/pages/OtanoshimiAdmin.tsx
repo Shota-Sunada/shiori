@@ -1,4 +1,4 @@
-import { useState, useEffect, type ChangeEvent, type DragEvent } from 'react';
+import { type FC, useState, useEffect, type ChangeEvent, type DragEvent } from 'react';
 import { SERVER_ENDPOINT } from '../App';
 import '../styles/admin-table.css';
 import KanaSearchModal from '../components/KanaSearchModal';
@@ -12,10 +12,29 @@ interface OtanoshimiData {
   appearance_order: number;
 }
 
+interface StudentChipProps {
+  studentId: number;
+  studentMap: Map<number, string>;
+  onDelete: (studentId: number) => void;
+}
+
+const StudentChip: FC<StudentChipProps> = ({ studentId, studentMap, onDelete }) => {
+  const studentName = studentMap.get(studentId) || '不明な生徒';
+  return (
+    <div className="flex items-center bg-blue-100 text-blue-800 text-sm font-semibold mr-2 mb-2 px-2.5 py-0.5 rounded-full">
+      {studentName}
+      <button onClick={() => onDelete(studentId)} className="ml-2 text-blue-800 hover:text-blue-900 cursor-pointer">
+        &times;
+      </button>
+    </div>
+  );
+};
+
 const OtanoshimiAdmin = () => {
   const [teams, setTeams] = useState<OtanoshimiData[]>([]);
   const [status, setStatus] = useState<string>('');
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [studentMap, setStudentMap] = useState<Map<number, string>>(new Map());
   const dragItem = document.createElement('div');
 
   // Student Search Modal
@@ -46,8 +65,13 @@ const OtanoshimiAdmin = () => {
       if (!response.ok) {
         throw new Error(`HTTPエラー! ステータス: ${response.status}`);
       }
-      const studentsData = await response.json();
+      const studentsData: student[] = await response.json();
       setAllStudents(studentsData);
+      const newStudentMap = new Map<number, string>();
+      for (const student of studentsData) {
+        newStudentMap.set(student.gakuseki, `${student.surname} ${student.forename}`);
+      }
+      setStudentMap(newStudentMap);
     } catch (error) {
       console.error('生徒データの取得に失敗:', error);
       setStatus('生徒データの取得中にエラーが発生しました。');
@@ -71,11 +95,7 @@ const OtanoshimiAdmin = () => {
     }
   }, [selectedKana, allStudents]);
 
-  const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement>,
-    index: number,
-    field: keyof OtanoshimiData
-  ) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>, index: number, field: keyof OtanoshimiData) => {
     const newTeams = [...teams];
     const value = e.target.value;
 
@@ -122,7 +142,7 @@ const OtanoshimiAdmin = () => {
     setEditingIndex(teams.length);
   };
 
-  const handleDelete = (index: number) => {
+  const handleDeleteTeam = (index: number) => {
     if (!window.confirm('本当にこのチームを削除しますか？')) return;
     const newTeams = teams.filter((_, i) => i !== index);
     // Update appearance_order
@@ -131,6 +151,17 @@ const OtanoshimiAdmin = () => {
       appearance_order: i + 1
     }));
     setTeams(updatedTeams);
+  };
+
+  const handleDeleteStudent = (teamIndex: number, field: 'leader' | 'members', studentId: number) => {
+    const newTeams = [...teams];
+    if (field === 'leader') {
+      newTeams[teamIndex] = { ...newTeams[teamIndex], leader: 0 };
+    } else if (field === 'members') {
+      const newMembers = newTeams[teamIndex].members.filter((id) => id !== studentId);
+      newTeams[teamIndex] = { ...newTeams[teamIndex], members: newMembers };
+    }
+    setTeams(newTeams);
   };
 
   const onDragStart = (e: DragEvent<HTMLTableRowElement>, index: number) => {
@@ -196,8 +227,8 @@ const OtanoshimiAdmin = () => {
             <tr>
               <th className="w-12">{'順番'}</th>
               <th className="w-48">{'チーム名'}</th>
-              <th className="w-24">{'リーダー (学籍番号)'}</th>
-              <th className="w-96">{'メンバー (学籍番号, カンマ区切り)'}</th>
+              <th className="w-24">{'リーダー'}</th>
+              <th className="w-96">{'メンバー'}</th>
               <th className="w-24">{'時間 (分)'}</th>
               <th className="w-32">{'操作'}</th>
             </tr>
@@ -209,120 +240,69 @@ const OtanoshimiAdmin = () => {
                 {editingIndex === index ? (
                   <>
                     <td className="bg-white">
-                      <input
-                        type="text"
-                        value={team.name}
-                        onChange={(e) => handleInputChange(e, index, 'name')}
-                        className="w-full"
-                      />
+                      <input type="text" value={team.name} onChange={(e) => handleInputChange(e, index, 'name')} className="w-full" />
                     </td>
                     <td className="bg-white">
-                      <div className="flex items-center">
-                        <input
-                          type="number"
-                          value={team.leader}
-                          onChange={(e) => handleInputChange(e, index, 'leader')}
-                          className="w-full"
-                        />
-                        <button
-                          onClick={() => {
-                            setIsModalOpen(true);
-                            setModalTarget({ index, field: 'leader' });
-                          }}
-                          className="p-1 ml-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                          title="生徒検索"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </button>
+                      <div className="flex items-center flex-wrap">
+                        {team.leader ? (
+                          <StudentChip studentId={team.leader} studentMap={studentMap} onDelete={() => handleDeleteStudent(index, 'leader', team.leader)} />
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setIsModalOpen(true);
+                              setModalTarget({ index, field: 'leader' });
+                            }}
+                            className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer"
+                            title="リーダーを追加">
+                            {'+'}
+                          </button>
+                        )}
                       </div>
                     </td>
                     <td className="bg-white">
-                      <div className="flex items-center">
-                        <input
-                          type="text"
-                          value={team.members.join(',')}
-                          onChange={(e) => handleInputChange(e, index, 'members')}
-                          className="w-full"
-                        />
+                      <div className="flex items-center flex-wrap">
+                        {team.members.map((memberId) => (
+                          <StudentChip key={memberId} studentId={memberId} studentMap={studentMap} onDelete={() => handleDeleteStudent(index, 'members', memberId)} />
+                        ))}
                         <button
                           onClick={() => {
                             setIsModalOpen(true);
                             setModalTarget({ index, field: 'members' });
                           }}
-                          className="p-1 ml-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                          title="生徒検索"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
+                          className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer"
+                          title="メンバーを追加">
+                          {'+'}
                         </button>
                       </div>
                     </td>
                     <td className="bg-white">
-                      <input
-                        type="number"
-                        value={team.time}
-                        onChange={(e) => handleInputChange(e, index, 'time')}
-                        className="w-full"
-                      />
+                      <input type="number" value={team.time} onChange={(e) => handleInputChange(e, index, 'time')} className="w-full" />
                     </td>
                   </>
                 ) : (
                   <>
                     <td className="bg-white">{team.name}</td>
-                    <td className="bg-white">{team.leader}</td>
-                    <td className="bg-white">{team.members.join(', ')}</td>
+                    <td className="bg-white">{studentMap.get(team.leader) || '未設定'}</td>
+                    <td className="bg-white">{team.members.map((id) => studentMap.get(id)).join(', ')}</td>
                     <td className="bg-white">{team.time}</td>
                   </>
                 )}
                 <td className="bg-white">
                   <div className="flex flex-row items-center justify-center">
                     {editingIndex === index ? (
-                      <button
-                        className="p-1 cursor-pointer mx-1 text-green-600 hover:text-green-800"
-                        onClick={() => setEditingIndex(null)}
-                        title="完了"
-                      >
+                      <button className="p-1 cursor-pointer mx-1 text-green-600 hover:text-green-800" onClick={() => setEditingIndex(null)} title="完了">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       </button>
                     ) : (
-                      <button
-                        className="p-1 cursor-pointer mx-1 text-gray-600 hover:text-gray-800"
-                        onClick={() => setEditingIndex(index)}
-                        title="編集"
-                      >
+                      <button className="p-1 cursor-pointer mx-1 text-gray-600 hover:text-gray-800" onClick={() => setEditingIndex(index)} title="編集">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                           <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                         </svg>
                       </button>
                     )}
-                    <button
-                      className="p-1 cursor-pointer mx-1 text-red-500 hover:text-red-700"
-                      onClick={() => handleDelete(index)}
-                      title="削除"
-                    >
+                    <button className="p-1 cursor-pointer mx-1 text-red-500 hover:text-red-700" onClick={() => handleDeleteTeam(index)} title="削除">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path
                           fillRule="evenodd"
