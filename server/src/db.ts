@@ -81,7 +81,8 @@ async function initializeDatabase() {
         leader INT NOT NULL,
         members TEXT NOT NULL,
         time INT NOT NULL,
-        appearance_order INT NOT NULL
+        appearance_order INT NOT NULL,
+        custom_performers TEXT
       );
     `);
     logger.log('テーブル「otanoshimi_teams」の存在を確認。');

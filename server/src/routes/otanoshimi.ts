@@ -11,6 +11,7 @@ interface OtanoshimiData {
   members: number[];
   time: number;
   appearance_order: number;
+  custom_performers: string[];
 }
 
 router.get('/', async (req: Request, res: Response) => {
@@ -18,7 +19,8 @@ router.get('/', async (req: Request, res: Response) => {
     const [rows] = await pool.execute<RowDataPacket[]>('SELECT * FROM otanoshimi_teams ORDER BY appearance_order ASC');
     const teams = rows.map(row => ({
       ...row,
-      members: JSON.parse(row.members || '[]')
+      members: JSON.parse(row.members || '[]'),
+      custom_performers: JSON.parse(row.custom_performers || '[]')
     }));
     res.status(200).json(teams);
   } catch (error) {
@@ -37,9 +39,10 @@ router.post('/', async (req: Request, res: Response) => {
 
     for (const team of teams) {
       const membersJson = JSON.stringify(team.members);
+      const customPerformersJson = JSON.stringify(team.custom_performers);
       await connection.execute(
-        'INSERT INTO otanoshimi_teams (name, leader, members, time, appearance_order) VALUES (?, ?, ?, ?, ?)',
-        [team.name, team.leader, membersJson, team.time, team.appearance_order]
+        'INSERT INTO otanoshimi_teams (name, leader, members, time, appearance_order, custom_performers) VALUES (?, ?, ?, ?, ?, ?)',
+        [team.name, team.leader, membersJson, team.time, team.appearance_order, customPerformersJson]
       );
     }
 
