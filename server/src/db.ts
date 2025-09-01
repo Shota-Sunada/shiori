@@ -73,6 +73,18 @@ async function initializeDatabase() {
       );
     `);
     logger.log('テーブル「fcm_tokens」の存在を確認。');
+
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS otanoshimi_teams (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        leader INT NOT NULL,
+        members TEXT NOT NULL,
+        time INT NOT NULL,
+        appearance_order INT NOT NULL
+      );
+    `);
+    logger.log('テーブル「otanoshimi_teams」の存在を確認。');
   } catch (error) {
     logger.error('データベースの初期化に失敗:', error as Error);
     process.exit(1);

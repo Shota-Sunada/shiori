@@ -12,6 +12,7 @@ import TeacherIndex from './pages/TeacherIndex';
 import { useEffect, type ReactNode } from 'react';
 import TeacherCall from './pages/TeacherCall';
 import Call from './pages/Call';
+import OtanoshimiAdmin from './pages/OtanoshimiAdmin';
 import { onMessage } from 'firebase/messaging';
 import { messaging, registerFCMToken } from './firebase';
 
@@ -112,6 +113,14 @@ function App() {
               <Route path="/teacher-index" element={<TeacherIndex />} />
               <Route path="/call" element={<Call />} />
               <Route path="/teacher-call" element={<TeacherCall />} />
+              <Route
+                path="/otanoshimi-admin"
+                element={
+                  <AdminOrTeacherRoute>
+                    <OtanoshimiAdmin />
+                  </AdminOrTeacherRoute>
+                }
+              />
               <Route path="*" element={<Page404 />} />
             </Routes>
           </main>

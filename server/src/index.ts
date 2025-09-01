@@ -29,6 +29,9 @@ app.use('/api/students', studentsRouter);
 import usersRouter from './routes/users';
 app.use('/api/users', usersRouter);
 
+import otanoshimiRouter from './routes/otanoshimi';
+app.use('/api/otanoshimi', otanoshimiRouter);
+
 import { initializeDatabase, pool } from './db';
 
 // Initialize the database and tables

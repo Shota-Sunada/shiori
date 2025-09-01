@@ -12,7 +12,7 @@ const Otanoshimi = () => {
         <h2 className="text-xl text-center">{'出演団体一覧'}</h2>
         <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
           {OTANOSHIMI_TEAMS.map((x) => (
-            <OtanoshimiCard key={uuid()} name={x} />
+            <OtanoshimiCard key={uuid()} name={x.name} />
           ))}
         </div>
         <div className="mt-4">
