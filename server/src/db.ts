@@ -38,7 +38,7 @@ async function initializeDatabase() {
         is_teacher BOOLEAN NOT NULL DEFAULT FALSE
       );
     `);
-    logger.log("テーブル「users」の存在を確認。");
+    logger.log('テーブル「users」の存在を確認。');
 
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS students (
@@ -61,7 +61,7 @@ async function initializeDatabase() {
         shinkansen_day4_seat VARCHAR(255)
       );
     `);
-    logger.log("テーブル「students」の存在を確認。");
+    logger.log('テーブル「students」の存在を確認。');
 
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS fcm_tokens (
@@ -72,7 +72,7 @@ async function initializeDatabase() {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       );
     `);
-    logger.log("テーブル「fcm_tokens」の存在を確認。");
+    logger.log('テーブル「fcm_tokens」の存在を確認。');
   } catch (error) {
     logger.error('データベースの初期化に失敗:', error as Error);
     process.exit(1);

@@ -437,13 +437,13 @@ const UserAdmin = () => {
                 <div className="mb-4">
                   <label className="block text-gray-700 text-sm font-bold mb-2">
                     <input type="checkbox" checked={editRowForm.is_admin} onChange={(e) => setEditRowForm({ ...editRowForm, is_admin: e.target.checked })} className="mr-2 leading-tight" />
-                    {"管理者"}
+                    {'管理者'}
                   </label>
                 </div>
                 <div className="mb-4">
                   <label className="block text-gray-700 text-sm font-bold mb-2">
                     <input type="checkbox" checked={editRowForm.is_teacher} onChange={(e) => setEditRowForm({ ...editRowForm, is_teacher: e.target.checked })} className="mr-2 leading-tight" />
-                    {"教員"}
+                    {'教員'}
                   </label>
                 </div>
                 <div className="flex items-center justify-between">
@@ -451,7 +451,7 @@ const UserAdmin = () => {
                     {modalMode === 'add' ? '追加' : '更新'}
                   </button>
                   <button type="button" onClick={() => setModalMode(null)} className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                    {"キャンセル"}
+                    {'キャンセル'}
                   </button>
                 </div>
               </form>
