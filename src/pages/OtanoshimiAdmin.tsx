@@ -40,10 +40,7 @@ const OtanoshimiAdmin = () => {
   const dragItem = document.createElement('div');
 
   const [allStudents, setAllStudents] = useState<student[]>([]);
-  const [filteredBySurnameKana, setFilteredBySurnameKana] = useState<student[]>([]);
-  const [filteredByForenameKana, setFilteredByForenameKana] = useState<student[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedKana, setSelectedKana] = useState('');
   const [modalTarget, setModalTarget] = useState<{ index: number; field: 'leader' | 'members' } | null>(null);
 
   const fetchTeams = async () => {
@@ -88,18 +85,6 @@ const OtanoshimiAdmin = () => {
     fetchTeams();
     fetchAllStudents();
   }, []);
-
-  useEffect(() => {
-    if (selectedKana) {
-      const surnameMatches = allStudents.filter((s) => s.surname_kana.startsWith(selectedKana));
-      const forenameMatches = allStudents.filter((s) => s.forename_kana.startsWith(selectedKana));
-      setFilteredBySurnameKana(surnameMatches);
-      setFilteredByForenameKana(forenameMatches);
-    } else {
-      setFilteredBySurnameKana([]);
-      setFilteredByForenameKana([]);
-    }
-  }, [selectedKana, allStudents]);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>, index: number, field: keyof OtanoshimiData) => {
     const newTeams = [...teams];
@@ -216,14 +201,6 @@ const OtanoshimiAdmin = () => {
     setTeams(newTeams);
     setIsModalOpen(false);
     setModalTarget(null);
-  };
-
-  const handleKanaSelect = (kana: string) => {
-    if (selectedKana === kana) {
-      setSelectedKana('');
-    } else {
-      setSelectedKana(kana);
-    }
   };
 
   return (
@@ -347,9 +324,7 @@ const OtanoshimiAdmin = () => {
       <KanaSearchModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onKanaSelect={handleKanaSelect}
-        surnameStudents={filteredBySurnameKana}
-        forenameStudents={filteredByForenameKana}
+        allStudents={allStudents}
         onStudentSelect={handleStudentSelect}
       />
     </div>

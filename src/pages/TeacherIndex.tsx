@@ -14,10 +14,7 @@ const TeacherIndex = () => {
   const navigate = useNavigate();
 
   const [allStudents, setAllStudents] = useState<student[]>([]);
-  const [filteredBySurnameKana, setFilteredBySurnameKana] = useState<student[]>([]);
-  const [filteredByForenameKana, setFilteredByForenameKana] = useState<student[]>([]);
   const [studentData, setStudentData] = useState<student | null>(null);
-  const [selectedKana, setSelectedKana] = useState('');
   const [isKanaSearchVisible, setKanaSearchVisible] = useState(false);
   const [specificStudentId, setSpecificStudentId] = useState('');
 
@@ -53,26 +50,6 @@ const TeacherIndex = () => {
     };
     fetchAllStudents();
   }, []);
-
-  useEffect(() => {
-    if (selectedKana) {
-      const surnameMatches = allStudents.filter((s) => s.surname_kana.startsWith(selectedKana));
-      const forenameMatches = allStudents.filter((s) => s.forename_kana.startsWith(selectedKana));
-      setFilteredBySurnameKana(surnameMatches);
-      setFilteredByForenameKana(forenameMatches);
-    } else {
-      setFilteredBySurnameKana([]);
-      setFilteredByForenameKana([]);
-    }
-  }, [selectedKana, allStudents]);
-
-  const handleKanaSelect = (kana: string) => {
-    if (selectedKana === kana) {
-      setSelectedKana('');
-    } else {
-      setSelectedKana(kana);
-    }
-  };
 
   const handleStudentSelect = (student: student) => {
     setStudentData(student);
@@ -126,7 +103,6 @@ const TeacherIndex = () => {
           <button
             onClick={() => {
               setKanaSearchVisible(true);
-              setSelectedKana('');
             }}
             className="p-2 ml-2 text-white bg-green-500 rounded cursor-pointer">
             {'生徒カタカナ検索'}
@@ -401,9 +377,7 @@ const TeacherIndex = () => {
       <KanaSearchModal
         isOpen={isKanaSearchVisible}
         onClose={() => setKanaSearchVisible(false)}
-        onKanaSelect={handleKanaSelect}
-        surnameStudents={filteredBySurnameKana}
-        forenameStudents={filteredByForenameKana}
+        allStudents={allStudents}
         onStudentSelect={handleStudentSelect}
       />
     </div>
