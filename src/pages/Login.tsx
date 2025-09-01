@@ -33,7 +33,7 @@ const Login = () => {
       return;
     }
 
-    if (id >= USER_ID_MIN && id <= USER_ID_MAX) {
+    if (id <= USER_ID_MIN || USER_ID_MAX <= id) {
       alert('生徒IDは8桁で正しく入力してください。');
       return;
     }
@@ -44,7 +44,7 @@ const Login = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ id: Number(id), password })
+        body: JSON.stringify({ id: id, password })
       });
 
       const data = await response.json();
