@@ -39,7 +39,6 @@ const OtanoshimiAdmin = () => {
   const [studentMap, setStudentMap] = useState<Map<number, string>>(new Map());
   const dragItem = document.createElement('div');
 
-  // Student Search Modal
   const [allStudents, setAllStudents] = useState<student[]>([]);
   const [filteredBySurnameKana, setFilteredBySurnameKana] = useState<student[]>([]);
   const [filteredByForenameKana, setFilteredByForenameKana] = useState<student[]>([]);
@@ -160,7 +159,6 @@ const OtanoshimiAdmin = () => {
   const handleDeleteTeam = (index: number) => {
     if (!window.confirm('本当にこのチームを削除しますか？')) return;
     const newTeams = teams.filter((_, i) => i !== index);
-    // Update appearance_order
     const updatedTeams = newTeams.map((team, i) => ({
       ...team,
       appearance_order: i + 1
@@ -191,7 +189,6 @@ const OtanoshimiAdmin = () => {
     const [removed] = newTeams.splice(fromIndex, 1);
     newTeams.splice(toIndex, 0, removed);
 
-    // Update appearance_order
     const updatedTeams = newTeams.map((team, index) => ({
       ...team,
       appearance_order: index + 1
@@ -214,7 +211,6 @@ const OtanoshimiAdmin = () => {
       newTeams[index] = { ...newTeams[index], leader: student.gakuseki };
     } else if (field === 'members') {
       const currentMembers = newTeams[index].members;
-      // Add student only if not already in the list
       if (!currentMembers.includes(student.gakuseki)) {
         const newMembers = [...currentMembers, student.gakuseki];
         newTeams[index] = { ...newTeams[index], members: newMembers };
@@ -243,7 +239,7 @@ const OtanoshimiAdmin = () => {
               <th className="w-12">{'順番'}</th>
               <th className="w-48">{'チーム名'}</th>
               <th className="w-48">{'演目'}</th>
-              <th className="w-24">{'リーダー'}</th>
+              <th className="w-48">{'リーダー'}</th>
               <th className="w-96">{'メンバー'}</th>
               <th className="w-48">{'カスタム出演者'}</th>
               <th className="w-24">{'時間 (分)'}</th>
@@ -289,7 +285,7 @@ const OtanoshimiAdmin = () => {
                             className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                             title="リーダーを追加"
                           >
-                            +
+                            {"+"}
                           </button>
                         )}
                       </div>
@@ -312,7 +308,7 @@ const OtanoshimiAdmin = () => {
                           className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                           title="メンバーを追加"
                         >
-                          +
+                          {"+"}
                         </button>
                       </div>
                     </td>
