@@ -23,7 +23,7 @@ interface StudentChipProps {
 const StudentChip: React.FC<StudentChipProps> = ({ studentId, studentMap, onDelete }) => {
   const studentName = studentMap.get(studentId) || '不明な生徒';
   return (
-    <div className="flex items-center bg-blue-100 text-blue-800 text-sm font-semibold mr-2 mb-2 px-2.5 py-0.5 rounded-full">
+    <div className="flex items-center bg-blue-100 text-blue-800 text-sm font-semibold px-2.5 py-0.5 rounded-full">
       {studentName}
       <button onClick={() => onDelete(studentId)} className="ml-2 text-blue-800 hover:text-blue-900">
         &times;
@@ -255,7 +255,7 @@ const OtanoshimiAdmin = () => {
                       <input type="text" value={team.enmoku} onChange={(e) => handleInputChange(e, index, 'enmoku')} className="w-full" />
                     </td>
                     <td className="bg-white">
-                      <div className="flex items-center flex-wrap">
+                      <div className="flex items-center flex-wrap gap-2">
                         {team.leader ? (
                           <StudentChip studentId={team.leader} studentMap={studentMap} onDelete={() => handleDeleteStudent(index, 'leader', team.leader)} />
                         ) : (
@@ -266,13 +266,13 @@ const OtanoshimiAdmin = () => {
                             }}
                             className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                             title="リーダーを追加">
-                            +
+                            {"+"}
                           </button>
                         )}
                       </div>
                     </td>
                     <td className="bg-white">
-                      <div className="flex items-center flex-wrap">
+                      <div className="flex items-center flex-wrap gap-2">
                         {team.members.map((memberId) => (
                           <StudentChip key={memberId} studentId={memberId} studentMap={studentMap} onDelete={() => handleDeleteStudent(index, 'members', memberId)} />
                         ))}
@@ -283,7 +283,7 @@ const OtanoshimiAdmin = () => {
                           }}
                           className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                           title="メンバーを追加">
-                          +
+                          {"+"}
                         </button>
                       </div>
                     </td>
