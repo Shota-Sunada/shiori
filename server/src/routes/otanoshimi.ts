@@ -7,6 +7,7 @@ const router = Router();
 
 interface OtanoshimiData {
   name: string;
+  enmoku: string;
   leader: number;
   members: number[];
   time: number;
@@ -41,8 +42,8 @@ router.post('/', async (req: Request, res: Response) => {
       const membersJson = JSON.stringify(team.members);
       const customPerformersJson = JSON.stringify(team.custom_performers);
       await connection.execute(
-        'INSERT INTO otanoshimi_teams (name, leader, members, time, appearance_order, custom_performers) VALUES (?, ?, ?, ?, ?, ?)',
-        [team.name, team.leader, membersJson, team.time, team.appearance_order, customPerformersJson]
+        'INSERT INTO otanoshimi_teams (name, enmoku, leader, members, time, appearance_order, custom_performers) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [team.name, team.enmoku, team.leader, membersJson, team.time, team.appearance_order, customPerformersJson]
       );
     }
 

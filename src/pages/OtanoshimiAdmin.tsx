@@ -6,6 +6,7 @@ import type { student } from '../data/students';
 
 interface OtanoshimiData {
   name: string;
+  enmoku: string;
   leader: number;
   members: number[];
   time: number;
@@ -55,7 +56,8 @@ const OtanoshimiAdmin = () => {
       const data: OtanoshimiData[] = await response.json();
       const teamsWithDefaults = data.map(team => ({
         ...team,
-        custom_performers: team.custom_performers || []
+        custom_performers: team.custom_performers || [],
+        enmoku: team.enmoku || ''
       }));
       setTeams(teamsWithDefaults);
     } catch (error) {
@@ -144,6 +146,7 @@ const OtanoshimiAdmin = () => {
   const handleAddNewTeam = () => {
     const newTeam: OtanoshimiData = {
       name: '新しいチーム',
+      enmoku: '',
       leader: 0,
       members: [],
       time: 0,
@@ -239,6 +242,7 @@ const OtanoshimiAdmin = () => {
             <tr>
               <th className="w-12">{'順番'}</th>
               <th className="w-48">{'チーム名'}</th>
+              <th className="w-48">{'演目'}</th>
               <th className="w-24">{'リーダー'}</th>
               <th className="w-96">{'メンバー'}</th>
               <th className="w-48">{'カスタム出演者'}</th>
@@ -257,6 +261,14 @@ const OtanoshimiAdmin = () => {
                         type="text"
                         value={team.name}
                         onChange={(e) => handleInputChange(e, index, 'name')}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="bg-white">
+                      <input
+                        type="text"
+                        value={team.enmoku}
+                        onChange={(e) => handleInputChange(e, index, 'enmoku')}
                         className="w-full"
                       />
                     </td>
@@ -324,6 +336,7 @@ const OtanoshimiAdmin = () => {
                 ) : (
                   <>
                     <td className="bg-white">{team.name}</td>
+                    <td className="bg-white">{team.enmoku}</td>
                     <td className="bg-white">{studentMap.get(team.leader) || '未設定'}</td>
                     <td className="bg-white">{team.members.map((id) => studentMap.get(id)).join(', ')}</td>
                     <td className="bg-white">{(team.custom_performers || []).join(', ')}</td>
