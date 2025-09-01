@@ -239,7 +239,7 @@ const OtanoshimiAdmin = () => {
               <th className="w-96">{'メンバー'}</th>
               <th className="w-48">{'カスタム出演者'}</th>
               <th className="w-24">{'時間 (分)'}</th>
-              <th className="w-32">{'操作'}</th>
+              <th className="w-32 sticky-col">{'操作'}</th>
             </tr>
           </thead>
           <tbody onDragOver={onDragOver}>
@@ -266,7 +266,7 @@ const OtanoshimiAdmin = () => {
                             }}
                             className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                             title="リーダーを追加">
-                            {'+'}
+                            +
                           </button>
                         )}
                       </div>
@@ -283,7 +283,7 @@ const OtanoshimiAdmin = () => {
                           }}
                           className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                           title="メンバーを追加">
-                          {'+'}
+                          +
                         </button>
                       </div>
                     </td>
@@ -304,7 +304,7 @@ const OtanoshimiAdmin = () => {
                     <td className="bg-white">{team.time}</td>
                   </>
                 )}
-                <td className="bg-white">
+                <td className="bg-white sticky-col">
                   <div className="flex flex-row items-center justify-center">
                     {editingIndex === index ? (
                       <button className="p-1 cursor-pointer mx-1 text-green-600 hover:text-green-800" onClick={() => setEditingIndex(null)} title="完了">
