@@ -14,7 +14,6 @@ const pool = mysql.createPool({
 async function initializeDatabase() {
   let connection;
   try {
-    // Connect without specifying a database to create it if it doesn't exist
     connection = await mysql.createConnection({
       host: process.env.DB_HOST,
       user: process.env.DB_USER,
@@ -23,21 +22,14 @@ async function initializeDatabase() {
 
     const dbName = process.env.DB_NAME;
     if (!dbName) {
-      throw new Error('DB_NAME is not defined in environment variables.');
+      throw new Error('環境変数「DB_NAME」が設定されていません。');
     }
 
-    await connection.execute(`CREATE DATABASE IF NOT EXISTS 
-${dbName}
-`);
-    logger.log(`Database '${dbName}' ensured to exist.`);
+    await connection.execute(`CREATE DATABASE IF NOT EXISTS ${dbName}`);
+    logger.log(`データベース「${dbName}」の存在を確認。`);
 
-    // Now select the database and create tables
-    // Now select the database and create tables
-    await connection.query(`USE 
-${dbName}
-`); // execute() から query() に変更
+    await connection.query(`USE ${dbName}`);
 
-    // Create users table if it doesn't exist
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS users (
         id INT PRIMARY KEY,
@@ -46,9 +38,8 @@ ${dbName}
         is_teacher BOOLEAN NOT NULL DEFAULT FALSE
       );
     `);
-    logger.log("Table 'users' ensured to exist.");
+    logger.log("テーブル「users」の存在を確認。");
 
-    // Create students table if it doesn't exist
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS students (
         gakuseki INT PRIMARY KEY,
@@ -70,9 +61,8 @@ ${dbName}
         shinkansen_day4_seat VARCHAR(255)
       );
     `);
-    logger.log("Table 'students' ensured to exist.");
+    logger.log("テーブル「students」の存在を確認。");
 
-    // Create fcm_tokens table if it doesn't exist
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS fcm_tokens (
         user_id INT PRIMARY KEY,
@@ -82,10 +72,10 @@ ${dbName}
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       );
     `);
-    logger.log("Table 'fcm_tokens' ensured to exist.");
+    logger.log("テーブル「fcm_tokens」の存在を確認。");
   } catch (error) {
-    logger.error('Error initializing database:', error as Error);
-    process.exit(1); // Exit if database initialization fails
+    logger.error('データベースの初期化に失敗:', error as Error);
+    process.exit(1);
   } finally {
     if (connection) {
       await connection.end();

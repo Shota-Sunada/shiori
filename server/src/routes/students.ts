@@ -22,12 +22,12 @@ router.get('/:gakuseki', async (req: Request, res: Response) => {
   try {
     const [rows] = await pool.execute<RowDataPacket[]>('SELECT * FROM students WHERE gakuseki = ?', [gakuseki]);
     if (rows.length === 0) {
-      return res.status(404).json({ message: 'Student not found' });
+      return res.status(404).json({ message: '生徒が見つかりませんでした。' });
     }
     res.status(200).json(rows[0]); // 単一の生徒データを返す
   } catch (error) {
-    logger.error('Error fetching single student:', error as Error);
-    res.status(500).json({ message: 'Internal server error' });
+    logger.error('生徒データの取得に失敗:', error as Error);
+    res.status(500).json({ message: '内部サーバーエラー' });
   }
 });
 
@@ -83,10 +83,10 @@ router.post('/', async (req: Request, res: Response) => {
         shinkansen_day4_seat
       ]
     );
-    res.status(201).json({ message: 'Student added successfully' });
+    res.status(201).json({ message: '生徒の追加に成功' });
   } catch (error) {
-    logger.error('Error adding student:', error as Error);
-    res.status(500).json({ message: 'Internal server error' });
+    logger.error('生徒の追加に失敗:', error as Error);
+    res.status(500).json({ message: '内部サーバーエラー' });
   }
 });
 
@@ -101,19 +101,19 @@ router.put('/:gakuseki', async (req: Request, res: Response) => {
   const values = Object.values(studentData);
 
   if (fields.length === 0) {
-    return res.status(400).json({ message: 'No fields to update' });
+    return res.status(400).json({ message: '更新対象なし' });
   }
 
   try {
     const [result] = await pool.execute(`UPDATE students SET ${fields} WHERE gakuseki = ?`, [...values, gakuseki]);
 
     if ((result as ResultSetHeader).affectedRows === 0) {
-      return res.status(404).json({ message: 'Student not found' });
+      return res.status(404).json({ message: '生徒が見つかりませんでした。' });
     }
-    res.status(200).json({ message: 'Student updated successfully' });
+    res.status(200).json({ message: '生徒データの更新に成功' });
   } catch (error) {
-    logger.error('Error updating student:', error as Error);
-    res.status(500).json({ message: 'Internal server error' });
+    logger.error('生徒データの更新に失敗:', error as Error);
+    res.status(500).json({ message: '内部サーバーエラー' });
   }
 });
 
@@ -124,12 +124,12 @@ router.delete('/:gakuseki', async (req: Request, res: Response) => {
     const [result] = await pool.execute('DELETE FROM students WHERE gakuseki = ?', [gakuseki]);
 
     if ((result as ResultSetHeader).affectedRows === 0) {
-      return res.status(404).json({ message: 'Student not found' });
+      return res.status(404).json({ message: '生徒が見つかりませんでした。' });
     }
-    res.status(200).json({ message: 'Student deleted successfully' });
+    res.status(200).json({ message: '生徒データの削除に成功' });
   } catch (error) {
-    logger.error('Error deleting student:', error as Error);
-    res.status(500).json({ message: 'Internal server error' });
+    logger.error('生徒データの削除に失敗:', error as Error);
+    res.status(500).json({ message: '内部サーバーエラー' });
   }
 });
 
@@ -163,11 +163,11 @@ router.post('/batch', async (req: Request, res: Response) => {
     }
 
     await connection.commit();
-    res.status(200).json({ message: 'Batch update successful' });
+    res.status(200).json({ message: 'バッチ更新成功' });
   } catch (error) {
     await connection.rollback();
-    logger.error('Error during batch update:', error as Error);
-    res.status(500).json({ message: 'Internal server error' });
+    logger.error('バッチ更新に失敗:', error as Error);
+    res.status(500).json({ message: '内部サーバーエラー' });
   } finally {
     connection.release();
   }

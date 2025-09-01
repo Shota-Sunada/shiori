@@ -12,8 +12,8 @@ router.get('/', async (req: Request, res: Response) => {
     const [rows] = await pool.execute<RowDataPacket[]>('SELECT id, is_admin, is_teacher FROM users'); // パスワードハッシュは返さない
     res.status(200).json(rows);
   } catch (error) {
-    logger.error('Error fetching users:', error as Error);
-    res.status(500).json({ message: 'Internal server error' });
+    logger.error('ユーザーデータの取得に失敗:', error as Error);
+    res.status(500).json({ message: '内部サーバーエラー' });
   }
 });
 
@@ -22,26 +22,26 @@ router.post('/', async (req: Request, res: Response) => {
   const { id, password, is_admin, is_teacher } = req.body;
 
   if (!id || !password) {
-    return res.status(400).json({ message: 'ID and password are required' });
+    return res.status(400).json({ message: 'IDとパスワードが必要です。' });
   }
   if (isNaN(Number(id))) {
-    return res.status(400).json({ message: 'ID must be a number' });
+    return res.status(400).json({ message: 'IDは整数8桁である必要があります。' });
   }
 
   try {
     // ユーザーが既に存在するかチェック
     const [existingUsers] = await pool.execute<RowDataPacket[]>('SELECT id FROM users WHERE id = ?', [id]);
     if (existingUsers.length > 0) {
-      return res.status(409).json({ message: 'User with this ID already exists' });
+      return res.status(409).json({ message: 'このIDはすでに存在しています。' });
     }
 
     const passwordHash = await bcrypt.hash(password, 10); // パスワードをハッシュ化
 
     await pool.execute('INSERT INTO users (id, passwordHash, is_admin, is_teacher) VALUES (?, ?, ?, ?)', [id, passwordHash, is_admin || false, is_teacher || false]);
-    res.status(201).json({ message: 'User added successfully' });
+    res.status(201).json({ message: 'ユーザーの追加に成功' });
   } catch (error) {
-    logger.error('Error adding user:', error as Error);
-    res.status(500).json({ message: 'Internal server error' });
+    logger.error('ユーザーの追加に失敗:', error as Error);
+    res.status(500).json({ message: '内部サーバーエラー' });
   }
 });
 
@@ -51,7 +51,7 @@ router.put('/:id', async (req: Request, res: Response) => {
   const { password, is_admin, is_teacher } = req.body;
 
   if (isNaN(Number(id))) {
-    return res.status(400).json({ message: 'ID must be a number' });
+    return res.status(400).json({ message: 'IDは整数8桁である必要があります。' });
   }
 
   try {
@@ -75,7 +75,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     }
 
     if (updates.length === 0) {
-      return res.status(400).json({ message: 'No update fields provided' });
+      return res.status(400).json({ message: '更新対象なし' });
     }
 
     values.push(id);
@@ -83,12 +83,12 @@ router.put('/:id', async (req: Request, res: Response) => {
     const [result] = await pool.execute(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values);
 
     if ((result as ResultSetHeader).affectedRows === 0) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'ユーザーが見つかりませんでした。' });
     }
-    res.status(200).json({ message: 'User updated successfully' });
+    res.status(200).json({ message: 'ユーザーデータの更新に成功' });
   } catch (error) {
-    logger.error('Error updating user:', error as Error);
-    res.status(500).json({ message: 'Internal server error' });
+    logger.error('ユーザーデータの更新に失敗:', error as Error);
+    res.status(500).json({ message: '内部サーバーエラー' });
   }
 });
 
@@ -96,19 +96,19 @@ router.put('/:id', async (req: Request, res: Response) => {
 router.delete('/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   if (isNaN(Number(id))) {
-    return res.status(400).json({ message: 'ID must be a number' });
+    return res.status(400).json({ message: 'IDは整数8桁である必要があります。' });
   }
 
   try {
     const [result] = await pool.execute('DELETE FROM users WHERE id = ?', [id]);
 
     if ((result as ResultSetHeader).affectedRows === 0) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'ユーザーが見つかりませんでした。' });
     }
-    res.status(200).json({ message: 'User deleted successfully' });
+    res.status(200).json({ message: 'ユーザーの削除に成功' });
   } catch (error) {
-    logger.error('Error deleting user:', error as Error);
-    res.status(500).json({ message: 'Internal server error' });
+    logger.error('ユーザーの削除に失敗:', error as Error);
+    res.status(500).json({ message: '内部サーバーエラー' });
   }
 });
 
@@ -116,7 +116,7 @@ router.post('/bulk', async (req: Request, res: Response) => {
   const { users } = req.body;
 
   if (!Array.isArray(users)) {
-    return res.status(400).json({ message: 'Request body must be an array of users' });
+    return res.status(400).json({ message: '与えられるデータはユーザーの配列である必要があります。' });
   }
 
   const results = [];
@@ -127,13 +127,13 @@ router.post('/bulk', async (req: Request, res: Response) => {
     const { id, password, is_admin, is_teacher } = user;
 
     if (!id || !password) {
-      results.push({ id, status: 'error', message: 'ID and password are required' });
+      results.push({ id, status: 'error', message: 'IDとパスワードが必要です。' });
       errorCount++;
       continue;
     }
 
     if (isNaN(Number(id))) {
-      results.push({ id, status: 'error', message: 'ID must be a number' });
+      results.push({ id, status: 'error', message: 'IDは整数8桁である必要があります。' });
       errorCount++;
       continue;
     }
@@ -141,7 +141,7 @@ router.post('/bulk', async (req: Request, res: Response) => {
     try {
       const [existingUsers] = await pool.execute<RowDataPacket[]>('SELECT id FROM users WHERE id = ?', [id]);
       if (existingUsers.length > 0) {
-        results.push({ id, status: 'error', message: 'User with this ID already exists' });
+        results.push({ id, status: 'error', message: 'このIDはすでに存在しています。' });
         errorCount++;
         continue;
       }
@@ -152,14 +152,14 @@ router.post('/bulk', async (req: Request, res: Response) => {
       results.push({ id, status: 'success' });
       successCount++;
     } catch (error) {
-      logger.error(`Error adding user with id ${id}:`, error as Error);
-      results.push({ id, status: 'error', message: 'Internal server error' });
+      logger.error(`ユーザーID ${id} の追加に失敗:`, error as Error);
+      results.push({ id, status: 'error', message: '内部サーバーエラー' });
       errorCount++;
     }
   }
 
   res.status(207).json({
-    message: `Bulk operation completed. Success: ${successCount}, Error: ${errorCount}`,
+    message: `ユーザー配列データの追加に成功。成功件数: ${successCount} 失敗件数: ${errorCount}`,
     results
   });
 });

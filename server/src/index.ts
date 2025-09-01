@@ -34,14 +34,12 @@ import { initializeDatabase, pool } from './db';
 // Initialize the database and tables
 initializeDatabase()
   .then(() => {
-    logger.log('Database initialization complete.');
+    logger.log('データベースの初期化が完了。');
   })
   .catch((error) => {
-    logger.error('Failed to initialize database:', error);
+    logger.error('データベースの初期化に失敗:', error);
     process.exit(1);
   });
-
-// --- 再利用可能な関数 --- //
 
 /**
  * 指定したユーザーに通知を送信する一般化された関数
@@ -56,13 +54,13 @@ async function sendNotification(userId: string, title: string, body: string): Pr
     const [rows] = await pool.execute<RowDataPacket[]>('SELECT token FROM fcm_tokens WHERE user_id = ?', [userId]);
 
     if (rows.length === 0) {
-      logger.log(`No token found for user ${userId} in database.`);
+      logger.log(`ユーザー「${userId}」のトークンがデータベースに存在しません。`);
       return false;
     }
 
     const token = rows[0].token;
     if (!token) {
-      logger.log(`Token data is invalid for user ${userId}.`);
+      logger.log(`ユーザー「${userId}」のトークンが無効です。`);
       return false;
     }
 
@@ -86,84 +84,76 @@ async function sendNotification(userId: string, title: string, body: string): Pr
       }
     };
 
-    // メッセージを送信
     await admin.messaging().send(message);
-    logger.log(`Notification sent to user ${userId} was successful.`);
+    logger.log(`ユーザー「${userId}」への通知送信に成功。`);
     return true;
   } catch (error) {
-    logger.error(`Error sending message to user ${userId}:`, error as Error);
+    logger.error(`ユーザー「${userId}」への通知送信に失敗:`, error as Error);
 
-    // もしトークンが無効なら、データベースから削除する (自己修復)
     if ((error as admin.FirebaseError).code === 'messaging/registration-token-not-registered') {
-      logger.log(`Invalid token for user ${userId}. Deleting from database.`);
+      logger.log(`ユーザー「${userId}」のトークンが無効だったので、データベースから削除しました。`);
       await pool.execute('DELETE FROM fcm_tokens WHERE user_id = ?', [userId]);
     }
     return false;
   }
 }
 
-// --- APIエンドポイント --- //
-
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello from Shiori Firebase Messaging Server!');
 });
 
-/**
- * ユーザーのFCMトークンをデータベースに登録するエンドポイント
- */
 app.post('/register-token', async (req: Request, res: Response) => {
   const { userId, token } = req.body;
-  logger.log(`Received token registration request for userId: ${userId}`);
+  logger.log(`ユーザー「${userId}」からのトークン登録リクエストを受信。`);
 
   if (!userId || !token) {
-    logger.log(`Missing userId or token in registration request.`);
-    return res.status(400).send({ error: 'userId and token are required' });
+    logger.log(`登録リクエストにuserIdまたはtokenが含まれていません。`);
+    return res.status(400).send({ error: '「userId」と「token」の両方が必要です。' });
   }
 
   try {
     await pool.execute('INSERT INTO fcm_tokens (user_id, token) VALUES (?, ?) ON DUPLICATE KEY UPDATE token = VALUES(token)', [userId, token]);
-    logger.log(`Token for userId: ${userId} registered successfully.`);
-    res.status(200).send({ message: 'Token registered successfully in database' });
+    logger.log(`ユーザー「${userId}」へのトークンの登録に成功。`);
+    res.status(200).send({ message: 'データベースにトークンを登録しました。' });
   } catch (error) {
-    logger.error(`Error saving token to database for userId: ${userId}:`, error as Error);
-    res.status(500).send({ error: 'Failed to save token' });
+    logger.error(`ユーザー「${userId}」へのトークンの登録に失敗:`, error as Error);
+    res.status(500).send({ error: 'トークンの登録に失敗しました。' });
   }
 });
 
-/**
- * 特定のユーザーに通知を送信するエンドポイント
- */
 app.post('/send-notification', async (req: Request, res: Response) => {
   const { userId, title, body } = req.body;
 
   if (!userId || !title || !body) {
-    return res.status(400).send({ error: 'userId, title, and body are required' });
+    return res.status(400).send({ error: '「userId」、「title」と「body」のすべてが必要です。' });
   }
 
   const success = await sendNotification(userId, title, body);
 
   if (success) {
-    res.status(200).send({ message: 'Notification sent successfully' });
+    res.status(200).send({ message: '通知の送信に成功しました。' });
   } else {
-    res.status(404).send({ error: `Failed to send notification. Token for userId ${userId} not found or invalid.` });
+    res.status(404).send({ error: `通知の送信に失敗しました。ユーザー「${userId}」のトークンが無効か、存在しません。` });
   }
 });
 
-import * as readline from 'readline'; // readline モジュールをインポート
-import bcrypt from 'bcrypt'; // bcrypt をインポート
+import * as readline from 'readline';
+import bcrypt from 'bcrypt';
 
 app.listen(port, () => {
-  logger.log(`Server is running at http://localhost:${port}`);
-  logger.log('コンソールコマンドを入力してください (例: createuser <id> <password> [--admin] [--teacher])');
+  logger.log(`「http://localhost:${port}」でサーバーが起動中。`);
+  logger.log('コンソールコマンド入力可能');
+  logger.log('createuser <id> <password> [--admin] [--teacher]');
+  logger.log('deleteuser <id>');
 
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
-    terminal: false // ターミナルモードを無効にする (行単位の入力のため)
+    terminal: false
   });
 
   rl.on('line', async (line) => {
-    const parts = line.trim().split(/\s+/); // スペースで分割
+    const parts = line.trim().split(/\s+/);
     const command = parts[0].toLowerCase();
 
     if (command === 'createuser') {
