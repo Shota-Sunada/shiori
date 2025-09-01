@@ -307,7 +307,7 @@ const OtanoshimiAdmin = () => {
                 <td className="bg-white sticky-col">
                   <div className="flex flex-row items-center justify-center">
                     {editingIndex === index ? (
-                      <button className="p-1 cursor-pointer mx-1 text-green-600 hover:text-green-800" onClick={() => setEditingIndex(null)} title="完了">
+                      <button className="p-1 cursor-pointer mx-1 text-green-600 hover:text-green-800" onClick={handleSave} title="完了">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
@@ -336,9 +336,6 @@ const OtanoshimiAdmin = () => {
         </table>
       </div>
       <div className="flex items-center my-[10px]">
-        <button onClick={handleSave} className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white">
-          {'全体を保存'}
-        </button>
         <button onClick={handleAddNewTeam} className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white">
           {'新規追加'}
         </button>
