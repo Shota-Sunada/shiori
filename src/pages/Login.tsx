@@ -4,9 +4,12 @@ import Button from '../components/Button';
 import '../styles/login.css';
 import { useAuth } from '../auth-context';
 import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
-import { SERVER_ENDPOINT } from '../app';
+import { SERVER_ENDPOINT } from '../App';
 
 const Login = () => {
+  const USER_ID_MIN = 20200000;
+  const USER_ID_MAX = 20219008;
+
   const { user, loading, login } = useAuth(); // Destructure login from useAuth
   const navigate = useNavigate();
   const student_id_ref = useRef<HTMLInputElement>(null);
@@ -22,7 +25,7 @@ const Login = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    const id = student_id_ref.current?.value; // Use student_id as id
+    const id = student_id_ref.current?.valueAsNumber;
     const password = password_ref.current?.value;
 
     if (!id || !password) {
@@ -30,34 +33,32 @@ const Login = () => {
       return;
     }
 
-    // 生徒IDが8桁でない場合はエラーを表示して処理を中断
-    if (id.length !== 8) {
-      alert('生徒IDは8桁で入力してください。');
+    if (id >= USER_ID_MIN && id <= USER_ID_MAX) {
+      alert('生徒IDは8桁で正しく入力してください。');
       return;
     }
 
     try {
       const response = await fetch(`${SERVER_ENDPOINT}/api/auth/login`, {
-        // Assuming backend runs on 8080
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ id: Number(id), password }) // id を数値に変換して送信
+        body: JSON.stringify({ id: Number(id), password })
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        login(data.token); // Use the login function from auth-context
+        login(data.token);
         console.log('ログインに成功しました。');
       } else {
         alert(`ログインに失敗しました。\nユーザー名またはパスワードが正しくありません。`);
-        console.error('Login failed:', data.message);
+        console.error('ログインに失敗:', data.message);
       }
     } catch (error) {
       alert('ログイン中にエラーが発生しました。ネットワーク接続を確認してください。');
-      console.error('Error during login:', error);
+      console.error('ログイン中にエラー:', error);
     }
   };
 

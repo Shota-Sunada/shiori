@@ -56,13 +56,13 @@ const Otanoshimi = () => {
       <div className="flex flex-col items-center justify-center mt-[20dvh]">
         <p>{'STAFF'}</p>
         <div className="flex flex-row">
-          <p className="m-2">{'学年主任 町 一誠'}</p>
+          <p className="m-2">{'町 一誠'}</p>
         </div>
         <div className="flex flex-row">
-          <p className="m-2">{'1組 砂田'}</p>
-          <p className="m-2">{'1組 野間'}</p>
-          <p className="m-2">{'2組 藤岡'}</p>
-          <p className="m-2">{'5組 藤村'}</p>
+          <p className="m-2">{'砂田 翔太'}</p>
+          <p className="m-2">{'野間 大生樹'}</p>
+          <p className="m-2">{'藤岡 大颯'}</p>
+          <p className="m-2">{'藤村 英輝'}</p>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { SERVER_ENDPOINT } from '../app';
+import { SERVER_ENDPOINT } from '../App';
 
 interface NotificationPayload {
   userId: string;

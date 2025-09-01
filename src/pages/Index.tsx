@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
-
 import type { student } from '../data/students';
 import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4 } from '../data/courses';
 import '../styles/index-table.css';
 import { DAY4_DATA, DAY4_TEACHERS } from '../data/day4';
-
-import { SERVER_ENDPOINT } from '../app'; // SERVER_ENDPOINT をインポート
+import { SERVER_ENDPOINT } from '../App';
 
 const Index = (props: { isTeacher: boolean }) => {
   const { user, loading } = useAuth();
@@ -23,18 +21,18 @@ const Index = (props: { isTeacher: boolean }) => {
           const response = await fetch(`${SERVER_ENDPOINT}/api/students/${user.userId}`);
           if (!response.ok) {
             if (response.status === 404) {
-              console.warn(`Student data for ID ${user.userId} not found.`);
-              setStudentData(null); // データが見つからない場合はnullに設定
+              console.warn(`生徒ID「${user.userId}」のデータが見つかりませんでした。`);
+              setStudentData(null);
             } else {
-              throw new Error(`HTTP error! status: ${response.status}`);
+              throw new Error(`HTTPエラー! ステータス: ${response.status}`);
             }
           } else {
             const data: student = await response.json();
             setStudentData(data);
           }
         } catch (error) {
-          console.error('Error fetching student data:', error);
-          setStudentData(null); // エラー発生時はnullに設定
+          console.error('生徒データの取得に失敗:', error);
+          setStudentData(null);
         }
       } else {
         setStudentData(null);

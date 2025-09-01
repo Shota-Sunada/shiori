@@ -1,10 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 import { useRequireAuth } from '../auth-context';
-import '../styles/admin-table.css'; // Admin.tsx と同じスタイルを再利用
-import { SERVER_ENDPOINT } from '../app';
+import '../styles/admin-table.css';
+import { SERVER_ENDPOINT } from '../App';
 
-// ユーザーデータ型
 interface User {
   id: number;
   is_admin: boolean;
@@ -54,10 +53,10 @@ const initialForm = {
 };
 
 const UserAdmin = () => {
-  const { user, loading } = useRequireAuth(); // 認証チェック
+  const { user, loading } = useRequireAuth();
   const [usersList, setUsersList] = useState<User[] | null>(null);
-  const [editRowId, setEditRowId] = useState<number | null>(null); // 編集中の行ID
-  const [editRowForm, setEditRowForm] = useState<typeof initialForm>(initialForm); // 編集用フォーム
+  const [editRowId, setEditRowId] = useState<number | null>(null);
+  const [editRowForm, setEditRowForm] = useState<typeof initialForm>(initialForm);
   const [status, setStatus] = useState<string>('');
   const [modalMode, setModalMode] = useState<'add' | 'edit' | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -67,17 +66,16 @@ const UserAdmin = () => {
 
   const [sortConfigs, setSortConfigs] = useState<SortConfig[]>([{ key: 'id', direction: 'asc' }]);
 
-  // APIからユーザーデータを取得
   const fetchUsers = async () => {
     try {
       const response = await fetch(`${SERVER_ENDPOINT}/api/users`);
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
       }
       const data: User[] = await response.json();
       setUsersList(data);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('ユーザーの取得に失敗:', error);
       setStatus('ユーザーデータの取得に失敗しました。');
     }
   };
@@ -122,7 +120,6 @@ const UserAdmin = () => {
 
   useEffect(() => {
     if (!loading && user) {
-      // 認証済みの場合のみデータを取得
       fetchUsers();
     }
   }, [user, loading]);
@@ -131,7 +128,7 @@ const UserAdmin = () => {
     setEditRowId(u.id);
     setEditRowForm({
       id: String(u.id),
-      password: '', // パスワードは編集時に再入力させる
+      password: '',
       is_admin: u.is_admin,
       is_teacher: u.is_teacher
     });
@@ -139,7 +136,6 @@ const UserAdmin = () => {
     setModalMode('edit');
   };
 
-  // 削除処理
   const handleDelete = async (id: number) => {
     if (!window.confirm('本当に削除しますか？')) return;
     setStatus('削除中...');
@@ -148,7 +144,7 @@ const UserAdmin = () => {
         method: 'DELETE'
       });
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
       }
       setStatus('ユーザーを削除しました。');
       fetchUsers();
@@ -157,7 +153,6 @@ const UserAdmin = () => {
     }
   };
 
-  // 新規追加
   const handleAddRow = () => {
     setModalMode('add');
     setEditRowForm(initialForm);
@@ -186,7 +181,7 @@ const UserAdmin = () => {
           });
           const result = await response.json();
           if (!response.ok && response.status !== 207) {
-            throw new Error(result.message || `HTTP error! status: ${response.status}`);
+            throw new Error(result.message || `HTTPエラー! ステータス: ${response.status}`);
           }
           setStatus(result.message);
         } catch (e) {
@@ -218,7 +213,7 @@ const UserAdmin = () => {
         });
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+          throw new Error(errorData.message || `HTTPエラー! ステータス: ${response.status}`);
         }
         setStatus('ユーザーを追加しました。');
         setModalMode(null);
@@ -247,7 +242,7 @@ const UserAdmin = () => {
         });
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+          throw new Error(errorData.message || `HTTPエラー! ステータス: ${response.status}`);
         }
         setStatus('ユーザーを更新しました。');
         setModalMode(null);
@@ -406,7 +401,7 @@ const UserAdmin = () => {
                 }}>
                 <div className="mb-4">
                   <label htmlFor="id" className="block text-gray-700 text-sm font-bold mb-2">
-                    ユーザーID
+                    {'ユーザーID'}
                   </label>
                   <input
                     type="number"
@@ -421,7 +416,8 @@ const UserAdmin = () => {
                 </div>
                 <div className="mb-4">
                   <label htmlFor="password" className="block text-gray-700 text-sm font-bold mb-2">
-                    パスワード {modalMode === 'edit' && '(変更する場合のみ入力)'}
+                    {'パスワード '}
+                    {modalMode === 'edit' && '(変更する場合のみ入力)'}
                   </label>
                   <div className="relative">
                     <input
@@ -441,13 +437,13 @@ const UserAdmin = () => {
                 <div className="mb-4">
                   <label className="block text-gray-700 text-sm font-bold mb-2">
                     <input type="checkbox" checked={editRowForm.is_admin} onChange={(e) => setEditRowForm({ ...editRowForm, is_admin: e.target.checked })} className="mr-2 leading-tight" />
-                    管理者
+                    {"管理者"}
                   </label>
                 </div>
                 <div className="mb-4">
                   <label className="block text-gray-700 text-sm font-bold mb-2">
                     <input type="checkbox" checked={editRowForm.is_teacher} onChange={(e) => setEditRowForm({ ...editRowForm, is_teacher: e.target.checked })} className="mr-2 leading-tight" />
-                    教員
+                    {"教員"}
                   </label>
                 </div>
                 <div className="flex items-center justify-between">
@@ -455,7 +451,7 @@ const UserAdmin = () => {
                     {modalMode === 'add' ? '追加' : '更新'}
                   </button>
                   <button type="button" onClick={() => setModalMode(null)} className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                    キャンセル
+                    {"キャンセル"}
                   </button>
                 </div>
               </form>

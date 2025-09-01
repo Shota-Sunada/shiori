@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode, useCallback } from 'react';
 import React from 'react';
 import { jwtDecode } from 'jwt-decode';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthUser {
   userId: string;
@@ -32,8 +33,6 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
-import { useNavigate } from 'react-router-dom'; // 追加
-
 export const useRequireAuth = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -57,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const decoded = jwtDecode<JwtPayload>(token);
       setUser({ userId: decoded.userId, is_admin: decoded.is_admin, is_teacher: decoded.is_teacher });
     } catch (error) {
-      console.error('Error decoding JWT:', error);
+      console.error('JWTのデコードに失敗:', error);
       setUser(null);
     }
   }, []);
@@ -72,15 +71,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (token) {
       try {
         const decoded = jwtDecode<JwtPayload>(token);
-        // Check if token is expired
         if (decoded.exp && decoded.exp * 1000 < Date.now()) {
-          logout(); // Token expired, log out
+          logout();
         } else {
           setUser({ userId: decoded.userId, is_admin: decoded.is_admin, is_teacher: decoded.is_teacher });
         }
       } catch (error) {
-        console.error('Error decoding JWT from localStorage:', error);
-        logout(); // Invalid token, log out
+        console.error('localStorageのJWTのデコードに失敗:', error);
+        logout();
       }
     }
     setLoading(false);

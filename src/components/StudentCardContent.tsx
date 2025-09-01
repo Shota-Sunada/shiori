@@ -1,11 +1,11 @@
-import React from 'react';
+import { type FC } from 'react';
 import type { student } from '../data/students';
 
 interface StudentCardContentProps {
   student: student;
 }
 
-const StudentCardContent: React.FC<StudentCardContentProps> = ({ student }) => {
+const StudentCardContent: FC<StudentCardContentProps> = ({ student }) => {
   return (
     <div className="flex items-center justify-center w-full">
       <div className="basis-[10%]">{`${student.class}組`}</div>

@@ -121,9 +121,6 @@ const StudentModal = ({
           </div>
         </div>
         <div className="flex flex-row items-center justify-center mt-4">
-          {/* <button className="cursor-pointer m-2 bg-blue-400 text-white rounded-2xl p-2 min-w-[5dvw]" onClick={handleSave}>
-            {'保存'}
-          </button> */}
           <Button text="保存" onClick={handleSave} arrow />
           <Button text="キャンセル" onClick={handleCancel} arrow={false} />
         </div>

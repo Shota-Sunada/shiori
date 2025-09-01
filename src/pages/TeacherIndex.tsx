@@ -7,25 +7,22 @@ import '../styles/index-table.css';
 import { DAY4_DATA, DAY4_TEACHERS } from '../data/day4';
 import KanaSearchModal from '../components/KanaSearchModal';
 import { sendNotification } from '../lib/notifications';
-import { SERVER_ENDPOINT } from '../app';
+import { SERVER_ENDPOINT } from '../App';
 
 const TeacherIndex = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  // State
   const [allStudents, setAllStudents] = useState<student[]>([]);
   const [filteredBySurnameKana, setFilteredBySurnameKana] = useState<student[]>([]);
   const [filteredByForenameKana, setFilteredByForenameKana] = useState<student[]>([]);
   const [studentData, setStudentData] = useState<student | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedKana, setSelectedKana] = useState('');
   const [isKanaSearchVisible, setKanaSearchVisible] = useState(false);
-  const [specificStudentId, setSpecificStudentId] = useState(''); // For specific student call
+  const [specificStudentId, setSpecificStudentId] = useState('');
 
   const teacher_name_ref = useRef<HTMLInputElement>(null);
 
-  // Effects
   useEffect(() => {
     if (!loading && !user) {
       navigate('/login');
@@ -37,10 +34,9 @@ const TeacherIndex = () => {
       try {
         const response = await fetch(`${SERVER_ENDPOINT}/api/students`);
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`HTTPエラー! ステータス: ${response.status}`);
         }
         const students = await response.json();
-        // sort by gakuseki
         students.sort((a: student, b: student) => {
           if (a.gakuseki < b.gakuseki) {
             return -1;
@@ -52,15 +48,13 @@ const TeacherIndex = () => {
         });
         setAllStudents(students);
       } catch (error) {
-        console.error('Failed to fetch students:', error);
-        // Optionally, set an error state to show in the UI
+        console.error('生徒データの取得に失敗:', error);
       }
     };
     fetchAllStudents();
   }, []);
 
   useEffect(() => {
-    // Kana search
     if (selectedKana) {
       const surnameMatches = allStudents.filter((s) => s.surname_kana.startsWith(selectedKana));
       const forenameMatches = allStudents.filter((s) => s.forename_kana.startsWith(selectedKana));
@@ -70,15 +64,13 @@ const TeacherIndex = () => {
       setFilteredBySurnameKana([]);
       setFilteredByForenameKana([]);
     }
-  }, [searchTerm, selectedKana, allStudents]);
+  }, [selectedKana, allStudents]);
 
-  // Handlers
   const handleKanaSelect = (kana: string) => {
     if (selectedKana === kana) {
-      setSelectedKana(''); // Toggle off
+      setSelectedKana('');
     } else {
       setSelectedKana(kana);
-      setSearchTerm(''); // Clear text search
     }
   };
 
@@ -116,7 +108,6 @@ const TeacherIndex = () => {
     }
   };
 
-  // Render
   if (loading || !user) {
     return (
       <div className="flex flex-col items-center justify-center h-[80dvh]">

@@ -40,7 +40,6 @@ const KanaSearchModal: React.FC<KanaSearchModalProps> = ({ isOpen, onClose, onKa
       html.classList.remove('modal-open');
     }
 
-    // Reset search when modal is closed
     if (!isOpen) {
       setShowResults(false);
       onKanaSelect('');

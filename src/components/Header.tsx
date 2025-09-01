@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { registerFCMToken } from '../firebase';
 
-// ハンバーガーアイコン
 const HamburgerIcon = ({ open }: { open: boolean }) => (
   <div className="flex flex-col justify-center items-center w-8 h-8 cursor-pointer">
     <span className={`block h-1 w-6 bg-white rounded transition-all duration-200 ${open ? 'rotate-45 translate-y-2' : ''}`}></span>
@@ -134,7 +133,6 @@ const Header = (props: { isTeacher: boolean }) => {
           </div>
         )}
       </div>
-      {/* モーダルはApp.tsxで表示 */}
     </div>
   );
 };
