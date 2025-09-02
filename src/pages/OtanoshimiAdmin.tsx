@@ -243,7 +243,7 @@ const OtanoshimiAdmin = () => {
                             }}
                             className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer"
                             title="リーダーを追加">
-                            {"+"}
+                            {'+'}
                           </button>
                         )}
                       </div>
@@ -260,7 +260,7 @@ const OtanoshimiAdmin = () => {
                           }}
                           className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer"
                           title="メンバーを追加">
-                          {"+"}
+                          {'+'}
                         </button>
                       </div>
                     </td>
@@ -321,12 +321,7 @@ const OtanoshimiAdmin = () => {
           {status}
         </p>
       </div>
-      <KanaSearchModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        allStudents={allStudents}
-        onStudentSelect={handleStudentSelect}
-      />
+      <KanaSearchModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} allStudents={allStudents} onStudentSelect={handleStudentSelect} />
     </div>
   );
 };
