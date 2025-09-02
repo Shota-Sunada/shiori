@@ -155,7 +155,7 @@ const TeacherIndex = () => {
             </div>
             <div className="flex items-center justify-center">
               <button type="submit" className="p-2 px-4 text-white bg-blue-500 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline cursor-pointer">
-                {'呼び出し'}
+                {'点呼開始'}
               </button>
             </div>
           </form>
