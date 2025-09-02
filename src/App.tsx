@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth-context';
 import Index from './pages/Index';
 import Login from './pages/Login';
@@ -19,7 +19,8 @@ import OtanoshimiPreview from './pages/OtanoshimiPreview';
 
 export const SERVER_ENDPOINT = 'https://api.shiori.shudo-physics.com';
 
-const AdminOrTeacherRoute = ({ children }: { children: ReactNode }) => {
+// ログイン状態をチェックし、未ログインならログインページにリダイレクトするコンポーネント
+const ProtectedRoute = () => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -29,6 +30,17 @@ const AdminOrTeacherRoute = ({ children }: { children: ReactNode }) => {
       </div>
     );
   }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Outlet />;
+};
+
+// 管理者または教員かどうかをチェックするコンポーネント
+const AdminOrTeacherRoute = ({ children }: { children: ReactNode }) => {
+  const { user } = useAuth();
 
   if (user && (user.is_admin || user.is_teacher)) {
     return <>{children}</>;
@@ -44,11 +56,10 @@ const AdminOrTeacherRoute = ({ children }: { children: ReactNode }) => {
 function App() {
   const { user } = useAuth();
 
-  // Effect 1: Register SW and set up foreground listener (runs once)
+  // Firebase Cloud Messaging の設定
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       const swUrl = `/firebase-messaging-sw.js`;
-
       navigator.serviceWorker
         .register(swUrl)
         .then((registration) => {
@@ -66,14 +77,13 @@ function App() {
         if (type === 'default_notification') {
           alert(`[In-App Notification] ${originalTitle || 'New Message'}: ${originalBody || ''}`);
         }
-        // Add more conditions here for different types of notifications
       }
     });
 
     return () => unsubscribe();
-  }, []); // Runs once
+  }, []);
 
-  // Effect 2: Register token when user logs in
+  // ユーザーがログインしたらFCMトークンを登録
   useEffect(() => {
     if (user && user.userId) {
       if ('serviceWorker' in navigator) {
@@ -86,51 +96,63 @@ function App() {
   }, [user]);
 
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <div className="grid grid-rows-[auto_1fr_auto] bg-[#f7f4e5] min-h-[100dvh]">
-          <Header />
-          <main>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route
-                path="/admin"
-                element={
-                  <AdminOrTeacherRoute>
-                    <Admin />
-                  </AdminOrTeacherRoute>
-                }
-              />
-              <Route
-                path="/user-admin"
-                element={
-                  <AdminOrTeacherRoute>
-                    <UserAdmin />
-                  </AdminOrTeacherRoute>
-                }
-              />
-              <Route path="/otanoshimi" element={<Otanoshimi />} />
-              <Route path="/otanoshimi-preview/:order" element={<OtanoshimiPreview />} />
-              <Route path="/teacher-index" element={<TeacherIndex />} />
-              <Route path="/call" element={<Call />} />
-              <Route path="/teacher-call" element={<TeacherCall />} />
-              <Route
-                path="/otanoshimi-admin"
-                element={
-                  <AdminOrTeacherRoute>
-                    <OtanoshimiAdmin />
-                  </AdminOrTeacherRoute>
-                }
-              />
-              <Route path="*" element={<Page404 />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
-      </BrowserRouter>
-    </AuthProvider>
+    <div className="grid grid-rows-[auto_1fr_auto] bg-[#f7f4e5] min-h-[100dvh]">
+      <Header />
+      <main>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Index />} />
+          <Route path="/otanoshimi" element={<Otanoshimi />} />
+          <Route path="/otanoshimi-preview/:order" element={<OtanoshimiPreview />} />
+
+          {/* Protected Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/teacher-index" element={<TeacherIndex />} />
+            <Route path="/call" element={<Call />} />
+            <Route path="/teacher-call" element={<TeacherCall />} />
+            <Route
+              path="/admin"
+              element={
+                <AdminOrTeacherRoute>
+                  <Admin />
+                </AdminOrTeacherRoute>
+              }
+            />
+            <Route
+              path="/user-admin"
+              element={
+                <AdminOrTeacherRoute>
+                  <UserAdmin />
+                </AdminOrTeacherRoute>
+              }
+            />
+            <Route
+              path="/otanoshimi-admin"
+              element={
+                <AdminOrTeacherRoute>
+                  <OtanoshimiAdmin />
+                </AdminOrTeacherRoute>
+              }
+            />
+          </Route>
+
+          {/* 404 Not Found */}
+          <Route path="*" element={<Page404 />} />
+        </Routes>
+      </main>
+      <Footer />
+    </div>
   );
 }
 
-export default App;
+// Appをプロバイダーでラップする
+const AppWrapper = () => (
+  <BrowserRouter>
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  </BrowserRouter>
+);
+
+export default AppWrapper;
