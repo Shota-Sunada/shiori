@@ -3,8 +3,12 @@ import type { OtanoshimiData } from '../data/otanoshimi';
 import { SERVER_ENDPOINT } from '../App';
 import OtanoshimiCard from '../components/OtanoshimiCard';
 
+interface OtanoshimiDataWithSchedule extends OtanoshimiData {
+  schedule: string;
+}
+
 const Otanoshimi = () => {
-  const [teams, setTeams] = useState<OtanoshimiData[]>([]);
+  const [teams, setTeams] = useState<OtanoshimiDataWithSchedule[]>([]);
 
   const fetchTeams = async () => {
     try {
@@ -18,7 +22,23 @@ const Otanoshimi = () => {
         custom_performers: team.custom_performers || [],
         enmoku: team.enmoku || ''
       }));
-      setTeams(teamsWithDefaults);
+      teamsWithDefaults.sort((a, b) => a.appearance_order - b.appearance_order);
+
+      const scheduleStartTime = new Date();
+      scheduleStartTime.setHours(19, 0, 0, 0);
+      let currentTime = scheduleStartTime.getTime();
+
+      const formatTime = (date: Date) => `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+
+      const teamsWithSchedule = teamsWithDefaults.map((team) => {
+        const startTime = new Date(currentTime);
+        const endTime = new Date(currentTime + team.time * 60000);
+        const schedule = `${formatTime(startTime)} - ${formatTime(endTime)}`;
+        currentTime = endTime.getTime() + 60000;
+        return { ...team, schedule };
+      });
+
+      setTeams(teamsWithSchedule);
     } catch (error) {
       console.error('チームデータの取得に失敗:', error);
     }
@@ -36,37 +56,49 @@ const Otanoshimi = () => {
       <div className="mt-[3dvh]">
         <h2 className="text-xl text-center">{'出演団体一覧'}</h2>
         <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
-          {teams
-            .sort((a,b) => a.appearance_order - b.appearance_order)
-            .map((x) => (
-              <OtanoshimiCard name={x.name} key={x.appearance_order}></OtanoshimiCard>
-            ))}
+          {teams.map((x) => (
+            <OtanoshimiCard name={x.name} key={x.appearance_order}></OtanoshimiCard>
+          ))}
         </div>
       </div>
 
       <div className="flex flex-col items-center justify-center mt-[3dvh]">
-        <h2 className="text-xl text-center">{'タイムテーブル'}</h2>
+        <h2 className="text-xl text-center">{'当日のスケジュール'}</h2>
         <section id="table">
           <table className="index-table">
             <thead>
               <tr>
                 <th>{'時間'}</th>
+                <th>{'演目'}</th>
                 <th>{'内容'}</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>{'17:00 - 18:00'}</td>
-                <td>{'リハーサル'}</td>
+                <td className="text-center">{'17:00 - 18:00'}</td>
+                <td colSpan={2} className="text-center">
+                  {'お楽しみ会 リハーサル'}
+                </td>
               </tr>
               <tr>
-                <td>{'18:00 - 19:00'}</td>
-                <td>{'夕食'}</td>
+                <td className="text-center">{'18:00 - 19:00'}</td>
+                <td colSpan={2} className="text-center">
+                  {'～ 夕食 ～'}
+                </td>
               </tr>
               <tr>
-                <td>{'19:00 - 21:30 (予定)'}</td>
-                <td className="font-bold">{'お楽しみ会'}</td>
+                <td className="text-center">{'19:00 開始予定'}</td>
+                <td colSpan={2} className="font-bold text-center">
+                  {'お楽しみ会 START'}
+                </td>
               </tr>
+              {teams.map((x) => (
+                <tr key={x.appearance_order}>
+                  <td className="text-center">{x.schedule}</td>
+                  <td className="text-center">{x.enmoku}</td>
+                  <td className="text-center" >{x.name}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </section>
