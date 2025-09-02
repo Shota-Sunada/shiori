@@ -14,7 +14,7 @@ import TeacherCall from './pages/TeacherCall';
 import Call from './pages/Call';
 import OtanoshimiAdmin from './pages/OtanoshimiAdmin';
 import { onMessage } from 'firebase/messaging';
-import { messaging, registerFCMToken } from './firebase';
+import { messaging } from './firebase';
 import OtanoshimiPreview from './pages/OtanoshimiPreview';
 import NonNotification from './pages/NonNotification';
 
@@ -103,8 +103,6 @@ const AdminOrTeacherRoute = ({ children }: { children: ReactNode }) => {
 };
 
 function App() {
-  const { user } = useAuth();
-
   // Firebase Cloud Messaging の設定
   useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -123,17 +121,6 @@ function App() {
 
     return () => unsubscribe();
   }, []);
-
-  // ユーザーがログインしたらFCMトークンを登録
-  useEffect(() => {
-    if (user?.userId && Notification.permission === 'granted') {
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then((registration) => {
-          registerFCMToken(user.userId, registration);
-        });
-      }
-    }
-  }, [user]);
 
   return (
     <div className="grid grid-rows-[auto_1fr_auto] bg-[#f7f4e5] min-h-[100dvh]">

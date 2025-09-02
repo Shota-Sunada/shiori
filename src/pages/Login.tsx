@@ -2,9 +2,11 @@ import { useRef, type FormEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
 import '../styles/login.css';
-import { useAuth } from '../auth-context';
+import { useAuth, type AuthUser } from '../auth-context';
 import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 import { SERVER_ENDPOINT } from '../App';
+import { registerOrRequestPermission } from '../helpers/notifications';
+import { jwtDecode } from 'jwt-decode';
 
 const Login = () => {
   const USER_ID_MIN = 20200000;
@@ -52,8 +54,11 @@ const Login = () => {
       if (response.ok) {
         login(data.token);
         console.log('ログインに成功しました。');
+        const decoded = jwtDecode<AuthUser>(data.token);
+        await registerOrRequestPermission(decoded);
+        navigate('/');
       } else {
-        alert(`ログインに失敗しました。\nユーザー名またはパスワードが正しくありません。`);
+        alert(`ログインに失敗しました.\nユーザー名またはパスワードが正しくありません。`);
         console.error('ログインに失敗:', data.message);
       }
     } catch (error) {
@@ -68,7 +73,7 @@ const Login = () => {
     <div className="flex flex-col items-center justify-center">
       <form className="w-[100%] flex flex-col items-center justify-center mt-8" onSubmit={handleSubmit}>
         <img
-          onClick={() => window.open('https://gakugai.shudo-h.ed.jp', '_blank')}
+          onClick={() => window.open('https://gakugai.shudo-h.ed.jp', '_blank', 'noreferrer')}
           className="bg-[#50141c] p-4 rounded-[10px] cursor-pointer"
           src="https://gakugai.shudo-h.ed.jp/hp_assets/images/common/menu_logo.png"
           alt="修道ロゴ"

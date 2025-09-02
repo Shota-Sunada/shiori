@@ -53,3 +53,30 @@ export const handleEnableNotifications = async (user: AuthUser | null) => {
     alert('通知が拒否されました。');
   }
 };
+
+export const registerOrRequestPermission = async (user: AuthUser | null) => {
+  if (!('Notification' in window)) {
+    console.log('このブラウザは通知をサポートしていません。');
+    return;
+  }
+
+  let permission = Notification.permission;
+
+  if (permission === 'default') {
+    permission = await Notification.requestPermission();
+  }
+
+  if (permission === 'granted') {
+    if (user && user.userId) {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then((registration) => {
+          registerFCMToken(user.userId, registration);
+        });
+      }
+    } else {
+      console.log('ユーザーがログインしていません。');
+    }
+  } else {
+    console.log('通知が許可されていません。');
+  }
+};
