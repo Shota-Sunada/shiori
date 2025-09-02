@@ -15,6 +15,7 @@ import Call from './pages/Call';
 import OtanoshimiAdmin from './pages/OtanoshimiAdmin';
 import { onMessage } from 'firebase/messaging';
 import { messaging, registerFCMToken } from './firebase';
+import OtanoshimiPreview from './pages/OtanoshimiPreview';
 
 export const SERVER_ENDPOINT = 'https://api.shiori.shudo-physics.com';
 
@@ -110,6 +111,7 @@ function App() {
                 }
               />
               <Route path="/otanoshimi" element={<Otanoshimi />} />
+              <Route path="/otanoshimi-preview" element={<OtanoshimiPreview />} />
               <Route path="/teacher-index" element={<TeacherIndex />} />
               <Route path="/call" element={<Call />} />
               <Route path="/teacher-call" element={<TeacherCall />} />
