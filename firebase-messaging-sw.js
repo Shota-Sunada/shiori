@@ -47,7 +47,10 @@ try {
             const notificationTitle = payload.notification.title;
             const notificationOptions = {
               body: payload.notification.body,
-              icon: '/icon.png'
+              icon: '/icon.png',
+              data: {
+                url: payload.fcmOptions.link
+              }
             };
             self.registration.showNotification(notificationTitle, notificationOptions);
           }
@@ -57,3 +60,13 @@ try {
 } catch (e) {
   console.error('[FCM SW] Error during initialization:', e);
 }
+
+self.addEventListener('notificationclick', (event) => {
+  console.log('[FCM SW] Notification click Received.');
+
+  event.notification.close();
+
+  event.waitUntil(
+    clients.openWindow(event.notification.data.url)
+  );
+});

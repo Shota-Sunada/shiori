@@ -51,7 +51,7 @@ initializeDatabase()
  * @param body 通知の本文
  * @returns {Promise<boolean>} 送信が成功した場合はtrue、失敗した場合はfalse
  */
-async function sendNotification(userId: string, title: string, body: string): Promise<boolean> {
+async function sendNotification(userId: string, title: string, body: string, link?: string): Promise<boolean> {
   try {
     // データベースからトークンを取得
     const [rows] = await pool.execute<RowDataPacket[]>('SELECT token FROM fcm_tokens WHERE user_id = ?', [userId]);
@@ -77,6 +77,9 @@ async function sendNotification(userId: string, title: string, body: string): Pr
           title,
           body,
           icon: 'https://shiori.shudo-physics.com/icon.png'
+        },
+        fcmOptions: {
+            link: link || 'https://shiori.shudo-physics.com'
         }
       },
       token: token,
@@ -125,13 +128,13 @@ app.post('/register-token', async (req: Request, res: Response) => {
 });
 
 app.post('/send-notification', async (req: Request, res: Response) => {
-  const { userId, title, body } = req.body;
+  const { userId, title, body, link } = req.body;
 
   if (!userId || !title || !body) {
     return res.status(400).send({ error: '「userId」、「title」と「body」のすべてが必要です。' });
   }
 
-  const success = await sendNotification(userId, title, body);
+  const success = await sendNotification(userId, title, body, link);
 
   if (success) {
     res.status(200).send({ message: '通知の送信に成功しました。' });

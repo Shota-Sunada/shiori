@@ -6,6 +6,7 @@ interface NotificationPayload {
   userId: string;
   title: string;
   body: string;
+  link?: string;
 }
 
 export const sendNotification = async (payload: NotificationPayload): Promise<{ success: boolean; error?: string }> => {

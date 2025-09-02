@@ -72,7 +72,8 @@ const TeacherIndex = () => {
     const result = await sendNotification({
       userId: specificStudentId,
       title: '先生からの呼び出しです',
-      body: `${teacherName}先生があなたを呼んでいます。`
+      body: `${teacherName}先生があなたを呼んでいます。`,
+      link: '/call'
     });
 
     if (result.success) {
