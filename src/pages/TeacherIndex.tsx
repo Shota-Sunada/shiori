@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import type { student } from '../data/students';
 import KanaSearchModal from '../components/KanaSearchModal';
-import { sendNotification } from '../lib/notifications';
+import { sendNotification } from '../helpers/notifications';
 import { SERVER_ENDPOINT } from '../App';
 import IndexTable from '../components/IndexTable';
 
