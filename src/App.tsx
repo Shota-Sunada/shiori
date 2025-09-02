@@ -111,7 +111,7 @@ function App() {
                 }
               />
               <Route path="/otanoshimi" element={<Otanoshimi />} />
-              <Route path="/otanoshimi-preview" element={<OtanoshimiPreview />} />
+              <Route path="/otanoshimi-preview/:order" element={<OtanoshimiPreview />} />
               <Route path="/teacher-index" element={<TeacherIndex />} />
               <Route path="/call" element={<Call />} />
               <Route path="/teacher-call" element={<TeacherCall />} />

@@ -8,7 +8,7 @@ interface OtanoshimiDataWithSchedule extends OtanoshimiData {
 }
 
 const Otanoshimi = () => {
-  const [teams, setTeams] = useState<OtanoshimiDataWithSchedule[]>([]);
+  const [teams, setTeams] = useState<OtanoshimiDataWithSchedule[] | undefined>(undefined);
 
   const fetchTeams = async () => {
     try {
@@ -55,10 +55,9 @@ const Otanoshimi = () => {
 
       <div className="mt-[3dvh]">
         <h2 className="text-xl text-center">{'出演団体一覧'}</h2>
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
-          {teams.map((x) => (
-            <OtanoshimiCard name={x.name} key={x.appearance_order}></OtanoshimiCard>
-          ))}
+        <p className='text-center'>{"クリックすると、各団体の詳細を閲覧できます。"}</p>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+          {teams ? teams.map((x) => <OtanoshimiCard name={x.name} index={x.appearance_order} key={x.appearance_order}></OtanoshimiCard>) : <p>{'読込中...'}</p>}
         </div>
       </div>
 
@@ -69,8 +68,7 @@ const Otanoshimi = () => {
             <thead>
               <tr>
                 <th>{'時間'}</th>
-                <th>{'演目'}</th>
-                <th>{'内容'}</th>
+                <th colSpan={2}>{'内容'}</th>
               </tr>
             </thead>
             <tbody>
@@ -87,25 +85,45 @@ const Otanoshimi = () => {
                 </td>
               </tr>
               <tr>
-                <td className="text-center">{'19:00 開始予定'}</td>
-                <td colSpan={2} className="font-bold text-center">
+                <td colSpan={3} className="font-bold text-center">
                   {'お楽しみ会 START'}
                 </td>
               </tr>
-              {teams.map((x) => (
-                <tr key={x.appearance_order}>
-                  <td className="text-center">{x.schedule}</td>
-                  <td className="text-center">{x.enmoku}</td>
-                  <td className="text-center" >{x.name}</td>
+            </tbody>
+            <thead>
+              <tr>
+                <th>{'時間'}</th>
+                <th>{'団体名'}</th>
+                <th>{'演目'}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {teams ? (
+                teams.map((x) => (
+                  <tr key={x.appearance_order}>
+                    <td className="text-center">{x.schedule}</td>
+                    <td className="text-center">{x.name}</td>
+                    <td className="text-center">{x.enmoku}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td className="text-center" colSpan={3}>
+                    {'読込中'}
+                  </td>
                 </tr>
-              ))}
+              )}
+              <tr>
+                <td className="text-center">{'21:30 (厳守)'}</td>
+                <td className="text-center font-bold" colSpan={2}>{'終了予定'}</td>
+              </tr>
             </tbody>
           </table>
         </section>
         <div className="mt-4">
           <p className="text-gray-600 text-sm">{'※当日の進行状況により、時間が変動する場合があります。'}</p>
           <p className="text-gray-600 text-sm">{'※リハーサルでは、各出演団体が最終確認を行うのみとし、演技は行いません。'}</p>
-          <p className="text-gray-600 text-sm">{'※演技時間は、各団体あたり5~10分(最長)です。'}</p>
+          {/* <p className="text-gray-600 text-sm">{'※演技時間は、各団体あたり5~10分(最長)です。'}</p> */}
         </div>
       </div>
 
