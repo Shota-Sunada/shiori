@@ -307,6 +307,9 @@ const OtanoshimiAdmin = () => {
         <button onClick={handleAddNewTeam} className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white">
           {'新規追加'}
         </button>
+        <button onClick={handleSave} className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white">
+          {'保存'}
+        </button>
         <p>
           {'ステータス: '}
           {status}
