@@ -3,16 +3,7 @@ import { SERVER_ENDPOINT } from '../App';
 import '../styles/admin-table.css';
 import KanaSearchModal from '../components/KanaSearchModal';
 import type { student } from '../data/students';
-
-interface OtanoshimiData {
-  name: string;
-  enmoku: string;
-  leader: number;
-  members: number[];
-  time: number;
-  appearance_order: number;
-  custom_performers: string[];
-}
+import type { OtanoshimiData } from '../data/otanoshimi';
 
 interface StudentChipProps {
   studentId: number;

@@ -1,8 +1,33 @@
+import { useEffect, useState } from 'react';
+import type { OtanoshimiData } from '../data/otanoshimi';
+import { SERVER_ENDPOINT } from '../App';
 import OtanoshimiCard from '../components/OtanoshimiCard';
-import { OTANOSHIMI_TEAMS } from '../data/otanoshimi';
-import { v4 as uuid } from 'uuid';
 
 const Otanoshimi = () => {
+  const [teams, setTeams] = useState<OtanoshimiData[]>([]);
+
+  const fetchTeams = async () => {
+    try {
+      const response = await fetch(`${SERVER_ENDPOINT}/api/otanoshimi`);
+      if (!response.ok) {
+        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+      }
+      const data: OtanoshimiData[] = await response.json();
+      const teamsWithDefaults = data.map((team) => ({
+        ...team,
+        custom_performers: team.custom_performers || [],
+        enmoku: team.enmoku || ''
+      }));
+      setTeams(teamsWithDefaults);
+    } catch (error) {
+      console.error('チームデータの取得に失敗:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchTeams();
+  }, []);
+
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">
       <h1 className="text-3xl font-bold">{'お楽しみ会'}</h1>
@@ -11,12 +36,11 @@ const Otanoshimi = () => {
       <div className="mt-[3dvh]">
         <h2 className="text-xl text-center">{'出演団体一覧'}</h2>
         <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
-          {OTANOSHIMI_TEAMS.map((x) => (
-            <OtanoshimiCard key={uuid()} name={x.name} />
-          ))}
-        </div>
-        <div className="mt-4">
-          <p className="text-gray-600 text-sm">{'※出演順ではありません'}</p>
+          {teams
+            .sort((a,b) => a.appearance_order - b.appearance_order)
+            .map((x) => (
+              <OtanoshimiCard name={x.name} key={x.appearance_order}></OtanoshimiCard>
+            ))}
         </div>
       </div>
 
