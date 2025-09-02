@@ -2,7 +2,7 @@ import { useAuth } from '../auth-context';
 import Button from '../components/Button';
 import { handleEnableNotifications } from '../helpers/notifications';
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import {  useNavigate } from 'react-router-dom';
 
 const DeniedInstructions = () => {
   const [browser, setBrowser] = useState('unknown');
@@ -117,6 +117,7 @@ const DeniedInstructions = () => {
 const NonNotification = () => {
   const { user } = useAuth();
   const [permission, setPermission] = useState<'default' | 'denied' | 'granted' | 'prompt'>(Notification.permission);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const updatePermission = () => {
@@ -141,11 +142,9 @@ const NonNotification = () => {
       case 'granted':
         return (
           <>
-            <p className="font-bold text-2xl">ありがとうございます！</p>
-            <p>通知は有効です。</p>
-            <Link to="/" className="text-blue-500 underline mt-4">
-              ホームに戻る
-            </Link>
+            <p className="font-bold text-2xl">{'ありがとうございます！'}</p>
+            <p>{'通知が有効になりました！'}</p>
+            <Button text="ホームへ" arrow onClick={() => navigate("/")} />
           </>
         );
       case 'denied':
