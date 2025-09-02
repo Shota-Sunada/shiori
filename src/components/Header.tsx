@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
-import { registerFCMToken } from '../firebase';
+import { handleEnableNotifications } from '../helpers/notifications';
 
 const HamburgerIcon = ({ open }: { open: boolean }) => (
   <div className="flex flex-col justify-center items-center w-8 h-8 cursor-pointer">
@@ -26,31 +26,6 @@ const Header = () => {
     alert('ログアウトしました。');
     await logout();
     navigate('/login');
-  };
-
-  const handleEnableNotifications = async () => {
-    if (!('Notification' in window)) {
-      alert('このブラウザは通知をサポートしていません。');
-      return;
-    }
-
-    const permission = await Notification.requestPermission();
-
-    if (permission === 'granted') {
-      alert('通知が有効になりました。');
-      if (user && user.userId) {
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.ready.then((registration) => {
-            registerFCMToken(user.userId, registration);
-          });
-        }
-      } else {
-        alert('ログイン後に再度お試しください。');
-      }
-    } else {
-      alert('通知が拒否されました。');
-    }
-    setIsMenuOpen(false);
   };
 
   useEffect(() => {
@@ -99,7 +74,12 @@ const Header = () => {
                   }}>
                   {'お楽しみ会'}
                 </Link>
-                <button className="text-left px-4 py-3 hover:bg-gray-100 border-b cursor-pointer" onClick={handleEnableNotifications}>
+                <button
+                  className="text-left px-4 py-3 hover:bg-gray-100 border-b cursor-pointer"
+                  onClick={() => {
+                    handleEnableNotifications(user);
+                    setIsMenuOpen(false);
+                  }}>
                   {'通知を有効にする'}
                 </button>
                 <Link

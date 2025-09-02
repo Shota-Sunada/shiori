@@ -3,7 +3,7 @@ import React from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
 
-interface AuthUser {
+export interface AuthUser {
   userId: string;
   is_admin: boolean;
   is_teacher: boolean;
