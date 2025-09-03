@@ -68,7 +68,10 @@ const TeacherIndex = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ teacher_id: user.userId })
+        body: JSON.stringify({
+          teacher_id: user.userId,
+          specific_student_id: specificStudentId || null
+        })
       });
 
       if (!response.ok) {

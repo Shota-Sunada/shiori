@@ -17,7 +17,7 @@ function isMySQLError(error: unknown): error is MySQLError {
 const router = express.Router();
 
 router.post('/start', async (req, res) => {
-  const { teacher_id } = req.body;
+  const { teacher_id, specific_student_id } = req.body;
 
   if (!teacher_id) {
     return res.status(400).json({ message: '先生のIDが必要です。' });
@@ -30,7 +30,15 @@ router.post('/start', async (req, res) => {
     await connection.beginTransaction();
     await connection.execute('INSERT INTO roll_calls (id, teacher_id) VALUES (?, ?)', [rollCallId, teacher_id]);
 
-    const [students] = await connection.execute<RowDataPacket[]>('SELECT gakuseki FROM students');
+    let students: RowDataPacket[];
+
+    if (specific_student_id) {
+      [students] = await connection.execute<RowDataPacket[]>('SELECT gakuseki FROM students WHERE gakuseki = ?', [
+        specific_student_id
+      ]);
+    } else {
+      [students] = await connection.execute<RowDataPacket[]>('SELECT gakuseki FROM students');
+    }
 
     const notificationTitle = '点呼が開始されました';
     const notificationBody = 'アプリを開いて出欠を確認してください。';
