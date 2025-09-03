@@ -5,12 +5,19 @@ import type { student } from '../data/students';
 import { SERVER_ENDPOINT } from '../App';
 import IndexTable from '../components/IndexTable';
 
+interface ActiveRollCall {
+  id: string;
+  teacher_id: string;
+  created_at: string;
+}
+
 const Index = () => {
   const { user, loading } = useAuth();
 
   const navigate = useNavigate();
 
   const [studentData, setStudentData] = useState<student | null | undefined>(undefined);
+  const [activeRollCall, setActiveRollCall] = useState<ActiveRollCall | null>(null);
 
   useEffect(() => {
     const fetchStudent = async () => {
@@ -37,18 +44,23 @@ const Index = () => {
       }
     };
 
+    const checkActiveRollCall = async () => {
+      if (user && user.userId && !user.is_teacher) {
+        try {
+          const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/active?student_id=${user.userId}`);
+          if (response.ok) {
+            const data = await response.json();
+            setActiveRollCall(data);
+          }
+        } catch (error) {
+          console.error('有効な点呼の確認中にエラーが発生しました:', error);
+        }
+      }
+    };
+
     fetchStudent();
+    checkActiveRollCall();
   }, [user]);
-
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate('/login');
-    }
-
-    if (user?.is_teacher) {
-      navigate('/teacher');
-    }
-  }, [user, loading, navigate]);
 
   if (loading) {
     return (
@@ -80,6 +92,14 @@ const Index = () => {
 
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">
+      {activeRollCall && (
+        <div
+          className="w-full max-w-md p-4 mb-4 text-xl text-center text-white bg-red-500 rounded-lg cursor-pointer"
+          onClick={() => navigate(`/call?id=${activeRollCall.id}`)}
+        >
+          点呼が開始されています。ここをタップして出席を確認してください。
+        </div>
+      )}
       {studentData ? (
         <p className="m-[10px] text-2xl">
           {'ようこそ、'}

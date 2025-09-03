@@ -7,6 +7,40 @@ import { RowDataPacket } from 'mysql2';
 
 const router = express.Router();
 
+router.get('/active', async (req, res) => {
+  const { student_id } = req.query;
+
+  if (!student_id) {
+    return res.status(400).json({ message: '生徒IDが必要です。' });
+  }
+
+  try {
+    const connection = await pool.getConnection();
+    try {
+      const [activeRollCallResult] = await connection.execute<RowDataPacket[]>(
+        `
+        SELECT rc.id, rc.teacher_id, rc.created_at
+        FROM roll_calls rc
+        JOIN roll_call_students rcs ON rc.id = rcs.roll_call_id
+        WHERE rcs.student_id = ? AND rc.is_active = TRUE
+        `,
+        [student_id]
+      );
+
+      if (activeRollCallResult.length > 0) {
+        res.json(activeRollCallResult[0]);
+      } else {
+        res.json(null);
+      }
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    logger.error('有効な点呼の確認中にエラーが発生しました:', error as Error);
+    res.status(500).json({ message: 'サーバーエラー' });
+  }
+});
+
 router.get('/', async (req, res) => {
   const { id } = req.query;
 
