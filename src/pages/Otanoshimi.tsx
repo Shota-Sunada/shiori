@@ -56,7 +56,7 @@ const Otanoshimi = () => {
       <div className="mt-[3dvh]">
         <h2 className="text-xl text-center">{'出演団体一覧'}</h2>
         <p className="text-center">{'クリックすると、各団体の詳細を閲覧できます。'}</p>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mt-4">
           {teams ? teams.map((x) => <OtanoshimiCard name={x.name} index={x.appearance_order} key={x.appearance_order}></OtanoshimiCard>) : <p>{'読込中...'}</p>}
         </div>
       </div>
