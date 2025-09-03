@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth-context';
 import Index from './pages/Index';
 import Login from './pages/Login';
@@ -103,6 +103,9 @@ const AdminOrTeacherRoute = ({ children }: { children: ReactNode }) => {
 };
 
 function App() {
+  const [notification, setNotification] = useState<{ title: string; body: string; link?: string } | null>(null);
+  const navigate = useNavigate();
+
   // Firebase Cloud Messaging の設定
   useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -115,15 +118,35 @@ function App() {
     const unsubscribe = onMessage(messaging, (payload) => {
       console.log('Foreground message received: ', payload);
       if (payload.data?.type === 'default_notification') {
-        alert(`[In-App Notification] ${payload.data.originalTitle || 'New Message'}: ${payload.data.originalBody || ''}`);
+        setNotification({
+          title: payload.data.originalTitle || 'New Message',
+          body: payload.data.originalBody || '',
+          link: payload.data.link
+        });
       }
     });
 
     return () => unsubscribe();
   }, []);
 
+  const handleNotificationClick = () => {
+    if (notification?.link) {
+      navigate(notification.link);
+    }
+    setNotification(null);
+  };
+
   return (
     <div className="grid grid-rows-[auto_1fr_auto] bg-[#f7f4e5] min-h-[100dvh]">
+      {notification && (
+        <div
+          className="fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-white p-4 rounded-lg shadow-lg cursor-pointer z-50"
+          onClick={handleNotificationClick}
+        >
+          <p className="font-bold">{notification.title}</p>
+          <p>{notification.body}</p>
+        </div>
+      )}
       <Header />
       <main>
         <Routes>

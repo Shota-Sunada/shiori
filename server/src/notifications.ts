@@ -45,7 +45,8 @@ export async function sendNotification(userId: string, title: string, body: stri
       data: {
         type: 'default_notification',
         originalTitle: title,
-        originalBody: body
+        originalBody: body,
+        link: link || ''
       }
     };
 
