@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
+import Button from '../components/Button';
 
 const Call = () => {
   const [isDone, setIsDone] = useState<boolean>(false);
   const [searchParams] = useSearchParams();
   const rollCallId = searchParams.get('id');
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleCheckIn = async () => {
     if (!user || !rollCallId) {
@@ -46,9 +48,7 @@ const Call = () => {
           <p>{'点呼完了!'}</p>
         </div>
       ) : (
-        <div
-          className="bg-red-500 text-white p-18 text-4xl font-bold rounded-[100%] w-[40dvh] h-[40dvh] flex items-center justify-center cursor-pointer flex-col"
-          onClick={handleCheckIn}>
+        <div className="bg-red-500 text-white p-18 text-4xl font-bold rounded-[100%] w-[40dvh] h-[40dvh] flex items-center justify-center cursor-pointer flex-col" onClick={handleCheckIn}>
           <p> {'点呼!'}</p>
           <p className="text-xl mt-5">{'残り時間'}</p>
           <p className="text-xl">{'00:00'}</p>
@@ -56,6 +56,7 @@ const Call = () => {
       )}
 
       <p className="text-xl mt-5">{isDone ? '確認しました！' : '時間内に点呼に応答してください！'}</p>
+      {isDone ? <Button text="戻る" arrow onClick={() => navigate('/index')} /> : <></>}
     </div>
   );
 };
