@@ -81,7 +81,7 @@ const TeacherIndex = () => {
       const data = await response.json();
       const { rollCallId } = data;
 
-      navigate(`/teacher/call/${rollCallId}`);
+      navigate(`/teacher/call?id=${rollCallId}`);
     } catch (error) {
       console.error('点呼の開始に失敗しました:', error);
       alert('点呼の開始に失敗しました。');

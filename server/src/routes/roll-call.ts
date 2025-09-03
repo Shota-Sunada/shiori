@@ -5,16 +5,54 @@ import { logger } from '../logger';
 import { sendNotification } from '../notifications';
 import { RowDataPacket } from 'mysql2';
 
-interface MySQLError extends Error {
-  code: string;
-  errno: number;
-}
-
-function isMySQLError(error: unknown): error is MySQLError {
-  return typeof error === 'object' && error !== null && 'code' in error && 'errno' in error;
-}
-
 const router = express.Router();
+
+router.get('/', async (req, res) => {
+  const { id } = req.query;
+
+  if (!id) {
+    return res.status(400).json({ message: '点呼IDが必要です。' });
+  }
+
+  const rollCallId = id as string;
+
+  try {
+    const connection = await pool.getConnection();
+    try {
+      const [rollCallResult] = await connection.execute<RowDataPacket[]>('SELECT * FROM roll_calls WHERE id = ?', [
+        rollCallId
+      ]);
+      const rollCall = rollCallResult[0];
+
+      if (!rollCall) {
+        return res.status(404).json({ message: '指定された点呼セッションが見つかりません。' });
+      }
+
+            const [students] = await connection.execute<RowDataPacket[]>(
+        `
+        SELECT
+          s.gakuseki, s.surname, s.forename, s.class, s.number, rcs.status
+        FROM students s
+        JOIN roll_call_students rcs ON s.gakuseki = rcs.student_id
+        WHERE rcs.roll_call_id = ?
+        ORDER BY s.class, s.number
+      `,
+        [rollCallId]
+      );
+
+
+      res.json({
+        rollCall,
+        students
+      });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    logger.error('点呼データの取得中にエラーが発生しました:', error as Error);
+    res.status(500).json({ message: 'サーバーエラー' });
+  }
+});
 
 router.post('/start', async (req, res) => {
   const { teacher_id, specific_student_id } = req.body;
@@ -40,12 +78,19 @@ router.post('/start', async (req, res) => {
       [students] = await connection.execute<RowDataPacket[]>('SELECT gakuseki FROM students');
     }
 
+    const insertPromises = students.map((student) =>
+      connection.execute('INSERT INTO roll_call_students (roll_call_id, student_id) VALUES (?, ?)', [
+        rollCallId,
+        student.gakuseki
+      ])
+    );
+    await Promise.all(insertPromises);
+
     const notificationTitle = '点呼が開始されました';
     const notificationBody = 'アプリを開いて出欠を確認してください。';
-    const notificationLink = `/call/${rollCallId}`;
+    const notificationLink = `/call?id=${rollCallId}`;
 
     for (const student of students) {
-      // Don't await here to send notifications in parallel
       sendNotification(student.gakuseki.toString(), notificationTitle, notificationBody, notificationLink);
     }
 
@@ -70,17 +115,30 @@ router.post('/check-in', async (req, res) => {
 
   try {
     await pool.execute(
-      'INSERT INTO roll_call_students (roll_call_id, student_id) VALUES (?, ?)',
+      "UPDATE roll_call_students SET status = 'checked_in' WHERE roll_call_id = ? AND student_id = ?",
       [roll_call_id, student_id]
     );
     logger.log(`生徒「${student_id}」が点呼「${roll_call_id}」に応答しました。`);
     res.status(200).json({ message: '点呼に応答しました。' });
   } catch (error) {
-    if (isMySQLError(error) && error.code === 'ER_DUP_ENTRY') {
-      logger.warn(`生徒「${student_id}」が点呼「${roll_call_id}」に再度応答しようとしました。`);
-      return res.status(200).json({ message: 'すでに応答済みです。' });
-    }
     logger.error('点呼への応答中にエラーが発生しました:', error as Error);
+    res.status(500).json({ message: 'サーバーエラー' });
+  }
+});
+
+router.post('/end', async (req, res) => {
+  const { roll_call_id } = req.body;
+
+  if (!roll_call_id) {
+    return res.status(400).json({ message: '点呼IDが必要です。' });
+  }
+
+  try {
+    await pool.execute('UPDATE roll_calls SET is_active = FALSE WHERE id = ?', [roll_call_id]);
+    logger.log(`点呼セッション「${roll_call_id}」が終了されました。`);
+    res.status(200).json({ message: '点呼を終了しました。' });
+  } catch (error) {
+    logger.error('点呼の終了中にエラーが発生しました:', error as Error);
     res.status(500).json({ message: 'サーバーエラー' });
   }
 });

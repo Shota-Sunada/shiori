@@ -139,7 +139,7 @@ function App() {
               <Route path="/otanoshimi-preview/:order" element={<OtanoshimiPreview />} />
               <Route path="/teacher" element={<TeacherIndex />} />
               <Route path="/call" element={<Call />} />
-              <Route path="/teacher/call/:rollCallId" element={<TeacherCall />} />
+              <Route path="/teacher/call" element={<TeacherCall />} />
               <Route
                 path="/admin"
                 element={

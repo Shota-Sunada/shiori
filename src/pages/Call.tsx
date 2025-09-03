@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
 
 const Call = () => {
   const [isDone, setIsDone] = useState<boolean>(false);
-  const { rollCallId } = useParams<{ rollCallId: string }>();
+  const [searchParams] = useSearchParams();
+  const rollCallId = searchParams.get('id');
   const { user } = useAuth();
 
   const handleCheckIn = async () => {
