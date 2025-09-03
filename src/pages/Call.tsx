@@ -1,8 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
 import Button from '../components/Button';
+
+interface StudentStatus {
+  gakuseki: string;
+  surname: string;
+  forename: string;
+  class: string;
+  number: number;
+  status: 'pending' | 'checked_in';
+}
 
 const Call = () => {
   const [isDone, setIsDone] = useState<boolean>(false);
@@ -10,6 +19,35 @@ const Call = () => {
   const rollCallId = searchParams.get('id');
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchRollCallStatus = async () => {
+      if (!rollCallId || !user) return;
+
+      try {
+        const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call?id=${rollCallId}`);
+        if (!response.ok) {
+          throw new Error('点呼データの取得に失敗しました。');
+        }
+        const data = await response.json();
+        const currentUserStatus = data.students.find(
+          (student: StudentStatus) => student.gakuseki === user.userId
+        );
+
+        if (currentUserStatus && currentUserStatus.status === 'checked_in') {
+          setIsDone(true);
+        }
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRollCallStatus();
+  }, [rollCallId, user]);
 
   const handleCheckIn = async () => {
     if (!user || !rollCallId) {
@@ -39,6 +77,23 @@ const Call = () => {
       alert(`エラー: ${(error as Error).message}`);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[80dvh]">
+        <p className="text-xl">{'読込中...'}</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[80dvh]">
+        <p className="text-xl text-red-500">{error}</p>
+        <Button text="戻る" arrow onClick={() => navigate('/index')} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center m-5">
