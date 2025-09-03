@@ -81,7 +81,7 @@ const NotificationGuard = () => {
 
   // ログイン済み && 通知許可済み && 現在地がガードページ -> ホームページへ
   if (user && permission === 'granted' && location.pathname === '/non-notification') {
-    return <Navigate to="/" replace />;
+    return <Navigate to={user.is_teacher ? '/teacher' : '/'} replace />;
   }
 
   return <Outlet />;
@@ -137,9 +137,9 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/otanoshimi" element={<Otanoshimi />} />
               <Route path="/otanoshimi-preview/:order" element={<OtanoshimiPreview />} />
-              <Route path="/teacher-index" element={<TeacherIndex />} />
+              <Route path="/teacher" element={<TeacherIndex />} />
               <Route path="/call" element={<Call />} />
-              <Route path="/teacher-call" element={<TeacherCall />} />
+              <Route path="/teacher/call/:rollCallId" element={<TeacherCall />} />
               <Route
                 path="/admin"
                 element={

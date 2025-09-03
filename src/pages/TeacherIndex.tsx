@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import type { student } from '../data/students';
 import KanaSearchModal from '../components/KanaSearchModal';
-import { sendNotification } from '../helpers/notifications';
 import { SERVER_ENDPOINT } from '../App';
 import IndexTable from '../components/IndexTable';
 
@@ -58,29 +57,31 @@ const TeacherIndex = () => {
   const handleCallSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
-    const teacherName = teacher_name_ref.current?.value;
-    if (!teacherName) {
-      alert('先生の名前を入力してください。');
+    if (!user) {
+      alert('ログインしていません。');
       return;
     }
 
-    if (!specificStudentId) {
-      alert('呼び出す生徒を選択または指定してください。');
-      return;
-    }
+    try {
+      const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/start`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ teacher_id: user.userId })
+      });
 
-    const result = await sendNotification({
-      userId: specificStudentId,
-      title: '先生からの呼び出しです',
-      body: `${teacherName}先生があなたを呼んでいます。`,
-      link: '/call'
-    });
+      if (!response.ok) {
+        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+      }
 
-    if (result.success) {
-      alert(`生徒 (学籍番号: ${specificStudentId}) に通知を送信しました。`);
-      setSpecificStudentId('');
-    } else {
-      alert(`通知の送信に失敗しました: ${result.error}`);
+      const data = await response.json();
+      const { rollCallId } = data;
+
+      navigate(`/teacher/call/${rollCallId}`);
+    } catch (error) {
+      console.error('点呼の開始に失敗しました:', error);
+      alert('点呼の開始に失敗しました。');
     }
   };
 

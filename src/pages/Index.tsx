@@ -46,7 +46,7 @@ const Index = () => {
     }
 
     if (user?.is_teacher) {
-      navigate('/teacher-index');
+      navigate('/teacher');
     }
   }, [user, loading, navigate]);
 
@@ -67,7 +67,7 @@ const Index = () => {
   }
 
   if (user?.is_teacher) {
-    navigate('/teacher-index');
+    navigate('/teacher');
   }
 
   if (studentData === undefined) {
