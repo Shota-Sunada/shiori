@@ -30,7 +30,7 @@ const Call = () => {
 
       if (response.ok) {
         setIsDone(true);
-        alert(data.message);
+        // alert(data.message);
       } else {
         throw new Error(data.message || '不明なエラー');
       }
