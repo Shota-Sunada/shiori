@@ -72,7 +72,7 @@ const TeacherCall = () => {
       }
 
       alert('点呼を終了しました。');
-      navigate('/teacher');
+      navigate('/teacher/roll-call-list');
     } catch (error) {
       console.error('点呼の終了に失敗しました:', error);
       alert('点呼の終了に失敗しました。');
