@@ -125,7 +125,7 @@ const IndexTable = (props: { studentData: student | null }) => {
               <p>
                 {props.studentData ? (
                   <>
-                    {props.studentData?.room_tdh}
+                    {props.studentData?.room_tdh.toString().substring(0,2)}{"階 "}
                     {props.studentData?.room_tdh}
                     {'号室'}
                   </>
@@ -142,6 +142,8 @@ const IndexTable = (props: { studentData: student | null }) => {
               <p>
                 {props.studentData ? (
                   <>
+                  {"HOTEL SPORSION "}
+                    {props.studentData?.room_fpr.toString().substring(1,2)}{"階 "}
                     {props.studentData?.room_fpr}
                     {'号室'}
                   </>
