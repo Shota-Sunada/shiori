@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react';
-import {  useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import type { student } from '../data/students';
 import KanaSearchModal from '../components/KanaSearchModal';
@@ -163,7 +163,7 @@ const TeacherIndex = () => {
             </div>
             <div className="flex items-center justify-center">
               <button type="submit">
-                <Button text="点呼開始" arrow onClick={()=>{}} />
+                <Button text="点呼開始" arrow onClick={() => {}} />
               </button>
             </div>
           </form>

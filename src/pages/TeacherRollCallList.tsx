@@ -41,7 +41,7 @@ const TeacherRollCallList = () => {
   }, [user]);
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">{"読込中..."}</div>;
+    return <div className="flex justify-center items-center h-screen">{'読込中...'}</div>;
   }
 
   if (error) {
@@ -53,24 +53,16 @@ const TeacherRollCallList = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">{"点呼一覧"}</h1>
+      <h1 className="text-2xl font-bold mb-4">{'点呼一覧'}</h1>
 
       <section>
-        <h2 className="text-xl font-semibold mb-2">{"現在発動中の点呼"}</h2>
-        {activeRollCalls.length === 0 ? (
-          <p>{"現在、発動中の点呼はありません。"}</p>
-        ) : (
-          <RollCallTable rollCalls={activeRollCalls} />
-        )}
+        <h2 className="text-xl font-semibold mb-2">{'現在発動中の点呼'}</h2>
+        {activeRollCalls.length === 0 ? <p>{'現在、発動中の点呼はありません。'}</p> : <RollCallTable rollCalls={activeRollCalls} />}
       </section>
 
       <section className="mt-8">
-        <h2 className="text-xl font-semibold mb-2">{"終了した点呼"}</h2>
-        {endedRollCalls.length === 0 ? (
-          <p>{"終了した点呼はありません。"}</p>
-        ) : (
-          <RollCallTable rollCalls={endedRollCalls} />
-        )}
+        <h2 className="text-xl font-semibold mb-2">{'終了した点呼'}</h2>
+        {endedRollCalls.length === 0 ? <p>{'終了した点呼はありません。'}</p> : <RollCallTable rollCalls={endedRollCalls} />}
       </section>
     </div>
   );
