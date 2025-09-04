@@ -41,7 +41,7 @@ const TeacherRollCallList = () => {
   }, [user]);
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">読込中...</div>;
+    return <div className="flex justify-center items-center h-screen">{"読込中..."}</div>;
   }
 
   if (error) {

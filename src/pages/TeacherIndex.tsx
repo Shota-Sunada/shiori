@@ -1,10 +1,11 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import {  useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import type { student } from '../data/students';
 import KanaSearchModal from '../components/KanaSearchModal';
 import { SERVER_ENDPOINT } from '../App';
 import IndexTable from '../components/IndexTable';
+import Button from '../components/Button';
 
 const TeacherIndex = () => {
   const { user, loading } = useAuth();
@@ -118,7 +119,8 @@ const TeacherIndex = () => {
       <section id="call" className="m-2 w-full max-w-md mx-auto">
         <div className="flex flex-col items-center bg-gray-100 p-6 rounded-lg shadow-md">
           <p className="m-[10px] text-2xl font-bold">{'点呼システム'}</p>
-          <Link to="/teacher/roll-call-list" className="text-blue-500 hover:underline mb-4">{"現在発動中の点呼一覧へ"}</Link>
+          {/* <Link to="/teacher/roll-call-list" className="text-blue-500 hover:underline mb-4">{"現在発動中の点呼一覧へ"}</Link> */}
+          <Button text="点呼一覧へ" arrow onClick={() => navigate('/teacher/roll-call-list')} />
           <form className="w-full mt-4" onSubmit={handleCallSubmit}>
             <div className="mb-4">
               <label htmlFor="teacher_name" className="block text-gray-700 text-sm font-bold mb-2">
@@ -160,8 +162,8 @@ const TeacherIndex = () => {
               <p className="text-xs text-gray-600 mt-1">{'ここに学籍番号を入力すると、その生徒にのみ通知が送信されます。空の場合は、上で選択中の生徒に送信されます。'}</p>
             </div>
             <div className="flex items-center justify-center">
-              <button type="submit" className="p-2 px-4 text-white bg-blue-500 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline cursor-pointer">
-                {'点呼開始'}
+              <button type="submit">
+                <Button text="点呼開始" arrow onClick={()=>{}} />
               </button>
             </div>
           </form>

@@ -79,6 +79,17 @@ const TeacherCall = () => {
     }
   };
 
+  const endButton = () => (
+    <div className="text-center m-3">
+      <button
+        onClick={onEndSession}
+        disabled={!rollCall?.is_active}
+        className="p-2 px-6 text-white bg-red-500 rounded hover:bg-red-700 focus:outline-none focus:shadow-outline cursor-pointer disabled:bg-gray-400">
+        {rollCall?.is_active ? '点呼終了' : '点呼は終了しています'}
+      </button>
+    </div>
+  );
+
   if (loading) {
     return <p className="text-center mt-8">{'読み込み中...'}</p>;
   }
@@ -109,6 +120,8 @@ const TeacherCall = () => {
           {totalStudents}
         </p>
 
+        {students.length > 20 ? endButton() : <></>}
+
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white border">
             <thead className="bg-gray-200">
@@ -138,11 +151,7 @@ const TeacherCall = () => {
           </table>
         </div>
 
-        <div className="text-center mt-6">
-          <button onClick={onEndSession} disabled={!rollCall?.is_active} className="p-2 px-6 text-white bg-red-500 rounded hover:bg-red-700 focus:outline-none focus:shadow-outline cursor-pointer disabled:bg-gray-400">
-            {rollCall?.is_active ? '点呼終了' : '点呼は終了しています'}
-          </button>
-        </div>
+        {endButton()}
       </div>
 
       <Button text="点呼一覧へ戻る" arrow onClick={() => navigate('/teacher/roll-call-list')} />
