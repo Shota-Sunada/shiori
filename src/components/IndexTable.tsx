@@ -4,7 +4,7 @@ import { DAY4_DATA, DAY4_TEACHERS } from '../data/day4';
 import type { student } from '../data/students';
 import '../styles/index-table.css';
 import { useState } from 'react';
-import RoommateModal from './RoommateModal';
+import RoomDataModal from './RoomDataModal';
 import { SERVER_ENDPOINT } from '../App';
 
 interface Roommate {
@@ -274,7 +274,7 @@ const IndexTable = (props: { studentData: student | null }) => {
         </tbody>
       </table>
       {showRoommateModal && (
-        <RoommateModal
+        <RoomDataModal
           roommates={currentRoommates}
           onClose={handleCloseModal}
           hotelName={currentHotelName}
