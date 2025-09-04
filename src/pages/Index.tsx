@@ -93,10 +93,7 @@ const Index = () => {
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">
       {activeRollCall && (
-        <div
-          className="w-full max-w-md p-4 mb-4 text-xl text-center text-white bg-red-500 rounded-lg cursor-pointer"
-          onClick={() => navigate(`/call?id=${activeRollCall.id}`)}
-        >
+        <div className="w-full max-w-md p-4 mb-4 text-xl text-center text-white bg-red-500 rounded-lg cursor-pointer" onClick={() => navigate(`/call?id=${activeRollCall.id}`)}>
           点呼が開始されています。ここをタップして出席を確認してください。
         </div>
       )}

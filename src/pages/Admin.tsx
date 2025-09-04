@@ -628,8 +628,8 @@ const Admin = () => {
               class: Number(formData.class) as student['class'],
               number: Number(formData.number) as student['number'],
               gakuseki: Number(formData.gakuseki) as student['gakuseki'],
-              room_fpr: Number(formData.room_fpr) as student["room_fpr"],
-              room_tdh: Number(formData.room_tdh) as student["room_tdh"],
+              room_fpr: Number(formData.room_fpr) as student['room_fpr'],
+              room_tdh: Number(formData.room_tdh) as student['room_tdh'],
               shinkansen_day1_car_number: Number(formData.shinkansen_day1_car_number) as student['shinkansen_day1_car_number'],
               shinkansen_day4_car_number: Number(formData.shinkansen_day4_car_number) as student['shinkansen_day4_car_number']
             };

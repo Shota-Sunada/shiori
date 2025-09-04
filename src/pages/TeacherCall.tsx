@@ -71,7 +71,7 @@ const TeacherCall = () => {
   };
 
   if (loading) {
-    return <p className="text-center mt-8">{"読み込み中..."}</p>;
+    return <p className="text-center mt-8">{'読み込み中...'}</p>;
   }
 
   if (error) {
@@ -84,20 +84,26 @@ const TeacherCall = () => {
   return (
     <div className="flex flex-col items-center justify-center m-4">
       <div className="w-full max-w-4xl p-4 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center mb-4">{"点呼実施中"}</h1>
-        <p className="text-lg text-center mb-2">{"点呼ID: "}{rollCallId}</p>
+        <h1 className="text-2xl font-bold text-center mb-4">{'点呼実施中'}</h1>
+        <p className="text-lg text-center mb-2">
+          {'点呼ID: '}
+          {rollCallId}
+        </p>
         <p className="text-lg text-center mb-4">
-          {"応答状況: "}{checkedInCount}{" / "}{totalStudents}
+          {'応答状況: '}
+          {checkedInCount}
+          {' / '}
+          {totalStudents}
         </p>
 
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white border">
             <thead className="bg-gray-200">
               <tr>
-                <th className="py-2 px-4 border-b">{"クラス"}</th>
-                <th className="py-2 px-4 border-b">{"番号"}</th>
-                <th className="py-2 px-4 border-b">{"氏名"}</th>
-                <th className="py-2 px-4 border-b">{"状態"}</th>
+                <th className="py-2 px-4 border-b">{'クラス'}</th>
+                <th className="py-2 px-4 border-b">{'番号'}</th>
+                <th className="py-2 px-4 border-b">{'氏名'}</th>
+                <th className="py-2 px-4 border-b">{'状態'}</th>
               </tr>
             </thead>
             <tbody>
@@ -108,9 +114,9 @@ const TeacherCall = () => {
                   <td className="py-2 px-4 border-b">{`${student.surname} ${student.forename}`}</td>
                   <td className="py-2 px-4 border-b">
                     {student.status === 'checked_in' ? (
-                      <span className="px-2 py-1 text-xs font-semibold text-white bg-green-500 rounded-full">{"応答済み"}</span>
+                      <span className="px-2 py-1 text-xs font-semibold text-white bg-green-500 rounded-full">{'応答済み'}</span>
                     ) : (
-                      <span className="px-2 py-1 text-xs font-semibold text-white bg-red-500 rounded-full">{"未応答"}</span>
+                      <span className="px-2 py-1 text-xs font-semibold text-white bg-red-500 rounded-full">{'未応答'}</span>
                     )}
                   </td>
                 </tr>
@@ -120,10 +126,8 @@ const TeacherCall = () => {
         </div>
 
         <div className="text-center mt-6">
-          <button
-            onClick={onEndSession}
-            className="p-2 px-6 text-white bg-red-500 rounded hover:bg-red-700 focus:outline-none focus:shadow-outline cursor-pointer">
-            {"点呼終了"}
+          <button onClick={onEndSession} className="p-2 px-6 text-white bg-red-500 rounded hover:bg-red-700 focus:outline-none focus:shadow-outline cursor-pointer">
+            {'点呼終了'}
           </button>
         </div>
       </div>

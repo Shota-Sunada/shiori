@@ -48,8 +48,6 @@ initializeDatabase()
     process.exit(1);
   });
 
-
-
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello from Shiori Firebase Messaging Server!');
 });

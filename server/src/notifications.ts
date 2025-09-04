@@ -38,7 +38,7 @@ export async function sendNotification(userId: string, title: string, body: stri
           icon: 'https://shiori.shudo-physics.com/icon.png'
         },
         fcmOptions: {
-            link: link || 'https://shiori.shudo-physics.com'
+          link: link || 'https://shiori.shudo-physics.com'
         }
       },
       token: token,

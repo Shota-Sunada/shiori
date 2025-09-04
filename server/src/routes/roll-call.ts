@@ -53,16 +53,14 @@ router.get('/', async (req, res) => {
   try {
     const connection = await pool.getConnection();
     try {
-      const [rollCallResult] = await connection.execute<RowDataPacket[]>('SELECT * FROM roll_calls WHERE id = ?', [
-        rollCallId
-      ]);
+      const [rollCallResult] = await connection.execute<RowDataPacket[]>('SELECT * FROM roll_calls WHERE id = ?', [rollCallId]);
       const rollCall = rollCallResult[0];
 
       if (!rollCall) {
         return res.status(404).json({ message: '指定された点呼セッションが見つかりません。' });
       }
 
-            const [students] = await connection.execute<RowDataPacket[]>(
+      const [students] = await connection.execute<RowDataPacket[]>(
         `
         SELECT
           s.gakuseki, s.surname, s.forename, s.class, s.number, rcs.status
@@ -73,7 +71,6 @@ router.get('/', async (req, res) => {
       `,
         [rollCallId]
       );
-
 
       res.json({
         rollCall,
@@ -105,19 +102,12 @@ router.post('/start', async (req, res) => {
     let students: RowDataPacket[];
 
     if (specific_student_id) {
-      [students] = await connection.execute<RowDataPacket[]>('SELECT gakuseki FROM students WHERE gakuseki = ?', [
-        specific_student_id
-      ]);
+      [students] = await connection.execute<RowDataPacket[]>('SELECT gakuseki FROM students WHERE gakuseki = ?', [specific_student_id]);
     } else {
       [students] = await connection.execute<RowDataPacket[]>('SELECT gakuseki FROM students');
     }
 
-    const insertPromises = students.map((student) =>
-      connection.execute('INSERT INTO roll_call_students (roll_call_id, student_id) VALUES (?, ?)', [
-        rollCallId,
-        student.gakuseki
-      ])
-    );
+    const insertPromises = students.map((student) => connection.execute('INSERT INTO roll_call_students (roll_call_id, student_id) VALUES (?, ?)', [rollCallId, student.gakuseki]));
     await Promise.all(insertPromises);
 
     const notificationTitle = '点呼が開始されました';
@@ -148,10 +138,7 @@ router.post('/check-in', async (req, res) => {
   }
 
   try {
-    await pool.execute(
-      "UPDATE roll_call_students SET status = 'checked_in' WHERE roll_call_id = ? AND student_id = ?",
-      [roll_call_id, student_id]
-    );
+    await pool.execute("UPDATE roll_call_students SET status = 'checked_in' WHERE roll_call_id = ? AND student_id = ?", [roll_call_id, student_id]);
     logger.log(`生徒「${student_id}」が点呼「${roll_call_id}」に応答しました。`);
     res.status(200).json({ message: '点呼に応答しました。' });
   } catch (error) {

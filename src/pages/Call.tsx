@@ -32,9 +32,7 @@ const Call = () => {
           throw new Error('点呼データの取得に失敗しました。');
         }
         const data = await response.json();
-        const currentUserStatus = data.students.find(
-          (student: StudentStatus) => student.gakuseki === user.userId
-        );
+        const currentUserStatus = data.students.find((student: StudentStatus) => student.gakuseki === user.userId);
 
         if (currentUserStatus && currentUserStatus.status === 'checked_in') {
           setIsDone(true);

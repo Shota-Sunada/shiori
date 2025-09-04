@@ -25,7 +25,7 @@ const RoomDataModal: React.FC<RoommateModalProps> = ({ roommates, onClose, hotel
         </p>
         {roommates.length > 0 ? (
           <div>
-            <p>{"ルームメイト"}</p>
+            <p>{'ルームメイト'}</p>
             {roommates.map((roommate) => (
               <li key={roommate.gakuseki} className="">
                 {`${roommate.surname} ${roommate.forename} (5年${roommate.class}組${roommate.number}番)`}
@@ -33,10 +33,10 @@ const RoomDataModal: React.FC<RoommateModalProps> = ({ roommates, onClose, hotel
             ))}
           </div>
         ) : (
-          <p>{"ルームメイトが見つかりませんでした。"}</p>
+          <p>{'ルームメイトが見つかりませんでした。'}</p>
         )}
         <button onClick={onClose} className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
-          {"閉じる"}
+          {'閉じる'}
         </button>
       </div>
     </div>

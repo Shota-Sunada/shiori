@@ -43,9 +43,7 @@ const ProtectedRoute = () => {
 const NotificationGuard = () => {
   const { user, loading } = useAuth();
   const location = useLocation();
-  const [permission, setPermission] = useState<"default" | "denied" | "granted" | "prompt">(
-    Notification.permission
-  );
+  const [permission, setPermission] = useState<'default' | 'denied' | 'granted' | 'prompt'>(Notification.permission);
 
   useEffect(() => {
     // This effect should only run once to set up the listeners.
@@ -139,10 +137,7 @@ function App() {
   return (
     <div className="grid grid-rows-[auto_1fr_auto] bg-[#f7f4e5] min-h-[100dvh]">
       {notification && (
-        <div
-          className="fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-white p-4 rounded-lg shadow-lg cursor-pointer z-50"
-          onClick={handleNotificationClick}
-        >
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-white p-4 rounded-lg shadow-lg cursor-pointer z-50" onClick={handleNotificationClick}>
           <p className="font-bold">{notification.title}</p>
           <p>{notification.body}</p>
         </div>
