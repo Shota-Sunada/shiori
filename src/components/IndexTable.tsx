@@ -150,14 +150,7 @@ const IndexTable = (props: { studentData: student | null }) => {
           </tr>
           {/* day4 END */}
           {/* hotel START */}
-          <tr
-            className="cursor-pointer"
-            onClick={() => {
-              if (props.studentData?.room_tdh) {
-                fetchRoommates('tdh', props.studentData.room_tdh.toString(), '東京ドームホテル');
-              }
-            }}
-          >
+          <tr>
             <td rowSpan={2} style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
               {'ホテル'}
             </td>
@@ -165,12 +158,19 @@ const IndexTable = (props: { studentData: student | null }) => {
               <p>{'1泊目'}</p>
               <p>{'2泊目'}</p>
             </td>
-            <td>
+            <td
+              className="cursor-pointer bg-gray-200"
+              onClick={() => {
+                if (props.studentData?.room_tdh) {
+                  fetchRoommates('tdh', props.studentData.room_tdh.toString(), '東京ドームホテル');
+                }
+              }}>
               <p>{'東京ドームホテル'}</p>
               <p>
                 {props.studentData ? (
                   <>
-                    {props.studentData?.room_tdh.toString().substring(0,2)}{"階 "}
+                    {props.studentData?.room_tdh.toString().substring(0, 2)}
+                    {'階 '}
                     {props.studentData?.room_tdh}
                     {'号室'}
                   </>
@@ -180,22 +180,22 @@ const IndexTable = (props: { studentData: student | null }) => {
               </p>
             </td>
           </tr>
-          <tr
-            className="cursor-pointer"
-            onClick={() => {
-              if (props.studentData?.room_fpr) {
-                fetchRoommates('fpr', props.studentData.room_fpr.toString(), 'フジプレミアムリゾート');
-              }
-            }}
-          >
+          <tr>
             <td>{'3泊目'}</td>
-            <td>
+            <td
+              className="cursor-pointer bg-gray-200"
+              onClick={() => {
+                if (props.studentData?.room_fpr) {
+                  fetchRoommates('fpr', props.studentData.room_fpr.toString(), 'フジプレミアムリゾート');
+                }
+              }}>
               <p>{'フジプレミアムリゾート'}</p>
               <p>
                 {props.studentData ? (
                   <>
-                  {"Hotel Spor:Sion "}
-                    {props.studentData?.room_fpr.toString().substring(1,2)}{"階 "}
+                    {'Hotel Spor:Sion '}
+                    {props.studentData?.room_fpr.toString().substring(1, 2)}
+                    {'階 '}
                     {props.studentData?.room_fpr}
                     {'号室'}
                   </>
@@ -273,14 +273,7 @@ const IndexTable = (props: { studentData: student | null }) => {
           {/* shinkansen END */}
         </tbody>
       </table>
-      {showRoommateModal && (
-        <RoomDataModal
-          roommates={currentRoommates}
-          onClose={handleCloseModal}
-          hotelName={currentHotelName}
-          roomNumber={currentRoomNumber}
-        />
-      )}
+      {showRoommateModal && <RoomDataModal roommates={currentRoommates} onClose={handleCloseModal} hotelName={currentHotelName} roomNumber={currentRoomNumber} />}
     </section>
   );
 };
