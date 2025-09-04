@@ -38,6 +38,39 @@ const DAY3_COLORS: [id: string, css: string][] = [
   ['yokohama', 'bg-gray-400']
 ];
 
+const allColumns: { key: keyof student; label: string; className: string; sortable: boolean }[] = [
+  { key: 'gakuseki', label: '学籍番号', className: 'w-24', sortable: true },
+  { key: 'surname', label: '姓', className: 'w-20', sortable: false },
+  { key: 'forename', label: '名', className: 'w-28', sortable: false },
+  { key: 'surname_kana', label: '姓かな', className: 'w-24', sortable: false },
+  { key: 'forename_kana', label: '名かな', className: 'w-32', sortable: false },
+  { key: 'class', label: '組', className: 'w-8', sortable: true },
+  { key: 'number', label: '番号', className: 'w-10', sortable: true },
+  { key: 'day1id', label: '①研修先', className: 'w-40', sortable: true },
+  { key: 'day3id', label: '③研修先', className: 'w-40', sortable: true },
+  { key: 'day1bus', label: '①バス', className: 'w-20', sortable: true },
+  { key: 'day3bus', label: '③バス', className: 'w-20', sortable: true },
+  { key: 'room_tdh', label: 'TDH号室', className: 'w-20', sortable: true },
+  { key: 'room_fpr', label: 'FPR号室', className: 'w-20', sortable: true },
+  { key: 'shinkansen_day1_car_number', label: 'NSX①車', className: 'w-20', sortable: true },
+  { key: 'shinkansen_day1_seat', label: 'NSX①席', className: 'w-20', sortable: true },
+  { key: 'shinkansen_day4_car_number', label: 'NSX④車', className: 'w-20', sortable: true },
+  { key: 'shinkansen_day4_seat', label: 'NSX④席', className: 'w-20', sortable: true }
+];
+
+const getCellClassName = (s: student, field: keyof student) => {
+  switch (field) {
+    case 'class':
+      return CLASS_COLORS[s.class - 1];
+    case 'day1id':
+      return DAY1_COLORS.find((x) => x[0] === s.day1id)?.[1];
+    case 'day3id':
+      return DAY3_COLORS.find((x) => x[0] === s.day3id)?.[1];
+    default:
+      return 'bg-white';
+  }
+};
+
 const sortList = (list: student[], configs: SortConfig[]): student[] => {
   const sortedList = [...list];
   if (configs.length === 0) {
@@ -120,6 +153,12 @@ const Admin = () => {
   const [editingValue, setEditingValue] = useState<string | number>('');
 
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  const [visibleColumns, setVisibleColumns] = useState<Array<keyof student>>(allColumns.map((c) => c.key));
+
+  const handleColumnVisibilityChange = (key: keyof student) => {
+    setVisibleColumns((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
+  };
 
   const inputRef = useRef<HTMLInputElement>(null);
   const [sortConfigs, setSortConfigs] = useState<SortConfig[]>([
@@ -398,6 +437,43 @@ const Admin = () => {
     }
   };
 
+  const renderCellContent = (s: student, field: keyof student) => {
+    if (editingCell?.studentId === s.gakuseki && editingCell?.field === field) {
+      if (field === 'day1id') {
+        return (
+          <select value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit">
+            {COURSES_DAY1.map((course) => (
+              <option key={course.key} value={course.key}>
+                {course.short_name}
+              </option>
+            ))}
+          </select>
+        );
+      }
+      if (field === 'day3id') {
+        return (
+          <select value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit">
+            {COURSES_DAY3.map((course) => (
+              <option key={course.key} value={course.key}>
+                {course.short_name}
+              </option>
+            ))}
+          </select>
+        );
+      }
+      return <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />;
+    }
+
+    switch (field) {
+      case 'day1id':
+        return <p className="inline-p-fix">{COURSES_DAY1.find((x) => x.key === s.day1id)?.short_name}</p>;
+      case 'day3id':
+        return <p className="inline-p-fix">{COURSES_DAY3.find((x) => x.key === s.day3id)?.short_name}</p>;
+      default:
+        return s[field];
+    }
+  };
+
   // day1id/day3idの選択肢
   const day1idOptions = ['yrp_nifco', 'yrp_yamashin', 'yrp_air', 'yrp_vtech', 'ntt_labo_i', 'ntt_labo_b', 'kayakku', 'jaxa', 'astro', 'arda', 'urth_jip', 'micro', 'air'];
   const day3idOptions = ['okutama', 'yokosuka', 'hakone', 'kamakura', 'hakkeijima', 'yokohama'];
@@ -425,126 +501,32 @@ const Admin = () => {
 
   return (
     <div className="p-[5px] flex flex-col">
-      <div className="table-root overflow-y-auto flex flex-grow max-h-[60dvh] max-w-[90dvw] mx-auto rounded-xl">
+      <div className="flex flex-wrap gap-x-4 gap-y-2 p-2 border rounded-md mb-2">
+        {allColumns.map((column) => (
+          <label key={column.key} className="flex items-center space-x-2">
+            <input type="checkbox" checked={visibleColumns.includes(column.key)} onChange={() => handleColumnVisibilityChange(column.key)} />
+            <span>{column.label}</span>
+          </label>
+        ))}
+      </div>
+      <div className="table-root overflow-y-auto flex flex-grow max-h-[50dvh] max-w-[90dvw] mx-auto rounded-xl">
         <table border={1} className="w-full">
           <thead className="sticky top-0 bg-white z-10">
             <tr>
-              <th className="w-24">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'学籍番号'}</span>
-                  <button onClick={(e) => handleSort('gakuseki', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('gakuseki')}
-                  </button>
-                </div>
-              </th>
-              <th className="w-20">
-                <div className="flex flex-col items-center justify-center">{'姓'}</div>
-              </th>
-              <th className="w-28">
-                <div className="flex flex-col items-center justify-center">{'名'}</div>
-              </th>
-              <th className="w-24">
-                <div className="flex flex-col items-center justify-center">{'姓かな'}</div>
-              </th>
-              <th className="w-32">
-                <div className="flex flex-col items-center justify-center">{'名かな'}</div>
-              </th>
-              <th className="w-8">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'組'}</span>
-                  <button onClick={(e) => handleSort('class', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('class')}
-                  </button>
-                </div>
-              </th>
-              <th className="w-10">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'番号'}</span>
-                  <button onClick={(e) => handleSort('number', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('number')}
-                  </button>
-                </div>
-              </th>
-              <th className="w-40">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'①研修先'}</span>
-                  <button onClick={(e) => handleSort('day1id', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('day1id')}
-                  </button>
-                </div>
-              </th>
-              <th className="w-40">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'③研修先'}</span>
-                  <button onClick={(e) => handleSort('day3id', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('day3id')}
-                  </button>
-                </div>
-              </th>
-              <th className="w-20">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'①バス'}</span>
-                  <button onClick={(e) => handleSort('day1bus', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('day1bus')}
-                  </button>
-                </div>
-              </th>
-              <th className="w-20">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'③バス'}</span>
-                  <button onClick={(e) => handleSort('day3bus', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('day3bus')}
-                  </button>
-                </div>
-              </th>
-              <th className="w-20">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'TDH号室'}</span>
-                  <button onClick={(e) => handleSort('room_tdh', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('room_tdh')}
-                  </button>
-                </div>
-              </th>
-              <th className="w-20">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'FPR号室'}</span>
-                  <button onClick={(e) => handleSort('room_fpr', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('room_fpr')}
-                  </button>
-                </div>
-              </th>
-              <th className="w-20">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'NSX①車'}</span>
-                  <button onClick={(e) => handleSort('shinkansen_day1_car_number', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('shinkansen_day1_car_number')}
-                  </button>
-                </div>
-              </th>
-              <th className="w-20">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'NSX①席'}</span>
-                  <button onClick={(e) => handleSort('shinkansen_day1_seat', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('shinkansen_day1_seat')}
-                  </button>
-                </div>
-              </th>
-              <th className="w-20">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'NSX④車'}</span>
-                  <button onClick={(e) => handleSort('shinkansen_day4_car_number', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('shinkansen_day4_car_number')}
-                  </button>
-                </div>
-              </th>
-              <th className="w-20">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'NSX④席'}</span>
-                  <button onClick={(e) => handleSort('shinkansen_day4_seat', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('shinkansen_day4_seat')}
-                  </button>
-                </div>
-              </th>
+              {allColumns
+                .filter((c) => visibleColumns.includes(c.key))
+                .map((column) => (
+                  <th className={column.className} key={column.key}>
+                    <div className="flex flex-col items-center justify-center">
+                      <span>{column.label}</span>
+                      {column.sortable && (
+                        <button onClick={(e) => handleSort(column.key, e.shiftKey)} disabled={modalMode !== null}>
+                          {getSortIndicator(column.key)}
+                        </button>
+                      )}
+                    </div>
+                  </th>
+                ))}
               <th className="w-20 sticky-col">
                 <div className="flex flex-col items-center justify-center">
                   <span>
@@ -559,137 +541,13 @@ const Admin = () => {
           <tbody>
             {sortedAndFilteredStudents.map((s) => (
               <tr key={s.gakuseki}>
-                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'gakuseki')}>
-                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'gakuseki' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
-                  ) : (
-                    s.gakuseki
-                  )}
-                </td>
-                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'surname')}>
-                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'surname' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
-                  ) : (
-                    s.surname
-                  )}
-                </td>
-                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'forename')}>
-                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'forename' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
-                  ) : (
-                    s.forename
-                  )}
-                </td>
-                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'surname_kana')}>
-                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'surname_kana' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
-                  ) : (
-                    s.surname_kana
-                  )}
-                </td>
-                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'forename_kana')}>
-                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'forename_kana' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
-                  ) : (
-                    s.forename_kana
-                  )}
-                </td>
-                <td className={CLASS_COLORS[s.class - 1]} onDoubleClick={() => handleCellDoubleClick(s, 'class')}>
-                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'class' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
-                  ) : (
-                    s.class
-                  )}
-                </td>
-                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'number')}>
-                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'number' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
-                  ) : (
-                    s.number
-                  )}
-                </td>
-                <td className={DAY1_COLORS.find((x) => x[0] === s.day1id)?.[1]} onDoubleClick={() => handleCellDoubleClick(s, 'day1id')}>
-                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'day1id' ? (
-                    <select value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit">
-                      {COURSES_DAY1.map((course) => (
-                        <option key={course.key} value={course.key}>
-                          {course.short_name}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <p className="inline-p-fix">{COURSES_DAY1.find((x) => x.key === s.day1id)?.short_name}</p>
-                  )}
-                </td>
-                <td className={DAY3_COLORS.find((x) => x[0] === s.day3id)?.[1]} onDoubleClick={() => handleCellDoubleClick(s, 'day3id')}>
-                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'day3id' ? (
-                    <select value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit">
-                      {COURSES_DAY3.map((course) => (
-                        <option key={course.key} value={course.key}>
-                          {course.short_name}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <p className="inline-p-fix">{COURSES_DAY3.find((x) => x.key === s.day3id)?.short_name}</p>
-                  )}
-                </td>
-                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'day1bus')}>
-                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'day1bus' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
-                  ) : (
-                    s.day1bus
-                  )}
-                </td>
-                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'day3bus')}>
-                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'day3bus' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
-                  ) : (
-                    s.day3bus
-                  )}
-                </td>
-                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'room_tdh')}>
-                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'room_tdh' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
-                  ) : (
-                    s.room_tdh
-                  )}
-                </td>
-                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'room_fpr')}>
-                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'room_fpr' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
-                  ) : (
-                    s.room_fpr
-                  )}
-                </td>
-                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'shinkansen_day1_car_number')}>
-                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'shinkansen_day1_car_number' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
-                  ) : (
-                    s.shinkansen_day1_car_number
-                  )}
-                </td>
-                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'shinkansen_day1_seat')}>
-                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'shinkansen_day1_seat' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
-                  ) : (
-                    s.shinkansen_day1_seat
-                  )}
-                </td>
-                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'shinkansen_day4_car_number')}>
-                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'shinkansen_day4_car_number' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
-                  ) : (
-                    s.shinkansen_day4_car_number
-                  )}
-                </td>
-                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'shinkansen_day4_seat')}>
-                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'shinkansen_day4_seat' ? (
-                    <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
-                  ) : (
-                    s.shinkansen_day4_seat
-                  )}
-                </td>
+                {allColumns
+                  .filter((c) => visibleColumns.includes(c.key))
+                  .map((column) => (
+                    <td key={column.key} className={getCellClassName(s, column.key)} onDoubleClick={() => handleCellDoubleClick(s, column.key)}>
+                      {renderCellContent(s, column.key)}
+                    </td>
+                  ))}
                 <td className="bg-white sticky-col">
                   <div className="flex flex-row items-center justify-center">
                     <button className="p-1 cursor-pointer mx-1" onClick={() => handleEditClick(s)} disabled={modalMode !== null || editingCell !== null} title="編集">
