@@ -17,6 +17,7 @@ import { onMessage } from 'firebase/messaging';
 import { messaging } from './firebase';
 import OtanoshimiPreview from './pages/OtanoshimiPreview';
 import NonNotification from './pages/NonNotification';
+import TeacherRollCallList from './pages/TeacherRollCallList';
 
 export const SERVER_ENDPOINT = 'https://api.shiori.shudo-physics.com';
 
@@ -156,6 +157,7 @@ function App() {
               <Route path="/otanoshimi" element={<Otanoshimi />} />
               <Route path="/otanoshimi-preview/:order" element={<OtanoshimiPreview />} />
               <Route path="/teacher" element={<TeacherIndex />} />
+              <Route path="/teacher/roll-call-list" element={<TeacherRollCallList />} />
               <Route path="/call" element={<Call />} />
               <Route path="/teacher/call" element={<TeacherCall />} />
               <Route

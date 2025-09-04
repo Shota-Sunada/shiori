@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import type { student } from '../data/students';
 import KanaSearchModal from '../components/KanaSearchModal';
@@ -118,6 +118,7 @@ const TeacherIndex = () => {
       <section id="call" className="m-2 w-full max-w-md mx-auto">
         <div className="flex flex-col items-center bg-gray-100 p-6 rounded-lg shadow-md">
           <p className="m-[10px] text-2xl font-bold">{'点呼システム'}</p>
+          <Link to="/teacher/roll-call-list" className="text-blue-500 hover:underline mb-4">{"現在発動中の点呼一覧へ"}</Link>
           <form className="w-full mt-4" onSubmit={handleCallSubmit}>
             <div className="mb-4">
               <label htmlFor="teacher_name" className="block text-gray-700 text-sm font-bold mb-2">

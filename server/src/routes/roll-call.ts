@@ -41,6 +41,39 @@ router.get('/active', async (req, res) => {
   }
 });
 
+router.get('/teacher/:teacher_id', async (req, res) => {
+  const { teacher_id } = req.params;
+
+  if (!teacher_id) {
+    return res.status(400).json({ message: '先生IDが必要です。' });
+  }
+
+  try {
+    const connection = await pool.getConnection();
+    try {
+      const [activeRollCalls] = await connection.execute<RowDataPacket[]>(
+        `
+        SELECT rc.id, rc.teacher_id, rc.created_at, rc.is_active,
+          COUNT(rcs.student_id) AS total_students,
+          SUM(CASE WHEN rcs.status = 'checked_in' THEN 1 ELSE 0 END) AS checked_in_students
+        FROM roll_calls rc
+        JOIN roll_call_students rcs ON rc.id = rcs.roll_call_id
+        WHERE rc.teacher_id = ?
+        GROUP BY rc.id, rc.teacher_id, rc.created_at, rc.is_active
+        ORDER BY rc.created_at DESC
+        `,
+        [teacher_id]
+      );
+      res.json(activeRollCalls);
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    logger.error('先生の有効な点呼の取得中にエラーが発生しました:', error as Error);
+    res.status(500).json({ message: 'サーバーエラー' });
+  }
+});
+
 router.get('/', async (req, res) => {
   const { id } = req.query;
 
@@ -53,7 +86,7 @@ router.get('/', async (req, res) => {
   try {
     const connection = await pool.getConnection();
     try {
-      const [rollCallResult] = await connection.execute<RowDataPacket[]>('SELECT * FROM roll_calls WHERE id = ?', [rollCallId]);
+      const [rollCallResult] = await connection.execute<RowDataPacket[]>('SELECT teacher_id, created_at, is_active FROM roll_calls WHERE id = ?', [rollCallId]);
       const rollCall = rollCallResult[0];
 
       if (!rollCall) {

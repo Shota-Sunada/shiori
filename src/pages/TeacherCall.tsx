@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SERVER_ENDPOINT } from '../App';
+import Button from '../components/Button';
 
 interface Student {
   gakuseki: number;
@@ -11,11 +12,18 @@ interface Student {
   status: 'targeted' | 'checked_in';
 }
 
+interface RollCall {
+  teacher_id: number;
+  created_at: string;
+  is_active: boolean;
+}
+
 const TeacherCall = () => {
   const [searchParams] = useSearchParams();
   const rollCallId = searchParams.get('id');
   const navigate = useNavigate();
 
+  const [rollCall, setRollCall] = useState<RollCall | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +37,7 @@ const TeacherCall = () => {
           throw new Error(`HTTPエラー! ステータス: ${response.status}`);
         }
         const data = await response.json();
+        setRollCall(data.rollCall);
         setStudents(data.students);
       } catch (err) {
         setError((err as Error).message);
@@ -39,9 +48,9 @@ const TeacherCall = () => {
 
     fetchData();
 
-    const interval = setInterval(fetchData, 5000); // 5秒ごとにポーリング
+    const interval = setInterval(fetchData, 5000);
 
-    return () => clearInterval(interval); // クリーンアップ
+    return () => clearInterval(interval);
   }, [rollCallId]);
 
   const onEndSession = async () => {
@@ -89,6 +98,10 @@ const TeacherCall = () => {
           {'点呼ID: '}
           {rollCallId}
         </p>
+        <p className="text-lg text-center mb-2">
+          {'開始した先生: '}
+          {rollCall?.teacher_id}
+        </p>
         <p className="text-lg text-center mb-4">
           {'応答状況: '}
           {checkedInCount}
@@ -131,6 +144,8 @@ const TeacherCall = () => {
           </button>
         </div>
       </div>
+
+      <Button text="点呼一覧へ戻る" arrow onClick={() => navigate('/teacher/roll-call-list')} />
     </div>
   );
 };
