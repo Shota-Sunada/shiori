@@ -142,7 +142,7 @@ const IndexTable = (props: { studentData: student | null }) => {
               <p>
                 {props.studentData ? (
                   <>
-                  {"HOTEL SPORSION "}
+                  {"Hotel Spor:Sion "}
                     {props.studentData?.room_fpr.toString().substring(1,2)}{"階 "}
                     {props.studentData?.room_fpr}
                     {'号室'}
