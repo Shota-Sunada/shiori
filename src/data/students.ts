@@ -12,8 +12,8 @@ export type student = {
   day3id: 'okutama' | 'yokosuka' | 'hakone' | 'kamakura' | 'hakkeijima' | 'yokohama';
   day1bus: string;
   day3bus: string;
-  room_shizuoka: string;
-  room_tokyo: string;
+  room_fpr: number;
+  room_tdh: number;
   shinkansen_day1_car_number: IntRange<1, 17>;
   shinkansen_day1_seat: string;
   shinkansen_day4_car_number: IntRange<1, 17>;

@@ -125,11 +125,12 @@ const IndexTable = (props: { studentData: student | null }) => {
               <p>
                 {props.studentData ? (
                   <>
-                    {props.studentData?.room_tokyo}
+                    {props.studentData?.room_tdh}
+                    {props.studentData?.room_tdh}
                     {'号室'}
                   </>
                 ) : (
-                  '◯◯◯号室'
+                  '◯階 ◯◯◯号室'
                 )}
               </p>
             </td>
@@ -141,7 +142,7 @@ const IndexTable = (props: { studentData: student | null }) => {
               <p>
                 {props.studentData ? (
                   <>
-                    {props.studentData?.room_shizuoka}
+                    {props.studentData?.room_fpr}
                     {'号室'}
                   </>
                 ) : (

@@ -51,10 +51,10 @@ async function initializeDatabase() {
         number INT NOT NULL,
         day1id VARCHAR(255) NOT NULL,
         day3id VARCHAR(255) NOT NULL,
-        day1bus VARCHAR(255),
-        day3bus VARCHAR(255),
-        room_shizuoka VARCHAR(255),
-        room_tokyo VARCHAR(255),
+        day1bus INT NOT NULL DEFAULT 0,
+        day3bus INT NOT NULL DEFAULT 0,
+        room_fpr INT NOT NULL DEFAULT 0,
+        room_tdh INT NOT NULL DEFAULT 0,
         shinkansen_day1_car_number INT NOT NULL,
         shinkansen_day1_seat VARCHAR(255),
         shinkansen_day4_car_number INT NOT NULL,
@@ -99,7 +99,7 @@ async function initializeDatabase() {
     `);
     logger.log('テーブル「roll_calls」の存在を確認。');
 
-        await connection.execute(`
+    await connection.execute(`
       CREATE TABLE IF NOT EXISTS roll_call_students (
         id INT AUTO_INCREMENT PRIMARY KEY,
         roll_call_id VARCHAR(36) NOT NULL,

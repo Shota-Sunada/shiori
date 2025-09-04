@@ -101,8 +101,8 @@ const initialForm: Omit<student, 'class' | 'number' | 'gakuseki' | 'shinkansen_d
   day3id: 'okutama',
   day1bus: '',
   day3bus: '',
-  room_shizuoka: '',
-  room_tokyo: '',
+  room_fpr: 0,
+  room_tdh: 0,
   shinkansen_day1_car_number: '',
   shinkansen_day4_car_number: '',
   shinkansen_day1_seat: '',
@@ -196,8 +196,8 @@ const Admin = () => {
           .includes(lowercasedQuery) ||
         String(s.day1bus).includes(lowercasedQuery) ||
         String(s.day3bus).includes(lowercasedQuery) ||
-        String(s.room_tokyo).includes(lowercasedQuery) ||
-        String(s.room_shizuoka).includes(lowercasedQuery) ||
+        String(s.room_tdh).includes(lowercasedQuery) ||
+        String(s.room_fpr).includes(lowercasedQuery) ||
         String(s.shinkansen_day1_car_number).includes(lowercasedQuery) ||
         String(s.shinkansen_day1_seat).includes(lowercasedQuery) ||
         String(s.shinkansen_day4_car_number).includes(lowercasedQuery) ||
@@ -500,16 +500,16 @@ const Admin = () => {
               <th className="w-20">
                 <div className="flex flex-col items-center justify-center">
                   <span>{'TDH号室'}</span>
-                  <button onClick={(e) => handleSort('room_tokyo', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('room_tokyo')}
+                  <button onClick={(e) => handleSort('room_tdh', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('room_tdh')}
                   </button>
                 </div>
               </th>
               <th className="w-20">
                 <div className="flex flex-col items-center justify-center">
                   <span>{'FPR号室'}</span>
-                  <button onClick={(e) => handleSort('room_shizuoka', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('room_shizuoka')}
+                  <button onClick={(e) => handleSort('room_fpr', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('room_fpr')}
                   </button>
                 </div>
               </th>
@@ -648,18 +648,18 @@ const Admin = () => {
                     s.day3bus
                   )}
                 </td>
-                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'room_tokyo')}>
-                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'room_tokyo' ? (
+                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'room_tdh')}>
+                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'room_tdh' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
-                    s.room_tokyo
+                    s.room_tdh
                   )}
                 </td>
-                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'room_shizuoka')}>
-                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'room_shizuoka' ? (
+                <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'room_fpr')}>
+                  {editingCell?.studentId === s.gakuseki && editingCell?.field === 'room_fpr' ? (
                     <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />
                   ) : (
-                    s.room_shizuoka
+                    s.room_fpr
                   )}
                 </td>
                 <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(s, 'shinkansen_day1_car_number')}>
@@ -770,6 +770,8 @@ const Admin = () => {
               class: Number(formData.class) as student['class'],
               number: Number(formData.number) as student['number'],
               gakuseki: Number(formData.gakuseki) as student['gakuseki'],
+              room_fpr: Number(formData.room_fpr) as student["room_fpr"],
+              room_tdh: Number(formData.room_tdh) as student["room_tdh"],
               shinkansen_day1_car_number: Number(formData.shinkansen_day1_car_number) as student['shinkansen_day1_car_number'],
               shinkansen_day4_car_number: Number(formData.shinkansen_day4_car_number) as student['shinkansen_day4_car_number']
             };

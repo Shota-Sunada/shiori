@@ -15,8 +15,8 @@ const localInitialForm = {
   day3id: 'okutama',
   day1bus: '',
   day3bus: '',
-  room_shizuoka: '',
-  room_tokyo: '',
+  room_fpr: 0,
+  room_tdh: 0,
   shinkansen_day1_car_number: '',
   shinkansen_day4_car_number: '',
   shinkansen_day1_seat: '',
@@ -100,9 +100,9 @@ const StudentModal = ({
           <label>{'三日目バス'}</label>
           <input name="day3bus" value={form.day3bus} required onChange={handleChange} />
           <label>{'東京ドームホテル 号室'}</label>
-          <input name="room_tokyo" value={form.room_tokyo} required onChange={handleChange} />
+          <input name="room_tdh" value={form.room_tdh} required onChange={handleChange} />
           <label>{'ﾌｼﾞﾌﾟﾚﾐｱﾑﾘｿﾞｰﾄ 号室'}</label>
-          <input name="room_shizuoka" value={form.room_shizuoka} required onChange={handleChange} />
+          <input name="room_fpr" value={form.room_fpr} required onChange={handleChange} />
           <label>{'一日目 新幹線'}</label>
           <div className="flex flex-row ">
             <div className="flex flex-row items-center justify-start">
