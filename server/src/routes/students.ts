@@ -173,4 +173,26 @@ router.post('/batch', async (req: Request, res: Response) => {
   }
 });
 
+// ホテルと部屋番号からルームメイトを取得
+router.get('/roommates/:hotel/:room', async (req: Request, res: Response) => {
+  const { hotel, room } = req.params;
+  let roomColumn: string;
+
+  if (hotel === 'tdh') {
+    roomColumn = 'room_tdh';
+  } else if (hotel === 'fpr') {
+    roomColumn = 'room_fpr';
+  } else {
+    return res.status(400).json({ message: '無効なホテルが指定されました。' });
+  }
+
+  try {
+    const [rows] = await pool.execute<RowDataPacket[]>(`SELECT gakuseki, surname, forename, class, number FROM students WHERE ${roomColumn} = ?`, [room]);
+    res.status(200).json(rows);
+  } catch (error) {
+    logger.error('ルームメイトの取得に失敗:', error as Error);
+    res.status(500).json({ message: '内部サーバーエラー' });
+  }
+});
+
 export default router;

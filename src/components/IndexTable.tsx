@@ -3,9 +3,47 @@ import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4 } from '../data/courses';
 import { DAY4_DATA, DAY4_TEACHERS } from '../data/day4';
 import type { student } from '../data/students';
 import '../styles/index-table.css';
+import { useState } from 'react';
+import RoommateModal from './RoommateModal';
+import { SERVER_ENDPOINT } from '../App';
+
+interface Roommate {
+  gakuseki: string;
+  surname: string;
+  forename: string;
+  class: number;
+  number: number;
+}
 
 const IndexTable = (props: { studentData: student | null }) => {
   const navigate = useNavigate();
+  const [showRoommateModal, setShowRoommateModal] = useState(false);
+  const [currentRoommates, setCurrentRoommates] = useState<Roommate[]>([]);
+  const [currentHotelName, setCurrentHotelName] = useState('');
+  const [currentRoomNumber, setCurrentRoomNumber] = useState('');
+
+  const fetchRoommates = async (hotel: 'tdh' | 'fpr', room: string, hotelName: string) => {
+    try {
+      const response = await fetch(`${SERVER_ENDPOINT}/api/students/roommates/${hotel}/${room}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data: Roommate[] = await response.json();
+      setCurrentRoommates(data);
+      setCurrentHotelName(hotelName);
+      setCurrentRoomNumber(room);
+      setShowRoommateModal(true);
+    } catch (error) {
+      console.error('Error fetching roommates:', error);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowRoommateModal(false);
+    setCurrentRoommates([]);
+    setCurrentHotelName('');
+    setCurrentRoomNumber('');
+  };
 
   return (
     <section id="table" className="rounded-2xl overflow-hidden mt-2">
@@ -112,7 +150,14 @@ const IndexTable = (props: { studentData: student | null }) => {
           </tr>
           {/* day4 END */}
           {/* hotel START */}
-          <tr>
+          <tr
+            className="cursor-pointer"
+            onClick={() => {
+              if (props.studentData?.room_tdh) {
+                fetchRoommates('tdh', props.studentData.room_tdh.toString(), '東京ドームホテル');
+              }
+            }}
+          >
             <td rowSpan={2} style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
               {'ホテル'}
             </td>
@@ -135,7 +180,14 @@ const IndexTable = (props: { studentData: student | null }) => {
               </p>
             </td>
           </tr>
-          <tr>
+          <tr
+            className="cursor-pointer"
+            onClick={() => {
+              if (props.studentData?.room_fpr) {
+                fetchRoommates('fpr', props.studentData.room_fpr.toString(), 'フジプレミアムリゾート');
+              }
+            }}
+          >
             <td>{'3泊目'}</td>
             <td>
               <p>{'フジプレミアムリゾート'}</p>
@@ -181,8 +233,8 @@ const IndexTable = (props: { studentData: student | null }) => {
                 </>
               ) : (
                 <>
-                  <p>{'東京駅行 のぞみ84号 - ◯号車 ◯◯'}</p>
-                  <p className="text-gray-600 text-sm">{'広島駅7:57発 - 新横浜駅11:34着'}</p>
+                  <p>{'広島駅行 のぞみ84号 - ◯号車 ◯◯'}</p>
+                  <p className="text-gray-600 text-sm">{'新横浜駅15:48発 - 広島駅19:46着'}</p>
                   <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
                 </>
               )}
@@ -221,6 +273,14 @@ const IndexTable = (props: { studentData: student | null }) => {
           {/* shinkansen END */}
         </tbody>
       </table>
+      {showRoommateModal && (
+        <RoommateModal
+          roommates={currentRoommates}
+          onClose={handleCloseModal}
+          hotelName={currentHotelName}
+          roomNumber={currentRoomNumber}
+        />
+      )}
     </section>
   );
 };
