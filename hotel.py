@@ -15,4 +15,4 @@ with open("hotel.csv", newline='', encoding='utf-8') as csvfile:
 
 with open("hotel.txt", 'w', encoding='utf-8') as f:
         for title, code in result.items():
-            f.write(f"{title}: {code}\n")
+            f.write(f"{title},{code}\n")
