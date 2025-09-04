@@ -13,12 +13,17 @@ interface StudentStatus {
   status: 'pending' | 'checked_in';
 }
 
+interface RollCall {
+  is_active: boolean;
+}
+
 const Call = () => {
   const [isDone, setIsDone] = useState<boolean>(false);
   const [searchParams] = useSearchParams();
   const rollCallId = searchParams.get('id');
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [rollCall, setRollCall] = useState<RollCall | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,6 +37,7 @@ const Call = () => {
           throw new Error('点呼データの取得に失敗しました。');
         }
         const data = await response.json();
+        setRollCall(data.rollCall);
         const currentUserStatus = data.students.find((student: StudentStatus) => student.gakuseki === user.userId);
 
         if (currentUserStatus && currentUserStatus.status === 'checked_in') {
@@ -50,6 +56,11 @@ const Call = () => {
   const handleCheckIn = async () => {
     if (!user || !rollCallId) {
       alert('エラーが発生しました。');
+      return;
+    }
+
+    if (!rollCall?.is_active) {
+      alert('この点呼はすでに終了しています。');
       return;
     }
 
@@ -101,14 +112,24 @@ const Call = () => {
           <p>{'点呼完了!'}</p>
         </div>
       ) : (
-        <div className="bg-red-500 text-white p-18 text-4xl font-bold rounded-[100%] w-[40dvh] h-[40dvh] flex items-center justify-center cursor-pointer flex-col" onClick={handleCheckIn}>
-          <p> {'点呼!'}</p>
-          <p className="text-xl mt-5">{'残り時間'}</p>
-          <p className="text-xl">{'00:00'}</p>
+        <div
+          className={`text-white p-18 text-4xl font-bold rounded-[100%] w-[40dvh] h-[40dvh] flex items-center justify-center flex-col ${
+            rollCall?.is_active ? 'bg-red-500 cursor-pointer' : 'bg-gray-500'
+          }`}
+          onClick={handleCheckIn}>
+          {rollCall?.is_active ? (
+            <>
+              <p> {'点呼!'}</p>
+              <p className="text-xl mt-5">{'残り時間'}</p>
+              <p className="text-xl">{'00:00'}</p>
+            </>
+          ) : (
+            <p>{'終了'}</p>
+          )}
         </div>
       )}
 
-      <p className="text-xl mt-5">{isDone ? '確認しました！' : '時間内に点呼に応答してください！'}</p>
+      <p className="text-xl mt-5">{isDone ? '確認しました！' : rollCall?.is_active ? '時間内に点呼に応答してください！' : 'この点呼は終了しています。'}</p>
       {isDone ? <Button text="戻る" arrow onClick={() => navigate('/index')} /> : <></>}
     </div>
   );

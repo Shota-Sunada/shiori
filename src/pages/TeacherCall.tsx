@@ -139,8 +139,8 @@ const TeacherCall = () => {
         </div>
 
         <div className="text-center mt-6">
-          <button onClick={onEndSession} className="p-2 px-6 text-white bg-red-500 rounded hover:bg-red-700 focus:outline-none focus:shadow-outline cursor-pointer">
-            {'点呼終了'}
+          <button onClick={onEndSession} disabled={!rollCall?.is_active} className="p-2 px-6 text-white bg-red-500 rounded hover:bg-red-700 focus:outline-none focus:shadow-outline cursor-pointer disabled:bg-gray-400">
+            {rollCall?.is_active ? '点呼終了' : '点呼は終了しています'}
           </button>
         </div>
       </div>
