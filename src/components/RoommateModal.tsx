@@ -19,23 +19,24 @@ const RoommateModal: React.FC<RoommateModalProps> = ({ roommates, onClose, hotel
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm">
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-        <h2 className="text-xl font-bold mb-4">{hotelName} {roomNumber}号室のルームメイト</h2>
+        <p className="text-xl font-bold mb-4">
+          {hotelName} {roomNumber}
+          {'号室'}
+        </p>
         {roommates.length > 0 ? (
-          <ul>
+          <div>
+            <p>{"ルームメイト"}</p>
             {roommates.map((roommate) => (
-              <li key={roommate.gakuseki} className="mb-2">
-                {roommate.class}組{roommate.number}番 {roommate.surname} {roommate.forename}
+              <li key={roommate.gakuseki} className="">
+                {`${roommate.surname} ${roommate.forename} (5年${roommate.class}組${roommate.number}番)`}
               </li>
             ))}
-          </ul>
+          </div>
         ) : (
-          <p>ルームメイトが見つかりませんでした。</p>
+          <p>{"ルームメイトが見つかりませんでした。"}</p>
         )}
-        <button
-          onClick={onClose}
-          className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          閉じる
+        <button onClick={onClose} className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
+          {"閉じる"}
         </button>
       </div>
     </div>
