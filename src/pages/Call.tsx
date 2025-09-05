@@ -124,10 +124,10 @@ const Call = () => {
 
   const formatTime = (totalSeconds: number) => {
     totalSeconds -= 20;
-        if (totalSeconds <= 0) {
-      return "00:00";
+    if (totalSeconds <= 0) {
+      return '00:00';
     }
-    
+
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
@@ -140,20 +140,19 @@ const Call = () => {
     }
 
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/absence`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            roll_call_id: rollCallId,
-            student_id: user.userId,
-            reason: absenceReason,
-            location: currentLocation
-          })
-        });
+      const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/absence`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          roll_call_id: rollCallId,
+          student_id: user.userId,
+          reason: absenceReason,
+          location: currentLocation
+        })
+      });
 
       const data = await response.json();
 
@@ -253,26 +252,16 @@ const Call = () => {
         <div className="mt-5">
           <Button text="点呼できません" arrow onClick={() => setShowAbsenceForm(true)} />
         </div>
-      ): <></>}
+      ) : (
+        <></>
+      )}
 
       {showAbsenceForm && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-transparent backdrop-blur-sm">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">{"不在理由・詳細情報"}</h2>
-            <textarea
-              className="w-full p-2 border rounded mb-4"
-              rows={4}
-              placeholder="理由を入力してください"
-              value={absenceReason}
-              onChange={(e) => setAbsenceReason(e.target.value)}
-            />
-            <input
-              type="text"
-              className="w-full p-2 border rounded"
-              placeholder="現在地を入力してください"
-              value={currentLocation}
-              onChange={(e) => setCurrentLocation(e.target.value)}
-            />
+            <h2 className="text-xl font-bold mb-4">{'不在理由・詳細情報'}</h2>
+            <textarea className="w-full p-2 border rounded mb-4" rows={4} placeholder="理由を入力してください" value={absenceReason} onChange={(e) => setAbsenceReason(e.target.value)} />
+            <input type="text" className="w-full p-2 border rounded" placeholder="現在地を入力してください" value={currentLocation} onChange={(e) => setCurrentLocation(e.target.value)} />
             <div className="flex justify-end space-x-2 mt-4">
               <Button text="キャンセル" arrow={false} onClick={() => setShowAbsenceForm(false)} />
               <Button text="送信" arrow onClick={handleAbsenceSubmit} />

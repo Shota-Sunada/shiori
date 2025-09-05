@@ -31,8 +31,8 @@ const TeacherIndex = () => {
       try {
         const response = await fetch(`${SERVER_ENDPOINT}/api/students`, {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${token}`
+          }
         });
         if (!response.ok) {
           throw new Error(`HTTPエラー! ステータス: ${response.status}`);
@@ -76,12 +76,12 @@ const TeacherIndex = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
           teacher_id: user.userId,
           specific_student_id: specificStudentId || null,
-          duration_minutes: durationMinutes,
+          duration_minutes: durationMinutes
         })
       });
 
@@ -152,9 +152,7 @@ const TeacherIndex = () => {
                     type="button"
                     key={period}
                     onClick={() => setDurationMinutes(period)}
-                    className={`py-2 px-4 rounded focus:outline-none ${
-                      durationMinutes === period ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
-                    }`}>
+                    className={`py-2 px-4 rounded focus:outline-none ${durationMinutes === period ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}>
                     {period}
                   </button>
                 ))}

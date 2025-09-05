@@ -99,7 +99,10 @@ router.get('/', async (req, res) => {
   try {
     const connection = await pool.getConnection();
     try {
-      const [rollCallResult] = await connection.execute<RowDataPacket[]>('SELECT teacher_id, UNIX_TIMESTAMP(created_at) * 1000 AS created_at, is_active, UNIX_TIMESTAMP(expires_at) * 1000 AS expires_at FROM roll_calls WHERE id = ?', [rollCallId]);
+      const [rollCallResult] = await connection.execute<RowDataPacket[]>(
+        'SELECT teacher_id, UNIX_TIMESTAMP(created_at) * 1000 AS created_at, is_active, UNIX_TIMESTAMP(expires_at) * 1000 AS expires_at FROM roll_calls WHERE id = ?',
+        [rollCallId]
+      );
       const rollCall = rollCallResult[0];
 
       if (!rollCall) {

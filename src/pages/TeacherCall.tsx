@@ -150,17 +150,7 @@ const TeacherCall = () => {
     </div>
   );
 
-  const ReasonModal = ({
-    isOpen,
-    reason,
-    location,
-    onClose
-  }: {
-    isOpen: boolean;
-    reason: string;
-    location: string;
-    onClose: () => void;
-  }) => {
+  const ReasonModal = ({ isOpen, reason, location, onClose }: { isOpen: boolean; reason: string; location: string; onClose: () => void }) => {
     if (!isOpen) return null;
 
     return (
@@ -171,10 +161,10 @@ const TeacherCall = () => {
             <strong>{'理由: '}</strong>
             {reason}
           </p>
-            <p>
-              <strong>{'現在地: '}</strong>
-              {location}
-            </p>
+          <p>
+            <strong>{'現在地: '}</strong>
+            {location}
+          </p>
           <div className="text-center mt-4">
             <Button text="閉じる" arrow onClick={onClose} />
           </div>
@@ -188,7 +178,12 @@ const TeacherCall = () => {
   }
 
   if (error) {
-    return <p className="text-center mt-8 text-red-500">{"エラー: "}{error}</p>;
+    return (
+      <p className="text-center mt-8 text-red-500">
+        {'エラー: '}
+        {error}
+      </p>
+    );
   }
 
   const checkedInCount = students.filter((s) => s.status === 'checked_in').length;
@@ -204,11 +199,20 @@ const TeacherCall = () => {
           <p className="text-lg mx-1 text-right">{'開始した先生: '}</p>
           <p className="text-lg mx-1 text-left">{rollCall?.teacher_id}</p>
           <p className="text-lg mx-1 text-right">{'応答済みの生徒: '}</p>
-          <p className="text-lg mx-1 text-left">{checkedInCount}{"人"}</p>
+          <p className="text-lg mx-1 text-left">
+            {checkedInCount}
+            {'人'}
+          </p>
           <p className="text-lg mx-1 text-right">{'不在の生徒: '}</p>
-          <p className="text-lg mx-1 text-left">{absentCount}{"人"}</p>
+          <p className="text-lg mx-1 text-left">
+            {absentCount}
+            {'人'}
+          </p>
           <p className="text-lg mx-1 text-right">{'未応答の生徒: '}</p>
-          <p className="text-lg mx-1 text-left">{unresponsiveCount}{"人"}</p>
+          <p className="text-lg mx-1 text-left">
+            {unresponsiveCount}
+            {'人'}
+          </p>
           <p className="text-lg mx-1 text-right">{'残り時間: '}</p>
           <p className="text-lg mx-1 text-left">{formatTime(remainingTime)}</p>
         </div>
@@ -236,20 +240,25 @@ const TeacherCall = () => {
                     {student.status === 'checked_in' ? (
                       <span className="px-2 py-1 text-xs font-semibold text-white bg-green-500 rounded-full">{'応答済み'}</span>
                     ) : student.absence_reason ? (
-                      <span className="px-2 py-1 text-xs font-semibold text-white bg-yellow-500 rounded-full">
-                        {'不在'}
-                      </span>
+                      <span className="px-2 py-1 text-xs font-semibold text-white bg-yellow-500 rounded-full">{'不在'}</span>
                     ) : (
                       <span className="px-2 py-1 text-xs font-semibold text-white bg-red-500 rounded-full">{'未応答'}</span>
                     )}
                   </td>
-                  <td className='px-3'>{student.absence_reason ? 
-                  <div className='flex items-center justify-center'>
-                    <FaArrowRight 
-                        onClick={() => setModal({ isOpen: true, reason: student.absence_reason || '', location: student.location || '' })}
-                    
-                    className="cursor-pointer bg-[#219ace30] rounded-2xl p-1.5" size={'30px'} color="#219bce" />
-                  </div>: <></>}</td>
+                  <td className="px-3">
+                    {student.absence_reason ? (
+                      <div className="flex items-center justify-center">
+                        <FaArrowRight
+                          onClick={() => setModal({ isOpen: true, reason: student.absence_reason || '', location: student.location || '' })}
+                          className="cursor-pointer bg-[#219ace30] rounded-2xl p-1.5"
+                          size={'30px'}
+                          color="#219bce"
+                        />
+                      </div>
+                    ) : (
+                      <></>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

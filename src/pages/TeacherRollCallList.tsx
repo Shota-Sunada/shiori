@@ -63,9 +63,10 @@ const TeacherRollCallList = () => {
         {endedRollCalls.length === 0 ? <p>{'終了した点呼はありません。'}</p> : <RollCallTable rollCalls={endedRollCalls} />}
       </section>
 
-    <div className='flex items-center justify-center m-2'>
-      <Button text="戻る" arrow onClick={() => navigate('/teacher')} />
-    </div></div>
+      <div className="flex items-center justify-center m-2">
+        <Button text="戻る" arrow onClick={() => navigate('/teacher')} />
+      </div>
+    </div>
   );
 };
 
