@@ -51,15 +51,22 @@ const Index = () => {
           if (response.ok) {
             const data = await response.json();
             setActiveRollCall(data);
+          } else {
+            setActiveRollCall(null);
           }
         } catch (error) {
           console.error('有効な点呼の確認中にエラーが発生しました:', error);
+          setActiveRollCall(null);
         }
       }
     };
 
     fetchStudent();
     checkActiveRollCall();
+
+    const intervalId = setInterval(checkActiveRollCall, 5000);
+
+    return () => clearInterval(intervalId);
   }, [user]);
 
   if (loading) {
