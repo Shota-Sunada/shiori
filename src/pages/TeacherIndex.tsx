@@ -145,7 +145,7 @@ const TeacherIndex = () => {
               />
             </div>
             <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">{'点呼時間 (分) - ベース20秒に加えて何分、点呼するか'}</label>
+              <label className="block text-gray-700 text-sm font-bold mb-2">{'点呼時間 (分)'}</label>
               <div className="flex justify-center space-x-2">
                 {[1, 2, 3, 4, 5].map((period) => (
                   <button
