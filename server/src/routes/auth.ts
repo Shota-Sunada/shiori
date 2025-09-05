@@ -80,7 +80,7 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     // Generate JWT
-    const token = jwt.sign({ userId: user.id, is_admin: user.is_admin, is_teacher: user.is_teacher }, JWT_SECRET, { expiresIn: '1h' }); // JWTペイロードから username を削除
+    const token = jwt.sign({ userId: user.id, is_admin: user.is_admin, is_teacher: user.is_teacher }, JWT_SECRET, { expiresIn: '7d' }); // JWTペイロードから username を削除
 
     res.status(200).json({ message: 'ログインに成功', token });
   } catch (error) {
