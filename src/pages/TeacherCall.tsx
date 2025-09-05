@@ -180,10 +180,6 @@ const TeacherCall = () => {
       <div className="w-full max-w-4xl p-4 bg-white rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-center mb-4">{'点呼実施中'}</h1>
         <p className="text-lg text-center mb-2">
-          {'点呼ID: '}
-          {rollCallId}
-        </p>
-        <p className="text-lg text-center mb-2">
           {'開始した先生: '}
           {rollCall?.teacher_id}
         </p>
