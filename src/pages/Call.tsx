@@ -50,12 +50,25 @@ const Call = () => {
       }
     };
 
+    // 初回実行
     fetchRollCallStatus();
 
-    const intervalId = setInterval(fetchRollCallStatus, 5000);
+    // ポーリングを停止する条件
+    const shouldStopPolling = isDone || (rollCall !== null && !rollCall.is_active);
 
-    return () => clearInterval(intervalId);
-  }, [rollCallId, user]);
+    let intervalId: NodeJS.Timeout | null = null;
+
+    if (!shouldStopPolling) {
+      intervalId = setInterval(fetchRollCallStatus, 5000);
+    }
+
+    // クリーンアップ関数
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [rollCallId, user, isDone, rollCall]);
 
   const handleCheckIn = async () => {
     if (!user || !rollCallId) {
