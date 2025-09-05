@@ -3,7 +3,7 @@ import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4 } from '../data/courses';
 import { DAY4_DATA, DAY4_TEACHERS } from '../data/day4';
 import type { student } from '../data/students';
 import '../styles/index-table.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import RoomDataModal from './RoomDataModal';
 import { SERVER_ENDPOINT } from '../App';
 
@@ -21,6 +21,18 @@ const IndexTable = (props: { studentData: student | null }) => {
   const [currentRoommates, setCurrentRoommates] = useState<Roommate[]>([]);
   const [currentHotelName, setCurrentHotelName] = useState('');
   const [currentRoomNumber, setCurrentRoomNumber] = useState('');
+
+  useEffect(() => {
+    if (showRoommateModal) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [showRoommateModal]);
 
   const fetchRoommates = async (hotel: 'tdh' | 'fpr', room: string, hotelName: string) => {
     try {

@@ -109,9 +109,10 @@ router.get('/', async (req, res) => {
       const [students] = await connection.execute<RowDataPacket[]>(
         `
         SELECT
-          s.gakuseki, s.surname, s.forename, s.class, s.number, rcs.status
+          s.gakuseki, s.surname, s.forename, s.class, s.number, rcs.status, rca.reason AS absence_reason
         FROM students s
         JOIN roll_call_students rcs ON s.gakuseki = rcs.student_id
+        LEFT JOIN roll_call_absences rca ON rcs.roll_call_id = rca.roll_call_id AND s.gakuseki = rca.student_id
         WHERE rcs.roll_call_id = ?
         ORDER BY s.class, s.number
       `,
@@ -218,6 +219,23 @@ router.post('/end', async (req, res) => {
     res.status(200).json({ message: '点呼を終了しました。' });
   } catch (error) {
     logger.error('点呼の終了中にエラーが発生しました:', error as Error);
+    res.status(500).json({ message: 'サーバーエラー' });
+  }
+});
+
+router.post('/absence', async (req, res) => {
+  const { roll_call_id, student_id, reason, location } = req.body;
+
+  if (!roll_call_id || !student_id || !reason) {
+    return res.status(400).json({ message: '点呼ID、生徒ID、および理由が必要です。' });
+  }
+
+  try {
+    await pool.execute('INSERT INTO roll_call_absences (roll_call_id, student_id, reason, location) VALUES (?, ?, ?, ?)', [roll_call_id, student_id, reason, location]);
+    logger.log(`生徒「${student_id}」が点呼「${roll_call_id}」不在としてマークしました。`);
+    res.status(200).json({ message: '不在届を送信しました。' });
+  } catch (error) {
+    logger.error('不在届の送信中にエラーが発生しました:', error as Error);
     res.status(500).json({ message: 'サーバーエラー' });
   }
 });
