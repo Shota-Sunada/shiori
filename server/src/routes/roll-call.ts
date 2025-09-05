@@ -109,7 +109,7 @@ router.get('/', async (req, res) => {
       const [students] = await connection.execute<RowDataPacket[]>(
         `
         SELECT
-          s.gakuseki, s.surname, s.forename, s.class, s.number, rcs.status, rca.reason AS absence_reason
+          s.gakuseki, s.surname, s.forename, s.class, s.number, rcs.status, rca.reason AS absence_reason, rca.location
         FROM students s
         JOIN roll_call_students rcs ON s.gakuseki = rcs.student_id
         LEFT JOIN roll_call_absences rca ON rcs.roll_call_id = rca.roll_call_id AND s.gakuseki = rca.student_id

@@ -14,6 +14,7 @@ interface Student {
   number: number;
   status: 'targeted' | 'checked_in';
   absence_reason?: string;
+  location?: string;
 }
 
 const TeacherCall = () => {
@@ -27,7 +28,7 @@ const TeacherCall = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [remainingTime, setRemainingTime] = useState<number>(0);
-  const [modal, setModal] = useState<{ isOpen: boolean; reason: string }>({ isOpen: false, reason: '' });
+  const [modal, setModal] = useState<{ isOpen: boolean; reason: string; location: string }>({ isOpen: false, reason: '', location: '' });
 
   useEffect(() => {
     if (modal.isOpen) {
@@ -149,14 +150,31 @@ const TeacherCall = () => {
     </div>
   );
 
-  const ReasonModal = ({ isOpen, reason, onClose }: { isOpen: boolean; reason: string; onClose: () => void }) => {
+  const ReasonModal = ({
+    isOpen,
+    reason,
+    location,
+    onClose
+  }: {
+    isOpen: boolean;
+    reason: string;
+    location: string;
+    onClose: () => void;
+  }) => {
     if (!isOpen) return null;
 
     return (
       <div className="fixed inset-0 flex items-center justify-center z-50 bg-transparent backdrop-blur-sm">
         <div className="bg-white p-6 rounded-lg shadow-lg">
           <h2 className="text-xl font-bold mb-4">{'不在理由・詳細情報'}</h2>
-          <p>{reason}</p>
+          <p>
+            <strong>{'理由: '}</strong>
+            {reason}
+          </p>
+            <p>
+              <strong>{'現在地: '}</strong>
+              {location}
+            </p>
           <div className="text-center mt-4">
             <Button text="閉じる" arrow onClick={onClose} />
           </div>
@@ -228,7 +246,7 @@ const TeacherCall = () => {
                   <td className='px-3'>{student.absence_reason ? 
                   <div className='flex items-center justify-center'>
                     <FaArrowRight 
-                        onClick={() => setModal({ isOpen: true, reason: student.absence_reason || '' })}
+                        onClick={() => setModal({ isOpen: true, reason: student.absence_reason || '', location: student.location || '' })}
                     
                     className="cursor-pointer bg-[#219ace30] rounded-2xl p-1.5" size={'30px'} color="#219bce" />
                   </div>: <></>}</td>
@@ -242,7 +260,7 @@ const TeacherCall = () => {
       </div>
 
       <Button text="点呼一覧へ戻る" arrow onClick={() => navigate('/teacher/roll-call-list')} />
-      <ReasonModal isOpen={modal.isOpen} reason={modal.reason} onClose={() => setModal({ isOpen: false, reason: '' })} />
+      <ReasonModal isOpen={modal.isOpen} reason={modal.reason} location={modal.location} onClose={() => setModal({ isOpen: false, reason: '', location: '' })} />
     </div>
   );
 };
