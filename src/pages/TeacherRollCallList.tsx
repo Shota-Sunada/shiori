@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
 import RollCallTable, { type RollCall } from '../components/RollCallTable';
+import Button from '../components/Button';
+import { useNavigate } from 'react-router-dom';
 
 const TeacherRollCallList = () => {
   const { user, token } = useAuth();
   const [rollCalls, setRollCalls] = useState<RollCall[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!user || !token) return;
@@ -59,7 +62,10 @@ const TeacherRollCallList = () => {
         <h2 className="text-xl font-semibold mb-2">{'終了した点呼'}</h2>
         {endedRollCalls.length === 0 ? <p>{'終了した点呼はありません。'}</p> : <RollCallTable rollCalls={endedRollCalls} />}
       </section>
-    </div>
+
+    <div className='flex items-center justify-center m-2'>
+      <Button text="戻る" arrow onClick={() => navigate('/teacher')} />
+    </div></div>
   );
 };
 
