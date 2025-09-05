@@ -103,10 +103,8 @@ const AdminOrTeacherRoute = ({ children }: { children: ReactNode }) => {
 };
 
 function App() {
-  const [notification, setNotification] = useState<{ title: string; body: string; link?: string } | null>(null);
   const navigate = useNavigate();
 
-  // Firebase Cloud Messaging の設定
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       const swUrl = `/firebase-messaging-sw.js`;
@@ -118,32 +116,22 @@ function App() {
     const unsubscribe = onMessage(messaging, (payload) => {
       console.log('Foreground message received: ', payload);
       if (payload.data?.type === 'default_notification') {
-        setNotification({
-          title: payload.data.originalTitle || 'New Message',
-          body: payload.data.originalBody || '',
-          link: payload.data.link
-        });
+        const title = payload.data.originalTitle;
+        const body = payload.data.originalBody;
+        const link = payload.data.link;
+        alert(`${title}\n${body}`);
+        if (link) {
+          navigate(link);
+        }
       }
     });
 
     return () => unsubscribe();
-  }, []);
-
-  const handleNotificationClick = () => {
-    if (notification?.link) {
-      navigate(notification.link);
-    }
-    setNotification(null);
-  };
+  }, [navigate]);
 
   return (
     <div className="grid grid-rows-[auto_1fr_auto] bg-[#f7f4e5] min-h-[100dvh]">
-      {notification && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-white p-4 rounded-lg shadow-lg cursor-pointer z-50" onClick={handleNotificationClick}>
-          <p className="font-bold">{notification.title}</p>
-          <p>{notification.body}</p>
-        </div>
-      )}
+
       <Header />
       <main>
         <Routes>
