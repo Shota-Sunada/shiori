@@ -85,7 +85,7 @@ const UserAdmin = () => {
       console.error('ユーザーの取得に失敗:', error);
       setStatus('ユーザーデータの取得に失敗しました。');
     }
-  },[token]);
+  }, [token]);
 
   const handleUnban = async (id: number) => {
     if (!token) return;
@@ -398,11 +398,15 @@ const UserAdmin = () => {
                 <td className="bg-white sticky-col">
                   <div className="flex flex-row items-center justify-center">
                     {u.is_banned && (
-                        <button className="p-1 cursor-pointer mx-1" onClick={() => handleUnban(u.id)} disabled={modalMode !== null} title="BAN解除">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600 hover:text-green-800" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                        </button>
+                      <button className="p-1 cursor-pointer mx-1" onClick={() => handleUnban(u.id)} disabled={modalMode !== null} title="BAN解除">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600 hover:text-green-800" viewBox="0 0 20 20" fill="currentColor">
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </button>
                     )}
                     <button className="p-1 cursor-pointer mx-1" onClick={() => handleEditClick(u)} disabled={modalMode !== null} title="編集">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 hover:text-gray-800" viewBox="0 0 20 20" fill="currentColor">

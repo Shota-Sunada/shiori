@@ -25,8 +25,8 @@ const TeacherRollCallList = () => {
       try {
         const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/teacher/${user.userId}`, {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${token}`
+          }
         });
         if (!response.ok) {
           throw new Error(`HTTPエラー! ステータス: ${response.status}`);

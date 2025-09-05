@@ -25,8 +25,8 @@ const Index = () => {
         try {
           const response = await fetch(`${SERVER_ENDPOINT}/api/students/${user.userId}`, {
             headers: {
-              Authorization: `Bearer ${token}`,
-            },
+              Authorization: `Bearer ${token}`
+            }
           });
           if (!response.ok) {
             if (response.status === 404) {
@@ -53,8 +53,8 @@ const Index = () => {
         try {
           const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/active?student_id=${user.userId}`, {
             headers: {
-              Authorization: `Bearer ${token}`,
-            },
+              Authorization: `Bearer ${token}`
+            }
           });
           if (response.ok) {
             const data = await response.json();

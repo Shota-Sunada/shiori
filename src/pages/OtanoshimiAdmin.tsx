@@ -41,8 +41,8 @@ const OtanoshimiAdmin = () => {
     try {
       const response = await fetch(`${SERVER_ENDPOINT}/api/otanoshimi`, {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${token}`
+        }
       });
       if (!response.ok) {
         throw new Error(`HTTPエラー! ステータス: ${response.status}`);
@@ -58,15 +58,15 @@ const OtanoshimiAdmin = () => {
       console.error('チームデータの取得に失敗:', error);
       setStatus('チームデータの取得中にエラーが発生しました。');
     }
-  },[token]);
+  }, [token]);
 
   const fetchAllStudents = useCallback(async () => {
     if (!token) return;
     try {
       const response = await fetch(`${SERVER_ENDPOINT}/api/students`, {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${token}`
+        }
       });
       if (!response.ok) {
         throw new Error(`HTTPエラー! ステータス: ${response.status}`);
@@ -82,7 +82,7 @@ const OtanoshimiAdmin = () => {
       console.error('生徒データの取得に失敗:', error);
       setStatus('生徒データの取得中にエラーが発生しました。');
     }
-  },[token]);
+  }, [token]);
 
   useEffect(() => {
     if (token) {
@@ -115,7 +115,7 @@ const OtanoshimiAdmin = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(teams)
       });

@@ -111,10 +111,7 @@ router.put('/:id/unban', isAdmin, async (req: Request, res: Response) => {
   }
 
   try {
-    const [result] = await pool.execute(
-      'UPDATE users SET is_banned = 0, failed_login_attempts = 0 WHERE id = ?',
-      [id]
-    );
+    const [result] = await pool.execute('UPDATE users SET is_banned = 0, failed_login_attempts = 0 WHERE id = ?', [id]);
 
     if ((result as ResultSetHeader).affectedRows === 0) {
       return res.status(404).json({ message: 'ユーザーが見つかりませんでした。' });
@@ -125,7 +122,6 @@ router.put('/:id/unban', isAdmin, async (req: Request, res: Response) => {
     res.status(500).json({ message: '内部サーバーエラー' });
   }
 });
-
 
 // 特定のユーザーデータを削除
 router.delete('/:id', isAdmin, async (req: Request, res: Response) => {

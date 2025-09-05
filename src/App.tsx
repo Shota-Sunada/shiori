@@ -131,7 +131,6 @@ function App() {
 
   return (
     <div className="grid grid-rows-[auto_1fr_auto] bg-[#f7f4e5] min-h-[100dvh]">
-
       <Header />
       <main>
         <Routes>

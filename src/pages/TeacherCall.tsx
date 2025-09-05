@@ -36,8 +36,8 @@ const TeacherCall = () => {
       try {
         const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call?id=${rollCallId}`, {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${token}`
+          }
         });
         if (!response.ok) {
           throw new Error(`HTTPエラー! ステータス: ${response.status}`);
@@ -69,7 +69,7 @@ const TeacherCall = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({ roll_call_id: rollCallId })
       });

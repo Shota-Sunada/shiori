@@ -43,7 +43,7 @@ const RollCallTable = ({ rollCalls }: RollCallTableProps) => {
               <td className="py-0.5 px-3 border-b text-center">
                 <div className="flex items-center justify-center">
                   <Link to={`/teacher/call?id=${rollCall.id}`}>
-                    <FaArrowRight className='cursor-pointer bg-[#219ace30] rounded-2xl p-1.5' size={'30px'} color="#219bce" />
+                    <FaArrowRight className="cursor-pointer bg-[#219ace30] rounded-2xl p-1.5" size={'30px'} color="#219bce" />
                   </Link>
                 </div>
               </td>

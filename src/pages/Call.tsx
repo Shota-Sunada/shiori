@@ -34,8 +34,8 @@ const Call = () => {
       try {
         const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call?id=${rollCallId}`, {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${token}`
+          }
         });
         if (!response.ok) {
           throw new Error('点呼データの取得に失敗しました。');
@@ -90,7 +90,7 @@ const Call = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({ roll_call_id: rollCallId, student_id: user.userId })
       });

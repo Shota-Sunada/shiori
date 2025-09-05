@@ -29,10 +29,10 @@ const Credits = () => {
       <div className="m-2">
         <p className="font-bold">{'協力'}</p>
         <p className="text-sm">{'お楽しみ会実行委員'}</p>
-          <p>{'砂田翔太'}</p>
-          <p>{'野間大生樹'}</p>
-          <p>{'藤岡大颯'}</p>
-          <p>{'藤村英輝'}</p>
+        <p>{'砂田翔太'}</p>
+        <p>{'野間大生樹'}</p>
+        <p>{'藤岡大颯'}</p>
+        <p>{'藤村英輝'}</p>
       </div>
       <div className="m-2">
         <p className="font-bold">{'サーバー提供'}</p>

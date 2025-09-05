@@ -17,8 +17,8 @@ const Otanoshimi = () => {
     try {
       const response = await fetch(`${SERVER_ENDPOINT}/api/otanoshimi`, {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${token}`
+        }
       });
       if (!response.ok) {
         throw new Error(`HTTPエラー! ステータス: ${response.status}`);
@@ -49,7 +49,7 @@ const Otanoshimi = () => {
     } catch (error) {
       console.error('チームデータの取得に失敗:', error);
     }
-  },[token]);
+  }, [token]);
 
   useEffect(() => {
     fetchTeams();
