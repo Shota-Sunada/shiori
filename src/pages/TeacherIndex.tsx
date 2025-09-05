@@ -15,7 +15,7 @@ const TeacherIndex = () => {
   const [studentData, setStudentData] = useState<student | null>(null);
   const [isKanaSearchVisible, setKanaSearchVisible] = useState(false);
   const [specificStudentId, setSpecificStudentId] = useState('');
-  const [durationMinutes, setDurationMinutes] = useState(5); // Default to 5 minutes
+  const [durationMinutes, setDurationMinutes] = useState(2);
 
   const teacher_name_ref = useRef<HTMLInputElement>(null);
 
@@ -145,20 +145,20 @@ const TeacherIndex = () => {
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="duration_minutes" className="block text-gray-700 text-sm font-bold mb-2">
-                {'点呼時間 (分) - ベース20秒に加えて何分点呼するか'}
-              </label>
-              <input
-                type="number"
-                name="duration_minutes"
-                id="duration_minutes"
-                value={durationMinutes}
-                onChange={(e) => setDurationMinutes(e.target.valueAsNumber)}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                max={5}
-                min={1}
-                required
-              />
+              <label className="block text-gray-700 text-sm font-bold mb-2">{'点呼時間 (分) - ベース20秒に加えて何分、点呼するか'}</label>
+              <div className="flex justify-center space-x-2">
+                {[1, 2, 3, 4, 5].map((period) => (
+                  <button
+                    type="button"
+                    key={period}
+                    onClick={() => setDurationMinutes(period)}
+                    className={`py-2 px-4 rounded focus:outline-none ${
+                      durationMinutes === period ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
+                    }`}>
+                    {period}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="mb-4">
               <label htmlFor="target_students" className="block text-gray-700 text-sm font-bold mb-2">
