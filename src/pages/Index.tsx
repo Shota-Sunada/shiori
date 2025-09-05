@@ -12,7 +12,7 @@ interface ActiveRollCall {
 }
 
 const Index = () => {
-  const { user, loading } = useAuth();
+  const { user, token, loading } = useAuth();
 
   const navigate = useNavigate();
 
@@ -21,9 +21,13 @@ const Index = () => {
 
   useEffect(() => {
     const fetchStudent = async () => {
-      if (user && user.userId && !user.is_teacher) {
+      if (user && user.userId && !user.is_teacher && token) {
         try {
-          const response = await fetch(`${SERVER_ENDPOINT}/api/students/${user.userId}`);
+          const response = await fetch(`${SERVER_ENDPOINT}/api/students/${user.userId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
           if (!response.ok) {
             if (response.status === 404) {
               console.warn(`生徒ID「${user.userId}」のデータが見つかりませんでした。`);
@@ -45,9 +49,13 @@ const Index = () => {
     };
 
     const checkActiveRollCall = async () => {
-      if (user && user.userId && !user.is_teacher) {
+      if (user && user.userId && !user.is_teacher && token) {
         try {
-          const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/active?student_id=${user.userId}`);
+          const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/active?student_id=${user.userId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
           if (response.ok) {
             const data = await response.json();
             setActiveRollCall(data);
@@ -67,7 +75,7 @@ const Index = () => {
     const intervalId = setInterval(checkActiveRollCall, 5000);
 
     return () => clearInterval(intervalId);
-  }, [user]);
+  }, [user, token]);
 
   if (loading) {
     return (

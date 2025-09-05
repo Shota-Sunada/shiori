@@ -13,6 +13,8 @@ interface User {
   passwordHash: string;
   is_admin: boolean;
   is_teacher: boolean;
+  failed_login_attempts: number;
+  is_banned: boolean;
 }
 
 // Secret key for JWT (should be in environment variables in production)
@@ -65,7 +67,7 @@ router.post('/login', async (req: Request, res: Response) => {
   }
 
   try {
-    const [rows] = await pool.execute<RowDataPacket[]>('SELECT id, passwordHash, is_admin, is_teacher FROM users WHERE id = ?', [id]); // id で検索
+    const [rows] = await pool.execute<RowDataPacket[]>('SELECT * FROM users WHERE id = ?', [id]); // id で検索
     const users = rows as User[];
 
     if (users.length === 0) {
@@ -73,10 +75,29 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     const user = users[0];
+
+    if (user.is_banned) {
+      return res.status(403).json({ message: '誤ったパスワードが何度も入力されたため、このアカウントはロックされています。管理者に連絡し、ロックを解除してください。' });
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
     if (!isPasswordValid) {
+      const newFailedAttempts = user.failed_login_attempts + 1;
+      let query = 'UPDATE users SET failed_login_attempts = ? WHERE id = ?';
+      const params = [newFailedAttempts, user.id];
+
+      if (newFailedAttempts >= 10) {
+        query = 'UPDATE users SET failed_login_attempts = ?, is_banned = 1 WHERE id = ?';
+      }
+      await pool.execute(query, params);
+
       return res.status(401).json({ message: '無効な資格情報です。' });
+    }
+
+    // Reset failed login attempts on successful login
+    if (user.failed_login_attempts > 0) {
+      await pool.execute('UPDATE users SET failed_login_attempts = 0 WHERE id = ?', [user.id]);
     }
 
     // Generate JWT

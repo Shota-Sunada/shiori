@@ -13,17 +13,21 @@ interface RollCall {
 }
 
 const TeacherRollCallList = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [rollCalls, setRollCalls] = useState<RollCall[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !token) return;
 
     const fetchRollCalls = async () => {
       try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/teacher/${user.userId}`);
+        const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/teacher/${user.userId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (!response.ok) {
           throw new Error(`HTTPエラー! ステータス: ${response.status}`);
         }
@@ -38,7 +42,7 @@ const TeacherRollCallList = () => {
     };
 
     fetchRollCalls();
-  }, [user]);
+  }, [user, token]);
 
   if (loading) {
     return <div className="flex justify-center items-center h-screen">{'読込中...'}</div>;

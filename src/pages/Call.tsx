@@ -21,7 +21,7 @@ const Call = () => {
   const [isDone, setIsDone] = useState<boolean>(false);
   const [searchParams] = useSearchParams();
   const rollCallId = searchParams.get('id');
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
   const [rollCall, setRollCall] = useState<RollCall | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -29,10 +29,14 @@ const Call = () => {
 
   useEffect(() => {
     const fetchRollCallStatus = async () => {
-      if (!rollCallId || !user) return;
+      if (!rollCallId || !user || !token) return;
 
       try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call?id=${rollCallId}`);
+        const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call?id=${rollCallId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (!response.ok) {
           throw new Error('点呼データの取得に失敗しました。');
         }
@@ -68,10 +72,10 @@ const Call = () => {
         clearInterval(intervalId);
       }
     };
-  }, [rollCallId, user, isDone, rollCall]);
+  }, [rollCallId, user, token, isDone, rollCall]);
 
   const handleCheckIn = async () => {
-    if (!user || !rollCallId) {
+    if (!user || !rollCallId || !token) {
       alert('エラーが発生しました。');
       return;
     }
@@ -85,7 +89,8 @@ const Call = () => {
       const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/check-in`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ roll_call_id: rollCallId, student_id: user.userId })
       });

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 import { useRequireAuth } from '../auth-context';
 import '../styles/admin-table.css';
@@ -8,6 +8,8 @@ interface User {
   id: number;
   is_admin: boolean;
   is_teacher: boolean;
+  failed_login_attempts: number;
+  is_banned: boolean;
 }
 
 type SortKey = keyof User;
@@ -53,7 +55,7 @@ const initialForm = {
 };
 
 const UserAdmin = () => {
-  const { user, loading } = useRequireAuth();
+  const { user, token, loading } = useRequireAuth();
   const [usersList, setUsersList] = useState<User[] | null>(null);
   const [editRowId, setEditRowId] = useState<number | null>(null);
   const [editRowForm, setEditRowForm] = useState<typeof initialForm>(initialForm);
@@ -66,9 +68,14 @@ const UserAdmin = () => {
 
   const [sortConfigs, setSortConfigs] = useState<SortConfig[]>([{ key: 'id', direction: 'asc' }]);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
+    if (!token) return;
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/users`);
+      const response = await fetch(`${SERVER_ENDPOINT}/api/users`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       if (!response.ok) {
         throw new Error(`HTTPエラー! ステータス: ${response.status}`);
       }
@@ -77,6 +84,27 @@ const UserAdmin = () => {
     } catch (error) {
       console.error('ユーザーの取得に失敗:', error);
       setStatus('ユーザーデータの取得に失敗しました。');
+    }
+  },[token]);
+
+  const handleUnban = async (id: number) => {
+    if (!token) return;
+    if (!window.confirm('このユーザーのBANを解除しますか？')) return;
+    setStatus('BANを解除中...');
+    try {
+      const response = await fetch(`${SERVER_ENDPOINT}/api/users/${id}/unban`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+      }
+      setStatus('ユーザーのBANを解除しました。');
+      fetchUsers();
+    } catch (e) {
+      setStatus('エラーが発生しました: ' + (e as Error).message);
     }
   };
 
@@ -122,7 +150,7 @@ const UserAdmin = () => {
     if (!loading && user) {
       fetchUsers();
     }
-  }, [user, loading]);
+  }, [user, loading, token, fetchUsers]);
 
   const handleEditClick = (u: User) => {
     setEditRowId(u.id);
@@ -137,11 +165,15 @@ const UserAdmin = () => {
   };
 
   const handleDelete = async (id: number) => {
+    if (!token) return;
     if (!window.confirm('本当に削除しますか？')) return;
     setStatus('削除中...');
     try {
       const response = await fetch(`${SERVER_ENDPOINT}/api/users/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       if (!response.ok) {
         throw new Error(`HTTPエラー! ステータス: ${response.status}`);
@@ -167,6 +199,7 @@ const UserAdmin = () => {
     if (e.target.files) {
       const reader = new FileReader();
       reader.onload = async (e) => {
+        if (!token) return;
         const data = e.target?.result as string;
         const usersToProcess = JSON.parse(data);
 
@@ -175,7 +208,8 @@ const UserAdmin = () => {
           const response = await fetch(`${SERVER_ENDPOINT}/api/users/bulk`, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
             },
             body: JSON.stringify({ users: usersToProcess })
           });
@@ -194,6 +228,7 @@ const UserAdmin = () => {
   };
 
   const handleSave = async (formData: typeof initialForm) => {
+    if (!token) return;
     const id = Number(formData.id);
     const { password, is_admin, is_teacher } = formData;
 
@@ -207,7 +242,8 @@ const UserAdmin = () => {
         const response = await fetch(`${SERVER_ENDPOINT}/api/users`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
           },
           body: JSON.stringify({ id, password, is_admin, is_teacher })
         });
@@ -236,7 +272,8 @@ const UserAdmin = () => {
         const response = await fetch(`${SERVER_ENDPOINT}/api/users/${editRowId}`, {
           method: 'PUT',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
           },
           body: JSON.stringify(body)
         });
@@ -317,6 +354,22 @@ const UserAdmin = () => {
                   </button>
                 </div>
               </th>
+              <th className="w-24">
+                <div className="flex flex-col items-center justify-center">
+                  <span>{'ログイン失敗回数'}</span>
+                  <button onClick={(e) => handleSort('failed_login_attempts', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('failed_login_attempts')}
+                  </button>
+                </div>
+              </th>
+              <th className="w-24">
+                <div className="flex flex-col items-center justify-center">
+                  <span>{'BAN'}</span>
+                  <button onClick={(e) => handleSort('is_banned', e.shiftKey)} disabled={modalMode !== null}>
+                    {getSortIndicator('is_banned')}
+                  </button>
+                </div>
+              </th>
               <th className="w-20 sticky-col">
                 <div className="flex flex-col items-center justify-center">
                   <span>
@@ -330,7 +383,7 @@ const UserAdmin = () => {
           </thead>
           <tbody>
             {sortedAndFilteredUsers.map((u) => (
-              <tr key={u.id}>
+              <tr key={u.id} className={`${u.is_banned ? 'bg-red-200' : 'bg-white'}`}>
                 <td className="bg-white">{u.id}</td>
                 <td className="bg-white">
                   <input type="checkbox" checked={u.is_admin} readOnly className="mx-auto block" />
@@ -338,8 +391,19 @@ const UserAdmin = () => {
                 <td className="bg-white">
                   <input type="checkbox" checked={u.is_teacher} readOnly className="mx-auto block" />
                 </td>
+                <td className="bg-white">{u.failed_login_attempts}</td>
+                <td className="bg-white">
+                  <input type="checkbox" checked={u.is_banned} readOnly className="mx-auto block" />
+                </td>
                 <td className="bg-white sticky-col">
                   <div className="flex flex-row items-center justify-center">
+                    {u.is_banned && (
+                        <button className="p-1 cursor-pointer mx-1" onClick={() => handleUnban(u.id)} disabled={modalMode !== null} title="BAN解除">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600 hover:text-green-800" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                        </button>
+                    )}
                     <button className="p-1 cursor-pointer mx-1" onClick={() => handleEditClick(u)} disabled={modalMode !== null} title="編集">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 hover:text-gray-800" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />

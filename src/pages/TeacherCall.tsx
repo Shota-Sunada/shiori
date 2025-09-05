@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SERVER_ENDPOINT } from '../App';
 import Button from '../components/Button';
+import { useAuth } from '../auth-context';
 
 interface Student {
   gakuseki: number;
@@ -19,6 +20,7 @@ interface RollCall {
 }
 
 const TeacherCall = () => {
+  const { token } = useAuth();
   const [searchParams] = useSearchParams();
   const rollCallId = searchParams.get('id');
   const navigate = useNavigate();
@@ -30,9 +32,13 @@ const TeacherCall = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!rollCallId) return;
+      if (!rollCallId || !token) return;
       try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call?id=${rollCallId}`);
+        const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call?id=${rollCallId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (!response.ok) {
           throw new Error(`HTTPエラー! ステータス: ${response.status}`);
         }
@@ -51,10 +57,10 @@ const TeacherCall = () => {
     const interval = setInterval(fetchData, 5000);
 
     return () => clearInterval(interval);
-  }, [rollCallId]);
+  }, [rollCallId, token]);
 
   const onEndSession = async () => {
-    if (!rollCallId) return;
+    if (!rollCallId || !token) return;
 
     if (!window.confirm('本当に点呼を終了しますか？')) return;
 
@@ -62,7 +68,8 @@ const TeacherCall = () => {
       const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/end`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ roll_call_id: rollCallId })
       });

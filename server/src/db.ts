@@ -35,7 +35,9 @@ async function initializeDatabase() {
         id INT PRIMARY KEY,
         passwordHash VARCHAR(255) NOT NULL,
         is_admin BOOLEAN NOT NULL DEFAULT FALSE,
-        is_teacher BOOLEAN NOT NULL DEFAULT FALSE
+        is_teacher BOOLEAN NOT NULL DEFAULT FALSE,
+        failed_login_attempts INT NOT NULL DEFAULT 0,
+        is_banned BOOLEAN NOT NULL DEFAULT FALSE
       );
     `);
     logger.log('テーブル「users」の存在を確認。');

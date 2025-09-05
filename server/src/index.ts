@@ -3,9 +3,11 @@ import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import * as admin from 'firebase-admin';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import { ResultSetHeader } from 'mysql2/promise';
 import { logger } from './logger';
 import { sendNotification } from './notifications';
+import { authenticateToken } from './middleware/auth';
 
 // Firebase Admin SDKを初期化
 // 注意: serviceAccountKey.jsonのパスが正しいことを確認してください
@@ -15,26 +17,35 @@ admin.initializeApp({
 });
 
 const app = express();
+app.set('trust proxy', 1);
 const port = 8080;
 
 // CORSを有効化
 app.use(cors({ origin: ['http://localhost:5173', 'https://shiori.shudo-physics.com'] })); // クライアントのオリジンに合わせて変更してください
 app.use(express.json());
 
+// Rate limiter for auth routes
+const authLimiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	max: 50, // Limit each IP to 50 requests per windowMs
+	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
 import authRouter from './routes/auth';
-app.use('/api/auth', authRouter);
+app.use('/api/auth', authLimiter, authRouter);
 
 import studentsRouter from './routes/students';
-app.use('/api/students', studentsRouter);
+app.use('/api/students', authenticateToken, studentsRouter);
 
 import usersRouter from './routes/users';
-app.use('/api/users', usersRouter);
+app.use('/api/users', authenticateToken, usersRouter);
 
 import otanoshimiRouter from './routes/otanoshimi';
-app.use('/api/otanoshimi', otanoshimiRouter);
+app.use('/api/otanoshimi', authenticateToken, otanoshimiRouter);
 
 import rollCallRouter from './routes/roll-call';
-app.use('/api/roll-call', rollCallRouter);
+app.use('/api/roll-call', authenticateToken, rollCallRouter);
 
 import { initializeDatabase, pool } from './db';
 
@@ -52,7 +63,7 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello from Shiori Firebase Messaging Server!');
 });
 
-app.post('/register-token', async (req: Request, res: Response) => {
+app.post('/register-token', authenticateToken, async (req: Request, res: Response) => {
   const { userId, token } = req.body;
   logger.log(`ユーザー「${userId}」からのトークン登録リクエストを受信。`);
 
@@ -71,7 +82,7 @@ app.post('/register-token', async (req: Request, res: Response) => {
   }
 });
 
-app.post('/send-notification', async (req: Request, res: Response) => {
+app.post('/send-notification', authenticateToken, async (req: Request, res: Response) => {
   const { userId, title, body, link } = req.body;
 
   if (!userId || !title || !body) {

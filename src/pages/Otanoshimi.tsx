@@ -1,18 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { OtanoshimiData } from '../data/otanoshimi';
 import { SERVER_ENDPOINT } from '../App';
 import OtanoshimiCard from '../components/OtanoshimiCard';
+import { useAuth } from '../auth-context';
 
 interface OtanoshimiDataWithSchedule extends OtanoshimiData {
   schedule: string;
 }
 
 const Otanoshimi = () => {
+  const { token } = useAuth();
   const [teams, setTeams] = useState<OtanoshimiDataWithSchedule[] | undefined>(undefined);
 
-  const fetchTeams = async () => {
+  const fetchTeams = useCallback(async () => {
+    if (!token) return;
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/otanoshimi`);
+      const response = await fetch(`${SERVER_ENDPOINT}/api/otanoshimi`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (!response.ok) {
         throw new Error(`HTTPエラー! ステータス: ${response.status}`);
       }
@@ -42,11 +49,11 @@ const Otanoshimi = () => {
     } catch (error) {
       console.error('チームデータの取得に失敗:', error);
     }
-  };
+  },[token]);
 
   useEffect(() => {
     fetchTeams();
-  }, []);
+  }, [fetchTeams]);
 
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">

@@ -17,6 +17,7 @@ const Login = () => {
   const student_id_ref = useRef<HTMLInputElement>(null);
   const password_ref = useRef<HTMLInputElement>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && user) {
@@ -26,17 +27,18 @@ const Login = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setError(null); // Reset error on new submission
 
     const id = student_id_ref.current?.valueAsNumber;
     const password = password_ref.current?.value;
 
     if (!id || !password) {
-      alert('ユーザー名とパスワードを入力してください。');
+      setError('ユーザー名とパスワードを入力してください。');
       return;
     }
 
     if (id <= USER_ID_MIN || USER_ID_MAX <= id) {
-      alert('生徒IDは8桁で正しく入力してください。');
+      setError('生徒IDは8桁で正しく入力してください。');
       return;
     }
 
@@ -57,12 +59,15 @@ const Login = () => {
         const decoded = jwtDecode<AuthUser>(data.token);
         await registerOrRequestPermission(decoded);
         navigate('/');
+      } else if (response.status === 403) {
+        setError(data.message);
+        console.error('ログインに失敗:', data.message);
       } else {
-        alert(`ログインに失敗しました.\nユーザー名またはパスワードが正しくありません。`);
+        setError(`ユーザー名またはパスワードが正しくありません。`);
         console.error('ログインに失敗:', data.message);
       }
     } catch (error) {
-      alert('ログイン中にエラーが発生しました。ネットワーク接続を確認してください。');
+      setError('ログイン中にエラーが発生しました。ネットワーク接続を確認してください。');
       console.error('ログイン中にエラー:', error);
     }
   };
@@ -99,6 +104,7 @@ const Login = () => {
         <button type="submit">
           <Button text={'ログイン'} onClick={() => {}} arrow />
         </button>
+        {error && <p className="text-red-500 mt-4">{error}</p>}
       </form>
     </div>
   );

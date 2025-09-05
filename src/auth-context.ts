@@ -19,6 +19,7 @@ interface JwtPayload {
 
 type AuthContextType = {
   user: AuthUser | null;
+  token: string | null;
   loading: boolean;
   logout: () => Promise<void>;
   login: (token: string) => void;
@@ -26,6 +27,7 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  token: null,
   loading: true,
   logout: async () => {},
   login: () => {}
@@ -34,7 +36,7 @@ const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext);
 
 export const useRequireAuth = () => {
-  const { user, loading } = useAuth();
+  const { user, token, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,15 +45,17 @@ export const useRequireAuth = () => {
     }
   }, [user, loading, navigate]);
 
-  return { user, loading };
+  return { user, token, loading };
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const login = useCallback((token: string) => {
     localStorage.setItem('jwt_token', token);
+    setToken(token);
     try {
       const decoded = jwtDecode<JwtPayload>(token);
       setUser({ userId: decoded.userId, is_admin: decoded.is_admin, is_teacher: decoded.is_teacher });
@@ -64,17 +68,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = useCallback(async () => {
     localStorage.removeItem('jwt_token');
     setUser(null);
+    setToken(null);
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('jwt_token');
-    if (token) {
+    const storedToken = localStorage.getItem('jwt_token');
+    if (storedToken) {
       try {
-        const decoded = jwtDecode<JwtPayload>(token);
+        const decoded = jwtDecode<JwtPayload>(storedToken);
         if (decoded.exp && decoded.exp * 1000 < Date.now()) {
           logout();
         } else {
           setUser({ userId: decoded.userId, is_admin: decoded.is_admin, is_teacher: decoded.is_teacher });
+          setToken(storedToken);
         }
       } catch (error) {
         console.error('localStorageのJWTのデコードに失敗:', error);
@@ -84,5 +90,5 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(false);
   }, [logout]);
 
-  return React.createElement(AuthContext.Provider, { value: { user, loading, logout, login } }, children);
+  return React.createElement(AuthContext.Provider, { value: { user, token, loading, logout, login } }, children);
 };

@@ -1,9 +1,10 @@
-import { useState, useEffect, type ChangeEvent, type DragEvent } from 'react';
+import { useState, useEffect, type ChangeEvent, type DragEvent, useCallback } from 'react';
 import { SERVER_ENDPOINT } from '../App';
 import '../styles/admin-table.css';
 import KanaSearchModal from '../components/KanaSearchModal';
 import type { student } from '../data/students';
 import type { OtanoshimiData } from '../data/otanoshimi';
+import { useAuth } from '../auth-context';
 
 interface StudentChipProps {
   studentId: number;
@@ -24,6 +25,7 @@ const StudentChip: React.FC<StudentChipProps> = ({ studentId, studentMap, onDele
 };
 
 const OtanoshimiAdmin = () => {
+  const { token } = useAuth();
   const [teams, setTeams] = useState<OtanoshimiData[]>([]);
   const [status, setStatus] = useState<string>('');
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -34,9 +36,14 @@ const OtanoshimiAdmin = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTarget, setModalTarget] = useState<{ index: number; field: 'leader' | 'members' } | null>(null);
 
-  const fetchTeams = async () => {
+  const fetchTeams = useCallback(async () => {
+    if (!token) return;
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/otanoshimi`);
+      const response = await fetch(`${SERVER_ENDPOINT}/api/otanoshimi`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (!response.ok) {
         throw new Error(`HTTPエラー! ステータス: ${response.status}`);
       }
@@ -51,11 +58,16 @@ const OtanoshimiAdmin = () => {
       console.error('チームデータの取得に失敗:', error);
       setStatus('チームデータの取得中にエラーが発生しました。');
     }
-  };
+  },[token]);
 
-  const fetchAllStudents = async () => {
+  const fetchAllStudents = useCallback(async () => {
+    if (!token) return;
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/students`);
+      const response = await fetch(`${SERVER_ENDPOINT}/api/students`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (!response.ok) {
         throw new Error(`HTTPエラー! ステータス: ${response.status}`);
       }
@@ -70,12 +82,14 @@ const OtanoshimiAdmin = () => {
       console.error('生徒データの取得に失敗:', error);
       setStatus('生徒データの取得中にエラーが発生しました。');
     }
-  };
+  },[token]);
 
   useEffect(() => {
-    fetchTeams();
-    fetchAllStudents();
-  }, []);
+    if (token) {
+      fetchTeams();
+      fetchAllStudents();
+    }
+  }, [token, fetchTeams, fetchAllStudents]);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>, index: number, field: keyof OtanoshimiData) => {
     const newTeams = [...teams];
@@ -94,12 +108,14 @@ const OtanoshimiAdmin = () => {
   };
 
   const handleSave = async () => {
+    if (!token) return;
     setStatus('保存中...');
     try {
       const response = await fetch(`${SERVER_ENDPOINT}/api/otanoshimi`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(teams)
       });

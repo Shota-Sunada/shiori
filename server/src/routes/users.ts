@@ -3,13 +3,14 @@ import { pool } from '../db'; // Import the database connection pool
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import bcrypt from 'bcrypt';
 import { logger } from '../logger';
+import { isAdmin } from '../middleware/auth';
 
 const router = Router();
 
 // 全ユーザーデータを取得
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', isAdmin, async (req: Request, res: Response) => {
   try {
-    const [rows] = await pool.execute<RowDataPacket[]>('SELECT id, is_admin, is_teacher FROM users'); // パスワードハッシュは返さない
+    const [rows] = await pool.execute<RowDataPacket[]>('SELECT id, is_admin, is_teacher, failed_login_attempts, is_banned FROM users'); // パスワードハッシュは返さない
     res.status(200).json(rows);
   } catch (error) {
     logger.error('ユーザーデータの取得に失敗:', error as Error);
@@ -18,7 +19,7 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // 新しいユーザーを追加
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', isAdmin, async (req: Request, res: Response) => {
   const { id, password, is_admin, is_teacher } = req.body;
 
   if (!id || !password) {
@@ -46,9 +47,9 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // 特定のユーザーデータを更新
-router.put('/:id', async (req: Request, res: Response) => {
+router.put('/:id', isAdmin, async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { password, is_admin, is_teacher } = req.body;
+  const { password, is_admin, is_teacher, is_banned, failed_login_attempts } = req.body;
 
   if (isNaN(Number(id))) {
     return res.status(400).json({ message: 'IDは整数8桁である必要があります。' });
@@ -74,6 +75,16 @@ router.put('/:id', async (req: Request, res: Response) => {
       values.push(is_teacher);
     }
 
+    if (is_banned !== undefined) {
+      updates.push('is_banned = ?');
+      values.push(is_banned);
+    }
+
+    if (failed_login_attempts !== undefined) {
+      updates.push('failed_login_attempts = ?');
+      values.push(failed_login_attempts);
+    }
+
     if (updates.length === 0) {
       return res.status(400).json({ message: '更新対象なし' });
     }
@@ -92,8 +103,32 @@ router.put('/:id', async (req: Request, res: Response) => {
   }
 });
 
+// ユーザーのBANを解除
+router.put('/:id/unban', isAdmin, async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (isNaN(Number(id))) {
+    return res.status(400).json({ message: 'IDは整数である必要があります。' });
+  }
+
+  try {
+    const [result] = await pool.execute(
+      'UPDATE users SET is_banned = 0, failed_login_attempts = 0 WHERE id = ?',
+      [id]
+    );
+
+    if ((result as ResultSetHeader).affectedRows === 0) {
+      return res.status(404).json({ message: 'ユーザーが見つかりませんでした。' });
+    }
+    res.status(200).json({ message: 'ユーザーのBANを解除しました。' });
+  } catch (error) {
+    logger.error('ユーザーのBAN解除に失敗:', error as Error);
+    res.status(500).json({ message: '内部サーバーエラー' });
+  }
+});
+
+
 // 特定のユーザーデータを削除
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', isAdmin, async (req: Request, res: Response) => {
   const { id } = req.params;
   if (isNaN(Number(id))) {
     return res.status(400).json({ message: 'IDは整数8桁である必要があります。' });
@@ -112,7 +147,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/bulk', async (req: Request, res: Response) => {
+router.post('/bulk', isAdmin, async (req: Request, res: Response) => {
   const { users } = req.body;
 
   if (!Array.isArray(users)) {
