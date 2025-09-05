@@ -30,14 +30,13 @@ const TeacherCall = () => {
 
   useEffect(() => {
     if (modal.isOpen) {
-      document.body.classList.add('modal-open');
+      document.body.style.overflow = 'hidden';
     } else {
-      document.body.classList.remove('modal-open');
+      document.body.style.overflow = 'unset';
     }
 
-    // Cleanup function to ensure the class is removed when the component unmounts
     return () => {
-      document.body.classList.remove('modal-open');
+      document.body.style.overflow = 'unset';
     };
   }, [modal.isOpen]);
 

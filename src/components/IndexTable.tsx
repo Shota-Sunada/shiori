@@ -6,6 +6,7 @@ import '../styles/index-table.css';
 import { useEffect, useState } from 'react';
 import RoomDataModal from './RoomDataModal';
 import { SERVER_ENDPOINT } from '../App';
+import { useAuth } from '../auth-context';
 
 interface Roommate {
   gakuseki: string;
@@ -17,6 +18,7 @@ interface Roommate {
 
 const IndexTable = (props: { studentData: student | null }) => {
   const navigate = useNavigate();
+  const { token } = useAuth();
   const [showRoommateModal, setShowRoommateModal] = useState(false);
   const [currentRoommates, setCurrentRoommates] = useState<Roommate[]>([]);
   const [currentHotelName, setCurrentHotelName] = useState('');
@@ -24,19 +26,23 @@ const IndexTable = (props: { studentData: student | null }) => {
 
   useEffect(() => {
     if (showRoommateModal) {
-      document.body.classList.add('modal-open');
+      document.body.style.overflow = 'hidden';
     } else {
-      document.body.classList.remove('modal-open');
+      document.body.style.overflow = 'unset';
     }
 
     return () => {
-      document.body.classList.remove('modal-open');
+      document.body.style.overflow = 'unset';
     };
   }, [showRoommateModal]);
 
   const fetchRoommates = async (hotel: 'tdh' | 'fpr', room: string, hotelName: string) => {
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/students/roommates/${hotel}/${room}`);
+      const response = await fetch(`${SERVER_ENDPOINT}/api/students/roommates/${hotel}/${room}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
