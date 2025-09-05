@@ -51,6 +51,10 @@ const Call = () => {
     };
 
     fetchRollCallStatus();
+
+    const intervalId = setInterval(fetchRollCallStatus, 5000);
+
+    return () => clearInterval(intervalId);
   }, [rollCallId, user]);
 
   const handleCheckIn = async () => {
