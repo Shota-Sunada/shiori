@@ -8,13 +8,14 @@ import IndexTable from '../components/IndexTable';
 import Button from '../components/Button';
 
 const TeacherIndex = () => {
-  const { user, loading } = useAuth();
+  const { user, token, loading } = useAuth();
   const navigate = useNavigate();
 
   const [allStudents, setAllStudents] = useState<student[]>([]);
   const [studentData, setStudentData] = useState<student | null>(null);
   const [isKanaSearchVisible, setKanaSearchVisible] = useState(false);
   const [specificStudentId, setSpecificStudentId] = useState('');
+  const [durationMinutes, setDurationMinutes] = useState(5); // Default to 5 minutes
 
   const teacher_name_ref = useRef<HTMLInputElement>(null);
 
@@ -26,8 +27,13 @@ const TeacherIndex = () => {
 
   useEffect(() => {
     const fetchAllStudents = async () => {
+      if (!token) return;
       try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/students`);
+        const response = await fetch(`${SERVER_ENDPOINT}/api/students`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (!response.ok) {
           throw new Error(`HTTPエラー! ステータス: ${response.status}`);
         }
@@ -46,8 +52,10 @@ const TeacherIndex = () => {
         console.error('生徒データの取得に失敗:', error);
       }
     };
-    fetchAllStudents();
-  }, []);
+    if (token) {
+      fetchAllStudents();
+    }
+  }, [token]);
 
   const handleStudentSelect = (student: student) => {
     setStudentData(student);
@@ -58,7 +66,7 @@ const TeacherIndex = () => {
   const handleCallSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
-    if (!user) {
+    if (!user || !token) {
       alert('ログインしていません。');
       return;
     }
@@ -67,11 +75,13 @@ const TeacherIndex = () => {
       const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/start`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           teacher_id: user.userId,
-          specific_student_id: specificStudentId || null
+          specific_student_id: specificStudentId || null,
+          duration_minutes: durationMinutes,
         })
       });
 
@@ -132,6 +142,22 @@ const TeacherIndex = () => {
                 name="teacher_name"
                 id="teacher_name"
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="duration_minutes" className="block text-gray-700 text-sm font-bold mb-2">
+                {'点呼時間 (分) - ベース20秒に加えて何分点呼するか'}
+              </label>
+              <input
+                type="number"
+                name="duration_minutes"
+                id="duration_minutes"
+                value={durationMinutes}
+                onChange={(e) => setDurationMinutes(e.target.valueAsNumber)}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                max={5}
+                min={1}
+                required
               />
             </div>
             <div className="mb-4">

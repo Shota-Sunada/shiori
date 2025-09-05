@@ -95,6 +95,7 @@ async function initializeDatabase() {
         id VARCHAR(36) PRIMARY KEY,
         teacher_id INT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        expires_at DATETIME NOT NULL,
         is_active BOOLEAN NOT NULL DEFAULT TRUE,
         FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
       );

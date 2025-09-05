@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SERVER_ENDPOINT } from '../App';
 import Button from '../components/Button';
 import { useAuth } from '../auth-context';
+import type { RollCall } from '../components/RollCallTable';
 
 interface Student {
   gakuseki: number;
@@ -11,12 +12,6 @@ interface Student {
   class: number;
   number: number;
   status: 'targeted' | 'checked_in';
-}
-
-interface RollCall {
-  teacher_id: number;
-  created_at: string;
-  is_active: boolean;
 }
 
 const TeacherCall = () => {
@@ -29,6 +24,7 @@ const TeacherCall = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [remainingTime, setRemainingTime] = useState<number>(0); // Remaining time in seconds
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,6 +54,42 @@ const TeacherCall = () => {
 
     return () => clearInterval(interval);
   }, [rollCallId, token]);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    if (rollCall && rollCall.is_active) {
+      const calculateRemainingTime = () => {
+        const now = Date.now(); // Use Date.now() directly
+        const created = rollCall.created_at; // Use numeric timestamp directly
+        const expires = rollCall.expires_at; // Use numeric timestamp directly
+
+        const totalDuration = expires - created;
+        const elapsedTime = now - created;
+        const diff = Math.max(0, Math.floor((totalDuration - elapsedTime) / 1000));
+        setRemainingTime(diff);
+
+        if (diff === 0) {
+          // Roll call has expired, update its status
+          setRollCall((prev) => (prev ? { ...prev, is_active: false } : null));
+        }
+      };
+
+      calculateRemainingTime(); // Initial calculation
+      timer = setInterval(calculateRemainingTime, 1000); // Update every second
+    }
+
+    return () => {
+      if (timer) {
+        clearInterval(timer);
+      }
+    };
+  }, [rollCall]);
+
+  const formatTime = (totalSeconds: number) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
 
   const onEndSession = async () => {
     if (!rollCallId || !token) return;
@@ -90,9 +122,9 @@ const TeacherCall = () => {
     <div className="text-center m-3">
       <button
         onClick={onEndSession}
-        disabled={!rollCall?.is_active}
+        disabled={!rollCall?.is_active || remainingTime <= 0}
         className="p-2 px-6 text-white bg-red-500 rounded hover:bg-red-700 focus:outline-none focus:shadow-outline cursor-pointer disabled:bg-gray-400">
-        {rollCall?.is_active ? '点呼終了' : '点呼は終了しています'}
+        {rollCall?.is_active && remainingTime > 0 ? '点呼終了' : '点呼は終了しています'}
       </button>
     </div>
   );
@@ -125,6 +157,10 @@ const TeacherCall = () => {
           {checkedInCount}
           {' / '}
           {totalStudents}
+        </p>
+        <p className="text-lg text-center mb-4">
+          {'残り時間: '}
+          {formatTime(remainingTime)}
         </p>
 
         {students.length > 20 ? endButton() : <></>}

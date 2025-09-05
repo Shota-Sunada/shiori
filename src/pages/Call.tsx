@@ -15,6 +15,8 @@ interface StudentStatus {
 
 interface RollCall {
   is_active: boolean;
+  created_at: number; // Add created_at as number
+  expires_at: number; // Change expires_at to number
 }
 
 const Call = () => {
@@ -26,6 +28,7 @@ const Call = () => {
   const [rollCall, setRollCall] = useState<RollCall | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [remainingTime, setRemainingTime] = useState<number>(0); // Remaining time in seconds
 
   useEffect(() => {
     const fetchRollCallStatus = async () => {
@@ -74,13 +77,49 @@ const Call = () => {
     };
   }, [rollCallId, user, token, isDone, rollCall]);
 
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    if (rollCall && rollCall.is_active) {
+      const calculateRemainingTime = () => {
+        const now = Date.now();
+        const created = rollCall.created_at;
+        const expires = rollCall.expires_at;
+
+        const totalDuration = expires - created;
+        const elapsedTime = now - created;
+        const diff = Math.max(0, Math.floor((totalDuration - elapsedTime) / 1000));
+        setRemainingTime(diff);
+
+        if (diff === 0) {
+          // Roll call has expired, update its status
+          setRollCall((prev) => (prev ? { ...prev, is_active: false } : null));
+        }
+      };
+
+      calculateRemainingTime(); // Initial calculation
+      timer = setInterval(calculateRemainingTime, 1000); // Update every second
+    }
+
+    return () => {
+      if (timer) {
+        clearInterval(timer);
+      }
+    };
+  }, [rollCall]);
+
+  const formatTime = (totalSeconds: number) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   const handleCheckIn = async () => {
     if (!user || !rollCallId || !token) {
       alert('エラーが発生しました。');
       return;
     }
 
-    if (!rollCall?.is_active) {
+    if (!rollCall?.is_active || remainingTime <= 0) {
       alert('この点呼はすでに終了しています。');
       return;
     }
@@ -136,14 +175,14 @@ const Call = () => {
       ) : (
         <div
           className={`text-white p-18 text-4xl font-bold rounded-[100%] w-[40dvh] h-[40dvh] flex items-center justify-center flex-col ${
-            rollCall?.is_active ? 'bg-red-500 cursor-pointer' : 'bg-gray-500'
+            rollCall?.is_active && remainingTime > 0 ? 'bg-red-500 cursor-pointer' : 'bg-gray-500'
           }`}
           onClick={handleCheckIn}>
-          {rollCall?.is_active ? (
+          {rollCall?.is_active && remainingTime > 0 ? (
             <>
               <p> {'点呼!'}</p>
               <p className="text-xl mt-5">{'残り時間'}</p>
-              <p className="text-xl">{'00:00'}</p>
+              <p className="text-xl">{formatTime(remainingTime)}</p>
             </>
           ) : (
             <p>{'終了'}</p>
@@ -151,7 +190,7 @@ const Call = () => {
         </div>
       )}
 
-      <p className="text-xl mt-5">{isDone ? '確認しました！' : rollCall?.is_active ? '時間内に点呼に応答してください！' : 'この点呼は終了しています。'}</p>
+      <p className="text-xl mt-5">{isDone ? '確認しました！' : rollCall?.is_active && remainingTime > 0 ? '時間内に点呼に応答してください！' : 'この点呼は終了しています。'}</p>
       {isDone ? <Button text="戻る" arrow onClick={() => navigate('/index')} /> : <></>}
     </div>
   );

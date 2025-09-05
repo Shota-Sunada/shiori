@@ -7,6 +7,19 @@ import { RowDataPacket } from 'mysql2';
 
 const router = express.Router();
 
+// Middleware to update expired roll calls
+const updateExpiredRollCalls = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  try {
+    await pool.execute('UPDATE roll_calls SET is_active = FALSE WHERE expires_at <= NOW() AND is_active = TRUE');
+    next();
+  } catch (error) {
+    logger.error('期限切れの点呼の更新中にエラーが発生しました:', error as Error);
+    res.status(500).json({ message: 'サーバーエラー' });
+  }
+};
+
+router.use(updateExpiredRollCalls);
+
 router.get('/active', async (req, res) => {
   const { student_id } = req.query;
 
@@ -19,7 +32,7 @@ router.get('/active', async (req, res) => {
     try {
       const [activeRollCallResult] = await connection.execute<RowDataPacket[]>(
         `
-        SELECT rc.id, rc.teacher_id, rc.created_at
+        SELECT rc.id, rc.teacher_id, UNIX_TIMESTAMP(rc.created_at) * 1000 AS created_at, UNIX_TIMESTAMP(rc.expires_at) * 1000 AS expires_at
         FROM roll_calls rc
         JOIN roll_call_students rcs ON rc.id = rcs.roll_call_id
         WHERE rcs.student_id = ? AND rc.is_active = TRUE
@@ -53,13 +66,13 @@ router.get('/teacher/:teacher_id', async (req, res) => {
     try {
       const [activeRollCalls] = await connection.execute<RowDataPacket[]>(
         `
-        SELECT rc.id, rc.teacher_id, rc.created_at, rc.is_active,
+        SELECT rc.id, rc.teacher_id, UNIX_TIMESTAMP(rc.created_at) * 1000 AS created_at, rc.is_active, UNIX_TIMESTAMP(rc.expires_at) * 1000 AS expires_at,
           COUNT(rcs.student_id) AS total_students,
           SUM(CASE WHEN rcs.status = 'checked_in' THEN 1 ELSE 0 END) AS checked_in_students
         FROM roll_calls rc
         JOIN roll_call_students rcs ON rc.id = rcs.roll_call_id
         WHERE rc.teacher_id = ?
-        GROUP BY rc.id, rc.teacher_id, rc.created_at, rc.is_active
+        GROUP BY rc.id, rc.teacher_id, rc.created_at, rc.is_active, rc.expires_at
         ORDER BY rc.created_at DESC
         `,
         [teacher_id]
@@ -86,7 +99,7 @@ router.get('/', async (req, res) => {
   try {
     const connection = await pool.getConnection();
     try {
-      const [rollCallResult] = await connection.execute<RowDataPacket[]>('SELECT teacher_id, created_at, is_active FROM roll_calls WHERE id = ?', [rollCallId]);
+      const [rollCallResult] = await connection.execute<RowDataPacket[]>('SELECT teacher_id, UNIX_TIMESTAMP(created_at) * 1000 AS created_at, is_active, UNIX_TIMESTAMP(expires_at) * 1000 AS expires_at FROM roll_calls WHERE id = ?', [rollCallId]);
       const rollCall = rollCallResult[0];
 
       if (!rollCall) {
@@ -119,18 +132,23 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/start', async (req, res) => {
-  const { teacher_id, specific_student_id } = req.body;
+  const { teacher_id, specific_student_id, duration_minutes } = req.body;
 
   if (!teacher_id) {
     return res.status(400).json({ message: '先生のIDが必要です。' });
   }
 
+  if (!duration_minutes || isNaN(Number(duration_minutes)) || Number(duration_minutes) <= 0) {
+    return res.status(400).json({ message: '有効な時間（分）を指定してください。' });
+  }
+
   const rollCallId = crypto.randomUUID();
+  const expiresAt = new Date(Math.round(Date.now() / 1000) * 1000 + Number(duration_minutes) * 60 * 1000);
 
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
-    await connection.execute('INSERT INTO roll_calls (id, teacher_id) VALUES (?, ?)', [rollCallId, teacher_id]);
+    await connection.execute('INSERT INTO roll_calls (id, teacher_id, expires_at) VALUES (?, ?, ?)', [rollCallId, teacher_id, expiresAt]);
 
     let students: RowDataPacket[];
 
@@ -171,6 +189,13 @@ router.post('/check-in', async (req, res) => {
   }
 
   try {
+    const [rollCallResult] = await pool.execute<RowDataPacket[]>('SELECT is_active FROM roll_calls WHERE id = ?', [roll_call_id]);
+    const rollCall = rollCallResult[0];
+
+    if (!rollCall || !rollCall.is_active) {
+      return res.status(400).json({ message: 'この点呼はすでに終了しているか、無効です。' });
+    }
+
     await pool.execute("UPDATE roll_call_students SET status = 'checked_in' WHERE roll_call_id = ? AND student_id = ?", [roll_call_id, student_id]);
     logger.log(`生徒「${student_id}」が点呼「${roll_call_id}」に応答しました。`);
     res.status(200).json({ message: '点呼に応答しました。' });

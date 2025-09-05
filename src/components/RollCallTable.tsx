@@ -1,13 +1,14 @@
 import { FaArrowRight } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
-interface RollCall {
+export interface RollCall {
   id: string;
   teacher_id: number;
-  created_at: string;
+  created_at: number;
   total_students: number;
   checked_in_students: number;
   is_active: boolean;
+  expires_at: number;
 }
 
 interface RollCallTableProps {
@@ -22,6 +23,7 @@ const RollCallTable = ({ rollCalls }: RollCallTableProps) => {
           <tr>
             <th className="py-1 px-2 border-b">{'状態'}</th>
             <th className="py-1 px-2 border-b">{'開始日時'}</th>
+            <th className="py-1 px-2 border-b">{'終了日時'}</th>
             <th className="py-1 px-2 border-b">{'状況'}</th>
             <th className="py-1 px-2 border-b">{'先生'}</th>
             <th className="py-1 px-2 border-b">{'詳細'}</th>
@@ -33,7 +35,8 @@ const RollCallTable = ({ rollCalls }: RollCallTableProps) => {
               <td className="py-0.5 px-2 border-b text-center min-w-18">
                 {rollCall.is_active ? <span className="bg-green-500 text-white py-1 px-1 rounded">{'発動中'}</span> : <span className="bg-gray-500 text-white py-1 px-1 rounded">{'終了'}</span>}
               </td>
-              <td className="py-0.5 px-2 border-b text-center">{new Date(rollCall.created_at).toLocaleString()}</td>
+              <td className="py-0.5 px-2 border-b text-center">{rollCall.created_at ? new Date(rollCall.created_at).toLocaleString() : '-'}</td>
+              <td className="py-0.5 px-2 border-b text-center">{rollCall.expires_at ? new Date(rollCall.expires_at).toLocaleString() : '-'}</td>
               <td className="py-0.5 px-2 border-b text-center">
                 {rollCall.checked_in_students}
                 {' / '}

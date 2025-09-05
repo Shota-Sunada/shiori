@@ -1,16 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
-import RollCallTable from '../components/RollCallTable';
-
-interface RollCall {
-  id: string;
-  teacher_id: number;
-  created_at: string;
-  total_students: number;
-  checked_in_students: number;
-  is_active: boolean;
-}
+import RollCallTable, { type RollCall } from '../components/RollCallTable';
 
 const TeacherRollCallList = () => {
   const { user, token } = useAuth();
