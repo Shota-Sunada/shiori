@@ -4,6 +4,7 @@ import { SERVER_ENDPOINT } from '../App';
 import Button from '../components/Button';
 import { useAuth } from '../auth-context';
 import type { RollCall } from '../components/RollCallTable';
+import { FaArrowRight } from 'react-icons/fa';
 
 interface Student {
   gakuseki: number;
@@ -102,7 +103,7 @@ const TeacherCall = () => {
   const formatTime = (totalSeconds: number) => {
     totalSeconds -= 20;
     if (totalSeconds <= 0) {
-      return "00:00";
+      return '00:00';
     }
 
     const minutes = Math.floor(totalSeconds / 60);
@@ -154,7 +155,7 @@ const TeacherCall = () => {
     return (
       <div className="fixed inset-0 flex items-center justify-center z-50 bg-transparent backdrop-blur-sm">
         <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-xl font-bold mb-4">{"不在理由・詳細情報"}</h2>
+          <h2 className="text-xl font-bold mb-4">{'不在理由・詳細情報'}</h2>
           <p>{reason}</p>
           <div className="text-center mt-4">
             <Button text="閉じる" arrow onClick={onClose} />
@@ -169,30 +170,30 @@ const TeacherCall = () => {
   }
 
   if (error) {
-    return <p className="text-center mt-8 text-red-500">エラー: {error}</p>;
+    return <p className="text-center mt-8 text-red-500">{"エラー: "}{error}</p>;
   }
 
   const checkedInCount = students.filter((s) => s.status === 'checked_in').length;
-  const totalStudents = students.length;
+  const absentCount = students.filter((s) => s.absence_reason).length;
+  const unresponsiveCount = students.filter((s) => s.status === 'targeted' && !s.absence_reason).length;
 
   return (
     <div className="flex flex-col items-center justify-center m-4">
       <div className="w-full max-w-4xl p-4 bg-white rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-center mb-4">{'点呼実施中'}</h1>
-        <p className="text-lg text-center mb-2">
-          {'開始した先生: '}
-          {rollCall?.teacher_id}
-        </p>
-        <p className="text-lg text-center mb-4">
-          {'応答状況: '}
-          {checkedInCount}
-          {' / '}
-          {totalStudents}
-        </p>
-        <p className="text-lg text-center mb-4">
-          {'残り時間: '}
-          {formatTime(remainingTime)}
-        </p>
+
+        <div className="grid grid-cols-2 m-2">
+          <p className="text-lg mx-1 text-right">{'開始した先生: '}</p>
+          <p className="text-lg mx-1 text-left">{rollCall?.teacher_id}</p>
+          <p className="text-lg mx-1 text-right">{'応答済みの生徒: '}</p>
+          <p className="text-lg mx-1 text-left">{checkedInCount}{"人"}</p>
+          <p className="text-lg mx-1 text-right">{'不在の生徒: '}</p>
+          <p className="text-lg mx-1 text-left">{absentCount}{"人"}</p>
+          <p className="text-lg mx-1 text-right">{'未応答の生徒: '}</p>
+          <p className="text-lg mx-1 text-left">{unresponsiveCount}{"人"}</p>
+          <p className="text-lg mx-1 text-right">{'残り時間: '}</p>
+          <p className="text-lg mx-1 text-left">{formatTime(remainingTime)}</p>
+        </div>
 
         {students.length > 20 ? endButton() : <></>}
 
@@ -204,6 +205,7 @@ const TeacherCall = () => {
                 <th className="py-2 px-4 border-b">{'番号'}</th>
                 <th className="py-2 px-4 border-b">{'氏名'}</th>
                 <th className="py-2 px-4 border-b">{'状態'}</th>
+                <th className="py-2 px-4 border-b">{'不在詳細'}</th>
               </tr>
             </thead>
             <tbody>
@@ -216,15 +218,20 @@ const TeacherCall = () => {
                     {student.status === 'checked_in' ? (
                       <span className="px-2 py-1 text-xs font-semibold text-white bg-green-500 rounded-full">{'応答済み'}</span>
                     ) : student.absence_reason ? (
-                      <span
-                        className="px-2 py-1 text-xs font-semibold text-white bg-yellow-500 rounded-full cursor-pointer"
-                        onClick={() => setModal({ isOpen: true, reason: student.absence_reason || '' })}>
+                      <span className="px-2 py-1 text-xs font-semibold text-white bg-yellow-500 rounded-full">
                         {'不在'}
                       </span>
                     ) : (
                       <span className="px-2 py-1 text-xs font-semibold text-white bg-red-500 rounded-full">{'未応答'}</span>
                     )}
                   </td>
+                  <td className='px-3'>{student.absence_reason ? 
+                  <div className='flex items-center justify-center'>
+                    <FaArrowRight 
+                        onClick={() => setModal({ isOpen: true, reason: student.absence_reason || '' })}
+                    
+                    className="cursor-pointer bg-[#219ace30] rounded-2xl p-1.5" size={'30px'} color="#219bce" />
+                  </div>: <></>}</td>
                 </tr>
               ))}
             </tbody>
