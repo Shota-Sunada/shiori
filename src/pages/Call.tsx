@@ -247,7 +247,7 @@ const Call = () => {
       )}
 
       <p className="text-xl mt-5">{isDone ? '確認しました！' : rollCall?.is_active && remainingTime > 0 ? '時間内に点呼に応答してください！' : 'この点呼は終了しています。'}</p>
-      {isDone ? <Button text="戻る" arrow onClick={() => navigate('/index')} /> : <></>}
+      {isDone || !rollCall?.is_active || remainingTime < 0 ? <Button text="戻る" arrow onClick={() => navigate('/index')} /> : <></>}
 
       {!isDone && rollCall?.is_active && remainingTime > 0 ? (
         <div className="mt-5">
