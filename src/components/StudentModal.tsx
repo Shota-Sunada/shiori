@@ -121,8 +121,8 @@ const StudentModal = ({
           </div>
         </div>
         <div className="flex flex-row items-center justify-center mt-4">
-          <Button text="保存" onClick={handleSave} arrow />
           <Button text="キャンセル" onClick={handleCancel} />
+          <Button text="保存" onClick={handleSave} arrow />
         </div>
       </div>
     </div>
