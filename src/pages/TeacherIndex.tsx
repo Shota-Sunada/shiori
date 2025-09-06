@@ -24,9 +24,9 @@ const TeacherIndex = () => {
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">
       <p className="m-[10px] text-2xl">{'ようこそ、先生用ページへ'}</p>
-      <Button text='生徒を検索' arrowRight link='/teacher/search' ></Button>
-      <Button text='点呼' arrowRight link='/teacher/call' ></Button>
-      <Button text='お楽しみ会' arrowRight link='/otanoshimi' color='green'></Button>
+      <Button text="生徒を検索" arrowRight link="/teacher/search"></Button>
+      <Button text="点呼" arrowRight link="/teacher/call"></Button>
+      <Button text="お楽しみ会" arrowRight link="/otanoshimi" color="green"></Button>
     </div>
   );
 };
