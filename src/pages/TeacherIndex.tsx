@@ -101,17 +101,28 @@ const TeacherIndex = () => {
       return;
     }
 
-    if (targetStudents === "default" && !specificStudentId ) {
+    if (specificStudentId) {
+      if (!window.confirm(`学籍番号【${specificStudentId}】の生徒に点呼を発動します。\nよろしいですか?`)) {
+        alert("点呼を中止しました。")
+        return;
+      } 
+    }else {
+    if (targetStudents === "default"  ) {
       alert("送信先のプリセットを選択してください。")
       return;
     }
-
-    if (targetStudents === "all" && !specificStudentId) {
-      if (!window.confirm("現在【全員】に通知を送信する設定です。\n生徒全員に対して一斉に点呼がかかりますが、よろしいですか?")) {
+    else if (targetStudents === "all" ) {
+      if (!window.confirm("現在、\n【 全員 】\nに通知を送信する設定です。\n生徒全員に対して一斉に点呼がかかりますが、よろしいですか?")) {
         alert("点呼を中止しました。")
         return;
       } 
     }
+    else {
+      if (!window.confirm(`現在、\n【${rollCallGroups.find(x => x.name === targetStudents)?.name}】\nに通知を送信する設定です。\nよろしいですか?`)) {
+        alert("点呼を中止しました。")
+        return;
+      } 
+    }}
 
     const requestBody: {
       teacher_id: number;
