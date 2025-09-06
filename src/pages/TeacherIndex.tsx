@@ -23,7 +23,7 @@ const TeacherIndex = () => {
   const [isKanaSearchVisible, setKanaSearchVisible] = useState(false);
   const [specificStudentId, setSpecificStudentId] = useState('');
   const [durationMinutes, setDurationMinutes] = useState(2);
-  const [targetStudents, setTargetStudents] = useState<string>('all');
+  const [targetStudents, setTargetStudents] = useState<string>('default');
   const [rollCallGroups, setRollCallGroups] = useState<RollCallGroup[]>([]);
   const [isGroupEditorOpen, setGroupEditorOpen] = useState(false);
 
@@ -99,6 +99,18 @@ const TeacherIndex = () => {
     if (!user || !token) {
       alert('ログインしていません。');
       return;
+    }
+
+    if (targetStudents === "default" && !specificStudentId ) {
+      alert("送信先のプリセットを選択してください。")
+      return;
+    }
+
+    if (targetStudents === "all" && !specificStudentId) {
+      if (!window.confirm("現在【全員】に通知を送信する設定です。\n生徒全員に対して一斉に点呼がかかりますが、よろしいですか?")) {
+        alert("点呼を中止しました。")
+        return;
+      } 
     }
 
     const requestBody: {
@@ -218,6 +230,7 @@ const TeacherIndex = () => {
                   setTargetStudents(e.target.value);
                 }}
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white">
+                <option value="default">{"選択してください"}</option>
                 <option value="all">{'【取扱注意】全員'}</option>
                 {rollCallGroups.map((group) => (
                   <option key={group.id} value={group.name}>
