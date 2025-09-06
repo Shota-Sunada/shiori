@@ -75,9 +75,9 @@ const TeacherCall = () => {
     let timer: NodeJS.Timeout | null = null;
     if (rollCall && rollCall.is_active) {
       const calculateRemainingTime = () => {
-        const now = Date.now(); // Use Date.now() directly
-        const created = rollCall.created_at; // Use numeric timestamp directly
-        const expires = rollCall.expires_at; // Use numeric timestamp directly
+        const now = Date.now();
+        const created = rollCall.created_at;
+        const expires = rollCall.expires_at;
 
         const totalDuration = expires - created;
         const elapsedTime = now - created;
@@ -85,13 +85,12 @@ const TeacherCall = () => {
         setRemainingTime(diff);
 
         if (diff === 0) {
-          // Roll call has expired, update its status
           setRollCall((prev) => (prev ? { ...prev, is_active: false } : null));
         }
       };
 
-      calculateRemainingTime(); // Initial calculation
-      timer = setInterval(calculateRemainingTime, 1000); // Update every second
+      calculateRemainingTime();
+      timer = setInterval(calculateRemainingTime, 1000);
     }
 
     return () => {

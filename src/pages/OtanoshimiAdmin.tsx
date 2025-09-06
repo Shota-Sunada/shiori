@@ -1,4 +1,4 @@
-import { useState, useEffect, type ChangeEvent, type DragEvent, useCallback } from 'react';
+import { useState, useEffect, type ChangeEvent, type DragEvent, useCallback , type FC} from 'react';
 import { SERVER_ENDPOINT } from '../App';
 import '../styles/admin-table.css';
 import KanaSearchModal from '../components/KanaSearchModal';
@@ -12,7 +12,7 @@ interface StudentChipProps {
   onDelete: (studentId: number) => void;
 }
 
-const StudentChip: React.FC<StudentChipProps> = ({ studentId, studentMap, onDelete }) => {
+const StudentChip: FC<StudentChipProps> = ({ studentId, studentMap, onDelete }) => {
   const studentName = studentMap.get(studentId) || '不明な生徒';
   return (
     <div className="flex items-center bg-blue-100 text-blue-800 text-sm font-semibold px-2.5 py-0.5 rounded-full">

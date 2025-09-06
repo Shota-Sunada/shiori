@@ -103,10 +103,10 @@ const DeniedInstructions = () => {
 
   return (
     <>
-      <p className="font-bold text-2xl">通知がブロックされています</p>
-      <p className="mt-2">このアプリを最大限に活用するには、通知を許可する必要があります。</p>
+      <p className="font-bold text-2xl">{"通知がブロックされています"}</p>
+      <p className="mt-2">{"このアプリを最大限に活用するには、通知を許可する必要があります。"}</p>
       <div className="mt-4 p-4 border rounded-md bg-gray-100 text-left max-w-md">
-        <p className="font-semibold">設定をリセットするには:</p>
+        <p className="font-semibold">{"設定をリセットするには:"}</p>
         {renderInstructions()}
       </div>
     </>

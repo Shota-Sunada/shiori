@@ -143,7 +143,6 @@ function App() {
             <Route element={<NotificationGuard />}>
               <Route path="/" element={<Index />} />
               <Route path="/otanoshimi" element={<Otanoshimi />} />
-              
               <Route path="/teacher" element={<TeacherIndex />} />
               <Route path="/teacher/roll-call-list" element={<TeacherRollCallList />} />
               <Route path="/call" element={<Call />} />
@@ -187,7 +186,6 @@ function App() {
   );
 }
 
-// Appをプロバイダーでラップする
 const AppWrapper = () => (
   <BrowserRouter>
     <AuthProvider>

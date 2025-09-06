@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect, type FC } from 'react';
 
 interface Roommate {
   gakuseki: string;
@@ -15,7 +15,7 @@ interface RoommateModalProps {
   roomNumber: string;
 }
 
-const RoomDataModal: React.FC<RoommateModalProps> = ({ roommates, onClose, hotelName, roomNumber }) => {
+const RoomDataModal: FC<RoommateModalProps> = ({ roommates, onClose, hotelName, roomNumber }) => {
   useEffect(() => {
     document.body.classList.add('modal-open');
     return () => {

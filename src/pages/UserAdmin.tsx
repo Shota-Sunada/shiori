@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback, memo, type ChangeEvent, type KeyboardEvent } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, memo, type ChangeEvent, type KeyboardEvent, type FC } from 'react';
 import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 import { useRequireAuth } from '../auth-context';
 import '../styles/admin-table.css';
@@ -71,7 +71,7 @@ const initialForm = {
   is_teacher: false
 };
 
-const MemoizedRow: React.FC<MemoizedRowProps> = memo(({ u, handleUnban, handleDelete, modalMode, renderCellContent, handleCellDoubleClick }) => {
+const MemoizedRow: FC<MemoizedRowProps> = memo(({ u, handleUnban, handleDelete, modalMode, renderCellContent, handleCellDoubleClick }) => {
   return (
     <tr key={u.id} className={`${u.is_banned ? 'bg-red-200' : 'bg-white'}`}>
       <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(u, 'id')}>
@@ -113,7 +113,7 @@ const MemoizedRow: React.FC<MemoizedRowProps> = memo(({ u, handleUnban, handleDe
   );
 });
 
-const UserModal: React.FC<UserModalProps> = memo(({ modalMode, editRowForm, handleSave, setModalMode, setEditRowForm }) => {
+const UserModal: FC<UserModalProps> = memo(({ modalMode, editRowForm, handleSave, setModalMode, setEditRowForm }) => {
   const [showPassword, setShowPassword] = useState(false);
 
   if (modalMode === null) {

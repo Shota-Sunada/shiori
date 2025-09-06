@@ -255,7 +255,7 @@ const Call = () => {
         <></>
       )}
 
-      {showAbsenceForm && (
+      {showAbsenceForm ? (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-transparent backdrop-blur-sm">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">{'不在理由・詳細情報'}</h2>
@@ -267,6 +267,8 @@ const Call = () => {
             </div>
           </div>
         </div>
+      ) : (
+        <></>
       )}
     </div>
   );

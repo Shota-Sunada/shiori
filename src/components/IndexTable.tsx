@@ -291,7 +291,7 @@ const IndexTable = (props: { studentData: student | null }) => {
           {/* shinkansen END */}
         </tbody>
       </table>
-      {showRoommateModal && <RoomDataModal roommates={currentRoommates} onClose={handleCloseModal} hotelName={currentHotelName} roomNumber={currentRoomNumber} />}
+      {showRoommateModal ? <RoomDataModal roommates={currentRoommates} onClose={handleCloseModal} hotelName={currentHotelName} roomNumber={currentRoomNumber} /> : <></>}
     </section>
   );
 };

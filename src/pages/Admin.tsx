@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type ChangeEvent, type KeyboardEvent, useMemo, useCallback, memo } from 'react';
+import { useState, useEffect, useRef, type ChangeEvent, type KeyboardEvent, useMemo, useCallback, memo, type FC } from 'react';
 import type { student } from '../data/students';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
 import '../styles/admin-table.css';
@@ -154,7 +154,7 @@ const initialForm: Omit<student, 'class' | 'number' | 'gakuseki' | 'shinkansen_d
   shinkansen_day4_seat: ''
 };
 
-const MemoizedRow: React.FC<MemoizedRowProps> = memo(({ s, visibleColumns, renderCellContent, handleEditClick, handleDelete, modalMode, editingCell, handleCellDoubleClick }) => {
+const MemoizedRow: FC<MemoizedRowProps> = memo(({ s, visibleColumns, renderCellContent, handleEditClick, handleDelete, modalMode, editingCell, handleCellDoubleClick }) => {
   return (
     <tr key={s.gakuseki}>
       {allColumns
