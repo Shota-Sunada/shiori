@@ -64,7 +64,7 @@ const IndexTable = (props: { studentData: student | null }) => {
   };
 
   return (
-    <section id="table" className="rounded-2xl overflow-hidden mt-2">
+    <section id="table" className="rounded-2xl overflow-hidden m-1">
       <table className="index-table">
         <thead className="bg-amber-200">
           <tr>

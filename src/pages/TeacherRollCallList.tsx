@@ -97,7 +97,7 @@ const TeacherRollCallList = () => {
                   </td>
                   <td className="py-1 px-0.5 border-b text-center" rowSpan={2}>
                     <div className="flex items-center justify-center">
-                      <Link to={`/teacher/call?id=${rollCall.id}`}>
+                      <Link to={`/teacher/call-viewer?id=${rollCall.id}`}>
                         <FaArrowRight className="cursor-pointer bg-[#219ace30] rounded-2xl p-1.5" size={'30px'} color="#219bce" />
                       </Link>
                     </div>
@@ -130,7 +130,7 @@ const TeacherRollCallList = () => {
       </section>
 
       <div className="flex items-center justify-center m-2">
-        <Button text="戻る" arrowLeft link="/teacher" />
+        <Button text="戻る" arrowLeft link="/teacher/call" />
       </div>
     </div>
   );
