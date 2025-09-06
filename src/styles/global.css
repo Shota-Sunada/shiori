@@ -18,6 +18,10 @@ main,
   word-break: auto-phrase;
 }
 
+button {
+  cursor: pointer;
+}
+
 body {
   overscroll-behavior-y: none;
 }
