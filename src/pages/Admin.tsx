@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef, type ChangeEvent, type KeyboardEvent, useMemo } from 'react';
+import { useState, useEffect, useRef, type ChangeEvent, type KeyboardEvent, useMemo, useCallback } from 'react';
 import type { student } from '../data/students';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
 import '../styles/admin-table.css';
 import StudentModal from '../components/StudentModal';
 import { Link } from 'react-router-dom';
 import { SERVER_ENDPOINT } from '../App';
+import { useAuth } from '../auth-context';
 
 type SortKey = keyof student;
 type SortDirection = 'asc' | 'desc';
@@ -143,6 +144,7 @@ const initialForm: Omit<student, 'class' | 'number' | 'gakuseki' | 'shinkansen_d
 };
 
 const Admin = () => {
+  const { token } = useAuth();
   const [studentsList, setStudentsList] = useState<student[] | null>(null);
   const [editRowId, setEditRowId] = useState<number | null>(null);
   const [editRowForm, setEditRowForm] = useState<typeof initialForm>(initialForm);
@@ -166,9 +168,13 @@ const Admin = () => {
     { key: 'number', direction: 'asc' }
   ]);
 
-  const fetchStudents = async () => {
+  const fetchStudents = useCallback(async () => {
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/students`);
+      const response = await fetch(`${SERVER_ENDPOINT}/api/students`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       if (!response.ok) {
         if (response.status === 404) {
           setStatus('生徒データが見つかりませんでした。');
@@ -184,7 +190,7 @@ const Admin = () => {
       console.error('生徒データの取得に失敗:', error);
       setStatus('生徒データの取得中にエラーが発生しました。');
     }
-  };
+  }, [token]);
 
   const handleSort = (key: SortKey, shiftKey: boolean) => {
     setSortConfigs((prevConfigs) => {
@@ -247,7 +253,7 @@ const Admin = () => {
 
   useEffect(() => {
     fetchStudents();
-  }, []);
+  }, [fetchStudents]);
 
   const handleEditClick = (s: student) => {
     setEditRowId(s.gakuseki);

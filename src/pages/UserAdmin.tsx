@@ -397,7 +397,7 @@ const UserAdmin = () => {
                 </td>
                 <td className="bg-white sticky-col">
                   <div className="flex flex-row items-center justify-center">
-                    {u.is_banned && (
+                    {u.is_banned ? (
                       <button className="p-1 cursor-pointer mx-1" onClick={() => handleUnban(u.id)} disabled={modalMode !== null} title="BAN解除">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600 hover:text-green-800" viewBox="0 0 20 20" fill="currentColor">
                           <path
@@ -407,7 +407,7 @@ const UserAdmin = () => {
                           />
                         </svg>
                       </button>
-                    )}
+                    ): <></>}
                     <button className="p-1 cursor-pointer mx-1" onClick={() => handleEditClick(u)} disabled={modalMode !== null} title="編集">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 hover:text-gray-800" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
