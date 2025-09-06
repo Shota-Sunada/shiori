@@ -15,7 +15,7 @@ import Call from './pages/Call';
 import OtanoshimiAdmin from './pages/OtanoshimiAdmin';
 import { onMessage } from 'firebase/messaging';
 import { messaging } from './firebase';
-import OtanoshimiPreview from './pages/OtanoshimiPreview';
+
 import NonNotification from './pages/NonNotification';
 import TeacherRollCallList from './pages/TeacherRollCallList';
 import Credits from './pages/Credits';
@@ -143,7 +143,7 @@ function App() {
             <Route element={<NotificationGuard />}>
               <Route path="/" element={<Index />} />
               <Route path="/otanoshimi" element={<Otanoshimi />} />
-              <Route path="/otanoshimi-preview/:order" element={<OtanoshimiPreview />} />
+              
               <Route path="/teacher" element={<TeacherIndex />} />
               <Route path="/teacher/roll-call-list" element={<TeacherRollCallList />} />
               <Route path="/call" element={<Call />} />

@@ -214,7 +214,7 @@ const Call = () => {
     return (
       <div className="flex flex-col items-center justify-center h-[80dvh]">
         <p className="text-xl text-red-500">{error}</p>
-        <Button text="戻る" arrow link="/index" />
+        <Button text="戻る" arrowRight link="/index" />
       </div>
     );
   }
@@ -245,15 +245,11 @@ const Call = () => {
       )}
 
       <p className="text-xl mt-5">{isDone ? '確認しました！' : rollCall?.is_active && remainingTime > 0 ? '時間内に点呼に応答してください！' : 'この点呼は終了しています。'}</p>
-      {isDone || !rollCall?.is_active || remainingTime < 0 ? (
-        <Button text="戻る" arrow link='/index' />
-        ) : (
-        <></>
-      )}
+      {isDone || !rollCall?.is_active || remainingTime < 0 ? <Button text="戻る" arrowRight link="/index" /> : <></>}
 
       {!isDone && rollCall?.is_active && remainingTime > 0 ? (
         <div className="mt-5">
-          <Button text="点呼できません" arrow onClick={() => setShowAbsenceForm(true)} />
+          <Button text="点呼できません" arrowRight onClick={() => setShowAbsenceForm(true)} />
         </div>
       ) : (
         <></>
@@ -267,7 +263,7 @@ const Call = () => {
             <input type="text" className="w-full p-2 border rounded" placeholder="現在地を入力してください" value={currentLocation} onChange={(e) => setCurrentLocation(e.target.value)} />
             <div className="flex justify-end space-x-2 mt-4">
               <Button text="キャンセル" onClick={() => setShowAbsenceForm(false)} />
-              <Button text="送信" arrow onClick={handleAbsenceSubmit} />
+              <Button text="送信" arrowRight onClick={handleAbsenceSubmit} />
             </div>
           </div>
         </div>

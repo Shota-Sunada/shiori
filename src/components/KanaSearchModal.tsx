@@ -122,7 +122,7 @@ const KanaSearchModal: FC<KanaSearchModalProps> = ({ isOpen, onClose, allStudent
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 bottom-0 bg-[#00000080] flex justify-center items-center z-[1000]" onClick={handleClose}>
+    <div className="fixed top-0 left-0 right-0 bottom-0 flex justify-center items-center z-[1000] modal-overlay" onClick={handleClose}>
       <div className="bg-white p-[20px] rounded-md w-[90%] max-w-[500px] h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-300">
           <h2 className="m-0 text-xl">{'カタカナ検索'}</h2>

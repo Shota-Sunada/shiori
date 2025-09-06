@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface Roommate {
   gakuseki: string;
@@ -16,8 +16,15 @@ interface RoommateModalProps {
 }
 
 const RoomDataModal: React.FC<RoommateModalProps> = ({ roommates, onClose, hotelName, roomNumber }) => {
+  useEffect(() => {
+    document.body.classList.add('modal-open');
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, []);
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm">
+    <div className="fixed inset-0 flex items-center justify-center z-50 modal-overlay">
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
         <p className="text-xl font-bold mb-4">
           {hotelName} {roomNumber}

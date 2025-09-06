@@ -50,6 +50,17 @@ const StudentModal = ({
     }
   }, [open, initialData]);
 
+  useEffect(() => {
+    if (open) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [open]);
+
   if (!open) return null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -65,7 +76,7 @@ const StudentModal = ({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm">
+    <div className="fixed inset-0 flex items-center justify-center z-50 modal-overlay">
       <div className="border bg-white text-black rounded-xl px-[5dvw] py-[5dvh] min-w-[350px] max-h-[90dvh] overflow-y-auto m-[10px]">
         <h2 className="mb-4">{mode === 'add' ? '生徒データ新規追加' : '生徒データ編集'}</h2>
         <div className="grid grid-cols-2 gap-2 modal-root">
@@ -122,7 +133,7 @@ const StudentModal = ({
         </div>
         <div className="flex flex-row items-center justify-center mt-4">
           <Button text="キャンセル" onClick={handleCancel} />
-          <Button text="保存" onClick={handleSave} arrow />
+          <Button text="保存" onClick={handleSave} arrowRight />
         </div>
       </div>
     </div>

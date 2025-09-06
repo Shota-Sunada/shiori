@@ -142,7 +142,7 @@ const NonNotification = () => {
           <>
             <p className="font-bold text-2xl">{'ありがとうございます！'}</p>
             <p>{'通知が有効になりました！'}</p>
-            <Button text="ホームへ" arrow link="/"/>
+            <Button text="ホームへ" arrowRight link="/" />
           </>
         );
       case 'denied':
@@ -153,7 +153,7 @@ const NonNotification = () => {
             <p className="font-bold text-2xl">{'通知を有効化してください'}</p>
             <p>{'このしおりでは、通知が重要な役割を果たします。'}</p>
             <p>{'お願いですから、通知を許可してください。'}</p>
-            <Button text="通知を許可する" arrow onClick={() => handleEnableNotifications(user)} />
+            <Button text="通知を許可する" arrowRight onClick={() => handleEnableNotifications(user)} />
           </>
         );
     }

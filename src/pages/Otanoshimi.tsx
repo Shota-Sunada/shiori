@@ -1,24 +1,159 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import type { OtanoshimiData } from '../data/otanoshimi';
 import { SERVER_ENDPOINT } from '../App';
 import OtanoshimiCard from '../components/OtanoshimiCard';
 import { useAuth } from '../auth-context';
+import type { student } from '../data/students';
+import Button from '../components/Button';
 
 interface OtanoshimiDataWithSchedule extends OtanoshimiData {
   schedule: string;
 }
 
+const OtanoshimiPreviewModal = ({ order, onClose, onNavigate }: { order: string; onClose: () => void; onNavigate: (newOrder: number) => void }) => {
+  const [team, setTeam] = useState<OtanoshimiData | null>(null);
+  const [allStudents, setAllStudents] = useState<student[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { token } = useAuth();
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+      setLoading(true);
+      try {
+        const teamsResponse = await fetch(`${SERVER_ENDPOINT}/api/otanoshimi`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!teamsResponse.ok) {
+          throw new Error(`HTTPエラー! ステータス: ${teamsResponse.status}`);
+        }
+        const teamsData: OtanoshimiData[] = await teamsResponse.json();
+
+        const appearanceOrder = parseInt(order || '', 10);
+        const currentTeam = teamsData.find((t) => t.appearance_order === appearanceOrder);
+
+        if (currentTeam) {
+          const studentsResponse = await fetch(`${SERVER_ENDPOINT}/api/students`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (!studentsResponse.ok) {
+            throw new Error(`HTTPエラー! ステータス: ${studentsResponse.status}`);
+          }
+          const studentsData: student[] = await studentsResponse.json();
+          setAllStudents(studentsData);
+
+          setTeam({
+            ...currentTeam,
+            custom_performers: currentTeam.custom_performers || [],
+            enmoku: currentTeam.enmoku || '',
+          });
+        } else {
+          setTeam(null);
+        }
+      } catch (error) {
+        console.error('データの取得に失敗:', error);
+        setTeam(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (order) {
+      fetchAllData();
+    }
+  }, [order, token]);
+
+  const getNameById = (gakuseki: number) => {
+    const student = allStudents.find((x) => x.gakuseki === gakuseki);
+    return student ? `${student.surname} ${student.forename} (5-${student.class})` : '[ERROR]';
+  };
+
+  return (
+    <div className="fixed inset-0 flex justify-center items-center z-50 modal-overlay">
+      <div className="bg-white p-4 rounded-lg shadow-lg w-full max-w-md m-4">
+        {loading ? (
+          <div className="flex items-center justify-center m-[10px]">
+            <p>{'読み込み中...'}</p>
+            <Button text="戻る" arrowRight onClick={onClose} />
+          </div>
+        ) : !team ? (
+          <div className="flex flex-col items-center justify-center m-[10px]">
+            <p>{'指定された出演順のチームが見つかりません。'}</p>
+            <Button text="戻る" arrowRight onClick={onClose} />
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-col items-center justify-center m-[10px]">
+              <section className="m-2 p-4 border rounded-lg shadow-lg bg-white w-full max-w-md">
+                <h2 className="text-2xl font-bold text-center mb-4">
+                  {order}
+                  {'.「'}
+                  {team.name}
+                  {'」'}
+                </h2>
+                <p className="text-lg text-center mb-2">
+                  {'演目: '}
+                  {team.enmoku}
+                </p>
+                <div className="mt-4">
+                  <h3 className="font-semibold">{'リーダー'}</h3>
+                  <p>{getNameById(team.leader)}</p>
+                </div>
+                <div className="mt-4">
+                  <h3 className="font-semibold">{'メンバー'}</h3>
+                  <ul className="list-disc list-inside grid grid-cols-2 gap-1">
+                    {team.members.map((memberId) => (
+                      <li key={memberId}>{getNameById(memberId)}</li>
+                    ))}
+                    {team.custom_performers &&
+                      team.custom_performers.length > 0 &&
+                      team.custom_performers.map((performer, index) => <li key={index}>{performer}</li>)}
+                  </ul>
+                </div>
+              </section>
+
+              <Button text="戻る" onClick={onClose} color="purple" />
+              <div className="flex flex-row">
+                <Button text="前へ" arrowLeft onClick={() => onNavigate(Number(order) - 1)} />
+                <Button text="次へ" arrowRight onClick={() => onNavigate(Number(order) + 1)} />
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const Otanoshimi = () => {
   const { token } = useAuth();
   const [teams, setTeams] = useState<OtanoshimiDataWithSchedule[] | undefined>(undefined);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const previewOrder = searchParams.get('preview');
+
+  useEffect(() => {
+    if (previewOrder) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [previewOrder]);
 
   const fetchTeams = useCallback(async () => {
     if (!token) return;
     try {
       const response = await fetch(`${SERVER_ENDPOINT}/api/otanoshimi`, {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
       if (!response.ok) {
         throw new Error(`HTTPエラー! ステータス: ${response.status}`);
@@ -27,7 +162,7 @@ const Otanoshimi = () => {
       const teamsWithDefaults = data.map((team) => ({
         ...team,
         custom_performers: team.custom_performers || [],
-        enmoku: team.enmoku || ''
+        enmoku: team.enmoku || '',
       }));
       teamsWithDefaults.sort((a, b) => a.appearance_order - b.appearance_order);
 
@@ -55,8 +190,18 @@ const Otanoshimi = () => {
     fetchTeams();
   }, [fetchTeams]);
 
+  const handleCloseModal = () => {
+    setSearchParams({});
+  };
+
+  const handleNavigate = (newOrder: number) => {
+    navigate(`/otanoshimi?preview=${newOrder}`);
+  };
+
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">
+      {previewOrder && <OtanoshimiPreviewModal order={previewOrder} onClose={handleCloseModal} onNavigate={handleNavigate} />}
+
       <h1 className="text-3xl font-bold">{'お楽しみ会'}</h1>
       <p>{'修学旅行最後の夜、最高の思い出を。'}</p>
 
@@ -64,7 +209,11 @@ const Otanoshimi = () => {
         <h2 className="text-xl text-center">{'出演団体一覧'}</h2>
         <p className="text-center">{'クリックすると、各団体の詳細を閲覧できます。'}</p>
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mt-4">
-          {teams ? teams.map((x) => <OtanoshimiCard name={x.name} index={x.appearance_order} key={x.appearance_order}></OtanoshimiCard>) : <p>{'読込中...'}</p>}
+          {teams ? (
+            teams.map((x) => <OtanoshimiCard name={x.name} index={x.appearance_order} key={x.appearance_order}></OtanoshimiCard>)
+          ) : (
+            <p>{'読込中...'}</p>
+          )}
         </div>
       </div>
 

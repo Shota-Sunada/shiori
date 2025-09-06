@@ -22,21 +22,64 @@ body {
   overscroll-behavior-y: none;
 }
 
-.mobiry-button {
-  text-align: center;
-  margin: 10px;
-  padding: 8px;
-  width: 200px;
-  border-radius: 20px;
-  cursor: pointer;
-  color: #fff;
+.mobiry-button-blue {
   background-color: #219bce;
-  transition: 0.2s;
-  font-size: 15px;
 }
 
-.mobiry-button:hover {
+.mobiry-button-arrow-blue {
+  color: #219bce;
+}
+
+.mobiry-button-blue:hover {
   background-color: #008fc0;
+}
+
+.mobiry-button-red {
+  background-color: #ce2121;
+}
+
+.mobiry-button-arrow-red {
+  color: #ce2121;
+}
+
+.mobiry-button-red:hover {
+  background-color: #c00000;
+}
+
+.mobiry-button-green {
+  background-color: #21ce2f;
+}
+
+.mobiry-button-arrow-green {
+  color: #21ce2f;
+}
+
+.mobiry-button-green:hover {
+  background-color: #00c020;
+}
+
+.mobiry-button-purple {
+  background-color: #5521ce;
+}
+
+.mobiry-button-arrow-purple {
+  color: #5521ce;
+}
+
+.mobiry-button-purple:hover {
+  background-color: #4a00c0;
+}
+
+.mobiry-button-gray {
+  background-color: #505050;
+}
+
+.mobiry-button-arrow-gray {
+  color: #505050;
+}
+
+.mobiry-button-gray:hover {
+  background-color: #303030;
 }
 
 .anim {
@@ -66,4 +109,10 @@ html.modal-open,
 body.modal-open {
   overflow: hidden;
   height: 100%;
+}
+
+.modal-overlay {
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }

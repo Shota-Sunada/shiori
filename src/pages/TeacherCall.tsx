@@ -32,13 +32,13 @@ const TeacherCall = () => {
 
   useEffect(() => {
     if (modal.isOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.classList.add('modal-open');
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.classList.remove('modal-open');
     }
 
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.classList.remove('modal-open');
     };
   }, [modal.isOpen]);
 
@@ -154,7 +154,7 @@ const TeacherCall = () => {
     if (!isOpen) return null;
 
     return (
-      <div className="fixed inset-0 flex items-center justify-center z-50 bg-transparent backdrop-blur-sm">
+      <div className="fixed inset-0 flex items-center justify-center z-50 modal-overlay">
         <div className="bg-white p-6 rounded-lg shadow-lg">
           <h2 className="text-xl font-bold mb-4">{'不在理由・詳細情報'}</h2>
           <p>
@@ -166,7 +166,7 @@ const TeacherCall = () => {
             {location}
           </p>
           <div className="text-center mt-4">
-            <Button text="閉じる" arrow onClick={onClose} />
+            <Button text="閉じる" arrowRight onClick={onClose} />
           </div>
         </div>
       </div>
@@ -268,7 +268,7 @@ const TeacherCall = () => {
         {endButton()}
       </div>
 
-        <Button text="点呼一覧へ戻る" arrow link="/teacher/roll-call-list" />
+      <Button text="点呼一覧へ戻る" arrowRight link="/teacher/roll-call-list" />
       <ReasonModal isOpen={modal.isOpen} reason={modal.reason} location={modal.location} onClose={() => setModal({ isOpen: false, reason: '', location: '' })} />
     </div>
   );

@@ -129,7 +129,7 @@ const TeacherIndex = () => {
       <section id="call" className="m-2 w-full max-w-md mx-auto">
         <div className="flex flex-col items-center bg-gray-100 p-6 rounded-lg shadow-md">
           <p className="m-[10px] text-2xl font-bold">{'点呼システム'}</p>
-          <Button text="点呼一覧へ" arrow link='/teacher/roll-call-list' />
+          <Button text="点呼一覧へ" arrowRight link="/teacher/roll-call-list" />
 
           <form className="w-full mt-4" onSubmit={handleCallSubmit}>
             <div className="mb-4">
@@ -187,7 +187,7 @@ const TeacherIndex = () => {
             </div>
             <div className="flex items-center justify-center">
               <button type="submit">
-                <Button text="点呼開始" arrow />
+                <Button text="点呼開始" arrowRight />
               </button>
             </div>
           </form>
