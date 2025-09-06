@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SERVER_ENDPOINT } from '../App';
 import Button from '../components/Button';
 import { useAuth } from '../auth-context';
-import type { RollCall } from '../components/RollCallTable';
+import type { RollCall } from './TeacherRollCallList';
 import { FaArrowRight } from 'react-icons/fa';
 
 interface Student {
@@ -192,8 +192,8 @@ const TeacherCall = () => {
 
   return (
     <div className="flex flex-col items-center justify-center m-4">
-      <div className="w-full max-w-4xl p-4 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center mb-4">{'点呼実施中'}</h1>
+      <div className="w-full max-w-[90dvw] p-4 bg-white rounded-lg shadow-md">
+        <h1 className="text-2xl font-bold text-center mb-4">{rollCall?.is_active ? '点呼実施中' : '点呼記録'}</h1>
 
         <div className="grid grid-cols-2 m-2">
           <p className="text-lg mx-1 text-right">{'開始した先生: '}</p>
@@ -223,20 +223,20 @@ const TeacherCall = () => {
           <table className="min-w-full bg-white border">
             <thead className="bg-gray-200">
               <tr>
-                <th className="py-2 px-4 border-b">{'クラス'}</th>
-                <th className="py-2 px-4 border-b">{'番号'}</th>
-                <th className="py-2 px-4 border-b">{'氏名'}</th>
-                <th className="py-2 px-4 border-b">{'状態'}</th>
-                <th className="py-2 px-4 border-b">{'不在詳細'}</th>
+                <th className="py-2 px-1 border-b">{'組'}</th>
+                <th className="py-2 px-1 border-b">{'番号'}</th>
+                <th className="py-2 px-1 border-b">{'氏名'}</th>
+                <th className="py-2 px-1 border-b">{'状態'}</th>
+                <th className="py-2 px-1 border-b">{'不在詳細'}</th>
               </tr>
             </thead>
             <tbody>
               {students.map((student) => (
                 <tr key={student.gakuseki} className="text-center">
-                  <td className="py-2 px-4 border-b">{student.class}</td>
-                  <td className="py-2 px-4 border-b">{student.number}</td>
-                  <td className="py-2 px-4 border-b">{`${student.surname} ${student.forename}`}</td>
-                  <td className="py-2 px-4 border-b">
+                  <td className="py-2 px-1 border-b">{student.class}</td>
+                  <td className="py-2 px-1 border-b">{student.number}</td>
+                  <td className="py-2 px-1 border-b">{`${student.surname} ${student.forename}`}</td>
+                  <td className="py-2 px-1 border-b">
                     {student.status === 'checked_in' ? (
                       <span className="px-2 py-1 text-xs font-semibold text-white bg-green-500 rounded-full">{'応答済み'}</span>
                     ) : student.absence_reason ? (
