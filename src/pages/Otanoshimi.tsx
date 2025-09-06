@@ -116,8 +116,8 @@ const OtanoshimiPreviewModal = ({ order, onClose, onNavigate }: { order: string;
 
               <Button text="戻る" onClick={onClose} color="purple" />
               <div className="flex flex-row">
-                <Button text="前へ" arrowLeft onClick={() => onNavigate(Number(order) - 1)} width={"150"} />
-                <Button text="次へ" arrowRight onClick={() => onNavigate(Number(order) + 1)} width={"150"} />
+                <Button text="前へ" arrowLeft onClick={() => onNavigate(Number(order) - 1)} width={'150'} />
+                <Button text="次へ" arrowRight onClick={() => onNavigate(Number(order) + 1)} width={'150'} />
               </div>
             </div>
           </>

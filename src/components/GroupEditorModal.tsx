@@ -94,9 +94,9 @@ const GroupEditorModal = ({ isOpen, onClose, token, allStudents, rollCallGroups,
   const handleAddStudentsFromInput = () => {
     const ids = studentIdInput
       .split(/[,\s]+/)
-      .map(idStr => idStr.trim())
-      .filter(idStr => idStr !== '')
-      .map(idStr => parseInt(idStr, 10));
+      .map((idStr) => idStr.trim())
+      .filter((idStr) => idStr !== '')
+      .map((idStr) => parseInt(idStr, 10));
 
     const validIds: number[] = [];
     const invalidIds: string[] = [];
@@ -123,8 +123,8 @@ const GroupEditorModal = ({ isOpen, onClose, token, allStudents, rollCallGroups,
     }
 
     if (validIds.length > 0) {
-        const uniqueValidIds = [...new Set(validIds)];
-        setSelectedStudents((prev) => [...prev, ...uniqueValidIds]);
+      const uniqueValidIds = [...new Set(validIds)];
+      setSelectedStudents((prev) => [...prev, ...uniqueValidIds]);
     }
 
     setStudentIdInput('');
@@ -140,9 +140,7 @@ const GroupEditorModal = ({ isOpen, onClose, token, allStudents, rollCallGroups,
       return;
     }
 
-    const url = currentGroup
-      ? `${SERVER_ENDPOINT}/api/roll-call-groups/${currentGroup.id}`
-      : `${SERVER_ENDPOINT}/api/roll-call-groups`;
+    const url = currentGroup ? `${SERVER_ENDPOINT}/api/roll-call-groups/${currentGroup.id}` : `${SERVER_ENDPOINT}/api/roll-call-groups`;
     const method = currentGroup ? 'PUT' : 'POST';
 
     try {
@@ -204,57 +202,62 @@ const GroupEditorModal = ({ isOpen, onClose, token, allStudents, rollCallGroups,
     setIsEditing(true);
   };
 
-   const closeEditor = () => {
+  const closeEditor = () => {
     setIsEditing(false);
     setCurrentGroup(null);
-  }
-
+  };
 
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[1000] modal-overlay">
         <div className="bg-white p-6 rounded-lg shadow-xl w-full h-[90vh] flex flex-col max-w-[95dvw]" onClick={(e) => e.stopPropagation()}>
-          <h2 className="text-2xl font-bold mb-4">{"点呼プリセットの編集"}</h2>
+          <h2 className="text-2xl font-bold mb-4">{'点呼プリセットの編集'}</h2>
 
           {isEditing ? (
             <div className="flex-grow flex flex-col min-h-0">
               <div className="mb-4">
-                <label htmlFor="group_name" className="block text-gray-700 text-sm font-bold mb-2">{"プリセット名"}</label>
-                <input
-                  type="text"
-                  id="group_name"
-                  value={groupName}
-                  onChange={(e) => setGroupName(e.target.value)}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"
-                />
+                <label htmlFor="group_name" className="block text-gray-700 text-sm font-bold mb-2">
+                  {'プリセット名'}
+                </label>
+                <input type="text" id="group_name" value={groupName} onChange={(e) => setGroupName(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" />
               </div>
               <div className="flex items-center mb-2 flex-wrap gap-2">
-                <p className="font-bold">{"生徒選択 "}{selectedStudents.length}{"人選択中"}</p>
-                <button onClick={() => setIsKanaModalOpen(true)} className="bg-green-500 text-white py-1 px-3 rounded">{"カタカナ検索で追加"}</button>
+                <p className="font-bold">
+                  {'生徒選択 '}
+                  {selectedStudents.length}
+                  {'人選択中'}
+                </p>
+                <button onClick={() => setIsKanaModalOpen(true)} className="bg-green-500 text-white py-1 px-3 rounded">
+                  {'カタカナ検索で追加'}
+                </button>
                 <div className="flex items-center">
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={studentIdInput}
                     onChange={(e) => setStudentIdInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleAddStudentsFromInput()}
                     placeholder="学籍番号をコンマ区切りで追加"
                     className="shadow appearance-none border rounded py-1 px-2 text-gray-700 w-64"
                   />
-                  <button onClick={handleAddStudentsFromInput} className="ml-2 bg-blue-500 text-white py-1 px-3 rounded">{"追加"}</button>
+                  <button onClick={handleAddStudentsFromInput} className="ml-2 bg-blue-500 text-white py-1 px-3 rounded">
+                    {'追加'}
+                  </button>
                 </div>
               </div>
               <div className="flex-grow overflow-y-auto border rounded p-2 flex flex-wrap gap-2 content-start">
                 {selectedStudents.length > 0 ? (
-                    selectedStudents.sort((a, b) => a - b).map((studentId) => (
-                        <StudentChip key={studentId} studentId={studentId} studentMap={studentMap} onDelete={handleStudentDelete} />
-                    ))
+                  selectedStudents.sort((a, b) => a - b).map((studentId) => <StudentChip key={studentId} studentId={studentId} studentMap={studentMap} onDelete={handleStudentDelete} />)
                 ) : (
-                    <p className="text-gray-500">{"生徒を選択してください。"}</p>
+                  <p className="text-gray-500">{'生徒を選択してください。'}</p>
                 )}
               </div>
               <div className="mt-4 flex justify-end space-x-2">
-                <button onClick={closeEditor} className="bg-gray-300 text-black py-2 px-4 rounded">{"キャンセル"}</button>
-                <button onClick={handleSave} className="bg-blue-500 text-white py-2 px-4 rounded">{"保存"}</button>
+                <button onClick={closeEditor} className="bg-gray-300 text-black py-2 px-4 rounded">
+                  {'キャンセル'}
+                </button>
+                <button onClick={handleSave} className="bg-blue-500 text-white py-2 px-4 rounded">
+                  {'保存'}
+                </button>
               </div>
             </div>
           ) : (
@@ -263,30 +266,34 @@ const GroupEditorModal = ({ isOpen, onClose, token, allStudents, rollCallGroups,
                 <ul>
                   {rollCallGroups.map((group) => (
                     <li key={group.id} className="flex justify-between items-center p-2 border-b">
-                      <span>{group.name} ({group.student_ids.length}人)</span>
+                      <span>
+                        {group.name} ({group.student_ids.length}人)
+                      </span>
                       <div className="space-x-2">
-                        <button onClick={() => startEditingGroup(group)} className="text-blue-500">{"編集"}</button>
-                        <button onClick={() => handleDelete(group.id)} className="text-red-500">{"削除"}</button>
+                        <button onClick={() => startEditingGroup(group)} className="text-blue-500">
+                          {'編集'}
+                        </button>
+                        <button onClick={() => handleDelete(group.id)} className="text-red-500">
+                          {'削除'}
+                        </button>
                       </div>
                     </li>
                   ))}
                 </ul>
               </div>
               <div className="mt-4 flex justify-between">
-                <button onClick={startNewGroup} className="bg-green-500 text-white py-2 px-4 rounded">{"新規プリセット作成"}</button>
-                <button onClick={onClose} className="bg-gray-500 text-white py-2 px-4 rounded">{"閉じる"}</button>
+                <button onClick={startNewGroup} className="bg-green-500 text-white py-2 px-4 rounded">
+                  {'新規プリセット作成'}
+                </button>
+                <button onClick={onClose} className="bg-gray-500 text-white py-2 px-4 rounded">
+                  {'閉じる'}
+                </button>
               </div>
             </div>
           )}
         </div>
       </div>
-      <KanaSearchModal 
-        isOpen={isKanaModalOpen} 
-        onClose={() => setIsKanaModalOpen(false)} 
-        allStudents={allStudents} 
-        onStudentSelect={handleStudentSelect} 
-        closeOnSelect={false}
-      />
+      <KanaSearchModal isOpen={isKanaModalOpen} onClose={() => setIsKanaModalOpen(false)} allStudents={allStudents} onStudentSelect={handleStudentSelect} closeOnSelect={false} />
     </>
   );
 };

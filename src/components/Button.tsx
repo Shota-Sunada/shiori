@@ -8,7 +8,7 @@ const Button = ({
   onClick,
   link,
   color = 'blue',
-  width = "200"
+  width = '200'
 }: {
   text: string;
   arrowRight?: boolean;
@@ -16,7 +16,7 @@ const Button = ({
   onClick?: React.MouseEventHandler<HTMLDivElement>;
   link?: string;
   color?: 'blue' | 'red' | 'green' | 'purple' | 'gray';
-  width?: "200" | "150";
+  width?: '200' | '150';
 }) => {
   const innerButton = () => (
     <div

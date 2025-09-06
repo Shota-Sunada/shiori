@@ -1,4 +1,4 @@
-import { useState, useEffect, type ChangeEvent, type DragEvent, useCallback , type FC} from 'react';
+import { useState, useEffect, type ChangeEvent, type DragEvent, useCallback, type FC } from 'react';
 import { SERVER_ENDPOINT } from '../App';
 import '../styles/admin-table.css';
 import KanaSearchModal from '../components/KanaSearchModal';
