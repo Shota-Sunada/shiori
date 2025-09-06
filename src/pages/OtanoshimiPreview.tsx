@@ -4,12 +4,14 @@ import { SERVER_ENDPOINT } from '../App';
 import type { OtanoshimiData } from '../data/otanoshimi';
 import type { student } from '../data/students';
 import Button from '../components/Button';
+import { useAuth } from '../auth-context';
 
 const OtanoshimiPreview = () => {
   const { order } = useParams<{ order: string }>();
   const [team, setTeam] = useState<OtanoshimiData | null>(null);
   const [allStudents, setAllStudents] = useState<student[]>([]);
   const [loading, setLoading] = useState(true);
+  const { token } = useAuth();
 
   const navigate = useNavigate();
 
@@ -17,7 +19,11 @@ const OtanoshimiPreview = () => {
     const fetchAllData = async () => {
       setLoading(true);
       try {
-        const teamsResponse = await fetch(`${SERVER_ENDPOINT}/api/otanoshimi`);
+        const teamsResponse = await fetch(`${SERVER_ENDPOINT}/api/otanoshimi`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
         if (!teamsResponse.ok) {
           throw new Error(`HTTPエラー! ステータス: ${teamsResponse.status}`);
         }
@@ -53,7 +59,7 @@ const OtanoshimiPreview = () => {
     if (order) {
       fetchAllData();
     }
-  }, [order]);
+  }, [order, token]);
 
   const getNameById = (gakuseki: number) => {
     const student = allStudents.find((x) => x.gakuseki === gakuseki);
@@ -71,7 +77,7 @@ const OtanoshimiPreview = () => {
 
   if (!team) {
     return (
-      <div className="flex items-center justify-center m-[10px]">
+      <div className="flex flex-col items-center justify-center m-[10px]">
         <p>{'指定された出演順のチームが見つかりません。'}</p>
         <Button text="戻る" arrow onClick={() => navigate('/otanoshimi')} />
       </div>
