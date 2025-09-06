@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, memo, type ChangeEvent,type KeyboardEvent } from 'react';
 import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 import { useRequireAuth } from '../auth-context';
 import '../styles/admin-table.css';
@@ -10,6 +10,23 @@ interface User {
   is_teacher: boolean;
   failed_login_attempts: number;
   is_banned: boolean;
+}
+
+interface MemoizedRowProps {
+  u: User;
+  handleUnban: (id: number) => void;
+  handleDelete: (id: number) => void;
+  modalMode: 'add' | 'edit' | null;
+  renderCellContent: (u: User, field: keyof User) => React.ReactNode;
+  handleCellDoubleClick: (u: User, field: keyof User) => void;
+}
+
+interface UserModalProps {
+  modalMode: 'add' | 'edit' | null;
+  editRowForm: typeof initialForm;
+  handleSave: (formData: typeof initialForm) => void;
+  setModalMode: (mode: 'add' | 'edit' | null) => void;
+  setEditRowForm: (form: typeof initialForm) => void;
 }
 
 type SortKey = keyof User;
@@ -54,6 +71,129 @@ const initialForm = {
   is_teacher: false
 };
 
+const MemoizedRow: React.FC<MemoizedRowProps> = memo(({ u, handleUnban, handleDelete, modalMode, renderCellContent, handleCellDoubleClick }) => {
+  return (
+    <tr key={u.id} className={`${u.is_banned ? 'bg-red-200' : 'bg-white'}`}>
+      <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(u, 'id')}>
+        {renderCellContent(u, 'id')}
+      </td>
+      <td className={u.is_admin ? 'bg-green-200' : 'bg-red-200'} onDoubleClick={() => handleCellDoubleClick(u, 'is_admin')}>
+        {renderCellContent(u, 'is_admin')}
+      </td>
+      <td className={u.is_teacher ? 'bg-green-200' : 'bg-red-200'} onDoubleClick={() => handleCellDoubleClick(u, 'is_teacher')}>
+        {renderCellContent(u, 'is_teacher')}
+      </td>
+      <td className="bg-white">{u.failed_login_attempts}</td>
+      <td className={u.is_banned ? 'bg-red-200' : 'bg-green-200'} onDoubleClick={() => handleCellDoubleClick(u, 'is_banned')}>
+        {renderCellContent(u, 'is_banned')}
+      </td>
+      <td className="bg-white sticky-col">
+        <div className="flex flex-row items-center justify-center">
+          {u.is_banned ? (
+            <button className="p-1 cursor-pointer mx-1" onClick={() => handleUnban(u.id)} disabled={modalMode !== null} title="BAN解除">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600 hover:text-green-800" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+          ) : (
+            <></>
+          )}
+          <button className="p-1 cursor-pointer mx-1" onClick={() => handleDelete(u.id)} disabled={modalMode !== null} title="削除">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500 hover:text-red-700" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fillRule="evenodd"
+                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+});
+
+const UserModal: React.FC<UserModalProps> = memo(({ modalMode, editRowForm, handleSave, setModalMode, setEditRowForm }) => {
+  const [showPassword, setShowPassword] = useState(false);
+
+  if (modalMode === null) {
+    return null;
+  }
+
+  return (
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50">
+      <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+        <h2 className="text-2xl font-bold mb-4">{modalMode === 'add' ? 'ユーザー追加' : 'ユーザー編集'}</h2>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSave(editRowForm);
+          }}>
+          <div className="mb-4">
+            <label htmlFor="id" className="block text-gray-700 text-sm font-bold mb-2">
+              {'ユーザーID'}
+            </label>
+            <input
+              type="number"
+              id="id"
+              name="id"
+              value={editRowForm.id}
+              onChange={(e) => setEditRowForm({ ...editRowForm, id: e.target.value })}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              required
+              disabled={modalMode === 'edit'}
+            />
+          </div>
+          <div className="mb-4">
+            <label htmlFor="password" className="block text-gray-700 text-sm font-bold mb-2">
+              {'パスワード '}
+              {modalMode === 'edit' && '(変更する場合のみ入力)'}
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                name="password"
+                value={editRowForm.password}
+                onChange={(e) => setEditRowForm({ ...editRowForm, password: e.target.value })}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                required={modalMode === 'add'}
+              />
+              <span className="absolute top-1/2 right-4 -translate-y-1/2 cursor-pointer text-gray-500" onClick={() => setShowPassword(!showPassword)}>
+                {showPassword ? <AiFillEyeInvisible size={24} /> : <AiFillEye size={24} />}
+              </span>
+            </div>
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              <input type="checkbox" checked={editRowForm.is_admin} onChange={(e) => setEditRowForm({ ...editRowForm, is_admin: e.target.checked })} className="mr-2 leading-tight" />
+              {'管理者'}
+            </label>
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              <input type="checkbox" checked={editRowForm.is_teacher} onChange={(e) => setEditRowForm({ ...editRowForm, is_teacher: e.target.checked })} className="mr-2 leading-tight" />
+              {'教員'}
+            </label>
+          </div>
+          <div className="flex items-center justify-between">
+            <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+              {modalMode === 'add' ? '追加' : '更新'}
+            </button>
+            <button type="button" onClick={() => setModalMode(null)} className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+              {'キャンセル'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+});
+
 const UserAdmin = () => {
   const { user, token, loading } = useRequireAuth();
   const [usersList, setUsersList] = useState<User[] | null>(null);
@@ -61,9 +201,11 @@ const UserAdmin = () => {
   const [editRowForm, setEditRowForm] = useState<typeof initialForm>(initialForm);
   const [status, setStatus] = useState<string>('');
   const [modalMode, setModalMode] = useState<'add' | 'edit' | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
+  const [editingCell, setEditingCell] = useState<{ userId: number; field: keyof User } | null>(null);
+  const [editingValue, setEditingValue] = useState<string | number | boolean>('');
 
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [sortConfigs, setSortConfigs] = useState<SortConfig[]>([{ key: 'id', direction: 'asc' }]);
@@ -141,10 +283,10 @@ const UserAdmin = () => {
     if (!usersList) {
       return [];
     }
-    const lowercasedQuery = searchQuery.toLowerCase();
+    const lowercasedQuery = debouncedSearchQuery.toLowerCase();
     const filtered = usersList.filter((u) => String(u.id).includes(lowercasedQuery) || (u.is_admin && 'admin'.includes(lowercasedQuery)) || (u.is_teacher && 'teacher'.includes(lowercasedQuery)));
     return sortList(filtered, sortConfigs);
-  }, [usersList, searchQuery, sortConfigs]);
+  }, [usersList, debouncedSearchQuery, sortConfigs]);
 
   useEffect(() => {
     if (!loading && user) {
@@ -152,17 +294,15 @@ const UserAdmin = () => {
     }
   }, [user, loading, token, fetchUsers]);
 
-  const handleEditClick = (u: User) => {
-    setEditRowId(u.id);
-    setEditRowForm({
-      id: String(u.id),
-      password: '',
-      is_admin: u.is_admin,
-      is_teacher: u.is_teacher
-    });
-    setStatus('');
-    setModalMode('edit');
-  };
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
 
   const handleDelete = async (id: number) => {
     if (!token) return;
@@ -291,6 +431,113 @@ const UserAdmin = () => {
     }
   };
 
+  const handleCellDoubleClick = (u: User, field: keyof User) => {
+    if (modalMode !== null) return;
+    setEditingCell({ userId: u.id, field });
+    setEditingValue(u[field]);
+  };
+
+  const handleCellChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { value } = e.target;
+    setEditingValue(value === 'true' ? true : value === 'false' ? false : value);
+  };
+
+  const handleCellEditSave = async () => {
+    if (!editingCell) return;
+
+    const { userId, field } = editingCell;
+
+    const originalUser = usersList?.find((u) => u.id === userId);
+    if (originalUser && originalUser[field] === editingValue) {
+      setEditingCell(null);
+      return;
+    }
+
+    let valueToSave: string | number | boolean = editingValue;
+    if (field === 'id') {
+      valueToSave = Number(editingValue);
+      if (isNaN(valueToSave)) {
+        setStatus('無効な数値です。');
+        setEditingCell(null);
+        return;
+      }
+    }
+
+    setStatus('更新中...');
+    try {
+      const response = await fetch(`${SERVER_ENDPOINT}/api/users/${userId}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ [field]: valueToSave })
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+      }
+
+      setUsersList((prevList) => {
+        if (!prevList) return null;
+        return prevList.map((user) => {
+          if (user.id === userId) {
+            return { ...user, [field]: valueToSave };
+          }
+          return user;
+        });
+      });
+      setStatus('更新しました。');
+      setEditingCell(null);
+    } catch (error) {
+      setStatus('エラーが発生しました: ' + (error as Error).message);
+      setEditingCell(null);
+    }
+  };
+
+  const handleCellKeyDown = (e: KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
+    if (e.key === 'Enter') {
+      handleCellEditSave();
+    } else if (e.key === 'Escape') {
+      setEditingCell(null);
+    }
+  };
+
+  const renderCellContent = (u: User, field: keyof User) => {
+    if (editingCell?.userId === u.id && editingCell?.field === field) {
+      if (field === 'is_admin' || field === 'is_teacher' || field === 'is_banned') {
+        return (
+          <select
+            value={String(editingValue)}
+            onChange={handleCellChange}
+            onBlur={handleCellEditSave}
+            onKeyDown={handleCellKeyDown}
+            autoFocus
+            className="w-full">
+            <option value="true">{"true"}</option>
+            <option value="false">{"false"}</option>
+          </select>
+        );
+      }
+      return (
+        <input
+          type="text"
+          value={editingValue as string}
+          onChange={handleCellChange}
+          onBlur={handleCellEditSave}
+          onKeyDown={handleCellKeyDown}
+          autoFocus
+          className="w-full"
+        />
+      );
+    }
+
+    if (field === 'is_admin' || field === 'is_teacher' || field === 'is_banned'){
+    return u[field] ? 'true' : 'false';}
+    return u[field];
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-[80dvh]">
@@ -383,48 +630,15 @@ const UserAdmin = () => {
           </thead>
           <tbody>
             {sortedAndFilteredUsers.map((u) => (
-              <tr key={u.id} className={`${u.is_banned ? 'bg-red-200' : 'bg-white'}`}>
-                <td className="bg-white">{u.id}</td>
-                <td className="bg-white">
-                  <input type="checkbox" checked={u.is_admin} readOnly className="mx-auto block" />
-                </td>
-                <td className="bg-white">
-                  <input type="checkbox" checked={u.is_teacher} readOnly className="mx-auto block" />
-                </td>
-                <td className="bg-white">{u.failed_login_attempts}</td>
-                <td className="bg-white">
-                  <input type="checkbox" checked={u.is_banned} readOnly className="mx-auto block" />
-                </td>
-                <td className="bg-white sticky-col">
-                  <div className="flex flex-row items-center justify-center">
-                    {u.is_banned ? (
-                      <button className="p-1 cursor-pointer mx-1" onClick={() => handleUnban(u.id)} disabled={modalMode !== null} title="BAN解除">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600 hover:text-green-800" viewBox="0 0 20 20" fill="currentColor">
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </button>
-                    ): <></>}
-                    <button className="p-1 cursor-pointer mx-1" onClick={() => handleEditClick(u)} disabled={modalMode !== null} title="編集">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 hover:text-gray-800" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                      </svg>
-                    </button>
-                    <button className="p-1 cursor-pointer mx-1" onClick={() => handleDelete(u.id)} disabled={modalMode !== null} title="削除">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500 hover:text-red-700" viewBox="0 0 20 20" fill="currentColor">
-                        <path
-                          fillRule="evenodd"
-                          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
+              <MemoizedRow
+                key={u.id}
+                u={u}
+                handleUnban={handleUnban}
+                handleDelete={handleDelete}
+                modalMode={modalMode}
+                renderCellContent={renderCellContent}
+                handleCellDoubleClick={handleCellDoubleClick}
+              />
             ))}
           </tbody>
         </table>
@@ -458,74 +672,13 @@ const UserAdmin = () => {
             {status}
           </p>
         </div>
-        {modalMode !== null && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50">
-            <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
-              <h2 className="text-2xl font-bold mb-4">{modalMode === 'add' ? 'ユーザー追加' : 'ユーザー編集'}</h2>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSave(editRowForm);
-                }}>
-                <div className="mb-4">
-                  <label htmlFor="id" className="block text-gray-700 text-sm font-bold mb-2">
-                    {'ユーザーID'}
-                  </label>
-                  <input
-                    type="number"
-                    id="id"
-                    name="id"
-                    value={editRowForm.id}
-                    onChange={(e) => setEditRowForm({ ...editRowForm, id: e.target.value })}
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    required
-                    disabled={modalMode === 'edit'}
-                  />
-                </div>
-                <div className="mb-4">
-                  <label htmlFor="password" className="block text-gray-700 text-sm font-bold mb-2">
-                    {'パスワード '}
-                    {modalMode === 'edit' && '(変更する場合のみ入力)'}
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      id="password"
-                      name="password"
-                      value={editRowForm.password}
-                      onChange={(e) => setEditRowForm({ ...editRowForm, password: e.target.value })}
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                      required={modalMode === 'add'}
-                    />
-                    <span className="absolute top-1/2 right-4 -translate-y-1/2 cursor-pointer text-gray-500" onClick={() => setShowPassword(!showPassword)}>
-                      {showPassword ? <AiFillEyeInvisible size={24} /> : <AiFillEye size={24} />}
-                    </span>
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
-                    <input type="checkbox" checked={editRowForm.is_admin} onChange={(e) => setEditRowForm({ ...editRowForm, is_admin: e.target.checked })} className="mr-2 leading-tight" />
-                    {'管理者'}
-                  </label>
-                </div>
-                <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
-                    <input type="checkbox" checked={editRowForm.is_teacher} onChange={(e) => setEditRowForm({ ...editRowForm, is_teacher: e.target.checked })} className="mr-2 leading-tight" />
-                    {'教員'}
-                  </label>
-                </div>
-                <div className="flex items-center justify-between">
-                  <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                    {modalMode === 'add' ? '追加' : '更新'}
-                  </button>
-                  <button type="button" onClick={() => setModalMode(null)} className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                    {'キャンセル'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+        <UserModal
+          modalMode={modalMode}
+          editRowForm={editRowForm}
+          handleSave={handleSave}
+          setModalMode={setModalMode}
+          setEditRowForm={setEditRowForm}
+        />
         <div className="flex items-center my-[10px]">
           <input type="text" placeholder="検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="border p-2 rounded mr-2 max-w-[50dvw]" />
           <p className="text-sm text-gray-600 my-2">{'ユーザーIDで検索できます。'}</p>
