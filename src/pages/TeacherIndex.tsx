@@ -218,7 +218,7 @@ const TeacherIndex = () => {
                   setTargetStudents(e.target.value);
                 }}
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white">
-                <option value="all">{'全員'}</option>
+                <option value="all">{'【取扱注意】全員'}</option>
                 {rollCallGroups.map((group) => (
                   <option key={group.id} value={group.name}>
                     {group.name}
