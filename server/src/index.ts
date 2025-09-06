@@ -47,6 +47,9 @@ app.use('/api/otanoshimi', authenticateToken, otanoshimiRouter);
 import rollCallRouter from './routes/roll-call';
 app.use('/api/roll-call', authenticateToken, rollCallRouter);
 
+import rollCallGroupsRouter from './routes/roll-call-groups';
+app.use('/api/roll-call-groups', authenticateToken, rollCallGroupsRouter);
+
 import { initializeDatabase, pool } from './db';
 
 // Initialize the database and tables

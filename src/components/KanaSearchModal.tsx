@@ -7,6 +7,7 @@ interface KanaSearchModalProps {
   onClose: () => void;
   allStudents: student[];
   onStudentSelect: (student: student) => void;
+  closeOnSelect?: boolean;
 }
 
 const KANA_ROWS = [
@@ -47,7 +48,7 @@ const getDakutenHandakutenMap = (): Map<string, string[]> => {
   return map;
 };
 
-const KanaSearchModal: FC<KanaSearchModalProps> = ({ isOpen, onClose, allStudents, onStudentSelect }) => {
+const KanaSearchModal: FC<KanaSearchModalProps> = ({ isOpen, onClose, allStudents, onStudentSelect, closeOnSelect = true }) => {
   const [showResults, setShowResults] = useState(false);
   const [currentKana, setCurrentKana] = useState<string | undefined>('');
   const [selectedKana, setSelectedKana] = useState('');
@@ -113,7 +114,9 @@ const KanaSearchModal: FC<KanaSearchModalProps> = ({ isOpen, onClose, allStudent
 
   const handleStudentClick = (student: student) => {
     onStudentSelect(student);
-    onClose();
+    if (closeOnSelect) {
+      onClose();
+    }
   };
 
   const handleClose = () => {
@@ -122,7 +125,7 @@ const KanaSearchModal: FC<KanaSearchModalProps> = ({ isOpen, onClose, allStudent
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 bottom-0 flex justify-center items-center z-[1000] modal-overlay" onClick={handleClose}>
+    <div className="fixed top-0 left-0 right-0 bottom-0 flex justify-center items-center z-[1000] modal-overlay">
       <div className="bg-white p-[20px] rounded-md w-[90%] max-w-[500px] h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-300">
           <h2 className="m-0 text-xl">{'カタカナ検索'}</h2>

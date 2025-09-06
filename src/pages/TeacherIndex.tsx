@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useRef, useState } from 'react';
+import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import type { student } from '../data/students';
@@ -6,6 +6,13 @@ import KanaSearchModal from '../components/KanaSearchModal';
 import { SERVER_ENDPOINT } from '../App';
 import IndexTable from '../components/IndexTable';
 import Button from '../components/Button';
+import GroupEditorModal from '../components/GroupEditorModal';
+
+interface RollCallGroup {
+  id: number;
+  name: string;
+  student_ids: number[];
+}
 
 const TeacherIndex = () => {
   const { user, token, loading } = useAuth();
@@ -16,8 +23,29 @@ const TeacherIndex = () => {
   const [isKanaSearchVisible, setKanaSearchVisible] = useState(false);
   const [specificStudentId, setSpecificStudentId] = useState('');
   const [durationMinutes, setDurationMinutes] = useState(2);
+  const [targetStudents, setTargetStudents] = useState<string>('all');
+  const [rollCallGroups, setRollCallGroups] = useState<RollCallGroup[]>([]);
+  const [isGroupEditorOpen, setGroupEditorOpen] = useState(false);
 
   const teacher_name_ref = useRef<HTMLInputElement>(null);
+
+  const fetchRollCallGroups = useCallback(async () => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call-groups`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+      }
+      const groups = await response.json();
+      setRollCallGroups(groups);
+    } catch (error) {
+      console.error('点呼グループの取得に失敗:', error);
+    }
+  },[token]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -52,10 +80,12 @@ const TeacherIndex = () => {
         console.error('生徒データの取得に失敗:', error);
       }
     };
+
     if (token) {
       fetchAllStudents();
+      fetchRollCallGroups();
     }
-  }, [token]);
+  }, [token, fetchRollCallGroups]);
 
   const handleStudentSelect = (student: student) => {
     setStudentData(student);
@@ -71,6 +101,22 @@ const TeacherIndex = () => {
       return;
     }
 
+    const requestBody: {
+      teacher_id: number;
+      duration_minutes: number;
+      specific_student_id?: string;
+      group_name?: string;
+    } = {
+      teacher_id: Number(user.userId),
+      duration_minutes: durationMinutes
+    };
+
+    if (specificStudentId) {
+      requestBody.specific_student_id = specificStudentId;
+    } else if (targetStudents !== 'all') {
+      requestBody.group_name = targetStudents;
+    }
+
     try {
       const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/start`, {
         method: 'POST',
@@ -78,15 +124,12 @@ const TeacherIndex = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({
-          teacher_id: user.userId,
-          specific_student_id: specificStudentId || null,
-          duration_minutes: durationMinutes
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
-        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTPエラー! ステータス: ${response.status}`);
       }
 
       const data = await response.json();
@@ -95,7 +138,7 @@ const TeacherIndex = () => {
       navigate(`/teacher/call?id=${rollCallId}`);
     } catch (error) {
       console.error('点呼の開始に失敗しました:', error);
-      alert('点呼の開始に失敗しました。');
+      alert(`点呼の開始に失敗しました.\n${(error as Error).message}`);
     }
   };
 
@@ -128,8 +171,13 @@ const TeacherIndex = () => {
 
       <section id="call" className="m-2 w-full max-w-md mx-auto">
         <div className="flex flex-col items-center bg-gray-100 p-6 rounded-lg shadow-md">
-          <p className="m-[10px] text-2xl font-bold">{'点呼システム'}</p>
-          <Button text="点呼一覧へ" arrowRight link="/teacher/roll-call-list" />
+          <div className="flex flex-col justify-between items-center w-full">
+            <p className="m-[10px] text-2xl font-bold">{'点呼システム'}</p>
+            <Button text="点呼一覧へ" arrowRight link="/teacher/roll-call-list" />
+            <button onClick={() => setGroupEditorOpen(true)} className="mt-2 text-blue-500 underline">
+              {'点呼グループを編集'}
+            </button>
+          </div>
 
           <form className="w-full mt-4" onSubmit={handleCallSubmit}>
             <div className="mb-4">
@@ -152,7 +200,7 @@ const TeacherIndex = () => {
                     type="button"
                     key={period}
                     onClick={() => setDurationMinutes(period)}
-                    className={`py-2 px-4 rounded focus:outline-none ${durationMinutes === period ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}>
+                    className={`py-2 px-4 rounded cursor-pointer focus:outline-none ${durationMinutes === period ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}>
                     {period}
                   </button>
                 ))}
@@ -160,14 +208,22 @@ const TeacherIndex = () => {
             </div>
             <div className="mb-4">
               <label htmlFor="target_students" className="block text-gray-700 text-sm font-bold mb-2">
-                {'対象の生徒 (全員に送信)'}
+                {'対象の生徒'}
               </label>
               <select
                 name="target_students"
                 id="target_students"
-                disabled
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-200">
+                value={targetStudents}
+                onChange={(e) => {
+                  setTargetStudents(e.target.value);
+                }}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white">
                 <option value="all">{'全員'}</option>
+                {rollCallGroups.map((group) => (
+                  <option key={group.id} value={group.name}>
+                    {group.name}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="mb-6">
@@ -195,6 +251,14 @@ const TeacherIndex = () => {
       </section>
 
       <KanaSearchModal isOpen={isKanaSearchVisible} onClose={() => setKanaSearchVisible(false)} allStudents={allStudents} onStudentSelect={handleStudentSelect} />
+      <GroupEditorModal
+        isOpen={isGroupEditorOpen}
+        onClose={() => setGroupEditorOpen(false)}
+        token={token}
+        allStudents={allStudents}
+        rollCallGroups={rollCallGroups}
+        onGroupsUpdated={fetchRollCallGroups}
+      />
     </div>
   );
 };

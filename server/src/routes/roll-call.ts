@@ -136,7 +136,7 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/start', async (req, res) => {
-  const { teacher_id, specific_student_id, duration_minutes } = req.body;
+  const { teacher_id, specific_student_id, duration_minutes, group_name } = req.body;
 
   if (!teacher_id) {
     return res.status(400).json({ message: '先生のIDが必要です。' });
@@ -154,12 +154,29 @@ router.post('/start', async (req, res) => {
     await connection.beginTransaction();
     await connection.execute('INSERT INTO roll_calls (id, teacher_id, expires_at) VALUES (?, ?, ?)', [rollCallId, teacher_id, expiresAt]);
 
-    let students: RowDataPacket[];
+    let students: { gakuseki: number }[] = [];
 
-    if (specific_student_id) {
-      [students] = await connection.execute<RowDataPacket[]>('SELECT gakuseki FROM students WHERE gakuseki = ?', [specific_student_id]);
+    if (group_name) {
+      const [groups] = await connection.execute<RowDataPacket[]>('SELECT student_ids FROM roll_call_groups WHERE name = ?', [group_name]);
+      if (groups.length === 0) {
+        await connection.rollback();
+        return res.status(404).json({ message: '指定されたグループが見つかりません。' });
+      }
+      const studentIds = groups[0].student_ids;
+      if (Array.isArray(studentIds)) {
+        students = studentIds.map((id) => ({ gakuseki: id }));
+      }
+    } else if (specific_student_id) {
+      const [studentRows] = await connection.execute<RowDataPacket[]>('SELECT gakuseki FROM students WHERE gakuseki = ?', [specific_student_id]);
+      students = studentRows as { gakuseki: number }[];
     } else {
-      [students] = await connection.execute<RowDataPacket[]>('SELECT gakuseki FROM students');
+      const [studentRows] = await connection.execute<RowDataPacket[]>('SELECT gakuseki FROM students');
+      students = studentRows as { gakuseki: number }[];
+    }
+
+    if (students.length === 0) {
+      await connection.rollback();
+      return res.status(400).json({ message: '対象の生徒が見つかりません。' });
     }
 
     const insertPromises = students.map((student) => connection.execute('INSERT INTO roll_call_students (roll_call_id, student_id) VALUES (?, ?)', [rollCallId, student.gakuseki]));
