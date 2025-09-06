@@ -17,7 +17,7 @@ interface Student {
   location?: string;
 }
 
-const TeacherCall = () => {
+const TeacherRollCallViewer = () => {
   const { token } = useAuth();
   const [searchParams] = useSearchParams();
   const rollCallId = searchParams.get('id');
@@ -273,4 +273,4 @@ const TeacherCall = () => {
   );
 };
 
-export default TeacherCall;
+export default TeacherRollCallViewer;
