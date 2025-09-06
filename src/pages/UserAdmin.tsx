@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback, memo, type ChangeEvent,type KeyboardEvent } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, memo, type ChangeEvent, type KeyboardEvent } from 'react';
 import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 import { useRequireAuth } from '../auth-context';
 import '../styles/admin-table.css';
@@ -92,11 +92,7 @@ const MemoizedRow: React.FC<MemoizedRowProps> = memo(({ u, handleUnban, handleDe
           {u.is_banned ? (
             <button className="p-1 cursor-pointer mx-1" onClick={() => handleUnban(u.id)} disabled={modalMode !== null} title="BAN解除">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600 hover:text-green-800" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
             </button>
           ) : (
@@ -465,16 +461,14 @@ const UserAdmin = () => {
 
     setStatus('更新中...');
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/users/${userId}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({ [field]: valueToSave })
-        }
-      );
+      const response = await fetch(`${SERVER_ENDPOINT}/api/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ [field]: valueToSave })
+      });
       if (!response.ok) {
         throw new Error(`HTTPエラー! ステータス: ${response.status}`);
       }
@@ -508,33 +502,18 @@ const UserAdmin = () => {
     if (editingCell?.userId === u.id && editingCell?.field === field) {
       if (field === 'is_admin' || field === 'is_teacher' || field === 'is_banned') {
         return (
-          <select
-            value={String(editingValue)}
-            onChange={handleCellChange}
-            onBlur={handleCellEditSave}
-            onKeyDown={handleCellKeyDown}
-            autoFocus
-            className="w-full">
-            <option value="true">{"true"}</option>
-            <option value="false">{"false"}</option>
+          <select value={String(editingValue)} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="w-full">
+            <option value="true">{'true'}</option>
+            <option value="false">{'false'}</option>
           </select>
         );
       }
-      return (
-        <input
-          type="text"
-          value={editingValue as string}
-          onChange={handleCellChange}
-          onBlur={handleCellEditSave}
-          onKeyDown={handleCellKeyDown}
-          autoFocus
-          className="w-full"
-        />
-      );
+      return <input type="text" value={editingValue as string} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="w-full" />;
     }
 
-    if (field === 'is_admin' || field === 'is_teacher' || field === 'is_banned'){
-    return u[field] ? 'true' : 'false';}
+    if (field === 'is_admin' || field === 'is_teacher' || field === 'is_banned') {
+      return u[field] ? 'true' : 'false';
+    }
     return u[field];
   };
 
@@ -672,13 +651,7 @@ const UserAdmin = () => {
             {status}
           </p>
         </div>
-        <UserModal
-          modalMode={modalMode}
-          editRowForm={editRowForm}
-          handleSave={handleSave}
-          setModalMode={setModalMode}
-          setEditRowForm={setEditRowForm}
-        />
+        <UserModal modalMode={modalMode} editRowForm={editRowForm} handleSave={handleSave} setModalMode={setModalMode} setEditRowForm={setEditRowForm} />
         <div className="flex items-center my-[10px]">
           <input type="text" placeholder="検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="border p-2 rounded mr-2 max-w-[50dvw]" />
           <p className="text-sm text-gray-600 my-2">{'ユーザーIDで検索できます。'}</p>
