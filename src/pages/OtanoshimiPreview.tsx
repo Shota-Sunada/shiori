@@ -33,7 +33,11 @@ const OtanoshimiPreview = () => {
         const currentTeam = teamsData.find((t) => t.appearance_order === appearanceOrder);
 
         if (currentTeam) {
-          const studentsResponse = await fetch(`${SERVER_ENDPOINT}/api/students`);
+          const studentsResponse = await fetch(`${SERVER_ENDPOINT}/api/students`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
           if (!studentsResponse.ok) {
             throw new Error(`HTTPエラー! ステータス: ${studentsResponse.status}`);
           }

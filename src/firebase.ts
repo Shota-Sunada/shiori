@@ -27,10 +27,17 @@ export const registerFCMToken = async (userId: string, swRegistration: ServiceWo
     if (currentToken) {
       console.log('FCM登録トークンを正常に取得:', currentToken);
 
+      const token = localStorage.getItem('jwt_token');
+      if (!token) {
+        console.error('JWT token not found in localStorage');
+        return;
+      }
+
       const response = await fetch(`${SERVER_ENDPOINT}/register-token`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({ userId, token: currentToken })
       });

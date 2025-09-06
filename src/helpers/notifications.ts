@@ -11,10 +11,16 @@ interface NotificationPayload {
 
 export const sendNotification = async (payload: NotificationPayload): Promise<{ success: boolean; error?: string }> => {
   try {
+    const token = localStorage.getItem('jwt_token');
+    if (!token) {
+      return { success: false, error: 'JWT token not found' };
+    }
+
     const res = await fetch(`${SERVER_ENDPOINT}/send-notification`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify(payload)
     });
