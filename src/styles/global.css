@@ -30,13 +30,8 @@ body {
   border-radius: 20px;
   cursor: pointer;
   color: #fff;
-  background-color: #219bce;
   transition: 0.2s;
   font-size: 15px;
-}
-
-.mobiry-button:hover {
-  background-color: #008fc0;
 }
 
 .anim {
