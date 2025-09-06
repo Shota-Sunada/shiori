@@ -194,15 +194,13 @@ const TeacherIndex = () => {
           <div className="flex flex-col justify-between items-center w-full">
             <p className="m-[10px] text-2xl font-bold">{'点呼システム'}</p>
             <Button text="点呼一覧へ" arrowRight link="/teacher/roll-call-list" />
-            <button onClick={() => setGroupEditorOpen(true)} className="mt-2 text-blue-500 underline">
-              {'点呼グループを編集'}
-            </button>
+            <Button text="ﾌﾟﾘｾｯﾄを編集" arrowRight color='white' onClick={() => setGroupEditorOpen(true)}/>
           </div>
 
           <form className="w-full mt-4" onSubmit={handleCallSubmit}>
             <div className="mb-4">
               <label htmlFor="target_students" className="block text-gray-700 text-sm font-bold mb-2">
-                {'対象の生徒'}
+                {'プリセットを選択'}
               </label>
               <select
                 name="target_students"
@@ -237,7 +235,7 @@ const TeacherIndex = () => {
             </div>
             <div className="mb-6">
               <label htmlFor="specific_student_id" className="block text-gray-700 text-sm font-bold mb-2">
-                {'特定生徒に送信 (学籍番号)'}
+                {'学籍番号で特定の生徒に送信'}
               </label>
               <input
                 type="text"
@@ -248,7 +246,7 @@ const TeacherIndex = () => {
                 onChange={(e) => setSpecificStudentId(e.target.value)}
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
-              <p className="text-xs text-gray-600 mt-1">{'ここに学籍番号を入力すると、その生徒にのみ通知が送信されます。空の場合は、上で選択中の生徒に送信されます。'}</p>
+              <p className="text-xs text-gray-600 mt-1">{'ここに学籍番号を入力すると、その生徒にのみ通知が送信されます。空の場合は、選択されたプリセットが適用されます。'}</p>
             </div>
             <div className="flex items-center justify-center">
               <button type="submit">

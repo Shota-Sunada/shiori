@@ -8,19 +8,18 @@ const Button = ({
   onClick,
   link,
   color = 'blue',
-  width = '200'
+  width = 'mobiry-button-200'
 }: {
   text: string;
   arrowRight?: boolean;
   arrowLeft?: boolean;
   onClick?: React.MouseEventHandler<HTMLDivElement>;
   link?: string;
-  color?: 'blue' | 'red' | 'green' | 'purple' | 'gray';
-  width?: '200' | '150';
+  color?: 'blue' | 'red' | 'green' | 'purple' | 'gray' | "white" | "transparent";
+  width?: 'mobiry-button-200' | 'mobiry-button-150';
 }) => {
   const innerButton = () => (
-    <div
-      className={`mobiry-button-${color} text-align m-[10px] p-[8px] w-[${width}px] rounded-[20px] cursor-pointer text-white transition-[0.2s] font-[15px] flex flex-row items-center justify-center relative`}>
+    <>
       <p className="font-medium">{text}</p>
       {arrowRight ? (
         <div className="absolute right-[6px] bg-white rounded-[50%] min-w-[28px] min-h-[28px] flex items-center justify-center">
@@ -36,14 +35,25 @@ const Button = ({
       ) : (
         <></>
       )}
-    </div>
+    </>
   );
 
-  if (onClick) {
-    return <div onClick={onClick}>{link ? <Link to={link}>{innerButton()}</Link> : <>{innerButton()}</>}</div>;
-  }
-
-  return <>{link ? <Link to={link}>{innerButton()}</Link> : <>{innerButton()}</>}</>;
+  return (
+    <div className='m-2' onClick={onClick}>
+      {link ? (
+        <Link
+          to={link}
+          className={`mobiry-button-${color} text-align p-[8px] ${width} rounded-[20px] cursor-pointer text-white transition-[0.2s] font-[15px] flex flex-row items-center justify-center relative`}>
+          {innerButton()}
+        </Link>
+      ) : (
+        <div
+          className={`mobiry-button-${color} text-align p-[8px] ${width} rounded-[20px] cursor-pointer text-white transition-[0.2s] font-[15px] flex flex-row items-center justify-center relative`}>
+          {innerButton()}
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default Button;

@@ -86,6 +86,42 @@ body {
   background-color: #303030;
 }
 
+.mobiry-button-white {
+  background-color: white;
+  color: #219bce;
+  border: #219bce solid 1px;
+}
+
+.mobiry-button-arrow-white {
+  color: #219bce;
+}
+
+.mobiry-button-white:hover {
+  background-color: #edf7fb;
+}
+
+.mobiry-button-transparent {
+  background-color: transparent;
+  color: #219bce;
+  border: #219bce solid 1px;
+}
+
+.mobiry-button-arrow-transparent {
+  color: #219bce;
+}
+
+.mobiry-button-transparent:hover {
+  background-color: transparent;
+}
+
+.mobiry-button-200 {
+  width: 200px;
+}
+
+.mobiry-button-150 {
+  width: 150px;
+}
+
 .anim {
   transition: 0.2s;
 }
