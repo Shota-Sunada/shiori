@@ -102,7 +102,7 @@ const Login = () => {
           </div>
         </div>
         <button type="submit">
-          <Button text={'ログイン'} onClick={() => {}} arrow />
+          <Button text={'ログイン'} arrow />
         </button>
         {error && <p className="text-red-500 mt-4">{error}</p>}
       </form>

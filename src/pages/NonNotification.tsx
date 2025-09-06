@@ -2,7 +2,6 @@ import { useAuth } from '../auth-context';
 import Button from '../components/Button';
 import { handleEnableNotifications } from '../helpers/notifications';
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 
 const DeniedInstructions = () => {
   const [browser, setBrowser] = useState('unknown');
@@ -143,9 +142,8 @@ const NonNotification = () => {
           <>
             <p className="font-bold text-2xl">{'ありがとうございます！'}</p>
             <p>{'通知が有効になりました！'}</p>
-            <Link to="/" >
-            <Button text="ホームへ" arrow onClick={() => {}} />
-          </Link></>
+            <Button text="ホームへ" arrow link="/"/>
+          </>
         );
       case 'denied':
         return <DeniedInstructions />;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link,  useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
 import Button from '../components/Button';
@@ -214,9 +214,7 @@ const Call = () => {
     return (
       <div className="flex flex-col items-center justify-center h-[80dvh]">
         <p className="text-xl text-red-500">{error}</p>
-        <Link to="/index">
-        <Button text="戻る" arrow onClick={() => {}} />
-      </Link>
+        <Button text="戻る" arrow link="/index" />
       </div>
     );
   }
@@ -247,7 +245,11 @@ const Call = () => {
       )}
 
       <p className="text-xl mt-5">{isDone ? '確認しました！' : rollCall?.is_active && remainingTime > 0 ? '時間内に点呼に応答してください！' : 'この点呼は終了しています。'}</p>
-      {isDone || !rollCall?.is_active || remainingTime < 0 ? <Link to={"/index"}><Button text="戻る" arrow onClick={() => {}} /></Link> : <></>}
+      {isDone || !rollCall?.is_active || remainingTime < 0 ? (
+        <Button text="戻る" arrow link='/index' />
+        ) : (
+        <></>
+      )}
 
       {!isDone && rollCall?.is_active && remainingTime > 0 ? (
         <div className="mt-5">
@@ -264,7 +266,7 @@ const Call = () => {
             <textarea className="w-full p-2 border rounded mb-4" rows={4} placeholder="理由を入力してください" value={absenceReason} onChange={(e) => setAbsenceReason(e.target.value)} />
             <input type="text" className="w-full p-2 border rounded" placeholder="現在地を入力してください" value={currentLocation} onChange={(e) => setCurrentLocation(e.target.value)} />
             <div className="flex justify-end space-x-2 mt-4">
-              <Button text="キャンセル" arrow={false} onClick={() => setShowAbsenceForm(false)} />
+              <Button text="キャンセル" onClick={() => setShowAbsenceForm(false)} />
               <Button text="送信" arrow onClick={handleAbsenceSubmit} />
             </div>
           </div>

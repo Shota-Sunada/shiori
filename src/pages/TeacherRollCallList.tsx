@@ -3,7 +3,6 @@ import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
 import RollCallTable, { type RollCall } from '../components/RollCallTable';
 import Button from '../components/Button';
-import { Link } from 'react-router-dom';
 
 const TeacherRollCallList = () => {
   const { user, token } = useAuth();
@@ -63,10 +62,8 @@ const TeacherRollCallList = () => {
       </section>
 
       <div className="flex items-center justify-center m-2">
-        <Link to="/teacher">
-          <Button text="戻る" arrow onClick={() => {}} />
-        </Link>
-      </div>
+                  <Button text="戻る" arrow link='/teacher' />
+        </div>
     </div>
   );
 };

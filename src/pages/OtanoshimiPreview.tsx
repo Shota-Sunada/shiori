@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link,  useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { SERVER_ENDPOINT } from '../App';
 import type { OtanoshimiData } from '../data/otanoshimi';
 import type { student } from '../data/students';
@@ -72,9 +72,8 @@ const OtanoshimiPreview = () => {
     return (
       <div className="flex items-center justify-center m-[10px]">
         <p>{'読み込み中...'}</p>
-        <Link to="/otanoshimi">
-        <Button text="戻る" arrow onClick={() => {}} />
-      </Link></div>
+        <Button text="戻る" arrow link='/otanoshimi' />
+      </div>
     );
   }
 
@@ -82,9 +81,8 @@ const OtanoshimiPreview = () => {
     return (
       <div className="flex flex-col items-center justify-center m-[10px]">
         <p>{'指定された出演順のチームが見つかりません。'}</p>
-        <Link to="/otanoshimi">
-        <Button text="戻る" arrow onClick={() => {}} />
-       </Link></div>
+        <Button text="戻る" arrow link='/otanoshimi' />
+        </div>
     );
   }
 
@@ -108,9 +106,7 @@ const OtanoshimiPreview = () => {
         </div>
       </section>
 
-      <Link to="/otanoshimi">
-        <Button text="戻る" arrow onClick={() => {}} />
-       </Link>
+      <Button text="戻る" arrow link='/otanoshimi' />
     </div>
   );
 };

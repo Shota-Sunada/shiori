@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import type { student } from '../data/students';
 import KanaSearchModal from '../components/KanaSearchModal';
@@ -129,9 +129,8 @@ const TeacherIndex = () => {
       <section id="call" className="m-2 w-full max-w-md mx-auto">
         <div className="flex flex-col items-center bg-gray-100 p-6 rounded-lg shadow-md">
           <p className="m-[10px] text-2xl font-bold">{'点呼システム'}</p>
-          <Link to="/teacher/roll-call-list">
-        <Button text="点呼一覧へ" arrow onClick={() => {}} />
-       </Link>
+          <Button text="点呼一覧へ" arrow link='/teacher/roll-call-list' />
+
           <form className="w-full mt-4" onSubmit={handleCallSubmit}>
             <div className="mb-4">
               <label htmlFor="teacher_name" className="block text-gray-700 text-sm font-bold mb-2">
@@ -188,7 +187,7 @@ const TeacherIndex = () => {
             </div>
             <div className="flex items-center justify-center">
               <button type="submit">
-                <Button text="点呼開始" arrow onClick={() => {}} />
+                <Button text="点呼開始" arrow />
               </button>
             </div>
           </form>
