@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { SERVER_ENDPOINT } from '../App';
 import Button from '../components/Button';
 import { useAuth } from '../auth-context';
@@ -268,7 +268,9 @@ const TeacherCall = () => {
         {endButton()}
       </div>
 
-      <Button text="点呼一覧へ戻る" arrow onClick={() => navigate('/teacher/roll-call-list')} />
+<Link to="//teacher/roll-call-list">
+        <Button text="点呼一覧へ戻る" arrow onClick={() => {}} />
+       </Link>
       <ReasonModal isOpen={modal.isOpen} reason={modal.reason} location={modal.location} onClose={() => setModal({ isOpen: false, reason: '', location: '' })} />
     </div>
   );

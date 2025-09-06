@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link,  useParams } from 'react-router-dom';
 import { SERVER_ENDPOINT } from '../App';
 import type { OtanoshimiData } from '../data/otanoshimi';
 import type { student } from '../data/students';
@@ -12,8 +12,6 @@ const OtanoshimiPreview = () => {
   const [allStudents, setAllStudents] = useState<student[]>([]);
   const [loading, setLoading] = useState(true);
   const { token } = useAuth();
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -74,8 +72,9 @@ const OtanoshimiPreview = () => {
     return (
       <div className="flex items-center justify-center m-[10px]">
         <p>{'読み込み中...'}</p>
-        <Button text="戻る" arrow onClick={() => navigate('/otanoshimi')} />
-      </div>
+        <Link to="/otanoshimi">
+        <Button text="戻る" arrow onClick={() => {}} />
+      </Link></div>
     );
   }
 
@@ -83,8 +82,9 @@ const OtanoshimiPreview = () => {
     return (
       <div className="flex flex-col items-center justify-center m-[10px]">
         <p>{'指定された出演順のチームが見つかりません。'}</p>
-        <Button text="戻る" arrow onClick={() => navigate('/otanoshimi')} />
-      </div>
+        <Link to="/otanoshimi">
+        <Button text="戻る" arrow onClick={() => {}} />
+       </Link></div>
     );
   }
 
@@ -108,7 +108,9 @@ const OtanoshimiPreview = () => {
         </div>
       </section>
 
-      <Button text="戻る" arrow onClick={() => navigate('/otanoshimi')} />
+      <Link to="/otanoshimi">
+        <Button text="戻る" arrow onClick={() => {}} />
+       </Link>
     </div>
   );
 };

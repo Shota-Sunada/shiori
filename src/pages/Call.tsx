@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link,  useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
 import Button from '../components/Button';
@@ -24,7 +24,6 @@ const Call = () => {
   const [searchParams] = useSearchParams();
   const rollCallId = searchParams.get('id');
   const { user, token } = useAuth();
-  const navigate = useNavigate();
   const [rollCall, setRollCall] = useState<RollCall | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -215,7 +214,9 @@ const Call = () => {
     return (
       <div className="flex flex-col items-center justify-center h-[80dvh]">
         <p className="text-xl text-red-500">{error}</p>
-        <Button text="戻る" arrow onClick={() => navigate('/index')} />
+        <Link to="/index">
+        <Button text="戻る" arrow onClick={() => {}} />
+      </Link>
       </div>
     );
   }
@@ -246,7 +247,7 @@ const Call = () => {
       )}
 
       <p className="text-xl mt-5">{isDone ? '確認しました！' : rollCall?.is_active && remainingTime > 0 ? '時間内に点呼に応答してください！' : 'この点呼は終了しています。'}</p>
-      {isDone || !rollCall?.is_active || remainingTime < 0 ? <Button text="戻る" arrow onClick={() => navigate('/index')} /> : <></>}
+      {isDone || !rollCall?.is_active || remainingTime < 0 ? <Link to={"/index"}><Button text="戻る" arrow onClick={() => {}} /></Link> : <></>}
 
       {!isDone && rollCall?.is_active && remainingTime > 0 ? (
         <div className="mt-5">

@@ -3,14 +3,13 @@ import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
 import RollCallTable, { type RollCall } from '../components/RollCallTable';
 import Button from '../components/Button';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const TeacherRollCallList = () => {
   const { user, token } = useAuth();
   const [rollCalls, setRollCalls] = useState<RollCall[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (!user || !token) return;
@@ -64,7 +63,9 @@ const TeacherRollCallList = () => {
       </section>
 
       <div className="flex items-center justify-center m-2">
-        <Button text="戻る" arrow onClick={() => navigate('/teacher')} />
+        <Link to="/teacher">
+          <Button text="戻る" arrow onClick={() => {}} />
+        </Link>
       </div>
     </div>
   );
