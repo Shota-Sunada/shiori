@@ -259,7 +259,7 @@ const GroupEditorModal = ({ isOpen, onClose, token, allStudents, rollCallGroups,
             </div>
           ) : (
             <div className="flex-grow flex flex-col">
-              <div className="flex-grow overflow-y-auto">
+              <div className="flex-grow overflow-y-auto max-h-[70dvh]">
                 <ul>
                   {rollCallGroups.map((group) => (
                     <li key={group.id} className="flex justify-between items-center p-2 border-b">
