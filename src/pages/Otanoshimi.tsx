@@ -114,7 +114,7 @@ const OtanoshimiPreviewModal = ({ order, onClose, onNavigate }: { order: string;
                 </div>
               </section>
 
-              <Button text="戻る" onClick={onClose} color="purple" />
+              <Button text="閉じる" onClick={onClose} color="purple" />
               <div className="flex flex-row">
                 <Button text="前へ" arrowLeft onClick={() => onNavigate(Number(order) - 1)} width={'mobiry-button-150'} />
                 <Button text="次へ" arrowRight onClick={() => onNavigate(Number(order) + 1)} width={'mobiry-button-150'} />
@@ -200,19 +200,23 @@ const Otanoshimi = () => {
     <div className="flex flex-col items-center justify-center m-[10px]">
       {previewOrder && <OtanoshimiPreviewModal order={previewOrder} onClose={handleCloseModal} onNavigate={handleNavigate} />}
 
-      <h1 className="text-3xl font-bold">{'お楽しみ会'}</h1>
-      <p>{'修学旅行最後の夜、最高の思い出を。'}</p>
+      <div className="m-2 flex flex-col items-center justify-center">
+        <h1 className="text-3xl font-bold">{'お楽しみ会'}</h1>
+        <p>{'修学旅行最後の夜、最高の思い出を。'}</p>
+      </div>
 
-      <div className="mt-[3dvh]">
-        <h2 className="text-xl text-center">{'出演団体一覧'}</h2>
+      <div className="m-5">
+        <h2 className="text-xl text-center font-bold">{'出演団体一覧'}</h2>
         <p className="text-center">{'クリックすると、各団体の詳細を閲覧できます。'}</p>
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mt-4">
           {teams ? teams.map((x) => <OtanoshimiCard name={x.name} index={x.appearance_order} key={x.appearance_order}></OtanoshimiCard>) : <p>{'読込中...'}</p>}
         </div>
       </div>
 
-      <div className="flex flex-col items-center justify-center mt-[3dvh]">
-        <h2 className="text-xl text-center">{'当日のスケジュール'}</h2>
+      <Button text="ホームに戻る" arrowLeft link="/index"></Button>
+
+      <div className="flex flex-col items-center justify-center m-5">
+        <h2 className="text-xl text-center font-bold">{'当日のスケジュール'}</h2>
         <section id="table" className="mt-2">
           <table className="index-table">
             <thead className="bg-white">
@@ -279,8 +283,10 @@ const Otanoshimi = () => {
         </div>
       </div>
 
-      <div className="flex flex-col items-center justify-center mt-[10dvh]">
-        <p className="font-bold">{'STAFF'}</p>
+      <Button text="ホームに戻る" arrowLeft link="/index"></Button>
+
+      <div className="flex flex-col items-center justify-center mt-8">
+        <p className="text-xl font-bold">{'STAFF'}</p>
         <div className="flex flex-row">
           <p className="m-2">{'町 一誠'}</p>
         </div>

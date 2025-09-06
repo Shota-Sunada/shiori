@@ -130,7 +130,7 @@ const TeacherRollCallList = () => {
       </section>
 
       <div className="flex items-center justify-center m-2">
-        <Button text="戻る" arrowRight link="/teacher" />
+        <Button text="戻る" arrowLeft link="/teacher" />
       </div>
     </div>
   );

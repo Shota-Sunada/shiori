@@ -8,15 +8,17 @@ const Button = ({
   onClick,
   link,
   color = 'blue',
-  width = 'mobiry-button-200'
+  width = 'mobiry-button-200',
+  disabled = false
 }: {
   text: string;
   arrowRight?: boolean;
   arrowLeft?: boolean;
   onClick?: React.MouseEventHandler<HTMLDivElement>;
   link?: string;
-  color?: 'blue' | 'red' | 'green' | 'purple' | 'gray' | "white" | "transparent";
+  color?: 'blue' | 'red' | 'green' | 'purple' | 'gray' | 'white' | 'transparent';
   width?: 'mobiry-button-200' | 'mobiry-button-150';
+  disabled?: boolean;
 }) => {
   const innerButton = () => (
     <>
@@ -39,16 +41,15 @@ const Button = ({
   );
 
   return (
-    <div className='m-2' onClick={onClick}>
-      {link ? (
+    <div className="m-2" onClick={!disabled ? onClick : () => {}}>
+      {link && !disabled ? (
         <Link
           to={link}
           className={`mobiry-button-${color} text-align p-[8px] ${width} rounded-[20px] cursor-pointer text-white transition-[0.2s] font-[15px] flex flex-row items-center justify-center relative`}>
           {innerButton()}
         </Link>
       ) : (
-        <div
-          className={`mobiry-button-${color} text-align p-[8px] ${width} rounded-[20px] cursor-pointer text-white transition-[0.2s] font-[15px] flex flex-row items-center justify-center relative`}>
+        <div className={`mobiry-button-${color} text-align p-[8px] ${width} rounded-[20px] cursor-pointer text-white transition-[0.2s] font-[15px] flex flex-row items-center justify-center relative`}>
           {innerButton()}
         </div>
       )}

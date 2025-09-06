@@ -138,14 +138,14 @@ const TeacherCall = () => {
     }
   };
 
-  const endButton = () => (
-    <div className="text-center m-3">
-      <button
+  const endButton = (disabled: boolean) => (
+    <div className="m-3 flex items-center justify-center">
+      <Button
         onClick={onEndSession}
-        disabled={!rollCall?.is_active || remainingTime <= 0}
-        className="p-2 px-6 text-white bg-red-500 rounded hover:bg-red-700 focus:outline-none focus:shadow-outline cursor-pointer disabled:bg-gray-400">
-        {rollCall?.is_active && remainingTime > 0 ? '点呼終了' : '点呼は終了しています'}
-      </button>
+        disabled={disabled}
+        text={rollCall?.is_active && remainingTime > 0 ? '点呼終了' : '点呼は終了しています'}
+        color={disabled ? 'gray' : rollCall?.is_active && remainingTime > 0 ? 'red' : 'green'}
+      />
     </div>
   );
 
@@ -165,7 +165,7 @@ const TeacherCall = () => {
             {location}
           </p>
           <div className="text-center mt-4">
-            <Button text="閉じる" arrowRight onClick={onClose} />
+            <Button text="閉じる" arrowLeft onClick={onClose} />
           </div>
         </div>
       </div>
@@ -216,7 +216,7 @@ const TeacherCall = () => {
           <p className="text-lg mx-1 text-left">{formatTime(remainingTime)}</p>
         </div>
 
-        {students.length > 20 ? endButton() : <></>}
+        {students.length > 20 ? endButton(!rollCall?.is_active || remainingTime <= 0) : <></>}
 
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white border">
@@ -264,10 +264,10 @@ const TeacherCall = () => {
           </table>
         </div>
 
-        {endButton()}
+        {endButton(!rollCall?.is_active || remainingTime <= 0)}
       </div>
 
-      <Button text="点呼一覧へ戻る" arrowRight link="/teacher/roll-call-list" />
+      <Button text="点呼一覧へ戻る" arrowLeft link="/teacher/roll-call-list" />
       <ReasonModal isOpen={modal.isOpen} reason={modal.reason} location={modal.location} onClose={() => setModal({ isOpen: false, reason: '', location: '' })} />
     </div>
   );

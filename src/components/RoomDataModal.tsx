@@ -1,4 +1,5 @@
 import { useEffect, type FC } from 'react';
+import Button from './Button';
 
 interface Roommate {
   gakuseki: string;
@@ -42,9 +43,9 @@ const RoomDataModal: FC<RoommateModalProps> = ({ roommates, onClose, hotelName, 
         ) : (
           <p>{'ルームメイトが見つかりませんでした。'}</p>
         )}
-        <button onClick={onClose} className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
-          {'閉じる'}
-        </button>
+        <div className='flex items-center justify-center m-2'>
+          <Button text="閉じる" arrowLeft onClick={onClose} color="purple"></Button>
+        </div>
       </div>
     </div>
   );

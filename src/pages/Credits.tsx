@@ -1,3 +1,5 @@
+import Button from "../components/Button";
+
 const Credits = () => {
   return (
     <div className="flex flex-col items-center justify-center m-[10px] text-center">
@@ -42,6 +44,7 @@ const Credits = () => {
         <p className="font-bold">{'ドメイン提供'}</p>
         <p>{'修道物理班'}</p>
       </div>
+      <Button text="ホームに戻る" arrowLeft link="/index"></Button>
     </div>
   );
 };
