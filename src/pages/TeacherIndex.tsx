@@ -1,4 +1,4 @@
-import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { type FormEvent, useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import type { student } from '../data/students';
@@ -26,8 +26,6 @@ const TeacherIndex = () => {
   const [targetStudents, setTargetStudents] = useState<string>('default');
   const [rollCallGroups, setRollCallGroups] = useState<RollCallGroup[]>([]);
   const [isGroupEditorOpen, setGroupEditorOpen] = useState(false);
-
-  const teacher_name_ref = useRef<HTMLInputElement>(null);
 
   const fetchRollCallGroups = useCallback(async () => {
     if (!token) return;
@@ -203,32 +201,6 @@ const TeacherIndex = () => {
 
           <form className="w-full mt-4" onSubmit={handleCallSubmit}>
             <div className="mb-4">
-              <label htmlFor="teacher_name" className="block text-gray-700 text-sm font-bold mb-2">
-                {'先生名前'}
-              </label>
-              <input
-                ref={teacher_name_ref}
-                type="text"
-                name="teacher_name"
-                id="teacher_name"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">{'点呼時間 (分)'}</label>
-              <div className="flex justify-center space-x-2">
-                {[1, 2, 3, 4, 5].map((period) => (
-                  <button
-                    type="button"
-                    key={period}
-                    onClick={() => setDurationMinutes(period)}
-                    className={`py-2 px-4 rounded cursor-pointer focus:outline-none ${durationMinutes === period ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}>
-                    {period}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="mb-4">
               <label htmlFor="target_students" className="block text-gray-700 text-sm font-bold mb-2">
                 {'対象の生徒'}
               </label>
@@ -248,6 +220,20 @@ const TeacherIndex = () => {
                   </option>
                 ))}
               </select>
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2">{'点呼時間 (分)'}</label>
+              <div className="flex justify-center space-x-2">
+                {[1, 2, 3, 4, 5].map((period) => (
+                  <button
+                    type="button"
+                    key={period}
+                    onClick={() => setDurationMinutes(period)}
+                    className={`py-2 px-4 rounded cursor-pointer focus:outline-none ${durationMinutes === period ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}>
+                    {period}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="mb-6">
               <label htmlFor="specific_student_id" className="block text-gray-700 text-sm font-bold mb-2">
