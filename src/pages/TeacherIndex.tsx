@@ -4,13 +4,19 @@ import { useAuth } from '../auth-context';
 import Button from '../components/Button';
 import { SERVER_ENDPOINT } from '../App';
 import type { Teacher } from './TeacherAdmin';
-import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4 } from '../data/courses';
-import { DAY4_DATA, DAY4_TEACHERS } from '../data/day4';
+import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4, DAY4_DATA } from '../data/courses';
 
 const TeacherIndex = () => {
   const { user, loading, token } = useAuth();
   const navigate = useNavigate();
   const [teacherData, setTeacherData] = useState<Teacher | null>( null);
+  const [allTeachers, setAllTeachers] = useState<Teacher[]>([]);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/login');
+    }
+  }, [user, loading, navigate]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -36,6 +42,29 @@ const TeacherIndex = () => {
       fetchTeacherName();
     }
   }, [user, loading, navigate, token]);
+
+  useEffect(() => {
+    const fetchAllTeachers = async () => {
+      try {
+        const response = await fetch(`${SERVER_ENDPOINT}/api/teachers`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data: Teacher[] = await response.json();
+        setAllTeachers(data);
+      } catch (error) {
+        console.error('Error fetching all teachers:', error);
+      }
+    };
+
+    if (token) {
+      fetchAllTeachers();
+    }
+  }, [token]);
 
   if (loading || !user) {
     return (
@@ -138,7 +167,10 @@ const TeacherIndex = () => {
                   </p>
                   <p className="text-gray-600 text-sm">
                     {'引率: '}
-                    {DAY4_TEACHERS[Number(teacherData?.day4class) - 1]}
+                    {allTeachers
+                      .filter(teacher => teacher.day4class === teacherData?.day4class)
+                      .map(teacher => `${teacher.surname}先生 ${teacher.forename}先生`)
+                      .join(' ')}
                   </p>
                 </>
               ) : (

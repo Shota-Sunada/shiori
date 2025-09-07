@@ -29,3 +29,5 @@ export const COURSES_DAY4: { key: string; name: string }[] = [
   { key: 'fujikyu', name: '富士急ハイランドコース' },
   { key: 'kanuu', name: '河口湖カヌーコース' }
 ];
+
+export const DAY4_DATA: string[] = ['doukutsu', 'fujikyu', 'fujikyu', 'doukutsu', 'kanuu', 'fujikyu', 'doukutsu'];

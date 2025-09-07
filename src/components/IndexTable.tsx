@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4 } from '../data/courses';
-import { DAY4_DATA, DAY4_TEACHERS } from '../data/day4';
+import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4, DAY4_DATA } from '../data/courses';
 import type { student } from '../data/students';
 import '../styles/index-table.css';
 import { useEffect, useState } from 'react';
@@ -16,6 +15,23 @@ interface Roommate {
   number: number;
 }
 
+interface Teacher {
+  id: number;
+  surname: string;
+  forename: string;
+  room_fpr: number;
+  room_tdh: number;
+  shinkansen_day1_car_number: string;
+  shinkansen_day1_seat: string;
+  shinkansen_day4_car_number: string;
+  shinkansen_day4_seat: string;
+  day1id: string;
+  day1bus: string;
+  day3id: string;
+  day3bus: string;
+  day4class: number;
+}
+
 const IndexTable = (props: { studentData: student | null }) => {
   const navigate = useNavigate();
   const { token } = useAuth();
@@ -23,6 +39,7 @@ const IndexTable = (props: { studentData: student | null }) => {
   const [currentRoommates, setCurrentRoommates] = useState<Roommate[]>([]);
   const [currentHotelName, setCurrentHotelName] = useState('');
   const [currentRoomNumber, setCurrentRoomNumber] = useState('');
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
 
   useEffect(() => {
     if (showRoommateModal) {
@@ -35,6 +52,29 @@ const IndexTable = (props: { studentData: student | null }) => {
       document.body.style.overflow = 'unset';
     };
   }, [showRoommateModal]);
+
+  useEffect(() => {
+    const fetchTeachers = async () => {
+      try {
+        const response = await fetch(`${SERVER_ENDPOINT}/api/teachers`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data: Teacher[] = await response.json();
+        setTeachers(data);
+      } catch (error) {
+        console.error('Error fetching teachers:', error);
+      }
+    };
+
+    if (token) {
+      fetchTeachers();
+    }
+  }, [token]);
 
   const fetchRoommates = async (hotel: 'tdh' | 'fpr', room: string, hotelName: string) => {
     try {
@@ -155,7 +195,10 @@ const IndexTable = (props: { studentData: student | null }) => {
                   </p>
                   <p className="text-gray-600 text-sm">
                     {'引率: '}
-                    {DAY4_TEACHERS[Number(props.studentData?.class) - 1]}
+                    {teachers
+                      .filter((teacher) => teacher.day4class === props.studentData?.class)
+                      .map((teacher) => `${teacher.surname}${teacher.forename}先生`)
+                      .join(' ')}
                   </p>
                 </>
               ) : (
