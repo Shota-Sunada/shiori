@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, memo, type ChangeEvent, type
 import { useRequireAuth } from '../auth-context';
 import '../styles/admin-table.css';
 import { SERVER_ENDPOINT } from '../App';
+import CenterMessage from '../components/CenterMessage';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
 
 export interface Teacher {
@@ -105,7 +106,7 @@ const initialForm = {
   day1bus: 0,
   day3id: '',
   day3bus: 0,
-  day4class: 0,
+  day4class: 0
 };
 
 const MemoizedTeacherRow: FC<MemoizedTeacherRowProps> = memo(({ t, handleDelete, modalMode, renderCellContent, handleCellDoubleClick }) => {
@@ -180,7 +181,7 @@ const TeacherModal: FC<TeacherModalProps> = memo(({ modalMode, editRowForm, hand
       <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
         <h2 className="text-2xl font-bold mb-4">{modalMode === 'add' ? '先生追加' : '先生編集'}</h2>
         <form
-        className='grid grid-cols-2 gap-2'
+          className="grid grid-cols-2 gap-2"
           onSubmit={(e) => {
             e.preventDefault();
             handleSave(editRowForm);
@@ -315,9 +316,10 @@ const TeacherModal: FC<TeacherModalProps> = memo(({ modalMode, editRowForm, hand
               name="day1id"
               value={editRowForm.day1id}
               onChange={(e) => setEditRowForm({ ...editRowForm, day1id: e.target.value })}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            >
-              <option key="" value="">なし</option>
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+              <option key="" value="">
+                なし
+              </option>
               {day1idOptions.map((option) => (
                 <option key={option.key} value={option.key}>
                   {option.short_name}
@@ -347,9 +349,10 @@ const TeacherModal: FC<TeacherModalProps> = memo(({ modalMode, editRowForm, hand
               name="day3id"
               value={editRowForm.day3id}
               onChange={(e) => setEditRowForm({ ...editRowForm, day3id: e.target.value })}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            >
-              <option key="" value="">なし</option>
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+              <option key="" value="">
+                なし
+              </option>
               {day3idOptions.map((option) => (
                 <option key={option.key} value={option.key}>
                   {option.short_name}
@@ -465,11 +468,7 @@ const TeacherAdmin = () => {
       return [];
     }
     const lowercasedQuery = debouncedSearchQuery.toLowerCase();
-    const filtered = teachersList.filter((t) =>
-      String(t.id).includes(lowercasedQuery) ||
-      t.surname.toLowerCase().includes(lowercasedQuery) ||
-      t.forename.toLowerCase().includes(lowercasedQuery)
-    );
+    const filtered = teachersList.filter((t) => String(t.id).includes(lowercasedQuery) || t.surname.toLowerCase().includes(lowercasedQuery) || t.forename.toLowerCase().includes(lowercasedQuery));
     return sortList(filtered, sortConfigs);
   }, [teachersList, debouncedSearchQuery, sortConfigs]);
 
@@ -549,7 +548,7 @@ const TeacherAdmin = () => {
             day1bus: formData.day1bus,
             day3id: formData.day3id,
             day3bus: formData.day3bus,
-            day4class: formData.day4class,
+            day4class: formData.day4class
           })
         });
         if (!response.ok) {
@@ -579,7 +578,7 @@ const TeacherAdmin = () => {
           day1bus: formData.day1bus,
           day3id: formData.day3id,
           day3bus: formData.day3bus,
-          day4class: formData.day4class,
+          day4class: formData.day4class
         };
 
         const response = await fetch(`${SERVER_ENDPOINT}/api/teachers/${editRowId}`, {
@@ -683,7 +682,9 @@ const TeacherAdmin = () => {
       if (field === 'day1id') {
         return (
           <select value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit">
-            <option key="" value="">{"未登録"}</option>
+            <option key="" value="">
+              {'未登録'}
+            </option>
             {COURSES_DAY1.map((course) => (
               <option key={course.key} value={course.key}>
                 {course.short_name}
@@ -695,7 +696,9 @@ const TeacherAdmin = () => {
       if (field === 'day3id') {
         return (
           <select value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit">
-            <option key="" value="">{"未登録"}</option>
+            <option key="" value="">
+              {'未登録'}
+            </option>
             {COURSES_DAY3.map((course) => (
               <option key={course.key} value={course.key}>
                 {course.short_name}
@@ -714,33 +717,21 @@ const TeacherAdmin = () => {
     }
     switch (field) {
       case 'day1id':
-        return <p className="inline-p-fix">{COURSES_DAY1.find((x) => x.key === t.day1id)?.short_name || "未登録"}</p>;
+        return <p className="inline-p-fix">{COURSES_DAY1.find((x) => x.key === t.day1id)?.short_name || '未登録'}</p>;
       case 'day3id':
-        return <p className="inline-p-fix">{COURSES_DAY3.find((x) => x.key === t.day3id)?.short_name|| "未登録"}</p>;
+        return <p className="inline-p-fix">{COURSES_DAY3.find((x) => x.key === t.day3id)?.short_name || '未登録'}</p>;
       default:
         return t[field];
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[80dvh]">
-        <p className="text-xl">{'認証中...'}</p>
-      </div>
-    );
-  }
+  if (loading) return <CenterMessage>認証中...</CenterMessage>;
 
   if (!user) {
     return null;
   }
 
-  if (!teachersList) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[80dvh]">
-        <p className="text-xl">{'読込中...'}</p>
-      </div>
-    );
-  }
+  if (!teachersList) return <CenterMessage>読込中...</CenterMessage>;
 
   const getSortIndicator = (key: SortKey) => {
     const configIndex = sortConfigs.findIndex((c) => c.key === key);
@@ -886,14 +877,7 @@ const TeacherAdmin = () => {
           </thead>
           <tbody>
             {sortedAndFilteredTeachers.map((t) => (
-              <MemoizedTeacherRow
-                key={t.id}
-                t={t}
-                handleDelete={handleDelete}
-                modalMode={modalMode}
-                renderCellContent={renderCellContent}
-                handleCellDoubleClick={handleCellDoubleClick}
-              />
+              <MemoizedTeacherRow key={t.id} t={t} handleDelete={handleDelete} modalMode={modalMode} renderCellContent={renderCellContent} handleCellDoubleClick={handleCellDoubleClick} />
             ))}
           </tbody>
         </table>
@@ -926,7 +910,15 @@ const TeacherAdmin = () => {
             {status}
           </p>
         </div>
-        <TeacherModal modalMode={modalMode} editRowForm={editRowForm} handleSave={handleSave} setModalMode={setModalMode} setEditRowForm={setEditRowForm} day1idOptions={COURSES_DAY1} day3idOptions={COURSES_DAY3} />
+        <TeacherModal
+          modalMode={modalMode}
+          editRowForm={editRowForm}
+          handleSave={handleSave}
+          setModalMode={setModalMode}
+          setEditRowForm={setEditRowForm}
+          day1idOptions={COURSES_DAY1}
+          day3idOptions={COURSES_DAY3}
+        />
         <div className="flex items-center my-[10px]">
           <input type="text" placeholder="検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="border p-2 rounded mr-2 max-w-[50dvw]" />
           <p className="text-sm text-gray-600 my-2">{'ID、姓、名で検索できます。'}</p>

@@ -6,6 +6,7 @@ import StudentModal from '../components/StudentModal';
 import { Link } from 'react-router-dom';
 import { SERVER_ENDPOINT } from '../App';
 import { useAuth } from '../auth-context';
+import CenterMessage from '../components/CenterMessage';
 
 type SortKey = keyof student;
 type SortDirection = 'asc' | 'desc';
@@ -202,9 +203,9 @@ const Admin = () => {
 
   const [visibleColumns, setVisibleColumns] = useState<Array<keyof student>>(allColumns.map((c) => c.key));
 
-  const handleColumnVisibilityChange = (key: keyof student) => {
+  const handleColumnVisibilityChange = useCallback((key: keyof student) => {
     setVisibleColumns((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
-  };
+  }, []);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const [sortConfigs, setSortConfigs] = useState<SortConfig[]>([
@@ -309,7 +310,7 @@ const Admin = () => {
     };
   }, [searchQuery]);
 
-  const handleEditClick = (s: student) => {
+  const handleEditClick = useCallback((s: student) => {
     setEditRowId(s.gakuseki);
     setEditRowForm({
       ...s,
@@ -321,130 +322,142 @@ const Admin = () => {
     });
     setStatus('');
     setModalMode('edit');
-  };
+  }, []);
 
   // 削除処理
-  const handleDelete = async (gakuseki: number) => {
-    if (!window.confirm('本当に削除しますか？')) return;
-    setStatus('削除中...');
-    try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/students/${gakuseki}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`
+  const handleDelete = useCallback(
+    async (gakuseki: number) => {
+      if (!window.confirm('本当に削除しますか？')) return;
+      setStatus('削除中...');
+      try {
+        const response = await fetch(`${SERVER_ENDPOINT}/api/students/${gakuseki}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTPエラー! ステータス: ${response.status}`);
         }
-      });
-      if (!response.ok) {
-        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+        setStatus('生徒データを削除しました。');
+        fetchStudents();
+      } catch (e) {
+        setStatus('エラーが発生しました: ' + (e as Error).message);
       }
-      setStatus('生徒データを削除しました。');
-      fetchStudents();
-    } catch (e) {
-      setStatus('エラーが発生しました: ' + (e as Error).message);
-    }
-  };
+    },
+    [token, fetchStudents]
+  );
 
   // 新規追加
-  const handleAddRow = () => {
+  const handleAddRow = useCallback(() => {
     setModalMode('add');
     setEditRowForm(initialForm);
     setStatus('');
-  };
+  }, []);
 
-  const handleAddJSONData = () => {
+  const handleAddJSONData = useCallback(() => {
     inputRef.current?.click();
-  };
+  }, []);
 
-  const handleSave = async (data: student) => {
-    if (modalMode === 'add') {
-      setStatus('追加中...');
-      try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/students`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify(data)
-        });
-        if (!response.ok) {
-          throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-        }
-        setStatus('生徒データを追加しました。');
-        setModalMode(null);
-        fetchStudents();
-      } catch (e) {
-        setStatus('エラーが発生しました: ' + (e as Error).message);
-      }
-    } else if (modalMode === 'edit') {
-      // editRowId は gakuseki に対応
-      if (editRowId === null) return; // editRowIdがnullの場合は処理しない
-      setStatus('更新中...');
-      try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/students/${editRowId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify(data)
-        });
-        if (!response.ok) {
-          throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-        }
-        setStatus('生徒データを更新しました。');
-        setModalMode(null);
-        setEditRowId(null);
-        fetchStudents();
-      } catch (e) {
-        setStatus('エラーが発生しました: ' + (e as Error).message);
-      }
-    }
-  };
-
-  const handleJSONRead = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const data = e.target?.result as string;
-        const studentsToProcess = JSON.parse(data) as student[];
-
-        setStatus('更新中...');
+  const handleSave = useCallback(
+    async (data: student) => {
+      if (modalMode === 'add') {
+        setStatus('追加中...');
         try {
-          const response = await fetch(`${SERVER_ENDPOINT}/api/students/batch`, {
+          const response = await fetch(`${SERVER_ENDPOINT}/api/students`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${token}`
             },
-            body: JSON.stringify(studentsToProcess)
+            body: JSON.stringify(data)
+          });
+          if (!response.ok) {
+            throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+          }
+          setStatus('生徒データを追加しました。');
+          setModalMode(null);
+          fetchStudents();
+        } catch (e) {
+          setStatus('エラーが発生しました: ' + (e as Error).message);
+        }
+      } else if (modalMode === 'edit') {
+        // editRowId は gakuseki に対応
+        if (editRowId === null) return; // editRowIdがnullの場合は処理しない
+        setStatus('更新中...');
+        try {
+          const response = await fetch(`${SERVER_ENDPOINT}/api/students/${editRowId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify(data)
           });
           if (!response.ok) {
             throw new Error(`HTTPエラー! ステータス: ${response.status}`);
           }
           setStatus('生徒データを更新しました。');
+          setModalMode(null);
+          setEditRowId(null);
+          fetchStudents();
         } catch (e) {
           setStatus('エラーが発生しました: ' + (e as Error).message);
         }
-        setModalMode(null);
-        setEditRowId(null);
-        fetchStudents();
-      };
-      reader.readAsText(e.target.files[0]);
-    }
-  };
+      }
+    },
+    [modalMode, token, editRowId, fetchStudents]
+  );
 
-  const handleCellDoubleClick = (student: student, field: keyof student) => {
-    if (modalMode !== null) return;
-    setEditingCell({ studentId: student.gakuseki, field });
-    setEditingValue(student[field]);
-  };
+  const handleJSONRead = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files) {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const data = e.target?.result as string;
+          const studentsToProcess = JSON.parse(data) as student[];
 
-  const handleCellChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+          setStatus('更新中...');
+          try {
+            const response = await fetch(`${SERVER_ENDPOINT}/api/students/batch`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+              },
+              body: JSON.stringify(studentsToProcess)
+            });
+            if (!response.ok) {
+              throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+            }
+            setStatus('生徒データを更新しました。');
+          } catch (e) {
+            setStatus('エラーが発生しました: ' + (e as Error).message);
+          }
+          setModalMode(null);
+          setEditRowId(null);
+          fetchStudents();
+        };
+        reader.readAsText(e.target.files[0]);
+      }
+    },
+    [token, fetchStudents]
+  );
+
+  const handleCellDoubleClick = useCallback(
+    (student: student, field: keyof student) => {
+      if (modalMode !== null) return;
+      setEditingCell({ studentId: student.gakuseki, field });
+      setEditingValue(student[field]);
+    },
+    [modalMode]
+  );
+
+  const handleCellChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setEditingValue(e.target.value);
-  };
+  }, []);
 
-  const handleCellEditSave = async () => {
+  const handleCellEditSave = useCallback(async () => {
     if (!editingCell) return;
 
     const { studentId, field } = editingCell;
@@ -494,62 +507,78 @@ const Admin = () => {
       setStatus('エラーが発生しました: ' + (error as Error).message);
       setEditingCell(null);
     }
-  };
+  }, [editingCell, editingValue, token, studentsList]);
 
-  const handleCellKeyDown = (e: KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
-    if (e.key === 'Enter') {
-      handleCellEditSave();
-    } else if (e.key === 'Escape') {
-      setEditingCell(null);
-    }
-  };
-
-  const renderCellContent = (s: student, field: keyof student) => {
-    if (editingCell?.studentId === s.gakuseki && editingCell?.field === field) {
-      if (field === 'day1id') {
-        return (
-          <select value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit">
-            {COURSES_DAY1.map((course) => (
-              <option key={course.key} value={course.key}>
-                {course.short_name}
-              </option>
-            ))}
-          </select>
-        );
+  const handleCellKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
+      if (e.key === 'Enter') {
+        handleCellEditSave();
+      } else if (e.key === 'Escape') {
+        setEditingCell(null);
       }
-      if (field === 'day3id') {
-        return (
-          <select value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit">
-            {COURSES_DAY3.map((course) => (
-              <option key={course.key} value={course.key}>
-                {course.short_name}
-              </option>
-            ))}
-          </select>
-        );
-      }
-      return <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />;
-    }
+    },
+    [handleCellEditSave]
+  );
 
-    switch (field) {
-      case 'day1id':
-        return <p className="inline-p-fix">{COURSES_DAY1.find((x) => x.key === s.day1id)?.short_name}</p>;
-      case 'day3id':
-        return <p className="inline-p-fix">{COURSES_DAY3.find((x) => x.key === s.day3id)?.short_name}</p>;
-      default:
-        return s[field];
-    }
-  };
+  const renderCellContent = useCallback(
+    (s: student, field: keyof student) => {
+      if (editingCell?.studentId === s.gakuseki && editingCell?.field === field) {
+        if (field === 'day1id') {
+          return (
+            <select value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit">
+              {COURSES_DAY1.map((course) => (
+                <option key={course.key} value={course.key}>
+                  {course.short_name}
+                </option>
+              ))}
+            </select>
+          );
+        }
+        if (field === 'day3id') {
+          return (
+            <select value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit">
+              {COURSES_DAY3.map((course) => (
+                <option key={course.key} value={course.key}>
+                  {course.short_name}
+                </option>
+              ))}
+            </select>
+          );
+        }
+        return <input type="text" value={editingValue} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="inline-edit" />;
+      }
+
+      switch (field) {
+        case 'day1id':
+          return <p className="inline-p-fix">{COURSES_DAY1.find((x) => x.key === s.day1id)?.short_name}</p>;
+        case 'day3id':
+          return <p className="inline-p-fix">{COURSES_DAY3.find((x) => x.key === s.day3id)?.short_name}</p>;
+        default:
+          return s[field];
+      }
+    },
+    [editingCell, editingValue, handleCellChange, handleCellEditSave, handleCellKeyDown]
+  );
 
   // day1id/day3idの選択肢
   const day1idOptions = ['yrp_nifco', 'yrp_yamashin', 'yrp_air', 'yrp_vtech', 'ntt_labo_i', 'ntt_labo_b', 'kayakku', 'jaxa', 'astro', 'arda', 'urth_jip', 'micro', 'air'];
   const day3idOptions = ['okutama', 'yokosuka', 'hakone', 'kamakura', 'hakkeijima', 'yokohama'];
 
-  if (!studentsList) {
+  if (!studentsList) return <CenterMessage>読込中...</CenterMessage>;
+  if (studentsList.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-[80dvh]">
-        <p className="text-xl">{'読込中...'}</p>
-      </div>
+      <CenterMessage>
+        <p className="mb-4">生徒データがありません。</p>
+        <button
+          className="border-2 border-black p-2 rounded-xl cursor-pointer bg-white"
+          onClick={() => {
+            setStatus('リロード中...');
+            fetchStudents();
+          }}>
+          リロード
+        </button>
+        {status && <p className="mt-4 text-sm text-gray-600">{status}</p>}
+      </CenterMessage>
     );
   }
 
@@ -695,8 +724,14 @@ const Admin = () => {
           day3idOptions={day3idOptions}
         />
         <div className="flex items-center my-[10px]">
-          <input type="text" placeholder="検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="border p-2 rounded mr-2 max-w-[50dvw]" />
-          <p className="text-sm text-gray-600 my-2">{'組と番号以外なら何でも検索できます。'}</p>
+          <input
+            type="text"
+            placeholder="検索 (氏名 / かな / 学籍番号 / コース名 / バス / 部屋 / NSX)"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="border p-2 rounded mr-2 max-w-[50dvw]"
+          />
+          <p className="text-sm text-gray-600 my-2">{'氏名・かな・学籍番号・コース・バス・部屋・新幹線情報などで絞り込み可'}</p>
         </div>
       </div>
     </div>

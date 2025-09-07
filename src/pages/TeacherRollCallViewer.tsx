@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SERVER_ENDPOINT } from '../App';
 import Button from '../components/Button';
 import { useAuth } from '../auth-context';
 import type { RollCall } from './TeacherRollCallList';
 import { FaArrowRight } from 'react-icons/fa';
+import CenterMessage from '../components/CenterMessage';
 
 interface Student {
   gakuseki: number;
@@ -42,34 +43,28 @@ const TeacherRollCallViewer = () => {
     };
   }, [modal.isOpen]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!rollCallId || !token) return;
-      try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call?id=${rollCallId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        if (!response.ok) {
-          throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-        }
-        const data = await response.json();
-        setRollCall(data.rollCall);
-        setStudents(data.students);
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-
-    const interval = setInterval(fetchData, 5000);
-
-    return () => clearInterval(interval);
+  const fetchData = useCallback(async () => {
+    if (!rollCallId || !token) return;
+    try {
+      const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call?id=${rollCallId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error(`HTTPエラー: ${response.status}`);
+      const data = await response.json();
+      setRollCall(data.rollCall);
+      setStudents(data.students);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
   }, [rollCallId, token]);
+
+  useEffect(() => {
+    fetchData();
+    const id = setInterval(fetchData, 5000);
+    return () => clearInterval(id);
+  }, [fetchData]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;
@@ -100,18 +95,15 @@ const TeacherRollCallViewer = () => {
     };
   }, [rollCall]);
 
-  const formatTime = (totalSeconds: number) => {
-    totalSeconds -= 20;
-    if (totalSeconds <= 0) {
-      return '00:00';
-    }
+  const formattedTime = useMemo(() => {
+    const s = remainingTime - 20;
+    if (s <= 0) return '00:00';
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+  }, [remainingTime]);
 
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  };
-
-  const onEndSession = async () => {
+  const onEndSession = useCallback(async () => {
     if (!rollCallId || !token) return;
 
     if (!window.confirm('本当に点呼を終了しますか？')) return;
@@ -136,7 +128,7 @@ const TeacherRollCallViewer = () => {
       console.error('点呼の終了に失敗しました:', error);
       alert('点呼の終了に失敗しました。');
     }
-  };
+  }, [rollCallId, token, navigate]);
 
   const endButton = (disabled: boolean) => (
     <div className="m-3 flex items-center justify-center">
@@ -172,18 +164,14 @@ const TeacherRollCallViewer = () => {
     );
   };
 
-  if (loading) {
-    return <p className="text-center mt-8">{'読み込み中...'}</p>;
-  }
-
-  if (error) {
+  if (loading) return <CenterMessage>読み込み中...</CenterMessage>;
+  if (error)
     return (
-      <p className="text-center mt-8 text-red-500">
-        {'エラー: '}
-        {error}
-      </p>
+      <CenterMessage>
+        <p className="text-red-500 mb-4">エラー: {error}</p>
+        <Button text="一覧へ戻る" arrowLeft link="/teacher/roll-call-list" />
+      </CenterMessage>
     );
-  }
 
   const checkedInCount = students.filter((s) => s.status === 'checked_in').length;
   const absentCount = students.filter((s) => s.absence_reason).length;
@@ -213,7 +201,7 @@ const TeacherRollCallViewer = () => {
             {'人'}
           </p>
           <p className="text-lg mx-1 text-right">{'残り時間: '}</p>
-          <p className="text-lg mx-1 text-left">{formatTime(remainingTime)}</p>
+          <p className="text-lg mx-1 text-left">{formattedTime}</p>
         </div>
 
         {students.length > 20 ? endButton(!rollCall?.is_active || remainingTime <= 0) : <></>}

@@ -1,28 +1,28 @@
-import { useState, useEffect, type ChangeEvent, type DragEvent, useCallback, type FC } from 'react';
+import { useState, useEffect, type ChangeEvent, type DragEvent, useCallback, type FC, useRef, memo } from 'react';
 import { SERVER_ENDPOINT } from '../App';
 import '../styles/admin-table.css';
 import KanaSearchModal from '../components/KanaSearchModal';
 import type { student } from '../data/students';
 import type { OtanoshimiData } from '../data/otanoshimi';
 import { useAuth } from '../auth-context';
+import CenterMessage from '../components/CenterMessage';
 
 interface StudentChipProps {
   studentId: number;
   studentMap: Map<number, string>;
   onDelete: (studentId: number) => void;
 }
-
-const StudentChip: FC<StudentChipProps> = ({ studentId, studentMap, onDelete }) => {
+const StudentChip: FC<StudentChipProps> = memo(({ studentId, studentMap, onDelete }) => {
   const studentName = studentMap.get(studentId) || '不明な生徒';
   return (
-    <div className="flex items-center bg-blue-100 text-blue-800 text-sm font-semibold px-2.5 py-0.5 rounded-full">
-      {studentName}
-      <button onClick={() => onDelete(studentId)} className="ml-2 text-blue-800 hover:text-blue-900 cursor-pointer">
+    <div className="flex items-center bg-blue-100 text-blue-800 text-sm font-semibold px-2.5 py-0.5 rounded-full" aria-label={`生徒: ${studentName}`}>
+      <span>{studentName}</span>
+      <button type="button" onClick={() => onDelete(studentId)} className="ml-2 text-blue-800 hover:text-blue-900 cursor-pointer" aria-label={`${studentName} を削除`} title="削除">
         &times;
       </button>
     </div>
   );
-};
+});
 
 const OtanoshimiAdmin = () => {
   const { token } = useAuth();
@@ -30,7 +30,8 @@ const OtanoshimiAdmin = () => {
   const [status, setStatus] = useState<string>('');
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [studentMap, setStudentMap] = useState<Map<number, string>>(new Map());
-  const dragItem = document.createElement('div');
+  const dragImageRef = useRef<HTMLDivElement | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const [allStudents, setAllStudents] = useState<student[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -85,29 +86,60 @@ const OtanoshimiAdmin = () => {
   }, [token]);
 
   useEffect(() => {
-    if (token) {
-      fetchTeams();
-      fetchAllStudents();
-    }
+    if (!token) return;
+    let cancelled = false;
+    const load = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([fetchTeams(), fetchAllStudents()]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, [token, fetchTeams, fetchAllStudents]);
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index: number, field: keyof OtanoshimiData) => {
-    const newTeams = [...teams];
-    const value = e.target.value;
-
-    if (field === 'leader' || field === 'time' || field === 'appearance_order') {
-      newTeams[index] = { ...newTeams[index], [field]: Number(value) };
-    } else if (field === 'members') {
-      newTeams[index] = { ...newTeams[index], [field]: value.split(',').map(Number) };
-    } else if (field === 'custom_performers' || field === 'supervisor') {
-      newTeams[index] = { ...newTeams[index], [field]: value.split(',') };
-    } else {
-      newTeams[index] = { ...newTeams[index], [field]: value };
+  // drag image 初期化
+  useEffect(() => {
+    if (!dragImageRef.current) {
+      const el = document.createElement('div');
+      el.style.width = '1px';
+      el.style.height = '1px';
+      el.style.opacity = '0';
+      document.body.appendChild(el);
+      dragImageRef.current = el;
     }
-    setTeams(newTeams);
-  };
+    return () => {
+      if (dragImageRef.current) {
+        document.body.removeChild(dragImageRef.current);
+        dragImageRef.current = null;
+      }
+    };
+  }, []);
 
-  const handleSave = async () => {
+  const handleInputChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index: number, field: keyof OtanoshimiData) => {
+      const newTeams = [...teams];
+      const value = e.target.value;
+
+      if (field === 'leader' || field === 'time' || field === 'appearance_order') {
+        newTeams[index] = { ...newTeams[index], [field]: Number(value) };
+      } else if (field === 'members') {
+        newTeams[index] = { ...newTeams[index], [field]: value.split(',').map(Number) };
+      } else if (field === 'custom_performers' || field === 'supervisor') {
+        newTeams[index] = { ...newTeams[index], [field]: value.split(',') };
+      } else {
+        newTeams[index] = { ...newTeams[index], [field]: value };
+      }
+      setTeams(newTeams);
+    },
+    [teams]
+  );
+
+  const handleSave = useCallback(async () => {
     if (!token) return;
     setStatus('保存中...');
     try {
@@ -128,9 +160,9 @@ const OtanoshimiAdmin = () => {
     } catch (e) {
       setStatus('エラーが発生しました: ' + (e as Error).message);
     }
-  };
+  }, [token, teams, fetchTeams]);
 
-  const handleAddNewTeam = () => {
+  const handleAddNewTeam = useCallback(() => {
     const newTeam: OtanoshimiData = {
       name: '新しいチーム',
       enmoku: '',
@@ -144,73 +176,103 @@ const OtanoshimiAdmin = () => {
     };
     setTeams([...teams, newTeam]);
     setEditingIndex(teams.length);
-  };
+  }, [teams]);
 
-  const handleDeleteTeam = (index: number) => {
-    if (!window.confirm('本当にこのチームを削除しますか？')) return;
-    const newTeams = teams.filter((_, i) => i !== index);
-    const updatedTeams = newTeams.map((team, i) => ({
-      ...team,
-      appearance_order: i + 1
-    }));
-    setTeams(updatedTeams);
-  };
+  const handleDeleteTeam = useCallback(
+    (index: number) => {
+      if (!window.confirm('本当にこのチームを削除しますか？')) return;
+      const newTeams = teams.filter((_, i) => i !== index);
+      const updatedTeams = newTeams.map((team, i) => ({
+        ...team,
+        appearance_order: i + 1
+      }));
+      setTeams(updatedTeams);
+    },
+    [teams]
+  );
 
-  const handleDeleteStudent = (teamIndex: number, field: 'leader' | 'members', studentId: number) => {
-    const newTeams = [...teams];
-    if (field === 'leader') {
-      newTeams[teamIndex] = { ...newTeams[teamIndex], leader: 0 };
-    } else if (field === 'members') {
-      const newMembers = newTeams[teamIndex].members.filter((id) => id !== studentId);
-      newTeams[teamIndex] = { ...newTeams[teamIndex], members: newMembers };
-    }
-    setTeams(newTeams);
-  };
+  const handleDeleteStudent = useCallback(
+    (teamIndex: number, field: 'leader' | 'members', studentId: number) => {
+      const newTeams = [...teams];
+      if (field === 'leader') {
+        newTeams[teamIndex] = { ...newTeams[teamIndex], leader: 0 };
+      } else if (field === 'members') {
+        const newMembers = newTeams[teamIndex].members.filter((id) => id !== studentId);
+        newTeams[teamIndex] = { ...newTeams[teamIndex], members: newMembers };
+      }
+      setTeams(newTeams);
+    },
+    [teams]
+  );
 
-  const onDragStart = (e: DragEvent<HTMLDivElement>, index: number) => {
+  const onDragStart = useCallback((e: DragEvent<HTMLDivElement>, index: number) => {
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', String(index));
-    e.dataTransfer.setDragImage(dragItem, 0, 0);
-  };
+    if (dragImageRef.current) e.dataTransfer.setDragImage(dragImageRef.current, 0, 0);
+  }, []);
 
-  const onDrop = (e: DragEvent<HTMLTableRowElement>, toIndex: number) => {
-    const fromIndex = Number(e.dataTransfer.getData('text/plain'));
-    const newTeams = [...teams];
-    const [removed] = newTeams.splice(fromIndex, 1);
-    newTeams.splice(toIndex, 0, removed);
+  const onDrop = useCallback(
+    (e: DragEvent<HTMLTableRowElement>, toIndex: number) => {
+      const fromIndex = Number(e.dataTransfer.getData('text/plain'));
+      const newTeams = [...teams];
+      const [removed] = newTeams.splice(fromIndex, 1);
+      newTeams.splice(toIndex, 0, removed);
 
-    const updatedTeams = newTeams.map((team, index) => ({
-      ...team,
-      appearance_order: index + 1
-    }));
+      const updatedTeams = newTeams.map((team, index) => ({
+        ...team,
+        appearance_order: index + 1
+      }));
 
-    setTeams(updatedTeams);
-  };
+      setTeams(updatedTeams);
+    },
+    [teams]
+  );
 
-  const onDragOver = (e: DragEvent<HTMLTableSectionElement>) => {
+  const onDragOver = useCallback((e: DragEvent<HTMLTableSectionElement>) => {
     e.preventDefault();
-  };
+  }, []);
 
-  const handleStudentSelect = (student: student) => {
-    if (!modalTarget) return;
+  const handleStudentSelect = useCallback(
+    (student: student) => {
+      if (!modalTarget) return;
 
-    const { index, field } = modalTarget;
-    const newTeams = [...teams];
+      const { index, field } = modalTarget;
+      const newTeams = [...teams];
 
-    if (field === 'leader') {
-      newTeams[index] = { ...newTeams[index], leader: student.gakuseki };
-    } else if (field === 'members') {
-      const currentMembers = newTeams[index].members;
-      if (!currentMembers.includes(student.gakuseki)) {
-        const newMembers = [...currentMembers, student.gakuseki];
-        newTeams[index] = { ...newTeams[index], members: newMembers };
+      if (field === 'leader') {
+        newTeams[index] = { ...newTeams[index], leader: student.gakuseki };
+      } else if (field === 'members') {
+        const currentMembers = newTeams[index].members;
+        if (!currentMembers.includes(student.gakuseki)) {
+          const newMembers = [...currentMembers, student.gakuseki];
+          newTeams[index] = { ...newTeams[index], members: newMembers };
+        }
       }
-    }
 
-    setTeams(newTeams);
-    setIsModalOpen(false);
-    setModalTarget(null);
-  };
+      setTeams(newTeams);
+      setIsModalOpen(false);
+      setModalTarget(null);
+    },
+    [modalTarget, teams]
+  );
+
+  if (loading) return <CenterMessage>読込中...</CenterMessage>;
+  if (!loading && teams.length === 0) {
+    return (
+      <CenterMessage>
+        <p className="mb-4">チームデータがありません。</p>
+        <button
+          onClick={() => {
+            setStatus('初期チーム作成中...');
+            handleAddNewTeam();
+          }}
+          className="border-2 border-black p-2 rounded-xl cursor-pointer bg-white">
+          チームを追加
+        </button>
+        {status && <p className="mt-4 text-sm text-gray-600">{status}</p>}
+      </CenterMessage>
+    );
+  }
 
   return (
     <div className="p-[5px] flex flex-col">
@@ -299,7 +361,7 @@ const OtanoshimiAdmin = () => {
                     <td className="bg-white">{studentMap.get(team.leader) || '未設定'}</td>
                     <td className="bg-white">{team.members.map((id) => studentMap.get(id)).join(', ')}</td>
                     <td className="bg-white">{(team.custom_performers || []).join(', ')}</td>
-                    <td className="bg-white">{team.comment}</td>
+                    <td className="bg-white">{team.comment || ''}</td>
                     <td className="bg-white">{(team.supervisor || []).join(', ')}</td>
                     <td className="bg-white">{team.time}</td>
                   </>

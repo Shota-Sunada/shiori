@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { handleEnableNotifications } from '../helpers/notifications';
@@ -21,25 +21,40 @@ const Header = () => {
 
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     if (!window.confirm('本当にログアウトしますか？')) return;
     alert('ログアウトしました。');
     await logout();
     navigate('/login');
-  };
+  }, [logout, navigate]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      if (!isMenuOpen) return;
       if (menuRef.current && !menuRef.current.contains(event.target as Node) && hamburgerRef.current && !hamburgerRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
+
+  const closeMenu = useCallback(() => setIsMenuOpen(false), []);
+
+  type MenuItem = { type: 'link'; to: string; label: string; note?: string } | { type: 'action'; label: string; onClick: () => void };
+  const menuItems: MenuItem[] = useMemo(
+    () => [
+      { type: 'link', to: user?.is_teacher ? '/teacher' : '/', label: 'ホーム' },
+      { type: 'link', to: '/otanoshimi', label: 'お楽しみ会' },
+      { type: 'action', label: '通知を有効にする', onClick: () => handleEnableNotifications(user) },
+      { type: 'link', to: '/admin', label: '管理パネル', note: '※管理者専用' },
+      { type: 'link', to: '/user-admin', label: 'ユーザー管理', note: '※管理者専用' },
+      { type: 'link', to: '/otanoshimi-admin', label: 'お楽しみ会管理', note: '※管理者専用' },
+      { type: 'link', to: '/teacher-admin', label: '先生管理', note: '※管理者専用' },
+      { type: 'link', to: '/credits', label: 'クレジット' }
+    ],
+    [user]
+  );
 
   return (
     <div className="sticky top-0 z-40">
@@ -57,79 +72,29 @@ const Header = () => {
               <HamburgerIcon open={isMenuOpen} />
             </div>
             {isMenuOpen && (
-              <div ref={menuRef} className="absolute right-0 top-full mt-2 bg-white text-black rounded shadow-lg w-48 z-50 flex flex-col border">
-                <Link
-                  to={user?.is_teacher ? '/teacher' : '/'}
-                  className="text-left px-4 py-3 hover:bg-gray-100 border-b cursor-pointer"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                  }}>
-                  {'ホーム'}
-                </Link>
-                <Link
-                  to={'/otanoshimi'}
-                  className="text-left px-4 py-3 hover:bg-gray-100 border-b cursor-pointer"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                  }}>
-                  {'お楽しみ会'}
-                </Link>
+              <div ref={menuRef} className="absolute right-0 top-full mt-2 bg-white text-black rounded shadow-lg w-52 z-50 flex flex-col border divide-y">
+                {menuItems.map((item, i) =>
+                  item.type === 'link' ? (
+                    <Link key={i} to={item.to} className="text-left px-4 py-3 hover:bg-gray-100 cursor-pointer" onClick={closeMenu}>
+                      <p>{item.label}</p>
+                      {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
+                    </Link>
+                  ) : (
+                    <button
+                      key={i}
+                      className="text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        item.onClick?.();
+                        closeMenu();
+                      }}>
+                      {item.label}
+                    </button>
+                  )
+                )}
                 <button
-                  className="text-left px-4 py-3 hover:bg-gray-100 border-b cursor-pointer"
+                  className="text-left px-4 py-3 hover:bg-red-50 text-red-600 cursor-pointer"
                   onClick={() => {
-                    handleEnableNotifications(user);
-                    setIsMenuOpen(false);
-                  }}>
-                  {'通知を有効にする'}
-                </button>
-                <Link
-                  to={'/admin'}
-                  className="text-left px-4 py-3 hover:bg-gray-100 border-b cursor-pointer"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                  }}>
-                  <p>{'管理パネル'}</p>
-                  <p className="text-sm">{'※管理者専用'}</p>
-                </Link>
-                <Link
-                  to={'/user-admin'}
-                  className="text-left px-4 py-3 hover:bg-gray-100 border-b cursor-pointer"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                  }}>
-                  <p>{'ユーザー管理'}</p>
-                  <p className="text-sm">{'※管理者専用'}</p>
-                </Link>
-                <Link
-                  to={'/otanoshimi-admin'}
-                  className="text-left px-4 py-3 hover:bg-gray-100 border-b cursor-pointer"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                  }}>
-                  <p>{'お楽しみ会管理'}</p>
-                  <p className="text-sm">{'※管理者専用'}</p>
-                </Link>
-                <Link
-                  to={'/teacher-admin'}
-                  className="text-left px-4 py-3 hover:bg-gray-100 border-b cursor-pointer"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                  }}>
-                  <p>{'先生管理'}</p>
-                  <p className="text-sm">{'※管理者専用'}</p>
-                </Link>
-                <Link
-                  to={'/credits'}
-                  className="text-left px-4 py-3 hover:bg-gray-100 border-b cursor-pointer"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                  }}>
-                  <p>{'クレジット'}</p>
-                </Link>
-                <button
-                  className="text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {
-                    setIsMenuOpen(false);
+                    closeMenu();
                     handleLogout();
                   }}>
                   {'ログアウト'}

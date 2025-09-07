@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4, DAY4_DATA } from '../data/courses';
 import type { student } from '../data/students';
 import '../styles/index-table.css';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import RoomDataModal from './RoomDataModal';
 import { SERVER_ENDPOINT } from '../App';
 import { useAuth } from '../auth-context';
@@ -32,7 +32,11 @@ interface Teacher {
   day4class: number;
 }
 
-const IndexTable = (props: { studentData: student | null }) => {
+interface IndexTableProps {
+  studentData: student | null;
+}
+
+const IndexTable = ({ studentData }: IndexTableProps) => {
   const navigate = useNavigate();
   const { token } = useAuth();
   const [showRoommateModal, setShowRoommateModal] = useState(false);
@@ -40,6 +44,7 @@ const IndexTable = (props: { studentData: student | null }) => {
   const [currentHotelName, setCurrentHotelName] = useState('');
   const [currentRoomNumber, setCurrentRoomNumber] = useState('');
   const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const hasStudent = !!studentData;
 
   useEffect(() => {
     if (showRoommateModal) {
@@ -53,55 +58,55 @@ const IndexTable = (props: { studentData: student | null }) => {
     };
   }, [showRoommateModal]);
 
-  useEffect(() => {
-    const fetchTeachers = async () => {
-      try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/teachers`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data: Teacher[] = await response.json();
-        setTeachers(data);
-      } catch (error) {
-        console.error('Error fetching teachers:', error);
-      }
-    };
-
-    if (token) {
-      fetchTeachers();
+  const fetchTeachers = useCallback(async () => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${SERVER_ENDPOINT}/api/teachers`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error(`HTTP error status: ${response.status}`);
+      const data: Teacher[] = await response.json();
+      setTeachers(data);
+    } catch (error) {
+      console.error('Error fetching teachers:', error);
     }
   }, [token]);
 
-  const fetchRoommates = async (hotel: 'tdh' | 'fpr', room: string, hotelName: string) => {
-    try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/students/roommates/${hotel}/${room}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data: Roommate[] = await response.json();
-      setCurrentRoommates(data);
-      setCurrentHotelName(hotelName);
-      setCurrentRoomNumber(room);
-      setShowRoommateModal(true);
-    } catch (error) {
-      console.error('Error fetching roommates:', error);
-    }
-  };
+  useEffect(() => {
+    fetchTeachers();
+  }, [fetchTeachers]);
 
-  const handleCloseModal = () => {
+  const fetchRoommates = useCallback(
+    async (hotel: 'tdh' | 'fpr', room: string, hotelName: string) => {
+      if (!token) return;
+      try {
+        const response = await fetch(`${SERVER_ENDPOINT}/api/students/roommates/${hotel}/${room}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error(`HTTP error status: ${response.status}`);
+        const data: Roommate[] = await response.json();
+        setCurrentRoommates(data);
+        setCurrentHotelName(hotelName);
+        setCurrentRoomNumber(room);
+        setShowRoommateModal(true);
+      } catch (error) {
+        console.error('Error fetching roommates:', error);
+      }
+    },
+    [token]
+  );
+
+  const handleCloseModal = useCallback(() => {
     setShowRoommateModal(false);
     setCurrentRoommates([]);
     setCurrentHotelName('');
     setCurrentRoomNumber('');
-  };
+  }, []);
+
+  const day4CourseName = useMemo(() => {
+    if (!hasStudent) return null;
+    return COURSES_DAY4.find((x) => x.key === DAY4_DATA[Number(studentData!.class) - 1])?.name;
+  }, [hasStudent, studentData]);
 
   return (
     <section id="table" className="rounded-2xl overflow-hidden m-1">
@@ -109,15 +114,15 @@ const IndexTable = (props: { studentData: student | null }) => {
         <thead className="bg-amber-200">
           <tr>
             <th colSpan={3}>
-              {props.studentData ? (
+              {hasStudent ? (
                 <>
                   {'5年'}
-                  {props.studentData?.class}
+                  {studentData!.class}
                   {'組'}
-                  {props.studentData?.number}
+                  {studentData!.number}
                   {'番 '}
-                  {props.studentData?.surname}
-                  {props.studentData?.forename}
+                  {studentData!.surname}
+                  {studentData!.forename}
                 </>
               ) : (
                 '5年◯組◯番 ◯◯◯◯'
@@ -134,11 +139,11 @@ const IndexTable = (props: { studentData: student | null }) => {
               </span>
             </td>
             <td>{'研修先'}</td>
-            <td>{props.studentData ? COURSES_DAY1.find((x) => x.key === props.studentData?.day1id)?.name : '◯◯◯◯◯◯◯◯'}</td>
+            <td>{hasStudent ? COURSES_DAY1.find((x) => x.key === studentData!.day1id)?.name : '◯◯◯◯◯◯◯◯'}</td>
           </tr>
           <tr>
             <td>{'バス号車'}</td>
-            <td>{props.studentData ? props.studentData.day1bus : '◯◯'}</td>
+            <td>{hasStudent ? studentData!.day1bus : '◯◯'}</td>
           </tr>
           {/* day1 END */}
           {/* day2 START */}
@@ -160,11 +165,11 @@ const IndexTable = (props: { studentData: student | null }) => {
               </span>
             </td>
             <td>{'研修先'}</td>
-            <td>{props.studentData ? COURSES_DAY3.find((x) => x.key === props.studentData?.day3id)?.name : '◯◯◯◯◯◯◯◯'}</td>
+            <td>{hasStudent ? COURSES_DAY3.find((x) => x.key === studentData!.day3id)?.name : '◯◯◯◯◯◯◯◯'}</td>
           </tr>
           <tr>
             <td>{'バス号車'}</td>
-            <td>{props.studentData ? props.studentData.day3bus : '◯◯'}</td>
+            <td>{hasStudent ? studentData!.day3bus : '◯◯'}</td>
           </tr>
           <tr>
             <td>{'お楽しみ会'}</td>
@@ -186,17 +191,17 @@ const IndexTable = (props: { studentData: student | null }) => {
             </td>
             <td>{'研修先'}</td>
             <td>
-              {props.studentData ? (
+              {hasStudent ? (
                 <>
                   <p>
-                    {props.studentData?.class}
+                    {studentData!.class}
                     {'組 '}
-                    {COURSES_DAY4.find((x) => x.key === DAY4_DATA[Number(props.studentData?.class) - 1])?.name}
+                    {day4CourseName}
                   </p>
                   <p className="text-gray-600 text-sm">
                     {'引率: '}
                     {teachers
-                      .filter((teacher) => teacher.day4class === props.studentData?.class)
+                      .filter((teacher) => teacher.day4class === studentData!.class)
                       .map((teacher) => `${teacher.surname}${teacher.forename}先生`)
                       .join(' ')}
                   </p>
@@ -222,17 +227,17 @@ const IndexTable = (props: { studentData: student | null }) => {
             <td
               className="cursor-pointer bg-gray-200"
               onClick={() => {
-                if (props.studentData?.room_tdh) {
-                  fetchRoommates('tdh', props.studentData.room_tdh.toString(), '東京ドームホテル');
+                if (studentData?.room_tdh) {
+                  fetchRoommates('tdh', studentData.room_tdh.toString(), '東京ドームホテル');
                 }
               }}>
               <p>{'東京ドームホテル'}</p>
               <p>
-                {props.studentData ? (
+                {hasStudent ? (
                   <>
-                    {props.studentData?.room_tdh.toString().substring(0, 2)}
+                    {studentData!.room_tdh.toString().substring(0, 2)}
                     {'階 '}
-                    {props.studentData?.room_tdh}
+                    {studentData!.room_tdh}
                     {'号室'}
                   </>
                 ) : (
@@ -246,18 +251,18 @@ const IndexTable = (props: { studentData: student | null }) => {
             <td
               className="cursor-pointer bg-gray-200"
               onClick={() => {
-                if (props.studentData?.room_fpr) {
-                  fetchRoommates('fpr', props.studentData.room_fpr.toString(), 'フジプレミアムリゾート');
+                if (studentData?.room_fpr) {
+                  fetchRoommates('fpr', studentData.room_fpr.toString(), 'フジプレミアムリゾート');
                 }
               }}>
               <p>{'フジプレミアムリゾート'}</p>
               <p>
-                {props.studentData ? (
+                {hasStudent ? (
                   <>
                     {'Hotel Spor:Sion '}
-                    {props.studentData?.room_fpr.toString().substring(1, 2)}
+                    {studentData!.room_fpr.toString().substring(1, 2)}
                     {'階 '}
-                    {props.studentData?.room_fpr}
+                    {studentData!.room_fpr}
                     {'号室'}
                   </>
                 ) : (
@@ -281,13 +286,13 @@ const IndexTable = (props: { studentData: student | null }) => {
               onClick={() => {
                 window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=84', '_blank', 'noreferrer');
               }}>
-              {props.studentData ? (
+              {hasStudent ? (
                 <>
                   <p>
                     {'東京駅行 のぞみ84号 - '}
-                    {props.studentData?.shinkansen_day1_car_number}
+                    {studentData!.shinkansen_day1_car_number}
                     {'号車 '}
-                    {props.studentData?.shinkansen_day1_seat}
+                    {studentData!.shinkansen_day1_seat}
                   </p>
                   <p className="text-gray-600 text-sm">{'広島駅7:57発 - 新横浜駅11:34着'}</p>
                   <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
@@ -311,13 +316,13 @@ const IndexTable = (props: { studentData: student | null }) => {
               onClick={() => {
                 window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=77', '_blank', 'noreferrer');
               }}>
-              {props.studentData ? (
+              {hasStudent ? (
                 <>
                   <p>
                     {'広島駅行 のぞみ77号 - '}
-                    {props.studentData?.shinkansen_day4_car_number}
+                    {studentData!.shinkansen_day4_car_number}
                     {'号車 '}
-                    {props.studentData?.shinkansen_day4_seat}
+                    {studentData!.shinkansen_day4_seat}
                   </p>
                   <p className="text-gray-600 text-sm">{'新横浜駅15:48発 - 広島駅19:46着'}</p>
                   <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>

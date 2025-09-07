@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
 import Button from '../components/Button';
+import CenterMessage from '../components/CenterMessage';
 
 interface StudentStatus {
   gakuseki: string;
@@ -44,52 +45,31 @@ const Call = () => {
     };
   }, [showAbsenceForm]);
 
-  useEffect(() => {
-    const fetchRollCallStatus = async () => {
-      if (!rollCallId || !user || !token) return;
-
-      try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call?id=${rollCallId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        if (!response.ok) {
-          throw new Error('点呼データの取得に失敗しました。');
-        }
-        const data = await response.json();
-        setRollCall(data.rollCall);
-        const currentUserStatus = data.students.find((student: StudentStatus) => student.gakuseki === user.userId);
-
-        if (currentUserStatus && currentUserStatus.status === 'checked_in') {
-          setIsDone(true);
-        }
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // 初回実行
-    fetchRollCallStatus();
-
-    // ポーリングを停止する条件
-    const shouldStopPolling = isDone || (rollCall !== null && !rollCall.is_active);
-
-    let intervalId: NodeJS.Timeout | null = null;
-
-    if (!shouldStopPolling) {
-      intervalId = setInterval(fetchRollCallStatus, 5000);
+  const fetchRollCallStatus = useCallback(async () => {
+    if (!rollCallId || !user || !token) return;
+    try {
+      const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call?id=${rollCallId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('点呼データの取得に失敗しました。');
+      const data = await response.json();
+      setRollCall(data.rollCall);
+      const currentUserStatus = data.students.find((s: StudentStatus) => s.gakuseki === user.userId);
+      if (currentUserStatus?.status === 'checked_in') setIsDone(true);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
     }
+  }, [rollCallId, user, token]);
 
-    // クリーンアップ関数
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [rollCallId, user, token, isDone, rollCall]);
+  useEffect(() => {
+    fetchRollCallStatus();
+    const shouldStop = isDone || (rollCall && !rollCall.is_active);
+    if (shouldStop) return;
+    const id = setInterval(fetchRollCallStatus, 5000);
+    return () => clearInterval(id);
+  }, [fetchRollCallStatus, isDone, rollCall]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;
@@ -121,18 +101,15 @@ const Call = () => {
     };
   }, [rollCall]);
 
-  const formatTime = (totalSeconds: number) => {
-    totalSeconds -= 20;
-    if (totalSeconds <= 0) {
-      return '00:00';
-    }
+  const formattedTime = useMemo(() => {
+    const s = remainingTime - 20; // 仕様: 実際より20秒短く表示する？ (元実装踏襲)
+    if (s <= 0) return '00:00';
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+  }, [remainingTime]);
 
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  };
-
-  const handleAbsenceSubmit = async () => {
+  const handleAbsenceSubmit = useCallback(async () => {
     if (!user || !rollCallId || !token || !absenceReason) {
       alert('エラーが発生しました。理由を入力してください。');
       return;
@@ -165,9 +142,9 @@ const Call = () => {
       console.error('不在届の送信中にエラーが発生しました:', error);
       alert(`エラー: ${(error as Error).message}`);
     }
-  };
+  }, [user, rollCallId, token, absenceReason, currentLocation]);
 
-  const handleCheckIn = async () => {
+  const handleCheckIn = useCallback(async () => {
     if (!user || !rollCallId || !token) {
       alert('エラーが発生しました。');
       return;
@@ -200,24 +177,16 @@ const Call = () => {
       console.error('点呼への応答中にエラーが発生しました:', error);
       alert(`エラー: ${(error as Error).message}`);
     }
-  };
+  }, [user, rollCallId, token, rollCall?.is_active, remainingTime]);
 
-  if (loading) {
+  if (loading) return <CenterMessage>読込中...</CenterMessage>;
+  if (error)
     return (
-      <div className="flex flex-col items-center justify-center h-[80dvh]">
-        <p className="text-xl">{'読込中...'}</p>
-      </div>
+      <CenterMessage>
+        <p className="text-xl text-red-500 mb-4">{error}</p>
+        <Button text="戻る" arrowLeft link="/index" />
+      </CenterMessage>
     );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[80dvh]">
-        <p className="text-xl text-red-500">{error}</p>
-        <Button text="戻る" arrowRight link="/index" />
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col items-center justify-center m-5">
@@ -236,7 +205,7 @@ const Call = () => {
             <>
               <p> {'点呼!'}</p>
               <p className="text-xl mt-5">{'残り時間'}</p>
-              <p className="text-xl">{formatTime(remainingTime)}</p>
+              <p className="text-xl">{formattedTime}</p>
             </>
           ) : (
             <p>{'終了'}</p>
@@ -245,7 +214,7 @@ const Call = () => {
       )}
 
       <p className="text-xl mt-5">{isDone ? '確認しました！' : rollCall?.is_active && remainingTime > 0 ? '時間内に点呼に応答してください！' : 'この点呼は終了しています。'}</p>
-      {isDone || !rollCall?.is_active || remainingTime < 0 ? <Button text="戻る" arrowRight link="/index" /> : <></>}
+      {isDone || !rollCall?.is_active || remainingTime < 0 ? <Button text="戻る" arrowLeft link="/index" /> : <></>}
 
       {!isDone && rollCall?.is_active && remainingTime > 0 ? (
         <div className="mt-5">

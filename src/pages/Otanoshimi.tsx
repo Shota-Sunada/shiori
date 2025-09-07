@@ -19,54 +19,30 @@ const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate }: { order: nu
 
   useEffect(() => {
     const fetchAllData = async () => {
+      if (!order) return;
       setLoading(true);
       try {
-        const teamsResponse = await fetch(`${SERVER_ENDPOINT}/api/otanoshimi`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        if (!teamsResponse.ok) {
-          throw new Error(`HTTPエラー! ステータス: ${teamsResponse.status}`);
-        }
-        const teamsData: OtanoshimiData[] = await teamsResponse.json();
-
-        const appearanceOrder = order || 10;
-        const currentTeam = teamsData.find((t) => t.appearance_order === appearanceOrder);
-
-        if (currentTeam) {
-          const studentsResponse = await fetch(`${SERVER_ENDPOINT}/api/students`, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
-          if (!studentsResponse.ok) {
-            throw new Error(`HTTPエラー! ステータス: ${studentsResponse.status}`);
-          }
-          const studentsData: student[] = await studentsResponse.json();
-          setAllStudents(studentsData);
-
-          setTeam({
-            ...currentTeam,
-            custom_performers: currentTeam.custom_performers || [],
-            enmoku: currentTeam.enmoku || '',
-            comment: currentTeam.comment || '',
-            supervisor: currentTeam.supervisor || []
-          });
-        } else {
-          setTeam(null);
-        }
-      } catch (error) {
-        console.error('データの取得に失敗:', error);
+        const [teamsRes, studentsRes] = await Promise.all([
+          fetch(`${SERVER_ENDPOINT}/api/otanoshimi`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${SERVER_ENDPOINT}/api/students`, { headers: { Authorization: `Bearer ${token}` } })
+        ]);
+        if (!teamsRes.ok) throw new Error(`HTTPエラー: ${teamsRes.status}`);
+        if (!studentsRes.ok) throw new Error(`HTTPエラー: ${studentsRes.status}`);
+        const teamsData: OtanoshimiData[] = await teamsRes.json();
+        const studentsData: student[] = await studentsRes.json();
+        setAllStudents(studentsData);
+        const current = teamsData.find((t) => t.appearance_order === order) || null;
+        setTeam(
+          current ? { ...current, custom_performers: current.custom_performers || [], enmoku: current.enmoku || '', comment: current.comment || '', supervisor: current.supervisor || [] } : null
+        );
+      } catch (e) {
+        console.error('データの取得に失敗:', e);
         setTeam(null);
       } finally {
         setLoading(false);
       }
     };
-
-    if (order) {
-      fetchAllData();
-    }
+    fetchAllData();
   }, [order, token]);
 
   const getNameById = (gakuseki: number) => {
@@ -79,7 +55,7 @@ const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate }: { order: nu
       <div className="bg-white p-4 rounded-lg shadow-lg w-full m-4 max-w-[95dvw] h-[90dvh]">
         <div className="flex flex-col items-center justify-center m-[10px]">
           <section className="m-2 p-4 border rounded-lg shadow-lg bg-white w-full max-w-md h-full min-h-[70dvh] max-h-[70dvh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-center mb-4">{loading ? '読込中' : !team ? '指定された出演順のチームが見つかりません。' : `${order}.「${team.name}」`}</h2>
+            <h2 className="text-2xl font-bold text-center mb-4">{loading ? '読込中...' : !team ? '指定された出演順のチームが見つかりません。' : `${order}.「${team.name}」`}</h2>
             <p className="text-lg text-center mb-2">
               {'演目: '}
               {loading ? '読込中' : !team ? '演目不詳' : team.enmoku}
@@ -99,7 +75,7 @@ const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate }: { order: nu
             <div className="mt-4">
               <h3 className="font-semibold">{'メンバー'}</h3>
               <ul className="list-disc list-inside grid grid-cols-2 gap-1">
-                {loading ? '読込中' : !team ? '不詳' : team.members.map((memberId) => <li key={memberId}>{getNameById(memberId)}</li>)}
+                {loading ? '読込中...' : !team ? '不詳' : team.members.map((memberId) => <li key={memberId}>{getNameById(memberId)}</li>)}
                 {loading ? <></> : !team ? <></> : team.custom_performers.length > 0 ? team.custom_performers.map((performer, index) => (performer ? <li key={index}>{performer}</li> : <></>)) : <></>}
               </ul>
             </div>
@@ -150,7 +126,7 @@ const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate }: { order: nu
 
 const Otanoshimi = () => {
   const { token } = useAuth();
-  const [teams, setTeams] = useState<OtanoshimiDataWithSchedule[] | undefined>(undefined);
+  const [teams, setTeams] = useState<OtanoshimiDataWithSchedule[] | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const previewOrder = searchParams.get('preview');
@@ -169,39 +145,25 @@ const Otanoshimi = () => {
   const fetchTeams = useCallback(async () => {
     if (!token) return;
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/otanoshimi`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      if (!response.ok) {
-        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-      }
+      const response = await fetch(`${SERVER_ENDPOINT}/api/otanoshimi`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!response.ok) throw new Error(`HTTPエラー: ${response.status}`);
       const data: OtanoshimiData[] = await response.json();
-      const teamsWithDefaults = data.map((team) => ({
-        ...team,
-        custom_performers: team.custom_performers || [],
-        enmoku: team.enmoku || ''
-      }));
-      teamsWithDefaults.sort((a, b) => a.appearance_order - b.appearance_order);
-
-      const scheduleStartTime = new Date();
-      scheduleStartTime.setHours(19, 0, 0, 0);
-      let currentTime = scheduleStartTime.getTime();
-
-      const formatTime = (date: Date) => `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-
-      const teamsWithSchedule = teamsWithDefaults.map((team) => {
-        const startTime = new Date(currentTime);
-        const endTime = new Date(currentTime + team.time * 60000);
-        const schedule = `${formatTime(startTime)} - ${formatTime(endTime)}`;
-        currentTime = endTime.getTime() + 60000;
-        return { ...team, schedule };
+      const base = data.map((team) => ({ ...team, custom_performers: team.custom_performers || [], enmoku: team.enmoku || '' })).sort((a, b) => a.appearance_order - b.appearance_order);
+      const scheduleStart = new Date();
+      scheduleStart.setHours(19, 0, 0, 0);
+      let cursor = scheduleStart.getTime();
+      const format = (d: Date) => `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+      const withSchedule = base.map((t) => {
+        const start = new Date(cursor);
+        const end = new Date(cursor + t.time * 60000);
+        const schedule = `${format(start)} - ${format(end)}`;
+        cursor = end.getTime() + 60000; // +1min buffer
+        return { ...t, schedule };
       });
-
-      setTeams(teamsWithSchedule);
-    } catch (error) {
-      console.error('チームデータの取得に失敗:', error);
+      setTeams(withSchedule);
+    } catch (e) {
+      console.error('チームデータの取得に失敗:', e);
+      setTeams([]);
     }
   }, [token]);
 
@@ -219,7 +181,7 @@ const Otanoshimi = () => {
 
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">
-      {previewOrder ? <OtanoshimiPreviewModal order={parseInt(previewOrder || '')} max={teams?.length || 0} onClose={handleCloseModal} onNavigate={handleNavigate} /> : <></>}
+      {previewOrder && teams ? <OtanoshimiPreviewModal order={parseInt(previewOrder || '')} max={teams.length || 0} onClose={handleCloseModal} onNavigate={handleNavigate} /> : <></>}
 
       <div className="m-2 flex flex-col items-center justify-center">
         <h1 className="text-3xl font-bold">{'お楽しみ会'}</h1>
@@ -230,11 +192,16 @@ const Otanoshimi = () => {
         <h2 className="text-xl text-center font-bold">{'出演団体一覧'}</h2>
         <p className="text-center">{'クリックすると、各団体の詳細を閲覧できます。'}</p>
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mt-4">
-          {teams ? teams.map((x) => <OtanoshimiCard name={x.name} index={x.appearance_order} key={x.appearance_order}></OtanoshimiCard>) : <p>{'読込中...'}</p>}
+          {!teams ? (
+            <p>{'読込中...'}</p>
+          ) : teams.length === 0 ? (
+            <p>{'データがありません。'}</p>
+          ) : (
+            teams.map((x) => <OtanoshimiCard name={x.name} index={x.appearance_order} key={x.appearance_order} />)
+          )}
         </div>
       </div>
-
-      <Button text="ホームに戻る" arrowLeft link="/index"></Button>
+      <Button text="ホームに戻る" arrowLeft link="/index" />
 
       <div className="flex flex-col items-center justify-center m-5">
         <h2 className="text-xl text-center font-bold">{'当日のスケジュール'}</h2>
@@ -273,22 +240,28 @@ const Otanoshimi = () => {
               </tr>
             </thead>
             <tbody>
-              {teams ? (
+              {!teams ? (
+                <tr className="bg-gray-100">
+                  <td className="text-center" colSpan={3}>
+                    {'読込中...'}
+                  </td>
+                </tr>
+              ) : teams.length === 0 ? (
+                <tr className="bg-gray-100">
+                  <td className="text-center" colSpan={3}>
+                    {'データ無し'}
+                  </td>
+                </tr>
+              ) : (
                 teams.map((x, i) => (
-                  <tr key={x.appearance_order} className={`bg-${i % 2 === 0 ? 'gray-100' : 'white'}`}>
+                  <tr key={x.appearance_order} className={i % 2 === 0 ? 'bg-gray-100' : 'bg-white'}>
                     <td className="text-center">{x.schedule}</td>
                     <td className="text-center">{x.name}</td>
                     <td className="text-center">{x.enmoku}</td>
                   </tr>
                 ))
-              ) : (
-                <tr className="bg-gray-100">
-                  <td className="text-center" colSpan={3}>
-                    {'読込中'}
-                  </td>
-                </tr>
               )}
-              <tr className={teams ? (teams.length % 2 === 0 ? 'bg-gray-100' : 'bg-white') : ''}>
+              <tr className={teams ? (teams.length % 2 === 0 ? 'bg-gray-100' : 'bg-white') : 'bg-white'}>
                 <td className="text-center">{'21:30 (厳守)'}</td>
                 <td className="text-center font-bold" colSpan={2}>
                   {'終了 + 解散'}
@@ -304,7 +277,7 @@ const Otanoshimi = () => {
         </div>
       </div>
 
-      <Button text="ホームに戻る" arrowLeft link="/index"></Button>
+      <Button text="ホームに戻る" arrowLeft link="/index" />
 
       <div className="flex flex-col items-center justify-center mt-8">
         <p className="text-xl font-bold">{'STAFF'}</p>

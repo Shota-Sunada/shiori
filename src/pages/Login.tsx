@@ -1,4 +1,4 @@
-import { useRef, type FormEvent, useEffect, useState } from 'react';
+import { useRef, type FormEvent, useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
 import '../styles/login.css';
@@ -25,52 +25,48 @@ const Login = () => {
     }
   }, [user, loading, navigate]);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError(null); // Reset error on new submission
-
-    const id = student_id_ref.current?.valueAsNumber;
-    const password = password_ref.current?.value;
-
-    if (!id || !password) {
-      setError('ユーザー名とパスワードを入力してください。');
-      return;
-    }
-
-    if (id <= USER_ID_MIN || USER_ID_MAX <= id) {
-      setError('生徒IDは8桁で正しく入力してください。');
-      return;
-    }
-
-    try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ id: id, password })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        login(data.token);
-        console.log('ログインに成功しました。');
-        const decoded = jwtDecode<AuthUser>(data.token);
-        await registerOrRequestPermission(decoded);
-        navigate('/');
-      } else if (response.status === 403) {
-        setError(data.message);
-        console.error('ログインに失敗:', data.message);
-      } else {
-        setError(`ユーザー名またはパスワードが正しくありません。`);
-        console.error('ログインに失敗:', data.message);
-      }
-    } catch (error) {
-      setError('ログイン中にエラーが発生しました。ネットワーク接続を確認してください。');
-      console.error('ログイン中にエラー:', error);
-    }
+  const validate = (id?: number, password?: string) => {
+    if (!id || !password) return 'ユーザー名とパスワードを入力してください。';
+    if (id <= USER_ID_MIN || USER_ID_MAX <= id) return '生徒IDは8桁で正しく入力してください。';
+    if (password.length < 4) return 'パスワードは4文字以上を入力してください。';
+    return null;
   };
+
+  const handleSubmit = useCallback(
+    async (e: FormEvent) => {
+      e.preventDefault();
+      setError(null);
+      const id = student_id_ref.current?.valueAsNumber;
+      const password = password_ref.current?.value?.trim();
+      const validationError = validate(id, password);
+      if (validationError) {
+        setError(validationError);
+        return;
+      }
+      try {
+        const response = await fetch(`${SERVER_ENDPOINT}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, password })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          login(data.token);
+          const decoded = jwtDecode<AuthUser>(data.token);
+          await registerOrRequestPermission(decoded);
+          navigate('/');
+        } else if (response.status === 403) {
+          setError(data.message || 'アカウントがロックされている可能性があります。');
+        } else {
+          setError('ユーザー名またはパスワードが正しくありません。');
+        }
+      } catch (err) {
+        setError('ログイン中にエラーが発生しました。ネットワーク接続を確認してください。');
+        console.error('ログイン中にエラー:', err);
+      }
+    },
+    [navigate, login]
+  );
 
   if (loading) return null;
 
@@ -101,9 +97,7 @@ const Login = () => {
             </span>
           </div>
         </div>
-        <button type="submit">
-          <Button text={'ログイン'} arrowRight />
-        </button>
+        <Button text={'ログイン'} arrowRight type="submit" />
         {error && <p className="text-red-500 mt-4">{error}</p>}
       </form>
     </div>

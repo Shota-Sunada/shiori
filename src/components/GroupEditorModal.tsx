@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, type FC } from 'react';
+import { useState, useEffect, useMemo, useRef, memo, type FC } from 'react';
 import { SERVER_ENDPOINT } from '../App';
 import type { student } from '../data/students';
 import KanaSearchModal from './KanaSearchModal';
@@ -10,17 +10,17 @@ interface StudentChipProps {
   onDelete: (studentId: number) => void;
 }
 
-const StudentChip: FC<StudentChipProps> = ({ studentId, studentMap, onDelete }) => {
+const StudentChip: FC<StudentChipProps> = memo(({ studentId, studentMap, onDelete }) => {
   const studentName = studentMap.get(studentId) || '不明な生徒';
   return (
-    <div className="flex items-center bg-blue-100 text-blue-800 text-sm font-semibold px-2.5 py-0.5 rounded-full">
-      {studentName}
-      <button onClick={() => onDelete(studentId)} className="ml-2 text-blue-800 hover:text-blue-900 cursor-pointer">
+    <div className="flex items-center bg-blue-100 text-blue-800 text-sm font-semibold px-2.5 py-0.5 rounded-full" aria-label={`生徒: ${studentName}`}>
+      <span>{studentName}</span>
+      <button type="button" onClick={() => onDelete(studentId)} className="ml-2 text-blue-800 hover:text-blue-900 cursor-pointer" aria-label={`${studentName} を削除`} title="削除">
         &times;
       </button>
     </div>
   );
-};
+});
 
 // --- Main Component ---
 
@@ -46,6 +46,8 @@ const GroupEditorModal = ({ isOpen, onClose, token, allStudents, rollCallGroups,
   const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
   const [isKanaModalOpen, setIsKanaModalOpen] = useState(false);
   const [studentIdInput, setStudentIdInput] = useState('');
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const firstFieldRef = useRef<HTMLInputElement | null>(null);
 
   const studentMap = useMemo(() => {
     const newMap = new Map<number, string>();
@@ -66,29 +68,41 @@ const GroupEditorModal = ({ isOpen, onClose, token, allStudents, rollCallGroups,
   }, [currentGroup]);
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.classList.add('modal-open');
-      document.documentElement.classList.add('modal-open');
-    } else {
-      document.body.classList.remove('modal-open');
-      document.documentElement.classList.remove('modal-open');
-    }
+    if (!isOpen) return;
+    document.body.classList.add('modal-open');
+    document.documentElement.classList.add('modal-open');
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+      if (e.key === 'Enter' && isEditing && document.activeElement === dialogRef.current) {
+        // avoid accidental saves when focus trap root
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    // 初期フォーカス
+    setTimeout(() => {
+      if (isEditing) {
+        firstFieldRef.current?.focus();
+      } else {
+        dialogRef.current?.focus();
+      }
+    }, 0);
     return () => {
       document.body.classList.remove('modal-open');
       document.documentElement.classList.remove('modal-open');
+      window.removeEventListener('keydown', onKey);
     };
-  }, [isOpen]);
+  }, [isOpen, isEditing, onClose]);
+
+  const sortedSelectedStudents = useMemo(() => [...selectedStudents].sort((a, b) => a - b), [selectedStudents]);
 
   if (!isOpen) return null;
 
   const handleStudentSelect = (student: student) => {
-    setSelectedStudents((prev) => {
-      if (prev.includes(student.gakuseki)) {
-        return prev; // Already selected
-      } else {
-        return [...prev, student.gakuseki];
-      }
-    });
+    setSelectedStudents((prev) => (prev.includes(student.gakuseki) ? prev : [...prev, student.gakuseki]));
   };
 
   const handleAddStudentsFromInput = () => {
@@ -209,9 +223,18 @@ const GroupEditorModal = ({ isOpen, onClose, token, allStudents, rollCallGroups,
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[1000] modal-overlay">
-        <div className="bg-white p-6 rounded-lg shadow-xl w-full h-[90vh] flex flex-col max-w-[95dvw]" onClick={(e) => e.stopPropagation()}>
-          <h2 className="text-2xl font-bold mb-4">{'点呼プリセットの編集'}</h2>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[1000] modal-overlay" role="presentation" onClick={onClose}>
+        <div
+          ref={dialogRef}
+          className="bg-white p-6 rounded-lg shadow-xl w-full h-[90vh] flex flex-col max-w-[95dvw] outline-none"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="rollcall-editor-title"
+          tabIndex={-1}
+          onClick={(e) => e.stopPropagation()}>
+          <h2 id="rollcall-editor-title" className="text-2xl font-bold mb-4">
+            {'点呼プリセットの編集'}
+          </h2>
 
           {isEditing ? (
             <div className="flex-grow flex flex-col min-h-0">
@@ -219,7 +242,16 @@ const GroupEditorModal = ({ isOpen, onClose, token, allStudents, rollCallGroups,
                 <label htmlFor="group_name" className="block text-gray-700 text-sm font-bold mb-2">
                   {'プリセット名'}
                 </label>
-                <input type="text" id="group_name" value={groupName} onChange={(e) => setGroupName(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" />
+                <input
+                  ref={firstFieldRef}
+                  type="text"
+                  id="group_name"
+                  value={groupName}
+                  onChange={(e) => setGroupName(e.target.value)}
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"
+                  placeholder="プリセット名を入力"
+                  aria-required="true"
+                />
               </div>
               <div className="flex items-center mb-2 flex-wrap gap-2">
                 <p className="font-bold">
@@ -245,8 +277,8 @@ const GroupEditorModal = ({ isOpen, onClose, token, allStudents, rollCallGroups,
                 </div>
               </div>
               <div className="flex-grow overflow-y-auto border rounded p-2 flex flex-wrap gap-2 content-start">
-                {selectedStudents.length > 0 ? (
-                  selectedStudents.sort((a, b) => a - b).map((studentId) => <StudentChip key={studentId} studentId={studentId} studentMap={studentMap} onDelete={handleStudentDelete} />)
+                {sortedSelectedStudents.length > 0 ? (
+                  sortedSelectedStudents.map((studentId) => <StudentChip key={studentId} studentId={studentId} studentMap={studentMap} onDelete={handleStudentDelete} />)
                 ) : (
                   <p className="text-gray-500">{'生徒を選択してください。'}</p>
                 )}

@@ -9,13 +9,28 @@ interface NotificationPayload {
   link?: string;
 }
 
-export const sendNotification = async (payload: NotificationPayload): Promise<{ success: boolean; error?: string }> => {
-  try {
-    const token = localStorage.getItem('jwt_token');
-    if (!token) {
-      return { success: false, error: 'JWT token not found' };
-    }
+interface NotificationResult {
+  success: boolean;
+  error?: string;
+}
 
+const getJwt = (): string | null => {
+  try {
+    return localStorage.getItem('jwt_token');
+  } catch {
+    return null;
+  }
+};
+
+const ensureServiceWorkerAndRegister = (userId: string) => {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.ready.then((registration) => registerFCMToken(userId, registration)).catch((e) => console.error('ServiceWorker ready 取得失敗', e));
+};
+
+export const sendNotification = async (payload: NotificationPayload): Promise<NotificationResult> => {
+  const token = getJwt();
+  if (!token) return { success: false, error: 'JWT token not found' };
+  try {
     const res = await fetch(`${SERVER_ENDPOINT}/send-notification`, {
       method: 'POST',
       headers: {
@@ -24,17 +39,32 @@ export const sendNotification = async (payload: NotificationPayload): Promise<{ 
       },
       body: JSON.stringify(payload)
     });
-
-    if (res.ok) {
-      return { success: true };
-    } else {
+    if (res.ok) return { success: true };
+    let errorText = '不明なエラー';
+    try {
       const errorData = await res.json();
-      return { success: false, error: errorData.error || '不明なエラー' };
+      errorText = errorData.error || errorText;
+    } catch {
+      /* ignore JSON parse error */
     }
+    return { success: false, error: errorText };
   } catch (error) {
     console.error('Failed to send notification', error);
     return { success: false, error: '通知の送信中にエラーが発生しました。' };
   }
+};
+
+const requestPermissionIfNeeded = async (): Promise<NotificationPermission> => {
+  if (!('Notification' in window)) return 'denied';
+  if (Notification.permission === 'default') {
+    try {
+      return await Notification.requestPermission();
+    } catch (e) {
+      console.error('通知許可要求に失敗', e);
+      return 'denied';
+    }
+  }
+  return Notification.permission;
 };
 
 export const handleEnableNotifications = async (user: AuthUser | null) => {
@@ -42,22 +72,16 @@ export const handleEnableNotifications = async (user: AuthUser | null) => {
     alert('このブラウザは通知をサポートしていません。');
     return;
   }
-
-  const permission = await Notification.requestPermission();
-
+  const permission = await requestPermissionIfNeeded();
   if (permission === 'granted') {
-    alert('通知が有効になりました。');
-    if (user && user.userId) {
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then((registration) => {
-          registerFCMToken(user.userId, registration);
-        });
-      }
+    if (user?.userId) {
+      ensureServiceWorkerAndRegister(user.userId);
+      alert('通知が有効になりました。');
     } else {
       alert('ログイン後に再度お試しください。');
     }
-  } else {
-    alert('通知が拒否されました。');
+  } else if (permission === 'denied') {
+    alert('通知が拒否されています。ブラウザの設定を確認してください。');
   }
 };
 
@@ -66,24 +90,14 @@ export const registerOrRequestPermission = async (user: AuthUser | null) => {
     console.log('このブラウザは通知をサポートしていません。');
     return;
   }
-
-  let permission = Notification.permission;
-
-  if (permission === 'default') {
-    permission = await Notification.requestPermission();
-  }
-
+  const permission = await requestPermissionIfNeeded();
   if (permission === 'granted') {
-    if (user && user.userId) {
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then((registration) => {
-          registerFCMToken(user.userId, registration);
-        });
-      }
+    if (user?.userId) {
+      ensureServiceWorkerAndRegister(user.userId);
     } else {
       console.log('ユーザーがログインしていません。');
     }
-  } else {
+  } else if (permission === 'denied') {
     console.log('通知が許可されていません。');
   }
 };

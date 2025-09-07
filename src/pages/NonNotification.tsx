@@ -1,7 +1,8 @@
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../auth-context';
 import Button from '../components/Button';
 import { handleEnableNotifications } from '../helpers/notifications';
-import { useState, useEffect } from 'react';
+import CenterMessage from '../components/CenterMessage';
 
 const DeniedInstructions = () => {
   const [browser, setBrowser] = useState('unknown');
@@ -115,7 +116,7 @@ const DeniedInstructions = () => {
 
 const NonNotification = () => {
   const { user } = useAuth();
-  const [permission, setPermission] = useState<'default' | 'denied' | 'granted' | 'prompt'>(Notification.permission);
+  const [permission, setPermission] = useState<NotificationPermission | 'prompt'>(Notification.permission);
 
   useEffect(() => {
     const updatePermission = () => {
@@ -135,31 +136,31 @@ const NonNotification = () => {
     }
   }, []);
 
-  const renderContent = () => {
-    switch (permission) {
-      case 'granted':
-        return (
-          <>
-            <p className="font-bold text-2xl">{'ありがとうございます！'}</p>
-            <p>{'通知が有効になりました！'}</p>
-            <Button text="ホームへ" arrowRight link="/" />
-          </>
-        );
-      case 'denied':
-        return <DeniedInstructions />;
-      default: // 'default' or 'prompt'
-        return (
-          <>
-            <p className="font-bold text-2xl">{'通知を有効化してください'}</p>
-            <p>{'このしおりでは、通知が重要な役割を果たします。'}</p>
-            <p>{'お願いですから、通知を許可してください。'}</p>
-            <Button text="通知を許可する" arrowRight onClick={() => handleEnableNotifications(user)} />
-          </>
-        );
-    }
-  };
+  const onEnable = useCallback(() => handleEnableNotifications(user), [user]);
 
-  return <div className="flex flex-col items-center justify-center m-[10px] text-center">{renderContent()}</div>;
+  let content: React.ReactNode;
+  if (permission === 'granted') {
+    content = (
+      <>
+        <p className="font-bold text-2xl mb-2">{'ありがとうございます！'}</p>
+        <p className="mb-4">{'通知が有効になりました。'}</p>
+        <Button text="ホームへ" arrowRight link="/" />
+      </>
+    );
+  } else if (permission === 'denied') {
+    content = <DeniedInstructions />;
+  } else {
+    content = (
+      <>
+        <p className="font-bold text-2xl mb-2">{'通知を有効化してください'}</p>
+        <p className="mb-1">{'このしおりでは通知が重要な役割を果たします。'}</p>
+        <p className="mb-4">{'点呼開始などを受け取るため通知を許可してください。'}</p>
+        <Button text="通知を許可する" arrowRight onClick={onEnable} />
+      </>
+    );
+  }
+
+  return <CenterMessage>{content}</CenterMessage>;
 };
 
 export default NonNotification;

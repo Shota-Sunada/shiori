@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import type { student } from '../data/students';
 import { SERVER_ENDPOINT } from '../App';
 import IndexTable from '../components/IndexTable';
+import CenterMessage from '../components/CenterMessage';
 
 interface ActiveRollCall {
   id: string;
@@ -19,91 +20,66 @@ const Index = () => {
   const [studentData, setStudentData] = useState<student | null | undefined>(undefined);
   const [activeRollCall, setActiveRollCall] = useState<ActiveRollCall | null>(null);
 
-  useEffect(() => {
-    const fetchStudent = async () => {
-      if (user && user.userId && !user.is_teacher && token) {
-        try {
-          const response = await fetch(`${SERVER_ENDPOINT}/api/students/${user.userId}`, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
-          if (!response.ok) {
-            if (response.status === 404) {
-              console.warn(`生徒ID「${user.userId}」のデータが見つかりませんでした。`);
-              setStudentData(null);
-            } else {
-              throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-            }
+  const fetchStudent = useCallback(async () => {
+    if (user && user.userId && !user.is_teacher && token) {
+      try {
+        const response = await fetch(`${SERVER_ENDPOINT}/api/students/${user.userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!response.ok) {
+          if (response.status === 404) {
+            console.warn(`生徒ID「${user.userId}」のデータが見つかりませんでした。`);
+            setStudentData(null);
           } else {
-            const data: student = await response.json();
-            setStudentData(data);
+            throw new Error(`HTTPエラー status: ${response.status}`);
           }
-        } catch (error) {
-          console.error('生徒データの取得に失敗:', error);
-          setStudentData(null);
+        } else {
+          const data: student = await response.json();
+          setStudentData(data);
         }
-      } else {
+      } catch (error) {
+        console.error('生徒データの取得に失敗:', error);
         setStudentData(null);
       }
-    };
-
-    const checkActiveRollCall = async () => {
-      if (user && user.userId && !user.is_teacher && token) {
-        try {
-          const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/active?student_id=${user.userId}`, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
-          if (response.ok) {
-            const data = await response.json();
-            setActiveRollCall(data);
-          } else {
-            setActiveRollCall(null);
-          }
-        } catch (error) {
-          console.error('有効な点呼の確認中にエラーが発生しました:', error);
-          setActiveRollCall(null);
-        }
-      }
-    };
-
-    fetchStudent();
-    checkActiveRollCall();
-
-    const intervalId = setInterval(checkActiveRollCall, 5000);
-
-    return () => clearInterval(intervalId);
+    } else {
+      setStudentData(null);
+    }
   }, [user, token]);
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[80dvh]">
-        <p className="text-xl">{'読込中...'}</p>
-      </div>
-    );
-  }
+  const checkActiveRollCall = useCallback(async () => {
+    if (user && user.userId && !user.is_teacher && token) {
+      try {
+        const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/active?student_id=${user.userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setActiveRollCall(data);
+        } else {
+          setActiveRollCall(null);
+        }
+      } catch (error) {
+        console.error('有効な点呼の確認中にエラー:', error);
+        setActiveRollCall(null);
+      }
+    }
+  }, [user, token]);
 
-  if (!user) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[80dvh]">
-        <p className="text-xl">{'ユーザーデータ読込中...'}</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    fetchStudent();
+    checkActiveRollCall();
+    const intervalId = setInterval(checkActiveRollCall, 5000);
+    return () => clearInterval(intervalId);
+  }, [fetchStudent, checkActiveRollCall]);
 
-  if (user?.is_teacher) {
-    navigate('/teacher');
-  }
+  // 教員は教師トップへ
+  useEffect(() => {
+    if (user?.is_teacher) navigate('/teacher');
+  }, [user?.is_teacher, navigate]);
 
-  if (studentData === undefined) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[80dvh]">
-        <p className="text-xl">{'生徒データ読込中...'}</p>
-      </div>
-    );
-  }
+  if (loading) return <CenterMessage>読込中...</CenterMessage>;
+  if (!user) return <CenterMessage>ユーザーデータ読込中...</CenterMessage>;
+  if (studentData === undefined) return <CenterMessage>生徒データ読込中...</CenterMessage>;
 
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">

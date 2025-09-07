@@ -3,6 +3,7 @@ import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 import { useRequireAuth } from '../auth-context';
 import '../styles/admin-table.css';
 import { SERVER_ENDPOINT } from '../App';
+import CenterMessage from '../components/CenterMessage';
 
 interface User {
   id: number;
@@ -73,7 +74,7 @@ const initialForm = {
 
 const MemoizedRow: FC<MemoizedRowProps> = memo(({ u, handleUnban, handleDelete, modalMode, renderCellContent, handleCellDoubleClick }) => {
   return (
-    <tr key={u.id} className={`${u.is_banned ? 'bg-red-200' : 'bg-white'}`}>
+    <tr className={`${u.is_banned ? 'bg-red-200' : 'bg-white'}`}>
       <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(u, 'id')}>
         {renderCellContent(u, 'id')}
       </td>
@@ -115,25 +116,30 @@ const MemoizedRow: FC<MemoizedRowProps> = memo(({ u, handleUnban, handleDelete, 
 
 const UserModal: FC<UserModalProps> = memo(({ modalMode, editRowForm, handleSave, setModalMode, setEditRowForm }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const firstFieldRef = useRef<HTMLInputElement | null>(null);
 
-  if (modalMode === null) {
-    return null;
-  }
+  useEffect(() => {
+    if (modalMode && firstFieldRef.current) firstFieldRef.current.focus();
+  }, [modalMode]);
+
+  if (!modalMode) return null;
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50 modal-overlay">
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50 modal-overlay" role="dialog" aria-modal="true">
       <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
         <h2 className="text-2xl font-bold mb-4">{modalMode === 'add' ? 'ユーザー追加' : 'ユーザー編集'}</h2>
         <form
           onSubmit={(e) => {
             e.preventDefault();
             handleSave(editRowForm);
-          }}>
-          <div className="mb-4">
+          }}
+          className="space-y-4">
+          <div>
             <label htmlFor="id" className="block text-gray-700 text-sm font-bold mb-2">
               {'ユーザーID'}
             </label>
             <input
+              ref={firstFieldRef}
               type="number"
               id="id"
               name="id"
@@ -144,7 +150,7 @@ const UserModal: FC<UserModalProps> = memo(({ modalMode, editRowForm, handleSave
               disabled={modalMode === 'edit'}
             />
           </div>
-          <div className="mb-4">
+          <div>
             <label htmlFor="password" className="block text-gray-700 text-sm font-bold mb-2">
               {'パスワード '}
               {modalMode === 'edit' && '(変更する場合のみ入力)'}
@@ -156,31 +162,35 @@ const UserModal: FC<UserModalProps> = memo(({ modalMode, editRowForm, handleSave
                 name="password"
                 value={editRowForm.password}
                 onChange={(e) => setEditRowForm({ ...editRowForm, password: e.target.value })}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="shadow appearance-none border rounded w-full py-2 px-3 pr-10 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 required={modalMode === 'add'}
               />
-              <span className="absolute top-1/2 right-4 -translate-y-1/2 cursor-pointer text-gray-500" onClick={() => setShowPassword(!showPassword)}>
+              <button
+                type="button"
+                aria-label={showPassword ? 'パスワードを隠す' : 'パスワードを表示'}
+                className="absolute top-1/2 right-2 -translate-y-1/2 text-gray-500"
+                onClick={() => setShowPassword((p) => !p)}>
                 {showPassword ? <AiFillEyeInvisible size={24} /> : <AiFillEye size={24} />}
-              </span>
+              </button>
             </div>
           </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              <input type="checkbox" checked={editRowForm.is_admin} onChange={(e) => setEditRowForm({ ...editRowForm, is_admin: e.target.checked })} className="mr-2 leading-tight" />
+          <div className="flex items-center">
+            <input id="is_admin" type="checkbox" checked={editRowForm.is_admin} onChange={(e) => setEditRowForm({ ...editRowForm, is_admin: e.target.checked })} className="mr-2" />
+            <label htmlFor="is_admin" className="text-sm font-bold">
               {'管理者'}
             </label>
           </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              <input type="checkbox" checked={editRowForm.is_teacher} onChange={(e) => setEditRowForm({ ...editRowForm, is_teacher: e.target.checked })} className="mr-2 leading-tight" />
+          <div className="flex items-center">
+            <input id="is_teacher" type="checkbox" checked={editRowForm.is_teacher} onChange={(e) => setEditRowForm({ ...editRowForm, is_teacher: e.target.checked })} className="mr-2" />
+            <label htmlFor="is_teacher" className="text-sm font-bold">
               {'教員'}
             </label>
           </div>
-          <div className="flex items-center justify-between">
-            <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+          <div className="flex items-center justify-between pt-2">
+            <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded disabled:opacity-60">
               {modalMode === 'add' ? '追加' : '更新'}
             </button>
-            <button type="button" onClick={() => setModalMode(null)} className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+            <button type="button" onClick={() => setModalMode(null)} className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
               {'キャンセル'}
             </button>
           </div>
@@ -225,26 +235,29 @@ const UserAdmin = () => {
     }
   }, [token]);
 
-  const handleUnban = async (id: number) => {
-    if (!token) return;
-    if (!window.confirm('このユーザーのBANを解除しますか？')) return;
-    setStatus('BANを解除中...');
-    try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/users/${id}/unban`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`
+  const handleUnban = useCallback(
+    async (id: number) => {
+      if (!token) return;
+      if (!window.confirm('このユーザーのBANを解除しますか？')) return;
+      setStatus('BANを解除中...');
+      try {
+        const response = await fetch(`${SERVER_ENDPOINT}/api/users/${id}/unban`, {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTPエラー! ステータス: ${response.status}`);
         }
-      });
-      if (!response.ok) {
-        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+        setStatus('ユーザーのBANを解除しました。');
+        fetchUsers();
+      } catch (e) {
+        setStatus('エラーが発生しました: ' + (e as Error).message);
       }
-      setStatus('ユーザーのBANを解除しました。');
-      fetchUsers();
-    } catch (e) {
-      setStatus('エラーが発生しました: ' + (e as Error).message);
-    }
-  };
+    },
+    [token, fetchUsers]
+  );
 
   const handleSort = (key: SortKey, shiftKey: boolean) => {
     setSortConfigs((prevConfigs) => {
@@ -276,11 +289,16 @@ const UserAdmin = () => {
   };
 
   const sortedAndFilteredUsers = useMemo(() => {
-    if (!usersList) {
-      return [];
-    }
-    const lowercasedQuery = debouncedSearchQuery.toLowerCase();
-    const filtered = usersList.filter((u) => String(u.id).includes(lowercasedQuery) || (u.is_admin && 'admin'.includes(lowercasedQuery)) || (u.is_teacher && 'teacher'.includes(lowercasedQuery)));
+    if (!usersList) return [];
+    const q = debouncedSearchQuery.trim().toLowerCase();
+    if (!q) return sortList(usersList, sortConfigs);
+    const filtered = usersList.filter((u) => {
+      if (String(u.id).includes(q)) return true;
+      if (q === 'admin' && u.is_admin) return true;
+      if (q === 'teacher' && u.is_teacher) return true;
+      if (q === 'banned' && u.is_banned) return true;
+      return false;
+    });
     return sortList(filtered, sortConfigs);
   }, [usersList, debouncedSearchQuery, sortConfigs]);
 
@@ -300,149 +318,161 @@ const UserAdmin = () => {
     };
   }, [searchQuery]);
 
-  const handleDelete = async (id: number) => {
-    if (!token) return;
-    if (!window.confirm('本当に削除しますか？')) return;
-    setStatus('削除中...');
-    try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/users/${id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`
+  const handleDelete = useCallback(
+    async (id: number) => {
+      if (!token) return;
+      if (!window.confirm('本当に削除しますか？')) return;
+      setStatus('削除中...');
+      try {
+        const response = await fetch(`${SERVER_ENDPOINT}/api/users/${id}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTPエラー! ステータス: ${response.status}`);
         }
-      });
-      if (!response.ok) {
-        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+        setStatus('ユーザーを削除しました。');
+        fetchUsers();
+      } catch (e) {
+        setStatus('エラーが発生しました: ' + (e as Error).message);
       }
-      setStatus('ユーザーを削除しました。');
-      fetchUsers();
-    } catch (e) {
-      setStatus('エラーが発生しました: ' + (e as Error).message);
-    }
-  };
+    },
+    [token, fetchUsers]
+  );
 
-  const handleAddRow = () => {
+  const handleAddRow = useCallback(() => {
     setModalMode('add');
     setEditRowForm(initialForm);
     setStatus('');
-  };
+  }, []);
 
-  const handleAddJSONData = () => {
+  const handleAddJSONData = useCallback(() => {
     inputRef.current?.click();
-  };
+  }, []);
 
-  const handleJSONRead = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        if (!token) return;
-        const data = e.target?.result as string;
-        const usersToProcess = JSON.parse(data);
+  const handleJSONRead = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files) {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          if (!token) return;
+          const data = e.target?.result as string;
+          const usersToProcess = JSON.parse(data);
 
-        setStatus('更新中...');
+          setStatus('更新中...');
+          try {
+            const response = await fetch(`${SERVER_ENDPOINT}/api/users/bulk`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+              },
+              body: JSON.stringify({ users: usersToProcess })
+            });
+            const result = await response.json();
+            if (!response.ok && response.status !== 207) {
+              throw new Error(result.message || `HTTPエラー! ステータス: ${response.status}`);
+            }
+            setStatus(result.message);
+          } catch (e) {
+            setStatus('エラーが発生しました: ' + (e as Error).message);
+          }
+          fetchUsers();
+        };
+        reader.readAsText(e.target.files[0]);
+      }
+    },
+    [token, fetchUsers]
+  );
+
+  const handleSave = useCallback(
+    async (formData: typeof initialForm) => {
+      if (!token) return;
+      const id = Number(formData.id);
+      const { password, is_admin, is_teacher } = formData;
+
+      if (modalMode === 'add') {
+        if (isNaN(id) || !password) {
+          setStatus('IDとパスワードを正しく入力してください。');
+          return;
+        }
+        setStatus('追加中...');
         try {
-          const response = await fetch(`${SERVER_ENDPOINT}/api/users/bulk`, {
+          const response = await fetch(`${SERVER_ENDPOINT}/api/users`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${token}`
             },
-            body: JSON.stringify({ users: usersToProcess })
+            body: JSON.stringify({ id, password, is_admin, is_teacher })
           });
-          const result = await response.json();
-          if (!response.ok && response.status !== 207) {
-            throw new Error(result.message || `HTTPエラー! ステータス: ${response.status}`);
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `HTTPエラー! ステータス: ${response.status}`);
           }
-          setStatus(result.message);
+          setStatus('ユーザーを追加しました。');
+          setModalMode(null);
+          fetchUsers();
         } catch (e) {
           setStatus('エラーが発生しました: ' + (e as Error).message);
         }
-        fetchUsers();
-      };
-      reader.readAsText(e.target.files[0]);
-    }
-  };
+      } else if (modalMode === 'edit') {
+        if (editRowId === null) return;
+        setStatus('更新中...');
+        try {
+          const body: { password?: string; is_admin: boolean; is_teacher: boolean } = {
+            is_admin,
+            is_teacher
+          };
+          if (password) {
+            body.password = password;
+          }
 
-  const handleSave = async (formData: typeof initialForm) => {
-    if (!token) return;
-    const id = Number(formData.id);
-    const { password, is_admin, is_teacher } = formData;
-
-    if (modalMode === 'add') {
-      if (isNaN(id) || !password) {
-        setStatus('IDとパスワードを正しく入力してください。');
-        return;
-      }
-      setStatus('追加中...');
-      try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/users`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({ id, password, is_admin, is_teacher })
-        });
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || `HTTPエラー! ステータス: ${response.status}`);
+          const response = await fetch(`${SERVER_ENDPOINT}/api/users/${editRowId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify(body)
+          });
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `HTTPエラー! ステータス: ${response.status}`);
+          }
+          setStatus('ユーザーを更新しました。');
+          setModalMode(null);
+          setEditRowId(null);
+          fetchUsers();
+        } catch (e) {
+          setStatus('エラーが発生しました: ' + (e as Error).message);
         }
-        setStatus('ユーザーを追加しました。');
-        setModalMode(null);
-        fetchUsers();
-      } catch (e) {
-        setStatus('エラーが発生しました: ' + (e as Error).message);
       }
-    } else if (modalMode === 'edit') {
-      if (editRowId === null) return;
-      setStatus('更新中...');
-      try {
-        const body: { password?: string; is_admin: boolean; is_teacher: boolean } = {
-          is_admin,
-          is_teacher
-        };
-        if (password) {
-          body.password = password;
-        }
+    },
+    [token, modalMode, editRowId, fetchUsers]
+  );
 
-        const response = await fetch(`${SERVER_ENDPOINT}/api/users/${editRowId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify(body)
-        });
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || `HTTPエラー! ステータス: ${response.status}`);
-        }
-        setStatus('ユーザーを更新しました。');
-        setModalMode(null);
-        setEditRowId(null);
-        fetchUsers();
-      } catch (e) {
-        setStatus('エラーが発生しました: ' + (e as Error).message);
-      }
-    }
-  };
+  const handleCellDoubleClick = useCallback(
+    (u: User, field: keyof User) => {
+      if (modalMode !== null) return;
+      setEditingCell({ userId: u.id, field });
+      setEditingValue(u[field]);
+    },
+    [modalMode]
+  );
 
-  const handleCellDoubleClick = (u: User, field: keyof User) => {
-    if (modalMode !== null) return;
-    setEditingCell({ userId: u.id, field });
-    setEditingValue(u[field]);
-  };
-
-  const handleCellChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleCellChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
       setEditingValue(e.target.checked);
     } else {
       const { value } = e.target;
       setEditingValue(value === 'true' ? true : value === 'false' ? false : value);
     }
-  };
+  }, []);
 
-  const handleCellEditSave = async () => {
+  const handleCellEditSave = useCallback(async () => {
     if (!editingCell) return;
 
     const { userId, field } = editingCell;
@@ -492,51 +522,45 @@ const UserAdmin = () => {
       setStatus('エラーが発生しました: ' + (error as Error).message);
       setEditingCell(null);
     }
-  };
+  }, [editingCell, editingValue, token, usersList]);
 
-  const handleCellKeyDown = (e: KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
-    if (e.key === 'Enter') {
-      handleCellEditSave();
-    } else if (e.key === 'Escape') {
-      setEditingCell(null);
-    }
-  };
-
-  const renderCellContent = (u: User, field: keyof User) => {
-    if (editingCell?.userId === u.id && editingCell?.field === field) {
-      if (field === 'is_admin' || field === 'is_teacher' || field === 'is_banned') {
-        return (
-          <input type="checkbox" checked={editingValue as boolean} onChange={(e) => handleCellChange(e)} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="w-full" />
-        );
+  const handleCellKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
+      if (e.key === 'Enter') {
+        handleCellEditSave();
+      } else if (e.key === 'Escape') {
+        setEditingCell(null);
       }
-      return <input type="text" value={editingValue as string} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="w-full" />;
-    }
+    },
+    [handleCellEditSave]
+  );
 
-    if (field === 'is_admin' || field === 'is_teacher' || field === 'is_banned') {
-      return u[field] ? 'true' : 'false';
-    }
-    return u[field];
-  };
+  const renderCellContent = useCallback(
+    (u: User, field: keyof User) => {
+      if (editingCell?.userId === u.id && editingCell?.field === field) {
+        if (field === 'is_admin' || field === 'is_teacher' || field === 'is_banned') {
+          return (
+            <input type="checkbox" checked={editingValue as boolean} onChange={(e) => handleCellChange(e)} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="w-full" />
+          );
+        }
+        return <input type="text" value={editingValue as string} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="w-full" />;
+      }
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[80dvh]">
-        <p className="text-xl">{'認証中...'}</p>
-      </div>
-    );
-  }
+      if (field === 'is_admin' || field === 'is_teacher' || field === 'is_banned') {
+        return u[field] ? 'true' : 'false';
+      }
+      return u[field];
+    },
+    [editingCell, editingValue, handleCellChange, handleCellEditSave, handleCellKeyDown]
+  );
+
+  if (loading) return <CenterMessage>認証中...</CenterMessage>;
 
   if (!user) {
     return null;
   }
 
-  if (!usersList) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[80dvh]">
-        <p className="text-xl">{'読込中...'}</p>
-      </div>
-    );
-  }
+  if (!usersList) return <CenterMessage>読込中...</CenterMessage>;
 
   const getSortIndicator = (key: SortKey) => {
     const configIndex = sortConfigs.findIndex((c) => c.key === key);
@@ -654,8 +678,14 @@ const UserAdmin = () => {
         </div>
         <UserModal modalMode={modalMode} editRowForm={editRowForm} handleSave={handleSave} setModalMode={setModalMode} setEditRowForm={setEditRowForm} />
         <div className="flex items-center my-[10px]">
-          <input type="text" placeholder="検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="border p-2 rounded mr-2 max-w-[50dvw]" />
-          <p className="text-sm text-gray-600 my-2">{'ユーザーIDで検索できます。'}</p>
+          <input
+            type="text"
+            placeholder="検索 (ID / admin / teacher / banned)"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="border p-2 rounded mr-2 max-w-[50dvw]"
+          />
+          <p className="text-sm text-gray-600 my-2">{'ID / admin / teacher / banned で絞り込み可'}</p>
         </div>
       </div>
     </div>

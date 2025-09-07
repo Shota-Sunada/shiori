@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type FormEvent, useMemo } from 'react';
 import type { student } from '../data/students';
 import Button from '../components/Button';
 import GroupEditorModal from '../components/GroupEditorModal';
 import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
 import { useNavigate } from 'react-router-dom';
+import CenterMessage from '../components/CenterMessage';
 interface RollCallGroup {
   id: number;
   name: string;
@@ -39,110 +40,110 @@ const TeacherRollCall = () => {
     }
   }, [token]);
 
+  const fetchAllStudents = useCallback(async () => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${SERVER_ENDPOINT}/api/students`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!response.ok) throw new Error(`HTTPエラー: ${response.status}`);
+      const students = await response.json();
+      students.sort((a: student, b: student) => (a.gakuseki < b.gakuseki ? -1 : a.gakuseki > b.gakuseki ? 1 : 0));
+      setAllStudents(students);
+    } catch (e) {
+      console.error('生徒データの取得に失敗:', e);
+    }
+  }, [token]);
+
   useEffect(() => {
-    const fetchAllStudents = async () => {
-      if (!token) return;
-      try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/students`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        if (!response.ok) {
-          throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-        }
-        const students = await response.json();
-        students.sort((a: student, b: student) => {
-          if (a.gakuseki < b.gakuseki) {
-            return -1;
-          }
-          if (a.gakuseki > b.gakuseki) {
-            return 1;
-          }
-          return 0;
-        });
-        setAllStudents(students);
-      } catch (error) {
-        console.error('生徒データの取得に失敗:', error);
-      }
-    };
+    if (!token) return;
+    fetchAllStudents();
+    fetchRollCallGroups();
+  }, [token, fetchAllStudents, fetchRollCallGroups]);
 
-    if (token) {
-      fetchAllStudents();
-      fetchRollCallGroups();
-    }
-  }, [fetchRollCallGroups, token]);
+  const handleCallSubmit = useCallback(
+    async (event: FormEvent) => {
+      event.preventDefault();
 
-  const handleCallSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-
-    if (!user || !token) {
-      alert('ログインしていません。');
-      return;
-    }
-
-    if (specificStudentId) {
-      if (!window.confirm(`学籍番号【${specificStudentId}】の生徒に点呼を発動します。\nよろしいですか?`)) {
-        alert('点呼を中止しました。');
+      if (!user || !token) {
+        alert('ログインしていません。');
         return;
       }
-    } else {
-      if (targetStudents === 'default') {
-        alert('送信先のプリセットを選択してください。');
-        return;
-      } else if (targetStudents === 'all') {
-        if (!window.confirm('現在、\n【 全員 】\nに通知を送信する設定です。\n生徒全員に対して一斉に点呼がかかりますが、よろしいですか?')) {
+
+      if (specificStudentId) {
+        if (!window.confirm(`学籍番号【${specificStudentId}】の生徒に点呼を発動します。\nよろしいですか?`)) {
           alert('点呼を中止しました。');
           return;
         }
       } else {
-        if (!window.confirm(`現在、\n【${rollCallGroups.find((x) => x.name === targetStudents)?.name}】\nに通知を送信する設定です。\nよろしいですか?`)) {
-          alert('点呼を中止しました。');
+        if (targetStudents === 'default') {
+          alert('送信先のプリセットを選択してください。');
           return;
+        } else if (targetStudents === 'all') {
+          if (!window.confirm('現在、\n【 全員 】\nに通知を送信する設定です。\n生徒全員に対して一斉に点呼がかかりますが、よろしいですか?')) {
+            alert('点呼を中止しました。');
+            return;
+          }
+        } else {
+          if (!window.confirm(`現在、\n【${rollCallGroups.find((x) => x.name === targetStudents)?.name}】\nに通知を送信する設定です。\nよろしいですか?`)) {
+            alert('点呼を中止しました。');
+            return;
+          }
         }
       }
-    }
 
-    const requestBody: {
-      teacher_id: number;
-      duration_minutes: number;
-      specific_student_id?: string;
-      group_name?: string;
-    } = {
-      teacher_id: Number(user.userId),
-      duration_minutes: durationMinutes
-    };
+      const requestBody: {
+        teacher_id: number;
+        duration_minutes: number;
+        specific_student_id?: string;
+        group_name?: string;
+      } = {
+        teacher_id: Number(user.userId),
+        duration_minutes: durationMinutes
+      };
 
-    if (specificStudentId) {
-      requestBody.specific_student_id = specificStudentId;
-    } else if (targetStudents !== 'all') {
-      requestBody.group_name = targetStudents;
-    }
-
-    try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/start`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(requestBody)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `HTTPエラー! ステータス: ${response.status}`);
+      if (specificStudentId) {
+        requestBody.specific_student_id = specificStudentId;
+      } else if (targetStudents !== 'all') {
+        requestBody.group_name = targetStudents;
       }
 
-      const data = await response.json();
-      const { rollCallId } = data;
+      try {
+        const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/start`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(requestBody)
+        });
 
-      navigate(`/teacher/call-viewer?id=${rollCallId}`);
-    } catch (error) {
-      console.error('点呼の開始に失敗しました:', error);
-      alert(`点呼の開始に失敗しました.\n${(error as Error).message}`);
-    }
-  };
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `HTTPエラー! ステータス: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const { rollCallId } = data;
+
+        navigate(`/teacher/call-viewer?id=${rollCallId}`);
+      } catch (error) {
+        console.error('点呼の開始に失敗しました:', error);
+        alert(`点呼の開始に失敗しました.\n${(error as Error).message}`);
+      }
+    },
+    [user, token, specificStudentId, targetStudents, durationMinutes, rollCallGroups, navigate]
+  );
+
+  const groupOptions = useMemo(
+    () =>
+      rollCallGroups.map((g) => (
+        <option key={g.id} value={g.name}>
+          {g.name}
+        </option>
+      )),
+    [rollCallGroups]
+  );
+
+  if (!user) return <CenterMessage>認証が必要です。</CenterMessage>;
 
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">
@@ -170,11 +171,7 @@ const TeacherRollCall = () => {
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white">
                 <option value="default">{'選択してください'}</option>
                 <option value="all">{'【取扱注意】全員'}</option>
-                {rollCallGroups.map((group) => (
-                  <option key={group.id} value={group.name}>
-                    {group.name}
-                  </option>
-                ))}
+                {groupOptions}
               </select>
             </div>
             <div className="mb-4">
