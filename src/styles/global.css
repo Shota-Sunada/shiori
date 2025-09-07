@@ -343,6 +343,24 @@ html {
   display: none !important;
   pointer-events: none !important;
 }
+
+/* ========= Hamburger Button ========= */
+.hamburger-btn {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  line-height: 0;
+  cursor: pointer;
+  border-radius: 6px; /* 少しだけヒットエリアの角を丸める */
+}
+.hamburger-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 2px;
+}
+.hamburger-btn:focus:not(:focus-visible) {
+  outline: none;
+}
 @keyframes headerMenuIn {
   0% {
     opacity: 0;

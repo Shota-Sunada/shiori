@@ -29,6 +29,10 @@ const Header = () => {
     } else if (menuVisible && !menuClosing) {
       // 閉じ開始: closing フラグを立ててアニメ終了後にアンマウント
       setMenuClosing(true);
+      // 閉じアニメ中に内部へフォーカスが残ると aria-hidden 警告になるので先にハンバーガーへフォーカスを戻す
+      if (menuRef.current && menuRef.current.contains(document.activeElement)) {
+        (hamburgerRef.current as HTMLButtonElement | null)?.focus();
+      }
       const t = setTimeout(() => {
         setMenuVisible(false);
         setMenuClosing(false);
@@ -38,7 +42,7 @@ const Header = () => {
   }, [isMenuOpen, menuVisible, menuClosing]);
 
   const menuRef = useRef<HTMLDivElement>(null);
-  const hamburgerRef = useRef<HTMLDivElement>(null);
+  const hamburgerRef = useRef<HTMLButtonElement>(null);
 
   const navigate = useNavigate();
 
@@ -101,15 +105,26 @@ const Header = () => {
         </div>
         {user && (
           <div className="relative mx-2">
-            <div onClick={() => setIsMenuOpen(!isMenuOpen)} ref={hamburgerRef}>
+            <button
+              type="button"
+              aria-label="メニュー"
+              aria-haspopup="menu"
+              aria-expanded={isMenuOpen}
+              aria-controls="header-menu"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              ref={hamburgerRef}
+              className="hamburger-btn flex items-center justify-center">
               <HamburgerIcon open={isMenuOpen} />
-            </div>
+            </button>
             {menuVisible && (
               <div
                 ref={menuRef}
                 data-state={menuClosing ? 'closing' : 'open'}
                 role="menu"
-                aria-hidden={menuClosing ? 'true' : 'false'}
+                id="header-menu"
+                aria-hidden={menuClosing ? 'true' : undefined}
+                // inert: 閉じアニメ中はフォーカス/操作不可 (対応ブラウザのみ)
+                {...(menuClosing ? { inert: true } : {})}
                 className={`absolute right-0 top-full mt-2 bg-white text-black rounded shadow-lg w-52 z-50 flex flex-col border divide-y header-menu-anim-container ${
                   menuClosing ? 'header-menu-anim-out' : 'header-menu-anim-in'
                 }`}
