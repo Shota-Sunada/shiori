@@ -239,65 +239,63 @@ const Otanoshimi = () => {
       <div className="flex flex-col items-center justify-center m-5">
         <h2 className="text-xl text-center font-bold">{'当日のスケジュール'}</h2>
         <section id="table" className="mt-2">
-          <div className=''>
-            <table className="index-table">
-              <thead className="bg-white">
-                <tr>
-                  <th>{'時間'}</th>
-                  <th colSpan={2}>{'内容'}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="bg-gray-100">
-                  <td className="text-center">{'17:00 - 18:00'}</td>
-                  <td colSpan={2} className="text-center">
-                    {'お楽しみ会 リハーサル'}
-                  </td>
-                </tr>
-                <tr className="bg-white">
-                  <td className="text-center">{'18:00 - 19:00'}</td>
-                  <td colSpan={2} className="text-center">
-                    {'～ 夕食 ～'}
-                  </td>
-                </tr>
-                <tr>
-                  <td colSpan={3} className="font-bold text-center bg-yellow-200">
-                    {'お楽しみ会 START'}
-                  </td>
-                </tr>
-              </tbody>
-              <thead className="bg-white">
-                <tr>
-                  <th>{'時間'}</th>
-                  <th>{'団体名'}</th>
-                  <th>{'演目'}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {teams ? (
-                  teams.map((x, i) => (
-                    <tr key={x.appearance_order} className={`bg-${i % 2 === 0 ? 'gray-100' : 'white'}`}>
-                      <td className="text-center">{x.schedule}</td>
-                      <td className="text-center">{x.name}</td>
-                      <td className="text-center">{x.enmoku}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr className="bg-gray-100">
-                    <td className="text-center" colSpan={3}>
-                      {'読込中'}
-                    </td>
+          <table className="index-table">
+            <thead className="bg-white">
+              <tr>
+                <th>{'時間'}</th>
+                <th colSpan={2}>{'内容'}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="bg-gray-100">
+                <td className="text-center">{'17:00 - 18:00'}</td>
+                <td colSpan={2} className="text-center">
+                  {'お楽しみ会 リハーサル'}
+                </td>
+              </tr>
+              <tr className="bg-white">
+                <td className="text-center">{'18:00 - 19:00'}</td>
+                <td colSpan={2} className="text-center">
+                  {'～ 夕食 ～'}
+                </td>
+              </tr>
+              <tr>
+                <td colSpan={3} className="font-bold text-center bg-yellow-200">
+                  {'お楽しみ会 START'}
+                </td>
+              </tr>
+            </tbody>
+            <thead className="bg-white">
+              <tr>
+                <th>{'時間'}</th>
+                <th>{'団体名'}</th>
+                <th>{'演目'}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {teams ? (
+                teams.map((x, i) => (
+                  <tr key={x.appearance_order} className={`bg-${i % 2 === 0 ? 'gray-100' : 'white'}`}>
+                    <td className="text-center">{x.schedule}</td>
+                    <td className="text-center">{x.name}</td>
+                    <td className="text-center">{x.enmoku}</td>
                   </tr>
-                )}
-                <tr className={teams ? (teams.length % 2 === 0 ? 'bg-gray-100' : 'bg-white') : ''}>
-                  <td className="text-center">{'21:30 (厳守)'}</td>
-                  <td className="text-center font-bold" colSpan={2}>
-                    {'終了 + 解散'}
+                ))
+              ) : (
+                <tr className="bg-gray-100">
+                  <td className="text-center" colSpan={3}>
+                    {'読込中'}
                   </td>
                 </tr>
-              </tbody>
-            </table>
-          </div>
+              )}
+              <tr className={teams ? (teams.length % 2 === 0 ? 'bg-gray-100' : 'bg-white') : ''}>
+                <td className="text-center">{'21:30 (厳守)'}</td>
+                <td className="text-center font-bold" colSpan={2}>
+                  {'終了 + 解散'}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </section>
         <div className="mt-4">
           <p className="text-gray-600 text-sm">{'※当日の進行状況により、時間が変動する場合があります。'}</p>
