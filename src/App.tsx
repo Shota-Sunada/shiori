@@ -35,16 +35,41 @@ function ProtectedRoute() {
 function NotificationGuard() {
   const { user, loading } = useAuth();
   const location = useLocation();
-  const [permission, setPermission] = useState<NotificationPermission>(Notification.permission);
+  // Safari (<16.4) など Notification API 未実装環境での ReferenceError 防止
+  const initialPermission: NotificationPermission = typeof Notification !== 'undefined' && typeof Notification.permission === 'string' ? Notification.permission : 'default';
+  const [permission, setPermission] = useState<NotificationPermission>(initialPermission);
 
   useEffect(() => {
-    if ('permissions' in navigator && 'query' in navigator.permissions) {
-      navigator.permissions.query({ name: 'notifications' as PermissionName }).then((status) => {
-        setPermission(status.state as NotificationPermission);
-        status.onchange = () => setPermission(status.state as NotificationPermission);
-      });
-    } else {
-      const interval = setInterval(() => setPermission(Notification.permission), 1000);
+    type NavigatorWithPermissions = typeof navigator & {
+      permissions?: {
+        query: (descriptor: { name: PermissionName | 'notifications' }) => Promise<{
+          state: NotificationPermission;
+          onchange: null | (() => void);
+        }>;
+      };
+    };
+    const hasPermissionsApi =
+      typeof navigator !== 'undefined' && (navigator as NavigatorWithPermissions).permissions && typeof (navigator as NavigatorWithPermissions).permissions?.query === 'function';
+
+    if (hasPermissionsApi) {
+      try {
+        (navigator as NavigatorWithPermissions)
+          .permissions!.query({ name: 'notifications' as PermissionName })
+          .then((status: PermissionStatus) => {
+            setPermission(status.state as NotificationPermission);
+            status.onchange = () => setPermission(status.state as NotificationPermission);
+          })
+          .catch(() => {
+            if (typeof Notification !== 'undefined') {
+              const interval = setInterval(() => setPermission(Notification.permission as NotificationPermission), 1500);
+              return () => clearInterval(interval);
+            }
+          });
+      } catch {
+        /* noop */
+      }
+    } else if (typeof Notification !== 'undefined') {
+      const interval = setInterval(() => setPermission(Notification.permission as NotificationPermission), 1500);
       return () => clearInterval(interval);
     }
   }, []);
