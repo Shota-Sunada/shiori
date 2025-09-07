@@ -6,6 +6,7 @@ import OtanoshimiCard from '../components/OtanoshimiCard';
 import { useAuth } from '../auth-context';
 import type { student } from '../data/students';
 import MDButton from '../components/MDButton';
+import { consumePrefetchData } from '../prefetch/cache';
 
 interface OtanoshimiDataWithSchedule extends OtanoshimiData {
   schedule: string;
@@ -168,6 +169,27 @@ const Otanoshimi = () => {
   }, [token]);
 
   useEffect(() => {
+    // プレフェッチ済みデータがあればそれを使って先に表示し、裏で本 fetch で整形
+    const prefetched = consumePrefetchData<OtanoshimiData[]>('otanoshimiTeams');
+    if (prefetched) {
+      try {
+        const base = prefetched.map((team) => ({ ...team, custom_performers: team.custom_performers || [], enmoku: team.enmoku || '' })).sort((a, b) => a.appearance_order - b.appearance_order);
+        const scheduleStart = new Date();
+        scheduleStart.setHours(19, 0, 0, 0);
+        let cursor = scheduleStart.getTime();
+        const format = (d: Date) => `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+        const withSchedule = base.map((t) => {
+          const start = new Date(cursor);
+          const end = new Date(cursor + t.time * 60000);
+          const schedule = `${format(start)} - ${format(end)}`;
+          cursor = end.getTime() + 60000;
+          return { ...t, schedule };
+        });
+        setTeams(withSchedule);
+      } catch (e) {
+        console.warn('Prefetched otanoshimi data formatting failed', e);
+      }
+    }
     fetchTeams();
   }, [fetchTeams]);
 
@@ -176,6 +198,7 @@ const Otanoshimi = () => {
   };
 
   const handleNavigate = (newOrder: number) => {
+    // プレビュー間移動はデータ再取得不要なので従来のnavigate
     navigate(`/otanoshimi?preview=${newOrder}`);
   };
 

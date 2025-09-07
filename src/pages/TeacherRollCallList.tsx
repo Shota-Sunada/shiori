@@ -1,11 +1,12 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
 import MDButton from '../components/MDButton';
-import { Link } from 'react-router-dom';
+import { PrefetchLink } from '../prefetch/PrefetchLink';
 import CenterMessage from '../components/CenterMessage';
 import '../styles/table.css';
 import MDRightArrow from '../components/MDRightArrow';
+import { usePrefetchedData } from '../prefetch/usePrefetchedData';
 
 export interface RollCall {
   id: string;
@@ -23,30 +24,15 @@ interface RollCallTableProps {
 
 const TeacherRollCallList = () => {
   const { user, token } = useAuth();
-  const [rollCalls, setRollCalls] = useState<RollCall[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchRollCalls = useCallback(async () => {
-    if (!user || !token) return;
-    try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/teacher/${user.userId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!response.ok) throw new Error(`HTTPエラー: ${response.status}`);
-      const data = await response.json();
-      setRollCalls(data);
-    } catch (err) {
-      console.error(err);
-      setError('点呼一覧の取得に失敗しました。');
-    } finally {
-      setLoading(false);
-    }
+  const fetcher = useCallback(async () => {
+    if (!user || !token) return [] as RollCall[];
+    const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/teacher/${user.userId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!response.ok) throw new Error(`HTTPエラー: ${response.status}`);
+    return (await response.json()) as RollCall[];
   }, [user, token]);
-
-  useEffect(() => {
-    fetchRollCalls();
-  }, [fetchRollCalls]);
+  const { data: rollCalls = [], loading, error } = usePrefetchedData<RollCall[]>('rollCalls', fetcher);
 
   // Hook以降で条件分岐
 
@@ -62,7 +48,7 @@ const TeacherRollCallList = () => {
   if (error)
     return (
       <CenterMessage>
-        <p className="text-red-500 mb-4">{error}</p>
+        <p className="text-red-500 mb-4">{String(error)}</p>
         <MDButton text="戻る" arrowLeft link="/teacher/call" />
       </CenterMessage>
     );
@@ -110,9 +96,19 @@ const TeacherRollCallList = () => {
                 <td className="p-2">{ratio}</td>
                 <td className="p-2">{rc.teacher_id}</td>
                 <td className="p-2">
-                  <Link to={`/teacher/call-viewer?id=${rc.id}`}>
+                  <PrefetchLink
+                    to={`/teacher/call-viewer?id=${rc.id}`}
+                    prefetchKey="rollCalls"
+                    fetcher={async () => {
+                      // ビューアページで個別再取得するが一覧再描画用に同じセッション一覧をキャッシュ
+                      const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/teacher/${user!.userId}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                      });
+                      if (!response.ok) throw new Error(`HTTPエラー: ${response.status}`);
+                      return response.json();
+                    }}>
                     <MDRightArrow />
-                  </Link>
+                  </PrefetchLink>
                 </td>
               </tr>
             );

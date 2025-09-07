@@ -1,10 +1,10 @@
-import { useNavigate } from 'react-router-dom';
 import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4, DAY4_DATA } from '../data/courses';
 import type { student } from '../data/students';
 import '../styles/index-table.css';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import RoomDataModal from './RoomDataModal';
 import { SERVER_ENDPOINT } from '../App';
+import { usePrefetchNavigate } from '../prefetch/usePrefetchNavigate';
 import { useAuth } from '../auth-context';
 
 interface Roommate {
@@ -37,7 +37,8 @@ interface IndexTableProps {
 }
 
 const IndexTable = ({ studentData }: IndexTableProps) => {
-  const navigate = useNavigate();
+  // useNavigateは他セルで今後使う可能性があるが現状未使用のため削除
+  const { navigateWithPrefetch } = usePrefetchNavigate();
   const { token } = useAuth();
   const [showRoommateModal, setShowRoommateModal] = useState(false);
   const [currentRoommates, setCurrentRoommates] = useState<Roommate[]>([]);
@@ -181,7 +182,16 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
             <td
               className="cell-interactive"
               onClick={() => {
-                navigate('/otanoshimi');
+                navigateWithPrefetch({
+                  to: '/otanoshimi',
+                  key: 'otanoshimiTeams',
+                  fetcher: async () => {
+                    const res = await fetch('/api/otanoshimi');
+                    if (!res.ok) throw new Error('otanoshimi fetch failed');
+                    return res.json();
+                  },
+                  awaitFetch: true
+                });
               }}>
               {'詳細はここをクリック！'}
             </td>

@@ -79,6 +79,7 @@ function CenterMessage({ children }: { children: ReactNode }) {
 
 function App() {
   const navigate = useNavigate();
+  const FadeContainer = ({ children }: { children: ReactNode }) => <div className="page-fade">{children}</div>;
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -100,24 +101,103 @@ function App() {
       <Header />
       <main>
         <Routes>
-          <Route path="/login" element={<Login />} />
+          <Route
+            path="/login"
+            element={
+              <FadeContainer>
+                <Login />
+              </FadeContainer>
+            }
+          />
           <Route element={<ProtectedRoute />}>
             <Route element={<NotificationGuard />}>
-              <Route path="/" element={<Index />} />
-              <Route path="/otanoshimi" element={<Otanoshimi />} />
-              <Route path="/call" element={<Call />} />
-              <Route path="/credits" element={<Credits />} />
-              <Route path="/teacher" element={<TeacherIndex />} />
-              <Route path="/teacher/search" element={<TeacherIndexTable />} />
-              <Route path="/teacher/roll-call-list" element={<TeacherRollCallList />} />
-              <Route path="/teacher/call" element={<TeacherRollCall />} />
-              <Route path="/teacher/call-viewer" element={<TeacherRollCallViewer />} />
-              <Route path="/roll-call-history" element={<RollCallHistory />} />
+              <Route
+                path="/"
+                element={
+                  <FadeContainer>
+                    <Index />
+                  </FadeContainer>
+                }
+              />
+              <Route
+                path="/otanoshimi"
+                element={
+                  <FadeContainer>
+                    <Otanoshimi />
+                  </FadeContainer>
+                }
+              />
+              <Route
+                path="/call"
+                element={
+                  <FadeContainer>
+                    <Call />
+                  </FadeContainer>
+                }
+              />
+              <Route
+                path="/credits"
+                element={
+                  <FadeContainer>
+                    <Credits />
+                  </FadeContainer>
+                }
+              />
+              <Route
+                path="/teacher"
+                element={
+                  <FadeContainer>
+                    <TeacherIndex />
+                  </FadeContainer>
+                }
+              />
+              <Route
+                path="/teacher/search"
+                element={
+                  <FadeContainer>
+                    <TeacherIndexTable />
+                  </FadeContainer>
+                }
+              />
+              <Route
+                path="/teacher/roll-call-list"
+                element={
+                  <FadeContainer>
+                    <TeacherRollCallList />
+                  </FadeContainer>
+                }
+              />
+              <Route
+                path="/teacher/call"
+                element={
+                  <FadeContainer>
+                    <TeacherRollCall />
+                  </FadeContainer>
+                }
+              />
+              <Route
+                path="/teacher/call-viewer"
+                element={
+                  <FadeContainer>
+                    <TeacherRollCallViewer />
+                  </FadeContainer>
+                }
+              />
+              <Route
+                path="/roll-call-history"
+                element={
+                  <FadeContainer>
+                    <RollCallHistory />
+                  </FadeContainer>
+                }
+              />
               <Route
                 path="/admin"
                 element={
                   <AdminOrTeacherRoute>
-                    <Admin />
+                    <FadeContainer>
+                      <Admin />
+                    </FadeContainer>
                   </AdminOrTeacherRoute>
                 }
               />
@@ -125,7 +205,9 @@ function App() {
                 path="/user-admin"
                 element={
                   <AdminOrTeacherRoute>
-                    <UserAdmin />
+                    <FadeContainer>
+                      <UserAdmin />
+                    </FadeContainer>
                   </AdminOrTeacherRoute>
                 }
               />
@@ -133,7 +215,9 @@ function App() {
                 path="/otanoshimi-admin"
                 element={
                   <AdminOrTeacherRoute>
-                    <OtanoshimiAdmin />
+                    <FadeContainer>
+                      <OtanoshimiAdmin />
+                    </FadeContainer>
                   </AdminOrTeacherRoute>
                 }
               />
@@ -141,14 +225,30 @@ function App() {
                 path="/teacher-admin"
                 element={
                   <AdminOrTeacherRoute>
-                    <TeacherAdmin />
+                    <FadeContainer>
+                      <TeacherAdmin />
+                    </FadeContainer>
                   </AdminOrTeacherRoute>
                 }
               />
             </Route>
-            <Route path="/non-notification" element={<NonNotification />} />
+            <Route
+              path="/non-notification"
+              element={
+                <FadeContainer>
+                  <NonNotification />
+                </FadeContainer>
+              }
+            />
           </Route>
-          <Route path="*" element={<Page404 />} />
+          <Route
+            path="*"
+            element={
+              <FadeContainer>
+                <Page404 />
+              </FadeContainer>
+            }
+          />
         </Routes>
       </main>
       <Footer />

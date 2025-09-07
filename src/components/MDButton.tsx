@@ -1,5 +1,7 @@
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { PrefetchLink } from '../prefetch/PrefetchLink';
+import type { PrefetchKey } from '../prefetch/cache';
 import type { MouseEventHandler } from 'react';
 
 interface MDButtonProps {
@@ -8,6 +10,8 @@ interface MDButtonProps {
   arrowLeft?: boolean;
   onClick?: MouseEventHandler<HTMLButtonElement | HTMLDivElement>;
   link?: string;
+  prefetchKey?: PrefetchKey; // プレフェッチ対象キー
+  prefetchFetcher?: () => Promise<unknown>; // プレフェッチ用 fetcher
   color?: 'blue' | 'red' | 'green' | 'purple' | 'gray' | 'white' | 'transparent';
   width?: 'mobiry-button-200' | 'mobiry-button-150';
   disabled?: boolean;
@@ -15,7 +19,20 @@ interface MDButtonProps {
   type?: 'button' | 'submit' | 'reset';
 }
 
-const MDButton = ({ text, arrowRight, arrowLeft, onClick, link, color = 'blue', width = 'mobiry-button-200', disabled = false, className = '', type = 'button' }: MDButtonProps) => {
+const MDButton = ({
+  text,
+  arrowRight,
+  arrowLeft,
+  onClick,
+  link,
+  prefetchKey,
+  prefetchFetcher,
+  color = 'blue',
+  width = 'mobiry-button-200',
+  disabled = false,
+  className = '',
+  type = 'button'
+}: MDButtonProps) => {
   const baseClass = `mobiry-button-${color} text-align p-[8px] ${width} rounded-[20px] text-white transition-[0.2s] font-[15px] flex flex-row items-center justify-center relative`;
   const stateClass = disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer';
 
@@ -36,6 +53,16 @@ const MDButton = ({ text, arrowRight, arrowLeft, onClick, link, color = 'blue', 
   );
 
   if (link && !disabled) {
+    // Prefetch 対応
+    if (prefetchKey && prefetchFetcher) {
+      return (
+        <div className="m-2">
+          <PrefetchLink to={link} prefetchKey={prefetchKey} fetcher={prefetchFetcher} className={`${baseClass} ${stateClass} ${className}`} data-button-type={type}>
+            {content}
+          </PrefetchLink>
+        </div>
+      );
+    }
     // Link バリアントでも "type" を全状態で反映させたい要求に対応するため data attribute に保持
     // (a 要素 / Link 自体には button の type 属性は無効なので UI テストやスタイル用に露出)
     return (

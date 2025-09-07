@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { handleEnableNotifications } from '../helpers/notifications';
+import { PrefetchLink } from '../prefetch/PrefetchLink';
 
 const HamburgerIcon = ({ open }: { open: boolean }) => (
   <div className="flex flex-col justify-center items-center w-8 h-8 cursor-pointer">
@@ -41,11 +42,29 @@ const Header = () => {
 
   const closeMenu = useCallback(() => setIsMenuOpen(false), []);
 
-  type MenuItem = { type: 'link'; to: string; label: string; note?: string } | { type: 'action'; label: string; onClick: () => void };
+  type MenuItem =
+    | { type: 'link'; to: string; label: string; note?: string; prefetchKey?: import('../prefetch/cache').PrefetchKey; fetcher?: () => Promise<unknown> }
+    | { type: 'action'; label: string; onClick: () => void };
   const menuItems: MenuItem[] = useMemo(
     () => [
-      { type: 'link', to: user?.is_teacher ? '/teacher' : '/', label: 'ホーム' },
-      { type: 'link', to: '/otanoshimi', label: 'お楽しみ会' },
+      {
+        type: 'link',
+        to: user?.is_teacher ? '/teacher' : '/',
+        label: 'ホーム'
+      },
+      {
+        type: 'link',
+        to: '/otanoshimi',
+        label: 'お楽しみ会',
+        prefetchKey: 'otanoshimiTeams',
+        fetcher: async () => {
+          const res = await fetch('/api/otanoshimi');
+          if (!res.ok) throw new Error('otanoshimi fetch failed');
+          const data = await res.json();
+          // ページ側と同じ整形をここでは行わず raw をキャッシュ
+          return data;
+        }
+      },
       { type: 'action', label: '通知を有効にする', onClick: () => handleEnableNotifications(user) },
       { type: 'link', to: '/admin', label: '管理パネル', note: '※管理者専用' },
       { type: 'link', to: '/user-admin', label: 'ユーザー管理', note: '※管理者専用' },
@@ -75,10 +94,17 @@ const Header = () => {
               <div ref={menuRef} className="absolute right-0 top-full mt-2 bg-white text-black rounded shadow-lg w-52 z-50 flex flex-col border divide-y">
                 {menuItems.map((item, i) =>
                   item.type === 'link' ? (
-                    <Link key={i} to={item.to} className="text-left px-4 py-3 hover:bg-gray-100 cursor-pointer" onClick={closeMenu}>
-                      <p>{item.label}</p>
-                      {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
-                    </Link>
+                    item.prefetchKey && item.fetcher ? (
+                      <PrefetchLink key={i} to={item.to} prefetchKey={item.prefetchKey} fetcher={item.fetcher} className="text-left px-4 py-3 hover:bg-gray-100 cursor-pointer" onClick={closeMenu}>
+                        <p>{item.label}</p>
+                        {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
+                      </PrefetchLink>
+                    ) : (
+                      <Link key={i} to={item.to} className="text-left px-4 py-3 hover:bg-gray-100 cursor-pointer" onClick={closeMenu}>
+                        <p>{item.label}</p>
+                        {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
+                      </Link>
+                    )
                   ) : (
                     <button
                       key={i}

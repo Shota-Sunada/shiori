@@ -152,7 +152,17 @@ const TeacherRollCall = () => {
         <div className="flex flex-col items-center bg-gray-100 p-6 rounded-lg shadow-md">
           <div className="flex flex-col justify-between items-center w-full">
             <p className="m-[10px] text-2xl font-bold">{'点呼システム'}</p>
-            <MDButton text="点呼一覧へ" arrowRight link="/teacher/roll-call-list" />
+            <MDButton
+              text="点呼一覧へ"
+              arrowRight
+              link="/teacher/roll-call-list"
+              prefetchKey="rollCalls"
+              prefetchFetcher={async () => {
+                const res = await fetch('/api/roll-call/sessions');
+                if (!res.ok) throw new Error('rollCalls prefetch failed');
+                return res.json();
+              }}
+            />
             <MDButton text="ﾌﾟﾘｾｯﾄを編集" arrowRight color="white" onClick={() => setGroupEditorOpen(true)} />
           </div>
 

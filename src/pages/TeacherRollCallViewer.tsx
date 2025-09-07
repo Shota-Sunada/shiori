@@ -170,7 +170,17 @@ const TeacherRollCallViewer = () => {
     return (
       <CenterMessage>
         <p className="text-red-500 mb-4">エラー: {error}</p>
-        <MDButton text="一覧へ戻る" arrowLeft link="/teacher/roll-call-list" />
+        <MDButton
+          text="一覧へ戻る"
+          arrowLeft
+          link="/teacher/roll-call-list"
+          prefetchKey="rollCalls"
+          prefetchFetcher={async () => {
+            const res = await fetch('/api/roll-call/sessions');
+            if (!res.ok) throw new Error('rollCalls prefetch failed');
+            return res.json();
+          }}
+        />
       </CenterMessage>
     );
 
@@ -269,7 +279,17 @@ const TeacherRollCallViewer = () => {
         {endButton(!rollCall?.is_active || remainingTime <= 0)}
       </div>
 
-      <MDButton text="点呼一覧へ戻る" arrowLeft link="/teacher/roll-call-list" />
+      <MDButton
+        text="点呼一覧へ戻る"
+        arrowLeft
+        link="/teacher/roll-call-list"
+        prefetchKey="rollCalls"
+        prefetchFetcher={async () => {
+          const res = await fetch('/api/roll-call/sessions');
+          if (!res.ok) throw new Error('rollCalls prefetch failed');
+          return res.json();
+        }}
+      />
       <ReasonModal isOpen={modal.isOpen} reason={modal.reason} location={modal.location} onClose={() => setModal({ isOpen: false, reason: '', location: '' })} />
     </div>
   );
