@@ -1,7 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MDButton from '../components/MDButton';
-import CenterMessage from '../components/CenterMessage';
 import { usePWAInstallPrompt } from '../hooks/usePWAInstallPrompt';
 import { detectPWAPushSupport, parseClientEnvironment } from '../helpers/pwaSupport';
 import safariIcon from '@browser-logos/safari-ios/safari-ios.svg';
@@ -54,13 +53,13 @@ const InstallPWA = () => {
 
   if (isStandalone) {
     return (
-      <CenterMessage>
-        <div className="space-y-4 max-w-md text-center">
+      <PageContainer>
+        <div className="space-y-4 w-full max-w-md mx-auto text-center">
           <p className="text-2xl font-bold">PWA 版で開いています</p>
           <p>この画面は既にホーム画面インストール済みまたはスタンドアロン表示です。</p>
           <MDButton text="ホームへ戻る" arrowRight link="/" />
         </div>
-      </CenterMessage>
+      </PageContainer>
     );
   }
 
@@ -70,15 +69,13 @@ const InstallPWA = () => {
 
   if (browserMismatch) {
     return (
-      <CenterMessage>
-        <div className="space-y-5 max-w-md text-center px-4">
+      <PageContainer>
+        <div className="space-y-5 w-full max-w-md mx-auto text-center px-4">
           <p className="text-2xl font-bold">対応ブラウザで開いてください</p>
           <p className="text-sm text-gray-700">このページは {ios ? 'iOS では Safari' : 'Safari 以外では Google Chrome'} を使用する必要があります。</p>
           <div className="text-[11px] text-gray-500 bg-gray-100 rounded px-2 py-1 leading-snug">
             <p className="font-medium mb-0.5">現在の検出環境</p>
-            <p className="break-all">
-              OS: {env.os} {env.osVersion} / Browser: {env.browser} {env.browserVersion}
-            </p>
+            <p className="break-all">OS: {env.os} {env.osVersion} / Browser: {env.browser} {env.browserVersion}</p>
           </div>
           <BrowserMatrix />
           {ios ? (
@@ -103,13 +100,13 @@ const InstallPWA = () => {
             </div>
           )}
         </div>
-      </CenterMessage>
+      </PageContainer>
     );
   }
 
   return (
-    <CenterMessage>
-      <div className="space-y-5 max-w-md text-center px-4">
+    <PageContainer>
+      <div className="space-y-5 w-full max-w-md mx-auto text-center px-4">
         <p className="text-2xl font-bold">アプリとしてインストール</p>
         <p className="text-sm text-gray-700">
           このアプリは、実際のアプリのように、デバイスにインストールして使うことができます。以下に「インストール可能」と表示されている場合は、なるべくインストールしてください。
@@ -159,11 +156,20 @@ const InstallPWA = () => {
           {!unsupportedPush && <MDButton text="後でまた表示" arrowRight onClick={() => proceed('/login')} />}
         </div>
       </div>
-    </CenterMessage>
+    </PageContainer>
   );
 };
 
 export default InstallPWA;
+
+// 画面全体高さを Header/Footer の 1fr グリッド内で埋めつつスクロール許可
+function PageContainer({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-full w-full py-10 px-2 flex flex-col items-stretch overflow-y-auto">
+      {children}
+    </div>
+  );
+}
 
 function BrowserMatrix() {
   const rows: { platform: string; browsers: { name: string; icon: string; status: 'supported' | 'partial' | 'unsupported'; note?: string }[] }[] = [
@@ -183,8 +189,8 @@ function BrowserMatrix() {
       platform: 'Android',
       browsers: [
         { name: 'Chrome', icon: chromeIcon, status: 'supported', note: '動作 ✓' },
-        { name: 'Edge', icon: edgeIcon, status: 'partial', note: '動作 ✓' },
-        { name: 'Brave', icon: braveIcon, status: 'partial', note: '動作 ✓' },
+        { name: 'Edge', icon: edgeIcon, status: 'supported', note: '動作 ✓' },
+        { name: 'Brave', icon: braveIcon, status: 'partial', note: '一応動作 ✓' },
         { name: 'Samsung', icon: samsungIcon, status: 'partial', note: '動作未確認 △' },
         { name: 'Opera', icon: operaIcon, status: 'unsupported', note: '動作しません ✗' },
         { name: 'Firefox', icon: firefoxIcon, status: 'unsupported', note: '動作しません ✗' },
