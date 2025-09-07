@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from '../auth-context';
-import { SERVER_ENDPOINT } from '../App';
+import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import { appFetch } from '../helpers/apiClient';
 import { CacheKeys } from '../helpers/cacheKeys';
 import CenterMessage from '../components/CenterMessage';

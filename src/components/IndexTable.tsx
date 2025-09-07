@@ -4,7 +4,7 @@ import type { StudentDTO } from '../helpers/domainApi';
 import '../styles/index-table.css';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import RoomDataModal from './RoomDataModal';
-import { SERVER_ENDPOINT } from '../App';
+import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import { usePrefetchNavigate } from '../prefetch/usePrefetchNavigate';
 import { useAuth } from '../auth-context';
 import { appFetch } from '../helpers/apiClient';
@@ -201,7 +201,9 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
                   to: '/otanoshimi',
                   key: 'otanoshimiTeams',
                   fetcher: async () => {
-                    return appFetch('/api/otanoshimi', { alwaysFetch: true });
+                    // 相対パス '/api/otanoshimi' だと Vite 開発サーバー (5173) 側で 404 になるため、
+                    // 明示的に API エンドポイント + 認証付きで取得する。
+                    return appFetch(`${SERVER_ENDPOINT}/api/otanoshimi`, { requiresAuth: true, alwaysFetch: true });
                   },
                   awaitFetch: true
                 });

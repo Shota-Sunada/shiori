@@ -23,8 +23,6 @@ import TeacherIndexTable from './pages/TeacherIndexTable';
 import TeacherAdmin from './pages/TeacherAdmin';
 import RollCallHistory from './pages/RollCallHistory';
 
-export const SERVER_ENDPOINT = 'https://api.shiori.shudo-physics.com';
-
 // ログイン状態をチェックし、未ログインならログインページにリダイレクト
 function ProtectedRoute() {
   const { user, loading } = useAuth();

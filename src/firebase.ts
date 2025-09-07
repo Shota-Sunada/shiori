@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken } from 'firebase/messaging';
-import { SERVER_ENDPOINT } from './App';
+import { SERVER_ENDPOINT } from './config/serverEndpoint';
 import { appFetch } from './helpers/apiClient';
 import { getAuthToken } from './helpers/authTokenStore';
 

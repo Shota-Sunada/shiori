@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth-context';
-import { SERVER_ENDPOINT } from '../App';
+import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import MDButton from '../components/MDButton';
 import CenterMessage from '../components/CenterMessage';
 import { appFetch } from '../helpers/apiClient';

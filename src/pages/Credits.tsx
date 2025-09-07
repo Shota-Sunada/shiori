@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import MDButton from '../components/MDButton';
-import { SERVER_ENDPOINT } from '../App';
+import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import { useAuth } from '../auth-context';
 import CenterMessage from '../components/CenterMessage';
 import { appFetch } from '../helpers/apiClient';

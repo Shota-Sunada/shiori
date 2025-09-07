@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import type { StudentDTO } from '../helpers/domainApi';
 import { studentApi } from '../helpers/domainApi';
-import { SERVER_ENDPOINT } from '../App';
+import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import IndexTable from '../components/IndexTable';
 import MDButton from '../components/MDButton';
 import CenterMessage from '../components/CenterMessage';

@@ -4,7 +4,7 @@ import MDButton from '../components/MDButton';
 import '../styles/login.css';
 import { useAuth, type AuthUser } from '../auth-context';
 import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
-import { SERVER_ENDPOINT } from '../App';
+import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import { registerOrRequestPermission } from '../helpers/notifications';
 import { jwtDecode } from 'jwt-decode';
 import { appFetch } from '../helpers/apiClient';

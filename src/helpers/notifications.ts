@@ -1,4 +1,4 @@
-import { SERVER_ENDPOINT } from '../App';
+import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import { type AuthUser } from '../auth-context';
 import { registerFCMToken } from '../firebase';
 import { appFetch } from './apiClient';

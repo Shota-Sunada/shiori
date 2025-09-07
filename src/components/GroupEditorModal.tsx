@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, memo, type FC } from 'react';
-import { SERVER_ENDPOINT } from '../App';
+import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import { appFetch } from '../helpers/apiClient';
 import type { StudentDTO } from '../helpers/domainApi';
 import KanaSearchModal from './KanaSearchModal';

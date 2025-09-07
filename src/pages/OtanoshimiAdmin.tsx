@@ -1,5 +1,5 @@
 import { useState, useEffect, type ChangeEvent, type DragEvent, useCallback, type FC, useRef, memo } from 'react';
-import { SERVER_ENDPOINT } from '../App';
+import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import '../styles/admin-table.css';
 import KanaSearchModal from '../components/KanaSearchModal';
 import type { StudentDTO } from '../helpers/domainApi';

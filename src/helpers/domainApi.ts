@@ -3,7 +3,7 @@
 
 import { appFetch, mutate } from './apiClient';
 import { CacheKeys, CachePrefixes } from './cacheKeys';
-import { SERVER_ENDPOINT } from '../App';
+import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 
 // ---- Students ----
 // サーバが返す student レコードをアプリ全体で統一利用するための DTO

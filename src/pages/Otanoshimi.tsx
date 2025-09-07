@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, useMemo } from 'react';
 import type { OtanoshimiData } from '../data/otanoshimi';
-import { SERVER_ENDPOINT } from '../App';
+import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import OtanoshimiCard from '../components/OtanoshimiCard';
 import Modal from '../components/Modal';
 import { useAuth } from '../auth-context';
