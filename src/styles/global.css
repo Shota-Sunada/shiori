@@ -234,6 +234,10 @@ html {
   position: relative;
   min-height: 100%;
 }
+/* === TEMP DISABLE page-fade animation (restored) === */
+.page-fade {
+  animation: none !important;
+}
 @keyframes pageFadeIn {
   0% {
     opacity: 0;

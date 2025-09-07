@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
 import '../styles/student-modal.css';
 import MDButton from './MDButton';
+import Modal from './Modal';
 
 // フォームデータ型
 export interface StudentFormData {
@@ -90,7 +91,7 @@ const StudentModal = ({ open, onSave, onCancel, day1idOptions, day3idOptions, in
     };
   }, [open]);
 
-  if (!open) return null;
+  const firstInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -124,97 +125,91 @@ const StudentModal = ({ open, onSave, onCancel, day1idOptions, day3idOptions, in
     onCancel();
   };
 
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && isValid) {
-      e.preventDefault();
-      handleSave();
-    }
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      handleCancel();
-    }
-  };
+  if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 flex items-center justify-center z-50 modal-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-label={mode === 'add' ? '生徒データ新規追加' : '生徒データ編集'}
-      onKeyDown={onKeyDown}>
-      <div className="border bg-white text-black rounded-xl px-[5dvw] py-[5dvh] min-w-[350px] max-h-[90dvh] overflow-y-auto m-[10px] shadow-lg">
-        <h2 className="mb-4 font-bold text-lg">{mode === 'add' ? '生徒データ新規追加' : '生徒データ編集'}</h2>
-        <div className="grid grid-cols-2 gap-2 modal-root text-sm">
-          <label htmlFor="gakuseki">{'学籍番号'}</label>
-          <input id="gakuseki" name="gakuseki" value={form.gakuseki} onChange={handleChange} required autoFocus />
+    <Modal
+      isOpen={open}
+      onClose={handleCancel}
+      ariaLabelledBy="student-modal-title"
+      className="border bg-white text-black rounded-xl px-[5dvw] py-[5dvh] min-w-[350px] max-h-[90dvh] overflow-y-auto m-[10px] shadow-lg"
+      overlayClassName="p-2"
+      initialFocusRef={firstInputRef as unknown as React.RefObject<HTMLElement>}
+      closeOnEsc={false}
+      closeOnOverlayClick={false}>
+      <h2 className="mb-4 font-bold text-lg" id="student-modal-title">
+        {mode === 'add' ? '生徒データ新規追加' : '生徒データ編集'}
+      </h2>
+      <div className="grid grid-cols-2 gap-2 modal-root text-sm items-center justify-center">
+        <label htmlFor="gakuseki">{'学籍番号'}</label>
+        <input ref={firstInputRef} id="gakuseki" name="gakuseki" value={form.gakuseki} onChange={handleChange} required />
 
-          <label htmlFor="surname">{'姓'}</label>
-          <input id="surname" name="surname" value={form.surname} onChange={handleChange} required />
+        <label htmlFor="surname">{'姓'}</label>
+        <input id="surname" name="surname" value={form.surname} onChange={handleChange} required />
 
-          <label htmlFor="forename">{'名'}</label>
-          <input id="forename" name="forename" value={form.forename} onChange={handleChange} required />
+        <label htmlFor="forename">{'名'}</label>
+        <input id="forename" name="forename" value={form.forename} onChange={handleChange} required />
 
-          <label htmlFor="class">{'組'}</label>
-          <input id="class" name="class" type="number" min={1} max={7} value={form.class} onChange={handleChange} required />
+        <label htmlFor="class">{'組'}</label>
+        <input id="class" name="class" type="number" min={1} max={7} value={form.class} onChange={handleChange} required />
 
-          <label htmlFor="number">{'番号'}</label>
-          <input id="number" name="number" type="number" min={1} max={41} value={form.number} onChange={handleChange} required />
+        <label htmlFor="number">{'番号'}</label>
+        <input id="number" name="number" type="number" min={1} max={41} value={form.number} onChange={handleChange} required />
 
-          <label htmlFor="day1id">{'一日目研修先'}</label>
-          <select id="day1id" name="day1id" value={form.day1id} required onChange={handleChange}>
-            {day1idOptions.map((opt) => (
-              <option key={opt} value={opt}>
-                {COURSES_DAY1.find((x) => x.key === opt)?.name || opt}
-              </option>
-            ))}
-          </select>
+        <label htmlFor="day1id">{'一日目研修先'}</label>
+        <select id="day1id" name="day1id" value={form.day1id} required onChange={handleChange}>
+          {day1idOptions.map((opt) => (
+            <option key={opt} value={opt}>
+              {COURSES_DAY1.find((x) => x.key === opt)?.name || opt}
+            </option>
+          ))}
+        </select>
 
-          <label htmlFor="day3id">{'三日目研修先'}</label>
-          <select id="day3id" name="day3id" value={form.day3id} required onChange={handleChange}>
-            {day3idOptions.map((opt) => (
-              <option key={opt} value={opt}>
-                {COURSES_DAY3.find((x) => x.key === opt)?.name || opt}
-              </option>
-            ))}
-          </select>
+        <label htmlFor="day3id">{'三日目研修先'}</label>
+        <select id="day3id" name="day3id" value={form.day3id} required onChange={handleChange}>
+          {day3idOptions.map((opt) => (
+            <option key={opt} value={opt}>
+              {COURSES_DAY3.find((x) => x.key === opt)?.name || opt}
+            </option>
+          ))}
+        </select>
 
-          <label htmlFor="day1bus">{'一日目バス'}</label>
-          <input id="day1bus" name="day1bus" value={form.day1bus} required onChange={handleChange} />
+        <label htmlFor="day1bus">{'一日目バス'}</label>
+        <input id="day1bus" name="day1bus" value={form.day1bus} required onChange={handleChange} />
 
-          <label htmlFor="day3bus">{'三日目バス'}</label>
-          <input id="day3bus" name="day3bus" value={form.day3bus} required onChange={handleChange} />
+        <label htmlFor="day3bus">{'三日目バス'}</label>
+        <input id="day3bus" name="day3bus" value={form.day3bus} required onChange={handleChange} />
 
-          <label htmlFor="room_tdh">{'東京ドームホテル 号室'}</label>
-          <input id="room_tdh" name="room_tdh" value={form.room_tdh} required onChange={handleNumericChange} />
+        <label htmlFor="room_tdh">{'東京ドームホテル 号室'}</label>
+        <input id="room_tdh" name="room_tdh" value={form.room_tdh} required onChange={handleNumericChange} />
 
-          <label htmlFor="room_fpr">{'ﾌｼﾞﾌﾟﾚﾐｱﾑﾘｿﾞｰﾄ 号室'}</label>
-          <input id="room_fpr" name="room_fpr" value={form.room_fpr} required onChange={handleNumericChange} />
+        <label htmlFor="room_fpr">{'ﾌｼﾞﾌﾟﾚﾐｱﾑﾘｿﾞｰﾄ 号室'}</label>
+        <input id="room_fpr" name="room_fpr" value={form.room_fpr} required onChange={handleNumericChange} />
 
-          <label>{'一日目 新幹線'}</label>
-          <div className="flex flex-row gap-2">
-            <div className="flex flex-row items-center">
-              <input name="shinkansen_day1_car_number" value={form.shinkansen_day1_car_number} type="number" min={1} max={16} required onChange={handleChange} className="w-20" />
-              <span className="px-1">{'号車'}</span>
-            </div>
-            <input className="w-full" name="shinkansen_day1_seat" value={form.shinkansen_day1_seat} required onChange={handleChange} placeholder="座席(A1など)" />
+        <label>{'一日目 新幹線'}</label>
+        <div className="flex flex-row gap-2">
+          <div className="flex flex-row items-center">
+            <input name="shinkansen_day1_car_number" value={form.shinkansen_day1_car_number} type="number" min={1} max={16} required onChange={handleChange} className="w-8" />
+            <span className="px-1">{'号車'}</span>
           </div>
-
-          <label>{'四日目 新幹線'}</label>
-          <div className="flex flex-row gap-2">
-            <div className="flex flex-row items-center">
-              <input name="shinkansen_day4_car_number" value={form.shinkansen_day4_car_number} type="number" min={1} max={16} required onChange={handleChange} className="w-20" />
-              <span className="px-1">{'号車'}</span>
-            </div>
-            <input className="w-full" name="shinkansen_day4_seat" value={form.shinkansen_day4_seat} required onChange={handleChange} placeholder="座席(A1など)" />
-          </div>
+          <input className="w-full" name="shinkansen_day1_seat" value={form.shinkansen_day1_seat} required onChange={handleChange} placeholder="座席(A1など)" />
         </div>
-        <div className="flex flex-row items-center justify-center mt-6 gap-2">
-          <MDButton text="キャンセル" onClick={handleCancel} />
-          <div className="opacity-60 text-xs px-2">{!isValid && touched ? '未入力の必須項目があります' : ''}</div>
-          <MDButton text="保存" onClick={handleSave} arrowRight disabled={!isValid} />
+
+        <label>{'四日目 新幹線'}</label>
+        <div className="flex flex-row gap-2">
+          <div className="flex flex-row items-center">
+            <input name="shinkansen_day4_car_number" value={form.shinkansen_day4_car_number} type="number" min={1} max={16} required onChange={handleChange} className="w-8" />
+            <span className="px-1">{'号車'}</span>
+          </div>
+          <input className="w-full" name="shinkansen_day4_seat" value={form.shinkansen_day4_seat} required onChange={handleChange} placeholder="座席(A1など)" />
         </div>
       </div>
-    </div>
+      <div className="flex flex-row items-center justify-center mt-6 gap-2">
+        <MDButton text="キャンセル" onClick={handleCancel} width="mobiry-button-150" />
+        <div className="opacity-60 text-xs px-2">{!isValid && touched ? '未入力の必須項目があります' : ''}</div>
+        <MDButton text="保存" onClick={handleSave} arrowRight disabled={!isValid} width="mobiry-button-150" />
+      </div>
+    </Modal>
   );
 };
 

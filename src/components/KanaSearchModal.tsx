@@ -1,6 +1,7 @@
-import { useState, useEffect, type FC } from 'react';
+import { useState, useEffect, type FC, useRef } from 'react';
 import type { student } from '../data/students';
 import StudentCardContent from './StudentCardContent';
+import Modal from './Modal';
 
 interface KanaSearchModalProps {
   isOpen: boolean;
@@ -98,9 +99,7 @@ const KanaSearchModal: FC<KanaSearchModalProps> = ({ isOpen, onClose, allStudent
     }
   }, [selectedKana, allStudents]);
 
-  if (!isOpen) {
-    return null;
-  }
+  const firstInteractiveRef = useRef<HTMLButtonElement | null>(null);
 
   const handleKanaClick = (kana: string) => {
     if (selectedKana === kana) {
@@ -125,68 +124,77 @@ const KanaSearchModal: FC<KanaSearchModalProps> = ({ isOpen, onClose, allStudent
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 bottom-0 flex justify-center items-center z-[1000] modal-overlay">
-      <div className="bg-white p-[20px] rounded-md w-[90%] max-w-[500px] h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-300">
-          <h2 className="m-0 text-xl">{'カタカナ検索'}</h2>
-          <button onClick={handleClose} className="flex flex-row items-center bg-none border-none cursor-pointer">
-            <p>{'閉じる'}</p>
-            <p className="ml-1 text-2xl">&times;</p>
-          </button>
-        </div>
-        <div className="min-h-0 flex flex-col">
-          {!showResults ? (
-            <div className="grid grid-cols-5 gap-2.5 content-center h-full">
-              {KANA_ROWS.flat().map((kana, index) =>
-                kana ? (
-                  <button
-                    className="p-2.5 border-2 border-solid border-[#ccc] bg-[#f9f9f9] rounded-md cursor-pointer hover:bg-[#eee]"
-                    key={index}
-                    onClick={() => {
-                      handleKanaClick(kana);
-                      setCurrentKana(kana);
-                    }}>
-                    {kana}
-                  </button>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      ariaLabelledBy="kana-search-title"
+      className="p-5 rounded-md w-[90%] max-w-[500px] h-[80vh] flex flex-col"
+      overlayClassName="p-4"
+      initialFocusRef={firstInteractiveRef as unknown as React.RefObject<HTMLElement>}
+      closeOnEsc={false}
+      closeOnOverlayClick={false}>
+      <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-300">
+        <h2 id="kana-search-title" className="m-0 text-xl">
+          {'カタカナ検索'}
+        </h2>
+        <button onClick={handleClose} className="flex flex-row items-center bg-none border-none cursor-pointer">
+          <p>{'閉じる'}</p>
+          <p className="ml-1 text-2xl">&times;</p>
+        </button>
+      </div>
+      <div className="min-h-0 flex flex-col">
+        {!showResults ? (
+          <div className="grid grid-cols-5 gap-2.5 content-center h-full">
+            {KANA_ROWS.flat().map((kana, index) =>
+              kana ? (
+                <button
+                  ref={index === 0 ? firstInteractiveRef : undefined}
+                  className="p-2.5 border-2 border-solid border-[#ccc] bg-[#f9f9f9] rounded-md cursor-pointer hover:bg-[#eee] focus:outline-none focus:ring"
+                  key={index}
+                  onClick={() => {
+                    handleKanaClick(kana);
+                    setCurrentKana(kana);
+                  }}>
+                  {kana}
+                </button>
+              ) : (
+                <div key={index}></div>
+              )
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col min-h-0">
+            <p>{`「${currentKana}」の検索結果`}</p>
+            <div className="flex flex-col min-h-0 overflow-y-auto">
+              <p>{'姓'}</p>
+              <div className="">
+                {filteredBySurnameKana.length > 0 ? (
+                  filteredBySurnameKana.map((s) => (
+                    <div key={s.gakuseki} className="p-2.5 border-b-2 border-solid border-[#eee] cursor-pointer hover:bg-[#f0f0f0]" onClick={() => handleStudentClick(s)}>
+                      <StudentCardContent student={s} />
+                    </div>
+                  ))
                 ) : (
-                  <div key={index}></div>
-                )
-              )}
-            </div>
-          ) : (
-            <div className="flex flex-col min-h-0">
-              <p>{`「${currentKana}」の検索結果`}</p>
-              <div className="flex flex-col min-h-0 overflow-y-auto">
-                <p>{'姓'}</p>
-                <div className="">
-                  {filteredBySurnameKana.length > 0 ? (
-                    filteredBySurnameKana.map((s) => (
-                      <div key={s.gakuseki} className="p-2.5 border-b-2 border-solid border-[#eee] cursor-pointer hover:bg-[#f0f0f0]" onClick={() => handleStudentClick(s)}>
-                        <StudentCardContent student={s} />
-                      </div>
-                    ))
-                  ) : (
-                    <p>{'該当する生徒は見つかりませんでした。'}</p>
-                  )}
-                </div>
-                <p className="mt-4">{'名'}</p>
-                <div className="">
-                  {filteredByForenameKana.length > 0 ? (
-                    filteredByForenameKana.map((s) => (
-                      <div key={s.gakuseki} className="p-2.5 border-b-2 border-solid border-[#eee] cursor-pointer hover:bg-[#f0f0f0]" onClick={() => handleStudentClick(s)}>
-                        <StudentCardContent student={s} />
-                      </div>
-                    ))
-                  ) : (
-                    <p>{'該当する生徒は見つかりませんでした。'}</p>
-                  )}
-                </div>
+                  <p>{'該当する生徒は見つかりませんでした。'}</p>
+                )}
+              </div>
+              <p className="mt-4">{'名'}</p>
+              <div className="">
+                {filteredByForenameKana.length > 0 ? (
+                  filteredByForenameKana.map((s) => (
+                    <div key={s.gakuseki} className="p-2.5 border-b-2 border-solid border-[#eee] cursor-pointer hover:bg-[#f0f0f0]" onClick={() => handleStudentClick(s)}>
+                      <StudentCardContent student={s} />
+                    </div>
+                  ))
+                ) : (
+                  <p>{'該当する生徒は見つかりませんでした。'}</p>
+                )}
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-    </div>
+    </Modal>
   );
 };
 

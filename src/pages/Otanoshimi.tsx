@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import type { OtanoshimiData } from '../data/otanoshimi';
 import { SERVER_ENDPOINT } from '../App';
 import OtanoshimiCard from '../components/OtanoshimiCard';
+import Modal from '../components/Modal';
 import { useAuth } from '../auth-context';
 import type { student } from '../data/students';
 import MDButton from '../components/MDButton';
@@ -12,136 +12,103 @@ interface OtanoshimiDataWithSchedule extends OtanoshimiData {
   schedule: string;
 }
 
-const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate }: { order: number; max: number; onClose: () => void; onNavigate: (newOrder: number) => void }) => {
-  const [team, setTeam] = useState<OtanoshimiData | null>(null);
-  const [allStudents, setAllStudents] = useState<student[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { token } = useAuth();
+interface PreviewModalProps {
+  order: number;
+  max: number;
+  onClose: () => void;
+  onNavigate: (newOrder: number) => void;
+  teams: OtanoshimiDataWithSchedule[] | null;
+  students: student[] | null;
+  loadingStudents: boolean;
+}
 
-  useEffect(() => {
-    const fetchAllData = async () => {
-      if (!order) return;
-      setLoading(true);
-      try {
-        const [teamsRes, studentsRes] = await Promise.all([
-          fetch(`${SERVER_ENDPOINT}/api/otanoshimi`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${SERVER_ENDPOINT}/api/students`, { headers: { Authorization: `Bearer ${token}` } })
-        ]);
-        if (!teamsRes.ok) throw new Error(`HTTPエラー: ${teamsRes.status}`);
-        if (!studentsRes.ok) throw new Error(`HTTPエラー: ${studentsRes.status}`);
-        const teamsData: OtanoshimiData[] = await teamsRes.json();
-        const studentsData: student[] = await studentsRes.json();
-        setAllStudents(studentsData);
-        const current = teamsData.find((t) => t.appearance_order === order) || null;
-        setTeam(
-          current ? { ...current, custom_performers: current.custom_performers || [], enmoku: current.enmoku || '', comment: current.comment || '', supervisor: current.supervisor || [] } : null
-        );
-      } catch (e) {
-        console.error('データの取得に失敗:', e);
-        setTeam(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAllData();
-  }, [order, token]);
-
+const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate, teams, students, loadingStudents }: PreviewModalProps) => {
+  const team = useMemo(() => teams?.find((t) => t.appearance_order === order) || null, [teams, order]);
   const getNameById = (gakuseki: number) => {
-    const student = allStudents.find((x) => x.gakuseki === gakuseki);
-    return student ? `${student.surname} ${student.forename} (5-${student.class})` : '[ERROR]';
+    const s = students?.find((x) => x.gakuseki === gakuseki);
+    return s ? `${s.surname} ${s.forename} (5-${s.class})` : loadingStudents ? '読込中...' : '不詳';
   };
+  const contentLoading = !team || !students || loadingStudents;
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center z-50 modal-overlay">
-      <div className="bg-white p-4 rounded-lg shadow-lg w-full m-4 max-w-[95dvw] h-[90dvh]">
-        <div className="flex flex-col items-center justify-center m-[10px]">
-          <section className="m-2 p-4 border rounded-lg shadow-lg bg-white w-full max-w-md h-full min-h-[70dvh] max-h-[70dvh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-center mb-4">{loading ? '読込中...' : !team ? '指定された出演順のチームが見つかりません。' : `${order}.「${team.name}」`}</h2>
-            <p className="text-lg text-center mb-2">
-              {'演目: '}
-              {loading ? '読込中' : !team ? '演目不詳' : team.enmoku}
-            </p>
+    <Modal
+      isOpen
+      onClose={onClose}
+      ariaLabelledBy="otanoshimi-preview-title"
+      className="p-4 rounded-lg shadow-lg w-full m-4 max-w-[95dvw] h-[90dvh] flex flex-col"
+      overlayClassName="p-2"
+      closeOnEsc={false}
+      closeOnOverlayClick={false}>
+      <div className="flex flex-col items-center justify-center flex-1">
+        <section className="m-2 p-4 border rounded-lg shadow-lg bg-white w-full max-w-md h-full min-h-[70dvh] max-h-[70dvh] overflow-y-auto">
+          <h2 id="otanoshimi-preview-title" className="text-2xl font-bold text-center mb-4">
+            {contentLoading ? '読込中...' : `${order}.「${team!.name}」`}
+          </h2>
+          <p className="text-lg text-center mb-2">
+            {'演目: '}
+            {contentLoading ? '読込中' : team!.enmoku || '演目不詳'}
+          </p>
+          <div className="mt-4">
+            <h3 className="font-semibold">{'リーダー'}</h3>
+            <p>{contentLoading ? '読込中' : getNameById(team!.leader)}</p>
+          </div>
+          {team?.comment ? (
             <div className="mt-4">
-              <h3 className="font-semibold">{'リーダー'}</h3>
-              <p>{loading ? '読込中' : !team ? '不詳' : getNameById(team.leader)}</p>
+              <h3 className="font-semibold">{'コメント'}</h3>
+              <p style={{ whiteSpace: 'pre-wrap' }}>{team.comment}</p>
             </div>
-            {team?.comment ? (
-              <div className="mt-4">
-                <h3 className="font-semibold">{'コメント'}</h3>
-                <p style={{ whiteSpace: 'pre-wrap' }}>{team.comment}</p>
-              </div>
-            ) : (
-              <></>
-            )}
+          ) : null}
+          <div className="mt-4">
+            <h3 className="font-semibold">{'メンバー'}</h3>
+            <ul className="list-disc list-inside grid grid-cols-2 gap-1">
+              {contentLoading ? '読込中...' : team!.members.map((memberId) => <li key={memberId}>{getNameById(memberId)}</li>)}
+              {!contentLoading && team!.custom_performers?.length > 0 ? team!.custom_performers.map((performer, index) => (performer ? <li key={`c-${index}`}>{performer}</li> : null)) : null}
+            </ul>
+          </div>
+          {team?.supervisor && team.supervisor.length > 0 ? (
             <div className="mt-4">
-              <h3 className="font-semibold">{'メンバー'}</h3>
-              <ul className="list-disc list-inside grid grid-cols-2 gap-1">
-                {loading ? '読込中...' : !team ? '不詳' : team.members.map((memberId) => <li key={memberId}>{getNameById(memberId)}</li>)}
-                {loading ? <></> : !team ? <></> : team.custom_performers.length > 0 ? team.custom_performers.map((performer, index) => (performer ? <li key={index}>{performer}</li> : <></>)) : <></>}
-              </ul>
+              <h3 className="font-semibold">{'監修'}</h3>
+              <ul className="list-disc list-inside">{team.supervisor.map((sup, index) => (sup ? <li key={index}>{sup}</li> : null))}</ul>
             </div>
-            {team?.supervisor && team.supervisor.length > 0 ? (
-              <div className="mt-4">
-                <h3 className="font-semibold">{'監修'}</h3>
-                <ul className="list-disc list-inside">{team.supervisor.map((sup, index) => (sup ? <li key={index}>{sup}</li> : <></>))}</ul>
-              </div>
-            ) : (
-              <></>
-            )}
-          </section>
-
-          <section id="buttons" className="flex flex-col items-center justify-center">
-            <div className="flex flex-row">
-              <MDButton
-                text="前へ"
-                arrowLeft
-                onClick={() => {
-                  if (order === 1) {
-                    onNavigate(max);
-                  } else {
-                    onNavigate(order - 1);
-                  }
-                }}
-                width={'mobiry-button-150'}
-              />
-              <MDButton
-                text="次へ"
-                arrowRight
-                onClick={() => {
-                  if (order === max) {
-                    onNavigate(1);
-                  } else {
-                    onNavigate(order + 1);
-                  }
-                }}
-                width={'mobiry-button-150'}
-              />
-            </div>
-            <MDButton text="閉じる" onClick={onClose} color="purple" />
-          </section>
-        </div>
+          ) : null}
+        </section>
+        <section id="buttons" className="flex flex-col items-center justify-center">
+          <div className="flex flex-row">
+            <MDButton text="前へ" arrowLeft onClick={() => onNavigate(order === 1 ? max : order - 1)} width={'mobiry-button-150'} />
+            <MDButton text="次へ" arrowRight onClick={() => onNavigate(order === max ? 1 : order + 1)} width={'mobiry-button-150'} />
+          </div>
+          <MDButton text="閉じる" onClick={onClose} color="purple" />
+        </section>
       </div>
-    </div>
+    </Modal>
   );
 };
 
 const Otanoshimi = () => {
   const { token } = useAuth();
   const [teams, setTeams] = useState<OtanoshimiDataWithSchedule[] | null>(null);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const previewOrder = searchParams.get('preview');
+  const [allStudents, setAllStudents] = useState<student[] | null>(null);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+  const [previewOrderLocal, setPreviewOrderLocal] = useState<number | null>(null);
 
   useEffect(() => {
-    if (previewOrder) {
-      document.body.classList.add('modal-open');
-    } else {
-      document.body.classList.remove('modal-open');
-    }
-    return () => {
-      document.body.classList.remove('modal-open');
+    if (!previewOrderLocal || !token || allStudents || loadingStudents) return;
+    const fetchStudents = async () => {
+      setLoadingStudents(true);
+      try {
+        const res = await fetch(`${SERVER_ENDPOINT}/api/students`, { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok) throw new Error(`HTTPエラー: ${res.status}`);
+        const data: student[] = await res.json();
+        setAllStudents(data);
+      } catch (e) {
+        console.error('学生データ取得失敗:', e);
+        setAllStudents([]);
+      } finally {
+        setLoadingStudents(false);
+      }
     };
-  }, [previewOrder]);
+    fetchStudents();
+  }, [previewOrderLocal, token, allStudents, loadingStudents]);
 
   const fetchTeams = useCallback(async () => {
     if (!token) return;
@@ -193,13 +160,24 @@ const Otanoshimi = () => {
     fetchTeams();
   }, [fetchTeams]);
 
+  // カードからのイベントでプレビュー表示（URL書き換え無し）
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { order?: number };
+      if (detail?.order) {
+        setPreviewOrderLocal(detail.order);
+      }
+    };
+    window.addEventListener('otanoshimi:openPreview', handler as EventListener);
+    return () => window.removeEventListener('otanoshimi:openPreview', handler as EventListener);
+  }, []);
+
   const handleCloseModal = () => {
-    setSearchParams({});
+    setPreviewOrderLocal(null); // ローカル状態も閉じる
   };
 
   const handleNavigate = (newOrder: number) => {
-    // プレビュー間移動はデータ再取得不要なので従来のnavigate
-    navigate(`/otanoshimi?preview=${newOrder}`);
+    setPreviewOrderLocal(newOrder); // 背景再レンダリングを避ける
   };
 
   const splitTime = (range: string): { start: string; end: string | null } => {
@@ -231,7 +209,17 @@ const Otanoshimi = () => {
 
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">
-      {previewOrder && teams ? <OtanoshimiPreviewModal order={parseInt(previewOrder || '')} max={teams.length || 0} onClose={handleCloseModal} onNavigate={handleNavigate} /> : <></>}
+      {previewOrderLocal ? (
+        <OtanoshimiPreviewModal
+          order={previewOrderLocal}
+          max={teams?.length || 0}
+          onClose={handleCloseModal}
+          onNavigate={handleNavigate}
+          teams={teams}
+          students={allStudents}
+          loadingStudents={loadingStudents}
+        />
+      ) : null}
 
       <div className="m-2 flex flex-col items-center justify-center">
         <h1 className="text-3xl font-bold">{'お楽しみ会'}</h1>
