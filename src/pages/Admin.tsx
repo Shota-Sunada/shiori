@@ -4,7 +4,6 @@ import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
 import '../styles/admin-table.css';
 import '../styles/table.css';
 import StudentModal from '../components/StudentModal';
-import { Link } from 'react-router-dom';
 import { SERVER_ENDPOINT } from '../App';
 import { useAuth } from '../auth-context';
 import CenterMessage from '../components/CenterMessage';
@@ -617,9 +616,6 @@ const Admin = () => {
           <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddJSONData}>
             {'JSONで更新'}
           </button>
-          <Link to={modalMode !== null ? '/admin-sha256' : ''} className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white">
-            {'SHA256'}
-          </Link>
           <button
             className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white"
             disabled={modalMode !== null}
