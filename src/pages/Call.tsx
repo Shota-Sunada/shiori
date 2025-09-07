@@ -178,7 +178,7 @@ const Call = () => {
     return (
       <CenterMessage>
         <p className="text-xl text-red-500 mb-4">{error}</p>
-        <MDButton text="戻る" arrowLeft link="/index" />
+        <MDButton text="戻る" arrowLeft link="/" />
       </CenterMessage>
     );
 
@@ -216,7 +216,7 @@ const Call = () => {
           <p className="whitespace-pre-line">{renderDate(rollCall.expires_at)}</p>
         </div>
       ) : null}
-      {isDone || !rollCall?.is_active || remainingTime < 0 ? <MDButton text="戻る" arrowLeft link="/index" /> : <></>}
+      {isDone || !rollCall?.is_active || remainingTime < 0 ? <MDButton text="戻る" arrowLeft link="/" /> : <></>}
 
       {!isDone && rollCall?.is_active && remainingTime > 0 ? (
         <div className="mt-5">

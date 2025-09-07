@@ -241,7 +241,7 @@ const Otanoshimi = () => {
           )}
         </div>
       </div>
-      <MDButton text="ホームに戻る" arrowLeft link="/index" />
+      <MDButton text="ホームに戻る" arrowLeft link="/" />
 
       <div className="flex flex-col items-center justify-center m-5">
         <h2 className="text-xl text-center font-bold">{'当日のスケジュール'}</h2>
@@ -326,7 +326,7 @@ const Otanoshimi = () => {
         </div>
       </div>
 
-      <MDButton text="ホームに戻る" arrowLeft link="/index" />
+      <MDButton text="ホームに戻る" arrowLeft link="/" />
 
       <div className="flex flex-col items-center justify-center mt-8">
         <p className="text-xl font-bold">{'STAFF'}</p>
