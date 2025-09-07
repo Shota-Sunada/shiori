@@ -60,8 +60,8 @@ const InstallPWA = () => {
   if (isStandalone) {
     return (
       <PageContainer>
-        <div className="space-y-4 w-full max-w-md mx-auto text-center">
-          <p className="text-2xl font-bold">PWA 版で開いています</p>
+        <div className="space-y-5 w-full max-w-md mx-auto text-center text-[17px] leading-relaxed">
+          <p className="text-3xl font-bold">PWA 版で開いています</p>
           <p>この画面は既にホーム画面インストール済みまたはスタンドアロン表示です。</p>
           <MDButton text="ホームへ戻る" arrowRight link="/" />
         </div>
@@ -70,8 +70,6 @@ const InstallPWA = () => {
   }
 
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  const requiredBrowser = ios ? 'Safari' : 'Chrome';
-  const browserMismatch = env.browser !== requiredBrowser;
   // icon mapping
   const browserIcons: Record<string, string> = {
     Safari: safariIcon,
@@ -93,85 +91,146 @@ const InstallPWA = () => {
   const currentBrowserIcon = browserIcons[env.browser] || genericIcon;
   const currentOsIcon = osIcons[env.os] || genericIcon;
 
-  if (browserMismatch) {
-    return (
-      <PageContainer>
-        <div className="space-y-5 w-full max-w-md mx-auto text-center px-4">
-          <p className="text-2xl font-bold">対応ブラウザで開いてください</p>
-          <p className="text-sm text-gray-700">このページは {ios ? 'iOS では Safari' : 'Safari 以外では Google Chrome'} を使用する必要があります。</p>
-          <EnvBox osIcon={currentOsIcon} browserIcon={currentBrowserIcon} env={env} />
-          <BrowserMatrix currentBrowserName={env.browser} currentOS={env.os} />
-          {ios ? (
-            <div className="text-left text-xs space-y-1 bg-white/70 rounded p-3">
-              <p className="font-semibold">Safari で開くには</p>
-              <ol className="list-decimal ml-5 space-y-1">
-                <li>現在の URL をコピー</li>
-                <li>ホーム画面で Safari を開く</li>
-                <li>アドレスバーに貼り付けて移動</li>
-              </ol>
-              <p className="pt-1">Chrome / Edge / その他アプリ内ブラウザでは通知やインストール要件が満たせません。</p>
-            </div>
-          ) : (
-            <div className="text-left text-xs space-y-1 bg-white/70 rounded p-3">
-              <p className="font-semibold">Chrome で開くには</p>
-              <ol className="list-decimal ml-5 space-y-1">
-                <li>Chrome を起動 (未インストールならインストール)</li>
-                <li>アドレスバーに URL を入力</li>
-                <li>ページへアクセス</li>
-              </ol>
-              <p className="pt-1">Edge / Safari / Firefox / その他ブラウザはサポート対象外です。</p>
-            </div>
-          )}
-        </div>
-      </PageContainer>
-    );
-  }
+  // BrowserMatrix の定義と同じロジックで現在 OS 行を判定し、現在ブラウザのサポート状況を取得
+  const matrixRows = [
+    {
+      platform: 'iOS / iPadOS',
+      match: (os: string) => os === 'iOS',
+      browsers: [
+        { name: 'Safari', icon: safariIcon, status: 'supported' as const },
+        { name: 'Chrome', icon: chromeIcon, status: 'unsupported' as const },
+        { name: 'Brave', icon: braveIcon, status: 'unsupported' as const },
+        { name: 'Firefox', icon: firefoxIcon, status: 'partial' as const },
+        { name: 'Edge', icon: edgeIcon, status: 'partial' as const },
+        { name: 'Vivaldi', icon: vivaldiIcon, status: 'partial' as const },
+        { name: 'Opera', icon: operaIcon, status: 'partial' as const }
+      ]
+    },
+    {
+      platform: 'Android',
+      match: (os: string) => os === 'Android',
+      browsers: [
+        { name: 'Chrome', icon: chromeIcon, status: 'supported' as const },
+        { name: 'Edge', icon: edgeIcon, status: 'supported' as const },
+        { name: 'Brave', icon: braveIcon, status: 'partial' as const },
+        { name: 'Samsung', icon: samsungIcon, status: 'partial' as const },
+        { name: 'Opera', icon: operaIcon, status: 'unsupported' as const },
+        { name: 'Firefox', icon: firefoxIcon, status: 'unsupported' as const },
+        { name: 'Vivaldi', icon: vivaldiIcon, status: 'unsupported' as const }
+      ]
+    },
+    {
+      platform: 'Windows / macOS / Linux',
+      match: (os: string) => ['Windows', 'macOS', 'Linux'].includes(os),
+      browsers: [
+        { name: 'Chrome', icon: chromeIcon, status: 'supported' as const },
+        { name: 'Edge', icon: edgeIcon, status: 'supported' as const },
+        { name: 'Firefox', icon: firefoxIcon, status: 'unsupported' as const },
+        { name: 'Safari', icon: safariIcon, status: 'partial' as const },
+        { name: 'Opera', icon: operaIcon, status: 'partial' as const }
+      ]
+    }
+  ];
+  const currentRow = matrixRows.find((r) => r.match(env.os));
+  const currentBrowserStatus = currentRow?.browsers.find((b) => b.name === env.browser)?.status;
+  const isSupportedEnv = currentBrowserStatus === 'supported';
+  const supportedBrowserNames = currentRow?.browsers.filter((b) => b.status === 'supported').map((b) => b.name) || [];
 
   return (
     <PageContainer>
-      <div className="space-y-5 w-full max-w-md mx-auto text-center px-4">
-        <p className="text-2xl font-bold">アプリとしてインストール</p>
-        <p className="text-sm text-gray-700">
-          このアプリは、実際のアプリのように、デバイスにインストールして使うことができます。以下に「インストール可能」と表示されている場合は、なるべくインストールしてください。
-        </p>
-        <p className="text-sm text-gray-700">インストールすることで、通知を受け取ることができるようになり、すべての機能を使用することができるようになります。</p>
-        <p className="text-sm text-gray-700">何らかの理由でインストールできない、デバイスが対応していない場合は、このままWeb版を使用してください。</p>
+      <div className="space-y-7 w-full max-w-md mx-auto text-center px-4 text-[17px] leading-relaxed">
+        <p className="text-3xl font-bold">PWA インストール案内</p>
         <EnvBox osIcon={currentOsIcon} browserIcon={currentBrowserIcon} env={env} />
+
+        {!isSupportedEnv && (
+          <div className="p-3 rounded-md border border-amber-300 bg-amber-50 text-left text-sm text-amber-900 space-y-3">
+            <div>
+              <p className="font-semibold">このブラウザではインストール機能が保証されません</p>
+              <p>
+                現在: <strong>{env.browser}</strong> / OS: {env.os}. 下記のサポートブラウザで開くと PWA インストールと通知が安定して動作します。
+              </p>
+            </div>
+            {supportedBrowserNames.length > 0 && (
+              <p className="text-xs">
+                サポートブラウザ: <span className="font-medium">{supportedBrowserNames.join(', ')}</span>
+              </p>
+            )}
+            {ios ? (
+              <div className="space-y-1">
+                <p className="font-medium">Safari で開く手順</p>
+                <ol className="list-decimal ml-5 space-y-1">
+                  <li>このページの URL をコピー</li>
+                  <li>ホーム画面で Safari を起動</li>
+                  <li>アドレスバーへ貼り付けて移動</li>
+                </ol>
+              </div>
+            ) : currentRow?.platform === 'Android' ? (
+              <div className="space-y-1">
+                <p className="font-medium">Chrome / Edge で開く手順</p>
+                <ol className="list-decimal ml-5 space-y-1">
+                  <li>Chrome または Edge を起動 (無ければストアからインストール)</li>
+                  <li>アドレスバーに URL を入力</li>
+                  <li>ページへアクセス</li>
+                </ol>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                <p className="font-medium">Chrome / Edge で開く手順</p>
+                <ol className="list-decimal ml-5 space-y-1">
+                  <li>Chrome または Edge を起動 (未インストールなら公式サイト/ストアから追加)</li>
+                  <li>アドレスバーに URL を入力</li>
+                  <li>ページへアクセス</li>
+                </ol>
+              </div>
+            )}
+            <p className="text-xs text-amber-700">切り替えなくても閲覧は可能ですが、通知 / オフライン / インストール機能が制限される場合があります。</p>
+          </div>
+        )}
+
+          <>
+            <p className="text-base text-gray-700">このアプリは、ホーム画面に追加することでアプリのように利用できます。下記で「インストール可能」と表示されている場合は追加をおすすめします。</p>
+            <p className="text-base text-gray-700">インストールにより通知受信などすべての機能が有効になります。</p>
+          </>
+
         {unsupportedPush && (
-          <div className="p-3 rounded-md bg-yellow-50 border border-yellow-300 text-left text-xs text-yellow-800 leading-snug">
+          <div className="p-3 rounded-md bg-yellow-50 border border-yellow-300 text-left text-sm text-yellow-800 leading-snug">
             <p className="font-semibold mb-1">現在のブラウザ / OS では PWA 経由のプッシュ通知は利用できません ({reason}).</p>
             <p className="mb-1">そのためインストールは必須ではありません。直接ログインして利用を開始できます。</p>
             <p>新しいバージョン(iOS 16.4+/Safari 16.4+) にアップデートすることで通知が有効になります。</p>
           </div>
         )}
-        {!unsupportedPush && supported && deferred && (
+
+        {isSupportedEnv && !unsupportedPush && supported && deferred && (
           <div className="space-y-3">
-            <p className="font-semibold">ブラウザがインストールに対応しています。</p>
+            <p className="font-semibold">インストールが可能です。</p>
             <MDButton text="インストールダイアログを開く" arrowRight onClick={promptInstall} />
           </div>
         )}
-        {!unsupportedPush && !supported && !ios && (
+
+        {isSupportedEnv && !unsupportedPush && !supported && !ios && (
           <div className="space-y-2">
-            <p className="font-semibold">ブラウザのメニューから「インストール」または「アプリをインストール」を選択してください。</p>
-            <p className="text-xs text-gray-600">(Chrome: 右上︙ → インストール / Edge: … → アプリ → このサイトをインストール)</p>
+            <p className="font-semibold text-base">ブラウザのメニューから「インストール」または「アプリをインストール」を選択してください。</p>
+            <p className="text-sm text-gray-600">(Chrome: 右上︙ → インストール / Edge: … → アプリ → このサイトをインストール)</p>
           </div>
         )}
-        {!unsupportedPush && ios && (
+
+        {isSupportedEnv && !unsupportedPush && ios && (
           <div className="space-y-2 text-left">
-            <p className="font-semibold text-center">iOS (Safari) の場合:</p>
-            <ol className="list-decimal ml-5 space-y-1 text-sm">
+            <p className="font-semibold text-center text-base">iOS (Safari) の場合:</p>
+            <ol className="list-decimal ml-5 space-y-1 text-base">
               <li>Safari の共有ボタン(□↑)をタップ</li>
               <li>「ホーム画面に追加」を選択</li>
               <li>右上の「追加」をタップ</li>
             </ol>
           </div>
         )}
+
         <BrowserMatrix currentBrowserName={env.browser} currentOS={env.os} />
         {outcome === 'accepted' && <p className="text-green-600 font-semibold">インストールを受け付けました。ホーム画面を確認してください。</p>}
-        {outcome === 'dismissed' && <p className="text-orange-600 text-sm">インストールがキャンセルされました。後でもう一度お試しください。</p>}
+        {outcome === 'dismissed' && <p className="text-orange-600 text-base">インストールがキャンセルされました。後でもう一度お試しください。</p>}
         <div className="pt-4 space-y-3">
-          <MDButton text={unsupportedPush ? 'ログインへ進む (通知非対応)' : 'とりあえずログインへ進む'} arrowRight onClick={() => proceed('/login')} />
-          {!unsupportedPush && <MDButton text="後でまた表示" arrowRight onClick={() => proceed('/login')} />}
+          <MDButton text={unsupportedPush ? 'ログインへ進む (通知非対応)' : 'ログインへ進む'} arrowRight onClick={() => proceed('/login')} />
+          {!unsupportedPush && isSupportedEnv && <MDButton text="後でまた表示" arrowRight onClick={() => proceed('/login')} />}
         </div>
       </div>
     </PageContainer>
@@ -187,8 +246,8 @@ function PageContainer({ children }: { children: React.ReactNode }) {
 
 function EnvBox({ osIcon, browserIcon, env }: { osIcon: string; browserIcon: string; env: ReturnType<typeof parseClientEnvironment> }) {
   return (
-    <div className="text-[11px] text-gray-600 bg-gray-100 rounded px-2 py-2 leading-tight flex flex-col gap-1">
-      <p className="font-medium">現在の環境</p>
+    <div className="text-[12px] text-gray-600 bg-gray-100 rounded px-3 py-2 leading-tight flex flex-col gap-1">
+      <p className="font-medium text-[13px]">現在の環境</p>
       <div className="flex justify-center items-center gap-2">
         <img src={osIcon} alt={env.os} width={16} height={16} className="shrink-0" />
         <span className="truncate">
@@ -251,9 +310,9 @@ function BrowserMatrix({ currentBrowserName, currentOS }: { currentBrowserName?:
     return false;
   };
   return (
-    <div className="mt-6 w-full max-w-md mx-auto">
-      <p className="text-sm font-semibold mb-2">対応ブラウザ一覧</p>
-      <div className="border border-gray-200 rounded-md overflow-hidden text-[11px] bg-white/70">
+    <div className="mt-8 w-full max-w-md mx-auto text-[15px]">
+      <p className="text-base font-semibold mb-3">対応ブラウザ一覧</p>
+      <div className="border border-gray-200 rounded-md overflow-hidden text-[12px] bg-white/80">
         {rows.map((r) => {
           const platformMatch = matchPlatform(r.platform);
           return (
@@ -275,12 +334,12 @@ function BrowserMatrix({ currentBrowserName, currentOS }: { currentBrowserName?:
                         isExactCurrent ? 'border-blue-500 ring-1 ring-blue-400/60 bg-blue-50/80' : 'border-gray-100 bg-white/60'
                       }`}>
                       <img src={b.icon || genericIcon} alt={b.name} width={16} height={16} className="shrink-0" />
-                      <span className="font-medium text-[11px] flex items-center gap-1">
+                      <span className="font-medium text-[12px] flex items-center gap-1">
                         {b.name}
-                        {isRecommended && <span className="text-[9px] leading-none px-1 py-[1px] rounded bg-emerald-600 text-white">推奨</span>}
+                        {isRecommended && <span className="text-[10px] leading-none px-1 py-[1px] rounded bg-emerald-600 text-white">推奨</span>}
                       </span>
                       <StatusPill status={b.status} note={b.note} />
-                      {isExactCurrent && <span className="absolute -top-1 -right-1 bg-blue-600 text-white rounded px-1 py-[1px] text-[9px] leading-none">現在</span>}
+                      {isExactCurrent && <span className="absolute -top-1 -right-1 bg-blue-600 text-white rounded px-1 py-[1px] text-[10px] leading-none">現在</span>}
                     </div>
                   );
                 })}
@@ -294,7 +353,7 @@ function BrowserMatrix({ currentBrowserName, currentOS }: { currentBrowserName?:
 }
 
 function StatusPill({ status, note }: { status: 'supported' | 'partial' | 'unsupported'; note?: string }) {
-  const base = 'px-1.5 py-0.5 rounded text-[10px] ml-auto';
+  const base = 'px-1.5 py-0.5 rounded text-[11px] ml-auto';
   const color: Record<string, string> = {
     supported: 'bg-green-600 text-white',
     partial: 'bg-yellow-500 text-white',

@@ -23,7 +23,6 @@ import TeacherIndexTable from './pages/TeacherIndexTable';
 import TeacherAdmin from './pages/TeacherAdmin';
 import RollCallHistory from './pages/RollCallHistory';
 import InstallPWA from './pages/InstallPWA';
-import { parseClientEnvironment } from './helpers/pwaSupport';
 import React from 'react';
 
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: unknown }> {
@@ -141,49 +140,6 @@ function PWAInstallGuard() {
   return <Outlet />;
 }
 
-// ブラウザ要件ガード: iOS は Safari 必須 / それ以外は Chrome 必須
-function BrowserRequirementGuard() {
-  const env = parseClientEnvironment();
-  const isIOS = env.os === 'iOS';
-  const requiredBrowser = isIOS ? 'Safari' : 'Chrome';
-  const ok = env.browser === requiredBrowser;
-  if (!ok) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-dvh p-6 text-center bg-[#f7f4e5]">
-        <h1 className="text-2xl font-bold mb-4">対応ブラウザで開いてください</h1>
-        <p className="mb-2 text-sm">
-          このアプリは <span className="font-semibold">{isIOS ? 'iOS: Safari' : 'Chrome (最新版)'} のみ</span>をサポートします。
-        </p>
-        <p className="mb-4 text-sm">
-          現在検出: OS {env.os} {env.osVersion} / Browser {env.browser} {env.browserVersion}
-        </p>
-        {isIOS ? (
-          <div className="text-left text-xs space-y-1 bg-white/70 rounded p-3 max-w-sm">
-            <p className="font-semibold">Safari で開く手順 (iOS)</p>
-            <ol className="list-decimal ml-5 space-y-1">
-              <li>このページの URL をコピー</li>
-              <li>ホーム画面で Safari を開く</li>
-              <li>アドレスバーに貼り付けてアクセス</li>
-            </ol>
-            <p className="pt-1">Chrome / その他ブラウザ内では通知やインストール要件を満たしません。</p>
-          </div>
-        ) : (
-          <div className="text-left text-xs space-y-1 bg-white/70 rounded p-3 max-w-sm">
-            <p className="font-semibold">Chrome で開く手順</p>
-            <ol className="list-decimal ml-5 space-y-1">
-              <li>Chrome を起動 (未インストールならインストール)</li>
-              <li>アドレスバーに現在の URL を入力</li>
-              <li>ページへアクセスし直してください</li>
-            </ol>
-            <p className="pt-1">Edge / Safari / Firefox / その他ブラウザはサポート対象外です。</p>
-          </div>
-        )}
-      </div>
-    );
-  }
-  return <Outlet />;
-}
-
 // 管理者または教員かどうかをチェック
 function AdminOrTeacherRoute({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -231,162 +187,159 @@ function App() {
       <Header />
       <main>
         <Routes>
-          {/* ブラウザ要件 → PWA インストールガード の順 */}
-          <Route element={<BrowserRequirementGuard />}>
-            {/* PWA 未インストール時は常に /install へ誘導 */}
-            <Route element={<PWAInstallGuard />}>
-              <Route
-                path="/login"
-                element={
-                  <FadeContainer>
-                    <Login />
-                  </FadeContainer>
-                }
-              />
-              <Route
-                path="/install"
-                element={
-                  <FadeContainer>
-                    <InstallPWA />
-                  </FadeContainer>
-                }
-              />
-              {/* ログイン後領域 */}
-              <Route element={<ProtectedRoute />}>
-                <Route element={<NotificationGuard />}>
-                  <Route
-                    path="/"
-                    element={
+          {/* PWA 未インストール時は常に /install へ誘導 */}
+          <Route element={<PWAInstallGuard />}>
+            <Route
+              path="/login"
+              element={
+                <FadeContainer>
+                  <Login />
+                </FadeContainer>
+              }
+            />
+            <Route
+              path="/install"
+              element={
+                <FadeContainer>
+                  <InstallPWA />
+                </FadeContainer>
+              }
+            />
+            {/* ログイン後領域 */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<NotificationGuard />}>
+                <Route
+                  path="/"
+                  element={
+                    <FadeContainer>
+                      <Index />
+                    </FadeContainer>
+                  }
+                />
+                <Route
+                  path="/otanoshimi"
+                  element={
+                    <FadeContainer>
+                      <Otanoshimi />
+                    </FadeContainer>
+                  }
+                />
+                <Route
+                  path="/call"
+                  element={
+                    <FadeContainer>
+                      <Call />
+                    </FadeContainer>
+                  }
+                />
+                <Route
+                  path="/credits"
+                  element={
+                    <FadeContainer>
+                      <Credits />
+                    </FadeContainer>
+                  }
+                />
+                <Route
+                  path="/teacher"
+                  element={
+                    <FadeContainer>
+                      <TeacherIndex />
+                    </FadeContainer>
+                  }
+                />
+                <Route
+                  path="/teacher/search"
+                  element={
+                    <FadeContainer>
+                      <TeacherIndexTable />
+                    </FadeContainer>
+                  }
+                />
+                <Route
+                  path="/teacher/roll-call-list"
+                  element={
+                    <FadeContainer>
+                      <TeacherRollCallList />
+                    </FadeContainer>
+                  }
+                />
+                <Route
+                  path="/teacher/call"
+                  element={
+                    <FadeContainer>
+                      <TeacherRollCall />
+                    </FadeContainer>
+                  }
+                />
+                <Route
+                  path="/teacher/call-viewer"
+                  element={
+                    <FadeContainer>
+                      <TeacherRollCallViewer />
+                    </FadeContainer>
+                  }
+                />
+                <Route
+                  path="/roll-call-history"
+                  element={
+                    <FadeContainer>
+                      <RollCallHistory />
+                    </FadeContainer>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <AdminOrTeacherRoute>
                       <FadeContainer>
-                        <Index />
+                        <Admin />
                       </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/otanoshimi"
-                    element={
+                    </AdminOrTeacherRoute>
+                  }
+                />
+                <Route
+                  path="/user-admin"
+                  element={
+                    <AdminOrTeacherRoute>
                       <FadeContainer>
-                        <Otanoshimi />
+                        <UserAdmin />
                       </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/call"
-                    element={
+                    </AdminOrTeacherRoute>
+                  }
+                />
+                <Route
+                  path="/otanoshimi-admin"
+                  element={
+                    <AdminOrTeacherRoute>
                       <FadeContainer>
-                        <Call />
+                        <OtanoshimiAdmin />
                       </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/credits"
-                    element={
+                    </AdminOrTeacherRoute>
+                  }
+                />
+                <Route
+                  path="/teacher-admin"
+                  element={
+                    <AdminOrTeacherRoute>
                       <FadeContainer>
-                        <Credits />
+                        <TeacherAdmin />
                       </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/teacher"
-                    element={
-                      <FadeContainer>
-                        <TeacherIndex />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/teacher/search"
-                    element={
-                      <FadeContainer>
-                        <TeacherIndexTable />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/teacher/roll-call-list"
-                    element={
-                      <FadeContainer>
-                        <TeacherRollCallList />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/teacher/call"
-                    element={
-                      <FadeContainer>
-                        <TeacherRollCall />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/teacher/call-viewer"
-                    element={
-                      <FadeContainer>
-                        <TeacherRollCallViewer />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/roll-call-history"
-                    element={
-                      <FadeContainer>
-                        <RollCallHistory />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/admin"
-                    element={
-                      <AdminOrTeacherRoute>
-                        <FadeContainer>
-                          <Admin />
-                        </FadeContainer>
-                      </AdminOrTeacherRoute>
-                    }
-                  />
-                  <Route
-                    path="/user-admin"
-                    element={
-                      <AdminOrTeacherRoute>
-                        <FadeContainer>
-                          <UserAdmin />
-                        </FadeContainer>
-                      </AdminOrTeacherRoute>
-                    }
-                  />
-                  <Route
-                    path="/otanoshimi-admin"
-                    element={
-                      <AdminOrTeacherRoute>
-                        <FadeContainer>
-                          <OtanoshimiAdmin />
-                        </FadeContainer>
-                      </AdminOrTeacherRoute>
-                    }
-                  />
-                  <Route
-                    path="/teacher-admin"
-                    element={
-                      <AdminOrTeacherRoute>
-                        <FadeContainer>
-                          <TeacherAdmin />
-                        </FadeContainer>
-                      </AdminOrTeacherRoute>
-                    }
-                  />
-                </Route>
-                {/* NotificationGuard 終了 */}
+                    </AdminOrTeacherRoute>
+                  }
+                />
               </Route>
-              {/* PWAInstallGuard 終了 */}
-              <Route
-                path="/non-notification"
-                element={
-                  <FadeContainer>
-                    <NonNotification />
-                  </FadeContainer>
-                }
-              />
+              {/* NotificationGuard 終了 */}
             </Route>
+            {/* PWAInstallGuard 終了 */}
+            <Route
+              path="/non-notification"
+              element={
+                <FadeContainer>
+                  <NonNotification />
+                </FadeContainer>
+              }
+            />
           </Route>
           <Route
             path="*"
