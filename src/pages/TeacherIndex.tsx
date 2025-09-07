@@ -7,6 +7,8 @@ import CenterMessage from '../components/CenterMessage';
 import type { Teacher } from './TeacherAdmin';
 import { teacherApi } from '../helpers/domainApi';
 import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4, DAY4_DATA } from '../data/courses';
+// 生徒 IndexTable と同じ幅/スタイルを適用するため CSS を追加インポート
+import '../styles/index-table.css';
 
 const TeacherIndex = () => {
   const { user, loading, token } = useAuth();
@@ -69,8 +71,14 @@ const TeacherIndex = () => {
         {teacherError && <p className="text-sm text-red-600 mt-2">{teacherError}</p>}
       </div>
 
-      <section id="table" className="rounded-2xl overflow-hidden m-1">
-        <table className="index-table">
+      {/* 生徒用と同じ wrapper / table クラスで幅とデザインを統一 */}
+      <section id="table" className="index-table-wrapper m-2">
+        <table className="table-base table-rounded table-shadow index-table">
+          <colgroup>
+            <col className="col-day" />
+            <col className="col-label" />
+            <col className="col-value" />
+          </colgroup>
           <thead className="bg-amber-200">
             <tr>
               <th colSpan={3}>
