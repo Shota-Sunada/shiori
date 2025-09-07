@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, memo, type FC } from 'react';
 import { SERVER_ENDPOINT } from '../App';
+import { appFetch } from '../helpers/apiClient';
 import type { student } from '../data/students';
 import KanaSearchModal from './KanaSearchModal';
 import Modal from './Modal';
@@ -159,20 +160,13 @@ const GroupEditorModal = ({ isOpen, onClose, token, allStudents, rollCallGroups,
     const method = currentGroup ? 'PUT' : 'POST';
 
     try {
-      const response = await fetch(url, {
+      if (!token) throw new Error('認証情報がありません');
+      await appFetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ name: groupName, student_ids: selectedStudents.sort((a, b) => a - b) })
+        requiresAuth: true,
+        jsonBody: { name: groupName, student_ids: selectedStudents.sort((a, b) => a - b) },
+        alwaysFetch: true
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '保存に失敗しました。');
-      }
-
       onGroupsUpdated();
       setIsEditing(false);
       setCurrentGroup(null);
@@ -186,17 +180,8 @@ const GroupEditorModal = ({ isOpen, onClose, token, allStudents, rollCallGroups,
     if (!window.confirm('本当にこのグループを削除しますか？')) return;
 
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call-groups/${groupId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('削除に失敗しました。');
-      }
-
+      if (!token) throw new Error('認証情報がありません');
+      await appFetch(`${SERVER_ENDPOINT}/api/roll-call-groups/${groupId}`, { method: 'DELETE', requiresAuth: true, alwaysFetch: true });
       onGroupsUpdated();
     } catch (error) {
       console.error('グループの削除に失敗しました:', error);

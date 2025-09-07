@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
+import { appFetch } from '../helpers/apiClient';
 import MDButton from '../components/MDButton';
 import { PrefetchLink } from '../prefetch/PrefetchLink';
 import CenterMessage from '../components/CenterMessage';
@@ -26,11 +27,11 @@ const TeacherRollCallList = () => {
   const { user, token } = useAuth();
   const fetcher = useCallback(async () => {
     if (!user || !token) return [] as RollCall[];
-    const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/teacher/${user.userId}`, {
-      headers: { Authorization: `Bearer ${token}` }
+    return appFetch<RollCall[]>(`${SERVER_ENDPOINT}/api/roll-call/teacher/${user.userId}`, {
+      requiresAuth: true,
+      cacheKey: `rollCalls:list:teacher:${user.userId}`,
+      alwaysFetch: true
     });
-    if (!response.ok) throw new Error(`HTTPエラー: ${response.status}`);
-    return (await response.json()) as RollCall[];
   }, [user, token]);
   const { data: rollCalls = [], loading, error } = usePrefetchedData<RollCall[]>('rollCalls', fetcher);
 
@@ -100,12 +101,7 @@ const TeacherRollCallList = () => {
                     to={`/teacher/call-viewer?id=${rc.id}`}
                     prefetchKey="rollCalls"
                     fetcher={async () => {
-                      // ビューアページで個別再取得するが一覧再描画用に同じセッション一覧をキャッシュ
-                      const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/teacher/${user!.userId}`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                      });
-                      if (!response.ok) throw new Error(`HTTPエラー: ${response.status}`);
-                      return response.json();
+                      return appFetch(`${SERVER_ENDPOINT}/api/roll-call/teacher/${user!.userId}`, { requiresAuth: true, alwaysFetch: true });
                     }}>
                     <MDRightArrow />
                   </PrefetchLink>

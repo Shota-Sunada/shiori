@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { handleEnableNotifications } from '../helpers/notifications';
 import { PrefetchLink } from '../prefetch/PrefetchLink';
+import { appFetch } from '../helpers/apiClient';
 
 const HamburgerIcon = ({ open }: { open: boolean }) => (
   <div className="flex flex-col justify-center items-center w-8 h-8 cursor-pointer">
@@ -57,13 +58,7 @@ const Header = () => {
         to: '/otanoshimi',
         label: 'お楽しみ会',
         prefetchKey: 'otanoshimiTeams',
-        fetcher: async () => {
-          const res = await fetch('/api/otanoshimi');
-          if (!res.ok) throw new Error('otanoshimi fetch failed');
-          const data = await res.json();
-          // ページ側と同じ整形をここでは行わず raw をキャッシュ
-          return data;
-        }
+        fetcher: async () => appFetch('/api/otanoshimi', { alwaysFetch: true })
       },
       { type: 'action', label: '通知を有効にする', onClick: () => handleEnableNotifications(user) },
       { type: 'link', to: '/admin', label: '管理パネル', note: '※管理者専用' },

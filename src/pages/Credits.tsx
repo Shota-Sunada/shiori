@@ -3,6 +3,7 @@ import MDButton from '../components/MDButton';
 import { SERVER_ENDPOINT } from '../App';
 import { useAuth } from '../auth-context';
 import CenterMessage from '../components/CenterMessage';
+import { appFetch } from '../helpers/apiClient';
 
 interface Credit {
   category: string;
@@ -20,11 +21,7 @@ const Credits = () => {
     setStatus('loading');
     setError(null);
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/credits`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!response.ok) throw new Error(`HTTPエラー status: ${response.status}`);
-      const data: Credit[] = await response.json();
+      const data = await appFetch<Credit[]>(`${SERVER_ENDPOINT}/api/credits`, { requiresAuth: true });
       setCredits(data);
       setStatus('success');
     } catch (e) {

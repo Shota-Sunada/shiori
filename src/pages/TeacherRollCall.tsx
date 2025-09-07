@@ -4,6 +4,7 @@ import MDButton from '../components/MDButton';
 import GroupEditorModal from '../components/GroupEditorModal';
 import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
+import { appFetch, clearAppFetchCache } from '../helpers/apiClient';
 import { useNavigate } from 'react-router-dom';
 import CenterMessage from '../components/CenterMessage';
 interface RollCallGroup {
@@ -25,15 +26,10 @@ const TeacherRollCall = () => {
   const fetchRollCallGroups = useCallback(async () => {
     if (!token) return;
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call-groups`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      const groups = await appFetch<RollCallGroup[]>(`${SERVER_ENDPOINT}/api/roll-call-groups`, {
+        requiresAuth: true,
+        cacheKey: 'rollcall:groups'
       });
-      if (!response.ok) {
-        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-      }
-      const groups = await response.json();
       setRollCallGroups(groups);
     } catch (error) {
       console.error('点呼グループの取得に失敗:', error);
@@ -43,9 +39,10 @@ const TeacherRollCall = () => {
   const fetchAllStudents = useCallback(async () => {
     if (!token) return;
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/students`, { headers: { Authorization: `Bearer ${token}` } });
-      if (!response.ok) throw new Error(`HTTPエラー: ${response.status}`);
-      const students = await response.json();
+      const students = await appFetch<student[]>(`${SERVER_ENDPOINT}/api/students`, {
+        requiresAuth: true,
+        cacheKey: 'students:all'
+      });
       students.sort((a: student, b: student) => (a.gakuseki < b.gakuseki ? -1 : a.gakuseki > b.gakuseki ? 1 : 0));
       setAllStudents(students);
     } catch (e) {
@@ -107,21 +104,13 @@ const TeacherRollCall = () => {
       }
 
       try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/start`, {
+        const data = await appFetch<{ rollCallId: string }>(`${SERVER_ENDPOINT}/api/roll-call/start`, {
+          requiresAuth: true,
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify(requestBody)
+          jsonBody: requestBody
         });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || `HTTPエラー! ステータス: ${response.status}`);
-        }
-
-        const data = await response.json();
+        // セッション一覧キャッシュ無効化
+        clearAppFetchCache(`rollCalls:list:teacher:${user.userId}`);
         const { rollCallId } = data;
 
         navigate(`/teacher/call-viewer?id=${rollCallId}`);
@@ -158,9 +147,7 @@ const TeacherRollCall = () => {
               link="/teacher/roll-call-list"
               prefetchKey="rollCalls"
               prefetchFetcher={async () => {
-                const res = await fetch('/api/roll-call/sessions');
-                if (!res.ok) throw new Error('rollCalls prefetch failed');
-                return res.json();
+                return appFetch(`${SERVER_ENDPOINT}/api/roll-call/teacher/${user!.userId}`, { requiresAuth: true, alwaysFetch: true });
               }}
             />
             <MDButton text="ﾌﾟﾘｾｯﾄを編集" arrowRight color="white" onClick={() => setGroupEditorOpen(true)} />

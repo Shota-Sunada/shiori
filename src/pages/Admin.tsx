@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { SERVER_ENDPOINT } from '../App';
 import { useAuth } from '../auth-context';
 import CenterMessage from '../components/CenterMessage';
+import { appFetch, clearAppFetchCache } from '../helpers/apiClient';
 
 type SortKey = keyof student;
 type SortDirection = 'asc' | 'desc';
@@ -189,7 +190,7 @@ const MemoizedRow: FC<MemoizedRowProps> = memo(({ s, visibleColumns, renderCellC
 });
 
 const Admin = () => {
-  const { token } = useAuth();
+  useAuth(); // 認証状態が必要なら呼び出しのみ(将来 user 利用拡張用)
   const [studentsList, setStudentsList] = useState<student[] | null>(null);
   const [editRowId, setEditRowId] = useState<number | null>(null);
   const [editRowForm, setEditRowForm] = useState<typeof initialForm>(initialForm);
@@ -214,29 +215,23 @@ const Admin = () => {
     { key: 'number', direction: 'asc' }
   ]);
 
-  const fetchStudents = useCallback(async () => {
+  const STUDENTS_CACHE_KEY = 'admin:students';
+  const fetchStudents = useCallback(async (force = false) => {
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/students`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      const data = await appFetch<student[]>(`${SERVER_ENDPOINT}/api/students`, {
+        requiresAuth: true,
+        cacheKey: STUDENTS_CACHE_KEY,
+        alwaysFetch: force
       });
-      if (!response.ok) {
-        if (response.status === 404) {
-          setStatus('生徒データが見つかりませんでした。');
-        } else {
-          throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-        }
-      } else {
-        const data: student[] = await response.json();
-        setStudentsList(data);
-        setStatus('');
-      }
+      setStudentsList(data);
+      setStatus('');
     } catch (error) {
+      const msg = (error as Error).message;
+      if (msg.includes('404')) setStatus('生徒データが見つかりませんでした。');
+      else setStatus('生徒データの取得中にエラーが発生しました。');
       console.error('生徒データの取得に失敗:', error);
-      setStatus('生徒データの取得中にエラーが発生しました。');
     }
-  }, [token]);
+  }, []);
 
   const handleSort = (key: SortKey, shiftKey: boolean) => {
     setSortConfigs((prevConfigs) => {
@@ -331,22 +326,15 @@ const Admin = () => {
       if (!window.confirm('本当に削除しますか？')) return;
       setStatus('削除中...');
       try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/students/${gakuseki}`, {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        if (!response.ok) {
-          throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-        }
+        await appFetch(`${SERVER_ENDPOINT}/api/students/${gakuseki}`, { method: 'DELETE', requiresAuth: true, alwaysFetch: true });
         setStatus('生徒データを削除しました。');
-        fetchStudents();
+        clearAppFetchCache(STUDENTS_CACHE_KEY);
+        fetchStudents(true);
       } catch (e) {
         setStatus('エラーが発生しました: ' + (e as Error).message);
       }
     },
-    [token, fetchStudents]
+    [fetchStudents]
   );
 
   // 新規追加
@@ -365,20 +353,11 @@ const Admin = () => {
       if (modalMode === 'add') {
         setStatus('追加中...');
         try {
-          const response = await fetch(`${SERVER_ENDPOINT}/api/students`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify(data)
-          });
-          if (!response.ok) {
-            throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-          }
+          await appFetch(`${SERVER_ENDPOINT}/api/students`, { method: 'POST', jsonBody: data, requiresAuth: true, alwaysFetch: true });
           setStatus('生徒データを追加しました。');
           setModalMode(null);
-          fetchStudents();
+          clearAppFetchCache(STUDENTS_CACHE_KEY);
+          fetchStudents(true);
         } catch (e) {
           setStatus('エラーが発生しました: ' + (e as Error).message);
         }
@@ -387,27 +366,18 @@ const Admin = () => {
         if (editRowId === null) return; // editRowIdがnullの場合は処理しない
         setStatus('更新中...');
         try {
-          const response = await fetch(`${SERVER_ENDPOINT}/api/students/${editRowId}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify(data)
-          });
-          if (!response.ok) {
-            throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-          }
+          await appFetch(`${SERVER_ENDPOINT}/api/students/${editRowId}`, { method: 'PUT', jsonBody: data, requiresAuth: true, alwaysFetch: true });
           setStatus('生徒データを更新しました。');
           setModalMode(null);
           setEditRowId(null);
-          fetchStudents();
+          clearAppFetchCache(STUDENTS_CACHE_KEY);
+          fetchStudents(true);
         } catch (e) {
           setStatus('エラーが発生しました: ' + (e as Error).message);
         }
       }
     },
-    [modalMode, token, editRowId, fetchStudents]
+    [modalMode, editRowId, fetchStudents]
   );
 
   const handleJSONRead = useCallback(
@@ -420,29 +390,20 @@ const Admin = () => {
 
           setStatus('更新中...');
           try {
-            const response = await fetch(`${SERVER_ENDPOINT}/api/students/batch`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
-              },
-              body: JSON.stringify(studentsToProcess)
-            });
-            if (!response.ok) {
-              throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-            }
+            await appFetch(`${SERVER_ENDPOINT}/api/students/batch`, { method: 'POST', jsonBody: studentsToProcess, requiresAuth: true, alwaysFetch: true });
             setStatus('生徒データを更新しました。');
           } catch (e) {
             setStatus('エラーが発生しました: ' + (e as Error).message);
           }
           setModalMode(null);
           setEditRowId(null);
-          fetchStudents();
+          clearAppFetchCache(STUDENTS_CACHE_KEY);
+          fetchStudents(true);
         };
         reader.readAsText(e.target.files[0]);
       }
     },
-    [token, fetchStudents]
+    [fetchStudents]
   );
 
   const handleCellDoubleClick = useCallback(
@@ -481,17 +442,7 @@ const Admin = () => {
 
     setStatus('更新中...');
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/students/${studentId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ [field]: valueToSave })
-      });
-      if (!response.ok) {
-        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-      }
+      await appFetch(`${SERVER_ENDPOINT}/api/students/${studentId}`, { method: 'PUT', jsonBody: { [field]: valueToSave }, requiresAuth: true, alwaysFetch: true });
 
       setStudentsList((prevList) => {
         if (!prevList) return null;
@@ -508,7 +459,7 @@ const Admin = () => {
       setStatus('エラーが発生しました: ' + (error as Error).message);
       setEditingCell(null);
     }
-  }, [editingCell, editingValue, token, studentsList]);
+  }, [editingCell, editingValue, studentsList]);
 
   const handleCellKeyDown = useCallback(
     (e: KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -674,7 +625,7 @@ const Admin = () => {
             disabled={modalMode !== null}
             onClick={async () => {
               setStatus('リロード中...');
-              await fetchStudents();
+              await fetchStudents(true);
               setStatus('リロード完了');
             }}>
             {'リロード'}

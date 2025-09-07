@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode, useCallback } from 'react';
+import { setAuthToken as setGlobalAuthToken } from './helpers/authTokenStore';
 import React from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
@@ -56,6 +57,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = useCallback((token: string) => {
     localStorage.setItem('jwt_token', token);
     setToken(token);
+    setGlobalAuthToken(token);
     try {
       const decoded = jwtDecode<JwtPayload>(token);
       setUser({ userId: decoded.userId, is_admin: decoded.is_admin, is_teacher: decoded.is_teacher });
@@ -69,6 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('jwt_token');
     setUser(null);
     setToken(null);
+    setGlobalAuthToken(null);
   }, []);
 
   useEffect(() => {
@@ -81,6 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
           setUser({ userId: decoded.userId, is_admin: decoded.is_admin, is_teacher: decoded.is_teacher });
           setToken(storedToken);
+          setGlobalAuthToken(storedToken);
         }
       } catch (error) {
         console.error('localStorageのJWTのデコードに失敗:', error);

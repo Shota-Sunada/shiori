@@ -1,6 +1,7 @@
 import { SERVER_ENDPOINT } from '../App';
 import { type AuthUser } from '../auth-context';
 import { registerFCMToken } from '../firebase';
+import { appFetch } from './apiClient';
 
 interface NotificationPayload {
   userId: string;
@@ -31,23 +32,13 @@ export const sendNotification = async (payload: NotificationPayload): Promise<No
   const token = getJwt();
   if (!token) return { success: false, error: 'JWT token not found' };
   try {
-    const res = await fetch(`${SERVER_ENDPOINT}/send-notification`, {
+    await appFetch(`${SERVER_ENDPOINT}/send-notification`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(payload)
+      requiresAuth: true,
+      jsonBody: payload,
+      alwaysFetch: true
     });
-    if (res.ok) return { success: true };
-    let errorText = '不明なエラー';
-    try {
-      const errorData = await res.json();
-      errorText = errorData.error || errorText;
-    } catch {
-      /* ignore JSON parse error */
-    }
-    return { success: false, error: errorText };
+    return { success: true };
   } catch (error) {
     console.error('Failed to send notification', error);
     return { success: false, error: '通知の送信中にエラーが発生しました。' };

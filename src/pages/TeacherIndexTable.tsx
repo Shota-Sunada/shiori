@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAuth } from '../auth-context';
+import { appFetch } from '../helpers/apiClient';
 import type { student } from '../data/students';
 import KanaSearchModal from '../components/KanaSearchModal';
 import { SERVER_ENDPOINT } from '../App';
@@ -13,24 +14,46 @@ const TeacherIndexTable = () => {
   const [studentData, setStudentData] = useState<student | null>(null);
   const [isKanaSearchVisible, setKanaSearchVisible] = useState(false);
 
-  const fetchAllStudents = useCallback(async () => {
-    if (!token) return;
-    try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/students`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!response.ok) throw new Error(`HTTPエラー status: ${response.status}`);
-      const students: student[] = await response.json();
-      students.sort((a, b) => a.gakuseki - b.gakuseki);
-      setAllStudents(students);
-    } catch (error) {
-      console.error('生徒データの取得に失敗:', error);
-    }
-  }, [token]);
+  const [loading, setLoading] = useState(false);
+  const intervalRef = useRef<number | null>(null);
+
+  const loadStudents = useCallback(
+    async (force = false) => {
+      if (!token) return;
+      setLoading(true);
+      try {
+        const students = await appFetch<student[]>(`${SERVER_ENDPOINT}/api/students`, {
+          requiresAuth: true,
+          cacheKey: 'students:list',
+          alwaysFetch: force // interval時は最新取得
+        });
+        students.sort((a, b) => a.gakuseki - b.gakuseki);
+        setAllStudents(students);
+      } catch (e) {
+        console.error('生徒データの取得に失敗:', e);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [token]
+  );
 
   useEffect(() => {
-    fetchAllStudents();
-  }, [fetchAllStudents]);
+    loadStudents();
+  }, [loadStudents]);
+
+  useEffect(() => {
+    if (!token) return;
+    intervalRef.current = window.setInterval(
+      () => {
+        loadStudents(true);
+      },
+      5 * 60 * 1000
+    ); // 5分
+    return () => {
+      if (intervalRef.current) window.clearInterval(intervalRef.current);
+    };
+  }, [token, loadStudents]);
 
   const handleStudentSelect = useCallback((student: student) => {
     setStudentData(student);
@@ -47,6 +70,7 @@ const TeacherIndexTable = () => {
         </div>
       </section>
 
+      {loading && <p>読み込み中...</p>}
       <IndexTable studentData={studentData} />
 
       <MDButton text="ホームに戻る" arrowLeft link="/teacher" />

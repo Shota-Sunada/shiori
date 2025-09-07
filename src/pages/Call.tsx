@@ -4,6 +4,7 @@ import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
 import MDButton from '../components/MDButton';
 import CenterMessage from '../components/CenterMessage';
+import { appFetch } from '../helpers/apiClient';
 
 interface StudentStatus {
   gakuseki: string;
@@ -46,22 +47,21 @@ const Call = () => {
   }, [showAbsenceForm]);
 
   const fetchRollCallStatus = useCallback(async () => {
-    if (!rollCallId || !user || !token) return;
+    if (!rollCallId || !user) return;
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call?id=${rollCallId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const data = await appFetch<{ rollCall: RollCall; students: StudentStatus[] }>(`${SERVER_ENDPOINT}/api/roll-call?id=${rollCallId}`, {
+        requiresAuth: true,
+        alwaysFetch: true // ポーリングなので都度取得
       });
-      if (!response.ok) throw new Error('点呼データの取得に失敗しました。');
-      const data = await response.json();
       setRollCall(data.rollCall);
-      const currentUserStatus = data.students.find((s: StudentStatus) => s.gakuseki === user.userId);
+      const currentUserStatus = data.students.find((s) => s.gakuseki === user.userId);
       if (currentUserStatus?.status === 'checked_in') setIsDone(true);
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setLoading(false);
     }
-  }, [rollCallId, user, token]);
+  }, [rollCallId, user]);
 
   useEffect(() => {
     fetchRollCallStatus();
@@ -127,33 +127,25 @@ const Call = () => {
     }
 
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/absence`, {
+      const data = await appFetch<{ message: string }>(`${SERVER_ENDPOINT}/api/roll-call/absence`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
+        requiresAuth: true,
+        jsonBody: {
           roll_call_id: rollCallId,
           student_id: user.userId,
           reason: absenceReason,
           location: currentLocation
-        })
+        }
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        alert(data.message);
-        setShowAbsenceForm(false);
-      } else {
-        throw new Error(data.message || '不明なエラー');
-      }
+      alert(data.message);
+      setShowAbsenceForm(false);
     } catch (error) {
       console.error('不在届の送信中にエラーが発生しました:', error);
       alert(`エラー: ${(error as Error).message}`);
     }
-  }, [user, rollCallId, token, absenceReason, currentLocation]);
+    // tokenはappFetch内部のグローバル取得に移行済み
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, rollCallId, absenceReason, currentLocation]);
 
   const handleCheckIn = useCallback(async () => {
     if (!user || !rollCallId || !token) {
@@ -167,28 +159,19 @@ const Call = () => {
     }
 
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/check-in`, {
+      await appFetch(`${SERVER_ENDPOINT}/api/roll-call/check-in`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ roll_call_id: rollCallId, student_id: user.userId })
+        requiresAuth: true,
+        jsonBody: { roll_call_id: rollCallId, student_id: user.userId }
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setIsDone(true);
-        // alert(data.message);
-      } else {
-        throw new Error(data.message || '不明なエラー');
-      }
+      setIsDone(true);
     } catch (error) {
       console.error('点呼への応答中にエラーが発生しました:', error);
       alert(`エラー: ${(error as Error).message}`);
     }
-  }, [user, rollCallId, token, rollCall?.is_active, remainingTime]);
+    // tokenはappFetch内部のグローバル取得に移行済み
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, rollCallId, rollCall?.is_active, remainingTime]);
 
   if (loading) return <CenterMessage>読込中...</CenterMessage>;
   if (error)

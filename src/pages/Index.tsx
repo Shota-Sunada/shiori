@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import type { student } from '../data/students';
@@ -6,6 +6,7 @@ import { SERVER_ENDPOINT } from '../App';
 import IndexTable from '../components/IndexTable';
 import MDButton from '../components/MDButton';
 import CenterMessage from '../components/CenterMessage';
+import { appFetch } from '../helpers/apiClient';
 
 interface ActiveRollCall {
   id: string;
@@ -18,67 +19,71 @@ const Index = () => {
 
   const navigate = useNavigate();
 
-  const [studentData, setStudentData] = useState<student | null | undefined>(undefined);
+  const [studentData, setStudentData] = useState<student | null | undefined>(undefined); // undefined: ロード中, null: 404 等
+  const [studentLoading, setStudentLoading] = useState<boolean>(true);
   const [activeRollCall, setActiveRollCall] = useState<ActiveRollCall | null>(null);
+  const pollTimerRef = useRef<number | null>(null);
 
-  const fetchStudent = useCallback(async () => {
-    if (user && user.userId && !user.is_teacher && token) {
-      try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/students/${user.userId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (!response.ok) {
-          if (response.status === 404) {
-            console.warn(`生徒ID「${user.userId}」のデータが見つかりませんでした。`);
-            setStudentData(null);
-          } else {
-            throw new Error(`HTTPエラー status: ${response.status}`);
-          }
-        } else {
-          const data: student = await response.json();
-          setStudentData(data);
-        }
-      } catch (error) {
-        console.error('生徒データの取得に失敗:', error);
-        setStudentData(null);
+  // 生徒データ取得 (1回 + キャッシュ)
+  useEffect(() => {
+    const fetchStudent = async () => {
+      if (!user || user.is_teacher || !token) {
+        setStudentData(null); // 教員の場合は null 相当で扱う
+        setStudentLoading(false);
+        return;
       }
-    } else {
-      setStudentData(null);
-    }
+      try {
+        const data = await appFetch<student>(`${SERVER_ENDPOINT}/api/students/${user.userId}`, {
+          requiresAuth: true,
+          cacheKey: `student:${user.userId}`
+        });
+        setStudentData(data);
+      } catch (e: unknown) {
+        const msg = (e as Error).message || '';
+        if (msg.includes('404')) {
+          console.warn(`生徒ID「${user.userId}」のデータが見つかりませんでした。`);
+          setStudentData(null);
+        } else {
+          console.error('生徒データ取得失敗:', e);
+          setStudentData(null);
+        }
+      } finally {
+        setStudentLoading(false);
+      }
+    };
+    if (token) fetchStudent();
   }, [user, token]);
 
-  const checkActiveRollCall = useCallback(async () => {
-    if (user && user.userId && !user.is_teacher && token) {
+  // 有効な点呼ポーリング (5秒間隔)
+  useEffect(() => {
+    const fetchActive = async () => {
+      if (!user || user.is_teacher || !token) return;
       try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/active?student_id=${user.userId}`, {
-          headers: { Authorization: `Bearer ${token}` }
+        const rc = await appFetch<ActiveRollCall>(`${SERVER_ENDPOINT}/api/roll-call/active?student_id=${user.userId}`, {
+          requiresAuth: true,
+          alwaysFetch: true // 毎回取得
         });
-        if (response.ok) {
-          const data = await response.json();
-          setActiveRollCall(data);
-        } else {
-          setActiveRollCall(null);
-        }
-      } catch (error) {
-        console.error('有効な点呼の確認中にエラー:', error);
+        setActiveRollCall(rc);
+      } catch {
+        // 404 等は active なし
         setActiveRollCall(null);
       }
+    };
+    if (user && !user.is_teacher && token) {
+      fetchActive();
+      pollTimerRef.current = window.setInterval(fetchActive, 5000);
     }
+    return () => {
+      if (pollTimerRef.current) window.clearInterval(pollTimerRef.current);
+    };
   }, [user, token]);
-
-  useEffect(() => {
-    fetchStudent();
-    checkActiveRollCall();
-    const intervalId = setInterval(checkActiveRollCall, 5000);
-    return () => clearInterval(intervalId);
-  }, [fetchStudent, checkActiveRollCall]);
 
   // 教員は教師トップへ
   useEffect(() => {
     if (user?.is_teacher) navigate('/teacher');
   }, [user?.is_teacher, navigate]);
 
-  if (loading) return <CenterMessage>読込中...</CenterMessage>;
+  if (loading || studentLoading) return <CenterMessage>読込中...</CenterMessage>;
   if (!user) return <CenterMessage>ユーザーデータ読込中...</CenterMessage>;
   if (studentData === undefined) return <CenterMessage>生徒データ読込中...</CenterMessage>;
 

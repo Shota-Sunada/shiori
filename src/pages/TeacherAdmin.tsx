@@ -4,6 +4,7 @@ import '../styles/admin-table.css';
 import { SERVER_ENDPOINT } from '../App';
 import CenterMessage from '../components/CenterMessage';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
+import { appFetch, clearAppFetchCache } from '../helpers/apiClient';
 
 export interface Teacher {
   id: number;
@@ -418,15 +419,10 @@ const TeacherAdmin = () => {
   const fetchTeachers = useCallback(async () => {
     if (!token) return;
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/teachers`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      const data = await appFetch<Teacher[]>(`${SERVER_ENDPOINT}/api/teachers`, {
+        requiresAuth: true,
+        cacheKey: 'teachers:list'
       });
-      if (!response.ok) {
-        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-      }
-      const data: Teacher[] = await response.json();
       setTeachersList(data);
     } catch (error) {
       console.error('先生の取得に失敗:', error);
@@ -493,15 +489,12 @@ const TeacherAdmin = () => {
     if (!window.confirm('本当に削除しますか？')) return;
     setStatus('削除中...');
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/teachers/${id}`, {
+      await appFetch(`${SERVER_ENDPOINT}/api/teachers/${id}`, {
+        requiresAuth: true,
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        parse: 'none'
       });
-      if (!response.ok) {
-        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-      }
+      clearAppFetchCache('teachers:list');
       setStatus('先生を削除しました。');
       fetchTeachers();
     } catch (e) {
@@ -518,23 +511,17 @@ const TeacherAdmin = () => {
   const handleSave = async (formData: typeof initialForm) => {
     if (!token) return;
     const id = Number(formData.id);
-
-    // 8桁のIDバリデーション
     if (!/^[0-9]{8}$/.test(id.toString())) {
       setStatus('IDは8桁の数字である必要があります。');
       return;
     }
-
     if (modalMode === 'add') {
       setStatus('追加中...');
       try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/teachers`, {
+        await appFetch(`${SERVER_ENDPOINT}/api/teachers`, {
+          requiresAuth: true,
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({
+          jsonBody: {
             id,
             surname: formData.surname,
             forename: formData.forename,
@@ -549,12 +536,10 @@ const TeacherAdmin = () => {
             day3id: formData.day3id,
             day3bus: formData.day3bus,
             day4class: formData.day4class
-          })
+          },
+          parse: 'none'
         });
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || `HTTPエラー! ステータス: ${response.status}`);
-        }
+        clearAppFetchCache('teachers:list');
         setStatus('先生を追加しました。');
         setModalMode(null);
         fetchTeachers();
@@ -580,19 +565,13 @@ const TeacherAdmin = () => {
           day3bus: formData.day3bus,
           day4class: formData.day4class
         };
-
-        const response = await fetch(`${SERVER_ENDPOINT}/api/teachers/${editRowId}`, {
+        await appFetch(`${SERVER_ENDPOINT}/api/teachers/${editRowId}`, {
+          requiresAuth: true,
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify(body)
+          jsonBody: body,
+          parse: 'none'
         });
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || `HTTPエラー! ステータス: ${response.status}`);
-        }
+        clearAppFetchCache('teachers:list');
         setStatus('先生を更新しました。');
         setModalMode(null);
         setEditRowId(null);
@@ -640,17 +619,13 @@ const TeacherAdmin = () => {
 
     setStatus('更新中...');
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/teachers/${teacherId}`, {
+      await appFetch(`${SERVER_ENDPOINT}/api/teachers/${teacherId}`, {
+        requiresAuth: true,
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ [field]: valueToSave })
+        jsonBody: { [field]: valueToSave },
+        parse: 'none'
       });
-      if (!response.ok) {
-        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-      }
+      clearAppFetchCache('teachers:list');
 
       setTeachersList((prevList) => {
         if (!prevList) return null;

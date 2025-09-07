@@ -4,6 +4,7 @@ import { SERVER_ENDPOINT } from '../App';
 import OtanoshimiCard from '../components/OtanoshimiCard';
 import Modal from '../components/Modal';
 import { useAuth } from '../auth-context';
+import { appFetch } from '../helpers/apiClient';
 import type { student } from '../data/students';
 import MDButton from '../components/MDButton';
 import { consumePrefetchData } from '../prefetch/cache';
@@ -96,9 +97,10 @@ const Otanoshimi = () => {
     const fetchStudents = async () => {
       setLoadingStudents(true);
       try {
-        const res = await fetch(`${SERVER_ENDPOINT}/api/students`, { headers: { Authorization: `Bearer ${token}` } });
-        if (!res.ok) throw new Error(`HTTPエラー: ${res.status}`);
-        const data: student[] = await res.json();
+        const data = await appFetch<student[]>(`${SERVER_ENDPOINT}/api/students`, {
+          requiresAuth: true,
+          cacheKey: 'students:all'
+        });
         setAllStudents(data);
       } catch (e) {
         console.error('学生データ取得失敗:', e);
@@ -113,9 +115,10 @@ const Otanoshimi = () => {
   const fetchTeams = useCallback(async () => {
     if (!token) return;
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/otanoshimi`, { headers: { Authorization: `Bearer ${token}` } });
-      if (!response.ok) throw new Error(`HTTPエラー: ${response.status}`);
-      const data: OtanoshimiData[] = await response.json();
+      const data = await appFetch<OtanoshimiData[]>(`${SERVER_ENDPOINT}/api/otanoshimi`, {
+        requiresAuth: true,
+        cacheKey: 'otanoshimi:teams'
+      });
       const base = data.map((team) => ({ ...team, custom_performers: team.custom_performers || [], enmoku: team.enmoku || '' })).sort((a, b) => a.appearance_order - b.appearance_order);
       const scheduleStart = new Date();
       scheduleStart.setHours(19, 0, 0, 0);

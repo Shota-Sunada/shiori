@@ -7,6 +7,7 @@ import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 import { SERVER_ENDPOINT } from '../App';
 import { registerOrRequestPermission } from '../helpers/notifications';
 import { jwtDecode } from 'jwt-decode';
+import { appFetch } from '../helpers/apiClient';
 
 const Login = () => {
   const USER_ID_MIN = 20200000;
@@ -44,21 +45,22 @@ const Login = () => {
         return;
       }
       try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id, password })
-        });
-        const data = await response.json();
-        if (response.ok) {
+        type LoginResp = { token: string; message?: string };
+        try {
+          const data = await appFetch<LoginResp>(`${SERVER_ENDPOINT}/api/auth/login`, { method: 'POST', jsonBody: { id, password }, parse: 'json' });
           login(data.token);
           const decoded = jwtDecode<AuthUser>(data.token);
           await registerOrRequestPermission(decoded);
           navigate('/');
-        } else if (response.status === 403) {
-          setError(data.message || 'アカウントがロックされている可能性があります。');
-        } else {
-          setError('ユーザー名またはパスワードが正しくありません。');
+        } catch (err) {
+          const msg = (err as Error).message;
+          if (msg.includes('403')) {
+            setError('アカウントがロックされている可能性があります。');
+          } else if (msg.includes('401') || msg.includes('400')) {
+            setError('ユーザー名またはパスワードが正しくありません。');
+          } else {
+            throw err;
+          }
         }
       } catch (err) {
         setError('ログイン中にエラーが発生しました。ネットワーク接続を確認してください。');

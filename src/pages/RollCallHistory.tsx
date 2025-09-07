@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
+import { appFetch } from '../helpers/apiClient';
 import CenterMessage from '../components/CenterMessage';
 import '../styles/table.css';
 import MDButton from '../components/MDButton';
@@ -50,11 +51,11 @@ const RollCallHistory = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${SERVER_ENDPOINT}/api/roll-call/history?student_id=${user.userId}&limit=100`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const data = await appFetch<HistoryItem[]>(`${SERVER_ENDPOINT}/api/roll-call/history?student_id=${user.userId}&limit=100`, {
+        requiresAuth: true,
+        cacheKey: `rollcall:history:${user.userId}`,
+        alwaysFetch: true
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
       setItems(data);
     } catch (e) {
       setError((e as Error).message);

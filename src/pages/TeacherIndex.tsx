@@ -4,6 +4,7 @@ import { useAuth } from '../auth-context';
 import MDButton from '../components/MDButton';
 import CenterMessage from '../components/CenterMessage';
 import { SERVER_ENDPOINT } from '../App';
+import { appFetch } from '../helpers/apiClient';
 import type { Teacher } from './TeacherAdmin';
 import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4, DAY4_DATA } from '../data/courses';
 
@@ -21,11 +22,11 @@ const TeacherIndex = () => {
   const fetchTeacherData = useCallback(async () => {
     if (!user?.userId || !token) return;
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/teachers/${user.userId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const data = await appFetch<Teacher>(`${SERVER_ENDPOINT}/api/teachers/${user.userId}`, {
+        requiresAuth: true,
+        cacheKey: `teacher:self:${user.userId}`,
+        alwaysFetch: true
       });
-      if (!response.ok) throw new Error(`HTTP error status: ${response.status}`);
-      const data = await response.json();
       setTeacherData(data);
     } catch (error) {
       console.error('Failed to fetch teacher data:', error);
@@ -40,11 +41,10 @@ const TeacherIndex = () => {
   const fetchAllTeachers = useCallback(async () => {
     if (!token) return;
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/teachers`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const data = await appFetch<Teacher[]>(`${SERVER_ENDPOINT}/api/teachers`, {
+        requiresAuth: true,
+        cacheKey: 'teachers:list'
       });
-      if (!response.ok) throw new Error(`HTTP error status: ${response.status}`);
-      const data: Teacher[] = await response.json();
       setAllTeachers(data);
     } catch (error) {
       console.error('Error fetching all teachers:', error);

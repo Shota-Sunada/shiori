@@ -1,6 +1,8 @@
 import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken } from 'firebase/messaging';
 import { SERVER_ENDPOINT } from './App';
+import { appFetch } from './helpers/apiClient';
+import { getAuthToken } from './helpers/authTokenStore';
 
 // Firebaseプロジェクトの設定情報
 const firebaseConfig = {
@@ -27,24 +29,17 @@ export const registerFCMToken = async (userId: string, swRegistration: ServiceWo
     if (currentToken) {
       console.log('FCM登録トークンを正常に取得:', currentToken);
 
-      const token = localStorage.getItem('jwt_token');
-      if (!token) {
-        console.error('JWT token not found in localStorage');
+      const jwt = getAuthToken();
+      if (!jwt) {
+        console.error('JWT token not available');
         return;
       }
-
-      const response = await fetch(`${SERVER_ENDPOINT}/register-token`, {
+      await appFetch(`${SERVER_ENDPOINT}/register-token`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ userId, token: currentToken })
+        requiresAuth: true,
+        jsonBody: { userId, token: currentToken },
+        alwaysFetch: true
       });
-
-      if (!response.ok) {
-        throw new Error(`サーバーでのFCMトークンの登録に失敗: ${response.status}`);
-      }
       console.log('サーバーでのFCMトークンの登録に成功。');
     } else {
       console.warn('getToken()がトークンを返送しませんでした。これは通常、権限不足か、VAPID_KEYが無効であることを意味します。');

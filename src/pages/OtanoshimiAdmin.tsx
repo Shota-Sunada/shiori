@@ -5,6 +5,7 @@ import KanaSearchModal from '../components/KanaSearchModal';
 import type { student } from '../data/students';
 import type { OtanoshimiData } from '../data/otanoshimi';
 import { useAuth } from '../auth-context';
+import { appFetch, clearAppFetchCache } from '../helpers/apiClient';
 import CenterMessage from '../components/CenterMessage';
 
 interface StudentChipProps {
@@ -40,15 +41,10 @@ const OtanoshimiAdmin = () => {
   const fetchTeams = useCallback(async () => {
     if (!token) return;
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/otanoshimi`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      const data = await appFetch<OtanoshimiData[]>(`${SERVER_ENDPOINT}/api/otanoshimi`, {
+        requiresAuth: true,
+        cacheKey: 'otanoshimi:teams'
       });
-      if (!response.ok) {
-        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-      }
-      const data: OtanoshimiData[] = await response.json();
       const teamsWithDefaults = data.map((team) => ({
         ...team,
         custom_performers: team.custom_performers || [],
@@ -64,15 +60,10 @@ const OtanoshimiAdmin = () => {
   const fetchAllStudents = useCallback(async () => {
     if (!token) return;
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/students`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      const studentsData = await appFetch<student[]>(`${SERVER_ENDPOINT}/api/students`, {
+        requiresAuth: true,
+        cacheKey: 'students:all'
       });
-      if (!response.ok) {
-        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-      }
-      const studentsData: student[] = await response.json();
       setAllStudents(studentsData);
       const newStudentMap = new Map<number, string>();
       for (const student of studentsData) {
@@ -143,17 +134,14 @@ const OtanoshimiAdmin = () => {
     if (!token) return;
     setStatus('保存中...');
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/otanoshimi`, {
+      await appFetch(`${SERVER_ENDPOINT}/api/otanoshimi`, {
+        requiresAuth: true,
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(teams)
+        jsonBody: teams,
+        parse: 'none'
       });
-      if (!response.ok) {
-        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-      }
+      // 変更後キャッシュを無効化
+      clearAppFetchCache('otanoshimi:teams');
       setStatus('保存しました。');
       setEditingIndex(null);
       fetchTeams();

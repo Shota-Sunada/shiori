@@ -6,6 +6,7 @@ import RoomDataModal from './RoomDataModal';
 import { SERVER_ENDPOINT } from '../App';
 import { usePrefetchNavigate } from '../prefetch/usePrefetchNavigate';
 import { useAuth } from '../auth-context';
+import { appFetch } from '../helpers/apiClient';
 
 interface Roommate {
   gakuseki: string;
@@ -62,11 +63,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
   const fetchTeachers = useCallback(async () => {
     if (!token) return;
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/teachers`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!response.ok) throw new Error(`HTTP error status: ${response.status}`);
-      const data: Teacher[] = await response.json();
+      const data = await appFetch<Teacher[]>(`${SERVER_ENDPOINT}/api/teachers`, { requiresAuth: true, cacheKey: 'teachers:list' });
       setTeachers(data);
     } catch (error) {
       console.error('Error fetching teachers:', error);
@@ -81,11 +78,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
     async (hotel: 'tdh' | 'fpr', room: string, hotelName: string) => {
       if (!token) return;
       try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/students/roommates/${hotel}/${room}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (!response.ok) throw new Error(`HTTP error status: ${response.status}`);
-        const data: Roommate[] = await response.json();
+        const data = await appFetch<Roommate[]>(`${SERVER_ENDPOINT}/api/students/roommates/${hotel}/${room}`, { requiresAuth: true, alwaysFetch: true });
         setCurrentRoommates(data);
         setCurrentHotelName(hotelName);
         setCurrentRoomNumber(room);
@@ -186,9 +179,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
                   to: '/otanoshimi',
                   key: 'otanoshimiTeams',
                   fetcher: async () => {
-                    const res = await fetch('/api/otanoshimi');
-                    if (!res.ok) throw new Error('otanoshimi fetch failed');
-                    return res.json();
+                    return appFetch('/api/otanoshimi', { alwaysFetch: true });
                   },
                   awaitFetch: true
                 });

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SERVER_ENDPOINT } from '../App';
+import { appFetch, clearAppFetchCache } from '../helpers/apiClient';
 import MDButton from '../components/MDButton';
 import { useAuth } from '../auth-context';
 import type { RollCall } from './TeacherRollCallList';
@@ -47,11 +48,11 @@ const TeacherRollCallViewer = () => {
   const fetchData = useCallback(async () => {
     if (!rollCallId || !token) return;
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call?id=${rollCallId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const data = await appFetch<{ rollCall: RollCall; students: Student[] }>(`${SERVER_ENDPOINT}/api/roll-call?id=${rollCallId}`, {
+        requiresAuth: true,
+        cacheKey: `rollcall:view:${rollCallId}`,
+        alwaysFetch: true
       });
-      if (!response.ok) throw new Error(`HTTPエラー: ${response.status}`);
-      const data = await response.json();
       setRollCall(data.rollCall);
       setStudents(data.students);
     } catch (err) {
@@ -110,19 +111,14 @@ const TeacherRollCallViewer = () => {
     if (!window.confirm('本当に点呼を終了しますか？')) return;
 
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/roll-call/end`, {
+      await appFetch(`${SERVER_ENDPOINT}/api/roll-call/end`, {
+        requiresAuth: true,
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ roll_call_id: rollCallId })
+        jsonBody: { roll_call_id: rollCallId },
+        parse: 'none'
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-      }
-
+      // 一覧キャッシュ無効化
+      clearAppFetchCache(`rollCalls:list:teacher:`); // teacher id 不明のため前方一致削除検討 (現状キー固定利用想定)
       alert('点呼を終了しました。');
       navigate('/teacher/roll-call-list');
     } catch (error) {
@@ -175,11 +171,7 @@ const TeacherRollCallViewer = () => {
           arrowLeft
           link="/teacher/roll-call-list"
           prefetchKey="rollCalls"
-          prefetchFetcher={async () => {
-            const res = await fetch('/api/roll-call/sessions');
-            if (!res.ok) throw new Error('rollCalls prefetch failed');
-            return res.json();
-          }}
+          prefetchFetcher={async () => appFetch('/api/roll-call/sessions', { requiresAuth: true, alwaysFetch: true })}
         />
       </CenterMessage>
     );
@@ -284,11 +276,7 @@ const TeacherRollCallViewer = () => {
         arrowLeft
         link="/teacher/roll-call-list"
         prefetchKey="rollCalls"
-        prefetchFetcher={async () => {
-          const res = await fetch('/api/roll-call/sessions');
-          if (!res.ok) throw new Error('rollCalls prefetch failed');
-          return res.json();
-        }}
+        prefetchFetcher={async () => appFetch('/api/roll-call/sessions', { requiresAuth: true, alwaysFetch: true })}
       />
       <ReasonModal isOpen={modal.isOpen} reason={modal.reason} location={modal.location} onClose={() => setModal({ isOpen: false, reason: '', location: '' })} />
     </div>

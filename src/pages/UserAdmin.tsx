@@ -4,6 +4,7 @@ import { useRequireAuth } from '../auth-context';
 import '../styles/admin-table.css';
 import '../styles/table.css';
 import { SERVER_ENDPOINT } from '../App';
+import { appFetch, clearAppFetchCache } from '../helpers/apiClient';
 import CenterMessage from '../components/CenterMessage';
 
 interface User {
@@ -217,18 +218,14 @@ const UserAdmin = () => {
 
   const [sortConfigs, setSortConfigs] = useState<SortConfig[]>([{ key: 'id', direction: 'asc' }]);
 
+  // ユーザー一覧取得 (appFetch + キャッシュ)
   const fetchUsers = useCallback(async () => {
     if (!token) return;
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/users`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      const data = await appFetch<User[]>(`${SERVER_ENDPOINT}/api/users`, {
+        requiresAuth: true,
+        cacheKey: 'users:list'
       });
-      if (!response.ok) {
-        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-      }
-      const data: User[] = await response.json();
       setUsersList(data);
     } catch (error) {
       console.error('ユーザーの取得に失敗:', error);
@@ -242,16 +239,12 @@ const UserAdmin = () => {
       if (!window.confirm('このユーザーのBANを解除しますか？')) return;
       setStatus('BANを解除中...');
       try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/users/${id}/unban`, {
+        await appFetch(`${SERVER_ENDPOINT}/api/users/${id}/unban`, {
           method: 'PUT',
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          requiresAuth: true
         });
-        if (!response.ok) {
-          throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-        }
         setStatus('ユーザーのBANを解除しました。');
+        clearAppFetchCache('users:list');
         fetchUsers();
       } catch (e) {
         setStatus('エラーが発生しました: ' + (e as Error).message);
@@ -325,16 +318,12 @@ const UserAdmin = () => {
       if (!window.confirm('本当に削除しますか？')) return;
       setStatus('削除中...');
       try {
-        const response = await fetch(`${SERVER_ENDPOINT}/api/users/${id}`, {
+        await appFetch(`${SERVER_ENDPOINT}/api/users/${id}`, {
           method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          requiresAuth: true
         });
-        if (!response.ok) {
-          throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-        }
         setStatus('ユーザーを削除しました。');
+        clearAppFetchCache('users:list');
         fetchUsers();
       } catch (e) {
         setStatus('エラーが発生しました: ' + (e as Error).message);
@@ -359,28 +348,21 @@ const UserAdmin = () => {
         const reader = new FileReader();
         reader.onload = async (e) => {
           if (!token) return;
-          const data = e.target?.result as string;
-          const usersToProcess = JSON.parse(data);
-
-          setStatus('更新中...');
           try {
-            const response = await fetch(`${SERVER_ENDPOINT}/api/users/bulk`, {
+            const data = e.target?.result as string;
+            const usersToProcess = JSON.parse(data);
+            setStatus('更新中...');
+            const result = await appFetch<{ message: string }>(`${SERVER_ENDPOINT}/api/users/bulk`, {
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
-              },
-              body: JSON.stringify({ users: usersToProcess })
+              requiresAuth: true,
+              jsonBody: { users: usersToProcess }
             });
-            const result = await response.json();
-            if (!response.ok && response.status !== 207) {
-              throw new Error(result.message || `HTTPエラー! ステータス: ${response.status}`);
-            }
             setStatus(result.message);
-          } catch (e) {
-            setStatus('エラーが発生しました: ' + (e as Error).message);
+            clearAppFetchCache('users:list');
+            fetchUsers();
+          } catch (error) {
+            setStatus('エラーが発生しました: ' + (error as Error).message);
           }
-          fetchUsers();
         };
         reader.readAsText(e.target.files[0]);
       }
@@ -401,20 +383,14 @@ const UserAdmin = () => {
         }
         setStatus('追加中...');
         try {
-          const response = await fetch(`${SERVER_ENDPOINT}/api/users`, {
+          await appFetch(`${SERVER_ENDPOINT}/api/users`, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({ id, password, is_admin, is_teacher })
+            requiresAuth: true,
+            jsonBody: { id, password, is_admin, is_teacher }
           });
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || `HTTPエラー! ステータス: ${response.status}`);
-          }
           setStatus('ユーザーを追加しました。');
           setModalMode(null);
+          clearAppFetchCache('users:list');
           fetchUsers();
         } catch (e) {
           setStatus('エラーが発生しました: ' + (e as Error).message);
@@ -431,21 +407,15 @@ const UserAdmin = () => {
             body.password = password;
           }
 
-          const response = await fetch(`${SERVER_ENDPOINT}/api/users/${editRowId}`, {
+          await appFetch(`${SERVER_ENDPOINT}/api/users/${editRowId}`, {
             method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify(body)
+            requiresAuth: true,
+            jsonBody: body
           });
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || `HTTPエラー! ステータス: ${response.status}`);
-          }
           setStatus('ユーザーを更新しました。');
           setModalMode(null);
           setEditRowId(null);
+          clearAppFetchCache('users:list');
           fetchUsers();
         } catch (e) {
           setStatus('エラーが発生しました: ' + (e as Error).message);
@@ -496,17 +466,11 @@ const UserAdmin = () => {
 
     setStatus('更新中...');
     try {
-      const response = await fetch(`${SERVER_ENDPOINT}/api/users/${userId}`, {
+      await appFetch(`${SERVER_ENDPOINT}/api/users/${userId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ [field]: valueToSave })
+        requiresAuth: true,
+        jsonBody: { [field]: valueToSave }
       });
-      if (!response.ok) {
-        throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-      }
 
       setUsersList((prevList) => {
         if (!prevList) return null;
@@ -519,11 +483,12 @@ const UserAdmin = () => {
       });
       setStatus('更新しました。');
       setEditingCell(null);
+      clearAppFetchCache('users:list');
     } catch (error) {
       setStatus('エラーが発生しました: ' + (error as Error).message);
       setEditingCell(null);
     }
-  }, [editingCell, editingValue, token, usersList]);
+  }, [editingCell, editingValue, usersList]);
 
   const handleCellKeyDown = useCallback(
     (e: KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -664,6 +629,7 @@ const UserAdmin = () => {
             disabled={modalMode !== null}
             onClick={async () => {
               setStatus('リロード中...');
+              clearAppFetchCache('users:list');
               await fetchUsers();
               setStatus('リロード完了');
             }}>
