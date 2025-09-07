@@ -12,6 +12,12 @@ import vivaldiIcon from '@browser-logos/vivaldi/vivaldi.svg';
 import braveIcon from '@browser-logos/brave/brave.svg';
 import genericIcon from '@browser-logos/web/web.svg';
 import operaIcon from '@browser-logos/opera/opera.svg';
+// OS icons (32x32)
+import winIcon from '@egoistdeveloper/operating-system-logos/src/32x32/WIN.png';
+import andIcon from '@egoistdeveloper/operating-system-logos/src/32x32/AND.png';
+import iosIcon from '@egoistdeveloper/operating-system-logos/src/32x32/IOS.png';
+import macIcon from '@egoistdeveloper/operating-system-logos/src/32x32/MAC.png';
+import linIcon from '@egoistdeveloper/operating-system-logos/src/32x32/LIN.png';
 
 // 判定: 既に PWA モード (standalone / display-mode: standalone)
 function useIsStandalone() {
@@ -66,6 +72,26 @@ const InstallPWA = () => {
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
   const requiredBrowser = ios ? 'Safari' : 'Chrome';
   const browserMismatch = env.browser !== requiredBrowser;
+  // icon mapping
+  const browserIcons: Record<string, string> = {
+    Safari: safariIcon,
+    Chrome: chromeIcon,
+    Edge: edgeIcon,
+    Firefox: firefoxIcon,
+    Samsung: samsungIcon,
+    Vivaldi: vivaldiIcon,
+    Brave: braveIcon,
+    Opera: operaIcon
+  };
+  const osIcons: Record<string, string> = {
+    Windows: winIcon,
+    Android: andIcon,
+    iOS: iosIcon,
+    macOS: macIcon,
+    Linux: linIcon
+  };
+  const currentBrowserIcon = browserIcons[env.browser] || genericIcon;
+  const currentOsIcon = osIcons[env.os] || genericIcon;
 
   if (browserMismatch) {
     return (
@@ -73,13 +99,8 @@ const InstallPWA = () => {
         <div className="space-y-5 w-full max-w-md mx-auto text-center px-4">
           <p className="text-2xl font-bold">対応ブラウザで開いてください</p>
           <p className="text-sm text-gray-700">このページは {ios ? 'iOS では Safari' : 'Safari 以外では Google Chrome'} を使用する必要があります。</p>
-          <div className="text-[11px] text-gray-500 bg-gray-100 rounded px-2 py-1 leading-snug">
-            <p className="font-medium mb-0.5">現在の検出環境</p>
-            <p className="break-all">
-              OS: {env.os} {env.osVersion} / Browser: {env.browser} {env.browserVersion}
-            </p>
-          </div>
-          <BrowserMatrix />
+          <EnvBox osIcon={currentOsIcon} browserIcon={currentBrowserIcon} env={env} />
+          <BrowserMatrix currentBrowserName={env.browser} currentOS={env.os} />
           {ios ? (
             <div className="text-left text-xs space-y-1 bg-white/70 rounded p-3">
               <p className="font-semibold">Safari で開くには</p>
@@ -115,12 +136,7 @@ const InstallPWA = () => {
         </p>
         <p className="text-sm text-gray-700">インストールすることで、通知を受け取ることができるようになり、すべての機能を使用することができるようになります。</p>
         <p className="text-sm text-gray-700">何らかの理由でインストールできない、デバイスが対応していない場合は、このままWeb版を使用してください。</p>
-        <div className="text-[11px] text-gray-500 bg-gray-100 rounded px-2 py-1 leading-snug">
-          <p className="font-medium mb-0.5">現在の環境</p>
-          <p className="break-all">
-            OS: {env.os} {env.osVersion} / Browser: {env.browser} {env.browserVersion}
-          </p>
-        </div>
+        <EnvBox osIcon={currentOsIcon} browserIcon={currentBrowserIcon} env={env} />
         {unsupportedPush && (
           <div className="p-3 rounded-md bg-yellow-50 border border-yellow-300 text-left text-xs text-yellow-800 leading-snug">
             <p className="font-semibold mb-1">現在のブラウザ / OS では PWA 経由のプッシュ通知は利用できません ({reason}).</p>
@@ -150,7 +166,7 @@ const InstallPWA = () => {
             </ol>
           </div>
         )}
-        <BrowserMatrix />
+        <BrowserMatrix currentBrowserName={env.browser} currentOS={env.os} />
         {outcome === 'accepted' && <p className="text-green-600 font-semibold">インストールを受け付けました。ホーム画面を確認してください。</p>}
         {outcome === 'dismissed' && <p className="text-orange-600 text-sm">インストールがキャンセルされました。後でもう一度お試しください。</p>}
         <div className="pt-4 space-y-3">
@@ -169,7 +185,27 @@ function PageContainer({ children }: { children: React.ReactNode }) {
   return <div className="min-h-full w-full py-10 px-2 flex flex-col items-stretch overflow-y-auto">{children}</div>;
 }
 
-function BrowserMatrix() {
+function EnvBox({ osIcon, browserIcon, env }: { osIcon: string; browserIcon: string; env: ReturnType<typeof parseClientEnvironment> }) {
+  return (
+    <div className="text-[11px] text-gray-600 bg-gray-100 rounded px-2 py-2 leading-tight flex flex-col gap-1">
+      <p className="font-medium">現在の環境</p>
+      <div className="flex justify-center items-center gap-2">
+        <img src={osIcon} alt={env.os} width={16} height={16} className="shrink-0" />
+        <span className="truncate">
+          OS: {env.os} {env.osVersion}
+        </span>
+      </div>
+      <div className="flex justify-center items-center gap-2">
+        <img src={browserIcon} alt={env.browser} width={16} height={16} className="shrink-0" />
+        <span className="truncate">
+          Browser: {env.browser} {env.browserVersion}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function BrowserMatrix({ currentBrowserName, currentOS }: { currentBrowserName?: string; currentOS?: string }) {
   const rows: { platform: string; browsers: { name: string; icon: string; status: 'supported' | 'partial' | 'unsupported'; note?: string }[] }[] = [
     {
       platform: 'iOS / iPadOS',
@@ -200,30 +236,58 @@ function BrowserMatrix() {
       browsers: [
         { name: 'Chrome', icon: chromeIcon, status: 'supported', note: '動作 ✓' },
         { name: 'Edge', icon: edgeIcon, status: 'supported', note: '動作 ✓' },
-        { name: 'Firefox', icon: firefoxIcon, status: 'supported', note: '動作 ✓' },
+        { name: 'Firefox', icon: firefoxIcon, status: 'unsupported', note: '動作しません ✗' },
         { name: 'Safari', icon: safariIcon, status: 'partial', note: '動作未確認 △' },
         { name: 'Opera', icon: operaIcon, status: 'partial', note: '動作未確認 △' }
       ]
     }
   ];
+  // 現在 OS と行のマッチ判定
+  const matchPlatform = (platform: string) => {
+    if (!currentOS) return false;
+    if (platform.startsWith('iOS') && currentOS === 'iOS') return true;
+    if (platform === 'Android' && currentOS === 'Android') return true;
+    if (platform.startsWith('Windows / macOS / Linux') && ['Windows', 'macOS', 'Linux'].includes(currentOS)) return true;
+    return false;
+  };
   return (
     <div className="mt-6 w-full max-w-md mx-auto">
       <p className="text-sm font-semibold mb-2">対応ブラウザ一覧</p>
       <div className="border border-gray-200 rounded-md overflow-hidden text-[11px] bg-white/70">
-        {rows.map((r) => (
-          <div key={r.platform} className="border-t first:border-t-0 border-gray-200">
-            <div className="px-2 py-1.5 bg-gray-50 font-medium text-gray-700">{r.platform}</div>
-            <div className="grid grid-cols-2 gap-2 p-2">
-              {r.browsers.map((b) => (
-                <div key={b.name} className="flex items-center space-x-2 p-1 rounded border border-gray-100 bg-white/60">
-                  <img src={b.icon || genericIcon} alt={b.name} width={16} height={16} className="shrink-0" />
-                  <span className="font-medium">{b.name}</span>
-                  <StatusPill status={b.status} note={b.note} />
-                </div>
-              ))}
+        {rows.map((r) => {
+          const platformMatch = matchPlatform(r.platform);
+          return (
+            <div key={r.platform} className="border-t first:border-t-0 border-gray-200">
+              <div className="px-2 py-1.5 font-medium flex items-center gap-2 bg-gray-50 text-gray-700">
+                <span>{r.platform}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 p-2">
+                {r.browsers.map((b) => {
+                  const isExactCurrent = platformMatch && b.name === currentBrowserName; // OS & Browser 両方一致
+                  const isRecommended =
+                    (r.platform.startsWith('iOS') && b.name === 'Safari') ||
+                    (r.platform === 'Android' && b.name === 'Chrome') ||
+                    (r.platform.startsWith('Windows / macOS / Linux') && b.name === 'Chrome');
+                  return (
+                    <div
+                      key={b.name}
+                      className={`flex items-center space-x-2 p-1 rounded border relative transition-colors ${
+                        isExactCurrent ? 'border-blue-500 ring-1 ring-blue-400/60 bg-blue-50/80' : 'border-gray-100 bg-white/60'
+                      }`}>
+                      <img src={b.icon || genericIcon} alt={b.name} width={16} height={16} className="shrink-0" />
+                      <span className="font-medium text-[11px] flex items-center gap-1">
+                        {b.name}
+                        {isRecommended && <span className="text-[9px] leading-none px-1 py-[1px] rounded bg-emerald-600 text-white">推奨</span>}
+                      </span>
+                      <StatusPill status={b.status} note={b.note} />
+                      {isExactCurrent && <span className="absolute -top-1 -right-1 bg-blue-600 text-white rounded px-1 py-[1px] text-[9px] leading-none">現在</span>}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
