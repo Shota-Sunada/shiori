@@ -109,6 +109,17 @@ const Call = () => {
     return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
   }, [remainingTime]);
 
+  const renderDate = (ms?: number) => {
+    if (!ms) return null;
+    const d = new Date(ms);
+    const y = d.getFullYear();
+    const m = d.getMonth() + 1;
+    const day = d.getDate();
+    const hh = d.getHours();
+    const mm = d.getMinutes().toString().padStart(2, '0');
+    return <span className="inline-block leading-tight whitespace-pre-line">{`${y}年${m}月${day}日\n${hh}時${mm}分`}</span>;
+  };
+
   const handleAbsenceSubmit = useCallback(async () => {
     if (!user || !rollCallId || !token || !absenceReason) {
       alert('エラーが発生しました。理由を入力してください。');
@@ -214,6 +225,14 @@ const Call = () => {
       )}
 
       <p className="text-xl mt-5">{isDone ? '確認しました！' : rollCall?.is_active && remainingTime > 0 ? '時間内に点呼に応答してください！' : 'この点呼は終了しています。'}</p>
+      {rollCall ? (
+        <div className="mt-4 grid grid-cols-2 gap-x-2 text-sm">
+          <p className="text-right">{'開始: '}</p>
+          <p className="whitespace-pre-line">{renderDate(rollCall.created_at)}</p>
+          <p className="text-right">{'終了予定: '}</p>
+          <p className="whitespace-pre-line">{renderDate(rollCall.expires_at)}</p>
+        </div>
+      ) : null}
       {isDone || !rollCall?.is_active || remainingTime < 0 ? <Button text="戻る" arrowLeft link="/index" /> : <></>}
 
       {!isDone && rollCall?.is_active && remainingTime > 0 ? (

@@ -6,6 +6,7 @@ import { useAuth } from '../auth-context';
 import type { RollCall } from './TeacherRollCallList';
 import { FaArrowRight } from 'react-icons/fa';
 import CenterMessage from '../components/CenterMessage';
+import '../styles/table.css';
 
 interface Student {
   gakuseki: number;
@@ -177,6 +178,16 @@ const TeacherRollCallViewer = () => {
   const absentCount = students.filter((s) => s.absence_reason).length;
   const unresponsiveCount = students.filter((s) => s.status === 'targeted' && !s.absence_reason).length;
 
+  const renderDate = (ms: number) => {
+    const d = new Date(ms);
+    const y = d.getFullYear();
+    const m = d.getMonth() + 1;
+    const day = d.getDate();
+    const hh = d.getHours();
+    const mm = d.getMinutes().toString().padStart(2, '0');
+    return <span className="inline-block leading-tight">{`${y}年${m}月${day}日\n${hh}時${mm}分`}</span>;
+  };
+
   return (
     <div className="flex flex-col items-center justify-center m-4">
       <div className="w-full max-w-[90dvw] p-4 bg-white rounded-lg shadow-md">
@@ -202,52 +213,55 @@ const TeacherRollCallViewer = () => {
           </p>
           <p className="text-lg mx-1 text-right">{'残り時間: '}</p>
           <p className="text-lg mx-1 text-left">{formattedTime}</p>
+          {rollCall ? (
+            <>
+              <p className="text-lg mx-1 text-right">{'開始: '}</p>
+              <p className="text-lg mx-1 text-left whitespace-pre-line">{renderDate(rollCall.created_at)}</p>
+              <p className="text-lg mx-1 text-right">{'終了予定: '}</p>
+              <p className="text-lg mx-1 text-left whitespace-pre-line">{renderDate(rollCall.expires_at)}</p>
+            </>
+          ) : null}
         </div>
 
         {students.length > 20 ? endButton(!rollCall?.is_active || remainingTime <= 0) : <></>}
 
         <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border">
-            <thead className="bg-gray-200">
+          <table className="table-base table-rounded table-shadow">
+            <thead>
               <tr>
-                <th className="py-2 px-1 border-b">{'組'}</th>
-                <th className="py-2 px-1 border-b">{'番号'}</th>
-                <th className="py-2 px-1 border-b">{'氏名'}</th>
-                <th className="py-2 px-1 border-b">{'状態'}</th>
-                <th className="py-2 px-1 border-b">{'不在詳細'}</th>
+                <th className="p-2 text-left">組</th>
+                <th className="p-2 text-left">番号</th>
+                <th className="p-2 text-left">氏名</th>
+                <th className="p-2 text-left">状態</th>
+                <th className="p-2 text-left">不在詳細</th>
               </tr>
             </thead>
             <tbody>
-              {students.map((student) => (
-                <tr key={student.gakuseki} className="text-center">
-                  <td className="py-2 px-1 border-b">{student.class}</td>
-                  <td className="py-2 px-1 border-b">{student.number}</td>
-                  <td className="py-2 px-1 border-b">{`${student.surname} ${student.forename}`}</td>
-                  <td className="py-2 px-1 border-b">
-                    {student.status === 'checked_in' ? (
-                      <span className="px-2 py-1 text-xs font-semibold text-white bg-green-500 rounded-full">{'応答済み'}</span>
-                    ) : student.absence_reason ? (
-                      <span className="px-2 py-1 text-xs font-semibold text-white bg-yellow-500 rounded-full">{'不在'}</span>
-                    ) : (
-                      <span className="px-2 py-1 text-xs font-semibold text-white bg-red-500 rounded-full">{'未応答'}</span>
-                    )}
-                  </td>
-                  <td className="px-3">
-                    {student.absence_reason ? (
-                      <div className="flex items-center justify-center">
-                        <FaArrowRight
+              {students.map((student) => {
+                const label = student.status === 'checked_in' ? '応答済み' : student.absence_reason ? '不在' : '未応答';
+                const badgeClass = label === '応答済み' ? 'table-badge-green' : label === '不在' ? 'table-badge-yellow' : 'table-badge-red';
+                return (
+                  <tr key={student.gakuseki} className="text-center">
+                    <td className="p-2">{student.class}</td>
+                    <td className="p-2">{student.number}</td>
+                    <td className="p-2 whitespace-nowrap">{`${student.surname} ${student.forename}`}</td>
+                    <td className="p-2">
+                      <span className={`table-badge ${badgeClass}`}>{label}</span>
+                    </td>
+                    <td className="p-2">
+                      {student.absence_reason ? (
+                        <button
+                          type="button"
                           onClick={() => setModal({ isOpen: true, reason: student.absence_reason || '', location: student.location || '' })}
-                          className="cursor-pointer bg-[#219ace30] rounded-2xl p-1.5"
-                          size={'30px'}
-                          color="#219bce"
-                        />
-                      </div>
-                    ) : (
-                      <></>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                          className="inline-flex items-center justify-center rounded-full bg-blue-50 hover:bg-blue-100 transition px-2 py-1"
+                          aria-label="不在理由を表示">
+                          <FaArrowRight size={16} className="text-blue-600" />
+                        </button>
+                      ) : null}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

@@ -749,130 +749,80 @@ const TeacherAdmin = () => {
   return (
     <div className="p-[5px] flex flex-col">
       <div className="table-root overflow-y-auto flex flex-grow max-h-[60dvh] max-w-[90dvw] mx-auto rounded-xl">
-        <table border={1} className="w-full">
-          <thead className="sticky top-0 bg-white z-10">
+        <table className="table-base table-rounded table-shadow">
+          <thead>
             <tr>
               <th className="w-24">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'ID'}</span>
-                  <button onClick={(e) => handleSort('id', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('id')}
-                  </button>
-                </div>
+                <button className="th-sort" onClick={(e) => handleSort('id', e.shiftKey)} disabled={modalMode !== null}>
+                  ID {getSortIndicator('id')}
+                </button>
               </th>
               <th className="w-24">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'姓'}</span>
-                  <button onClick={(e) => handleSort('surname', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('surname')}
-                  </button>
-                </div>
+                <button className="th-sort" onClick={(e) => handleSort('surname', e.shiftKey)} disabled={modalMode !== null}>
+                  姓 {getSortIndicator('surname')}
+                </button>
               </th>
               <th className="w-24">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'名'}</span>
-                  <button onClick={(e) => handleSort('forename', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('forename')}
-                  </button>
-                </div>
+                <button className="th-sort" onClick={(e) => handleSort('forename', e.shiftKey)} disabled={modalMode !== null}>
+                  名 {getSortIndicator('forename')}
+                </button>
               </th>
               <th className="w-24">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'FPR'}</span>
-                  <button onClick={(e) => handleSort('room_fpr', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('room_fpr')}
-                  </button>
-                </div>
+                <button className="th-sort" onClick={(e) => handleSort('room_fpr', e.shiftKey)} disabled={modalMode !== null}>
+                  FPR {getSortIndicator('room_fpr')}
+                </button>
               </th>
               <th className="w-24">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'TDH'}</span>
-                  <button onClick={(e) => handleSort('room_tdh', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('room_tdh')}
-                  </button>
-                </div>
+                <button className="th-sort" onClick={(e) => handleSort('room_tdh', e.shiftKey)} disabled={modalMode !== null}>
+                  TDH {getSortIndicator('room_tdh')}
+                </button>
               </th>
               <th className="w-24">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'NSX①号車'}</span>
-                  <button onClick={(e) => handleSort('shinkansen_day1_car_number', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('shinkansen_day1_car_number')}
-                  </button>
-                </div>
+                <button className="th-sort" onClick={(e) => handleSort('shinkansen_day1_car_number', e.shiftKey)} disabled={modalMode !== null}>
+                  NSX①号車 {getSortIndicator('shinkansen_day1_car_number')}
+                </button>
               </th>
               <th className="w-24">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'NSX①座席'}</span>
-                  <button onClick={(e) => handleSort('shinkansen_day1_seat', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('shinkansen_day1_seat')}
-                  </button>
-                </div>
+                <button className="th-sort" onClick={(e) => handleSort('shinkansen_day1_seat', e.shiftKey)} disabled={modalMode !== null}>
+                  NSX①座席 {getSortIndicator('shinkansen_day1_seat')}
+                </button>
               </th>
               <th className="w-24">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'NSX④号車'}</span>
-                  <button onClick={(e) => handleSort('shinkansen_day4_car_number', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('shinkansen_day4_car_number')}
-                  </button>
-                </div>
+                <button className="th-sort" onClick={(e) => handleSort('shinkansen_day4_car_number', e.shiftKey)} disabled={modalMode !== null}>
+                  NSX④号車 {getSortIndicator('shinkansen_day4_car_number')}
+                </button>
               </th>
               <th className="w-24">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'NSX④座席'}</span>
-                  <button onClick={(e) => handleSort('shinkansen_day4_seat', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('shinkansen_day4_seat')}
-                  </button>
-                </div>
+                <button className="th-sort" onClick={(e) => handleSort('shinkansen_day4_seat', e.shiftKey)} disabled={modalMode !== null}>
+                  NSX④座席 {getSortIndicator('shinkansen_day4_seat')}
+                </button>
               </th>
               <th className="w-24">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'①研修先'}</span>
-                  <button onClick={(e) => handleSort('day1id', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('day1id')}
-                  </button>
-                </div>
+                <button className="th-sort" onClick={(e) => handleSort('day1id', e.shiftKey)} disabled={modalMode !== null}>
+                  ①研修先 {getSortIndicator('day1id')}
+                </button>
               </th>
               <th className="w-24">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'①バス'}</span>
-                  <button onClick={(e) => handleSort('day1bus', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('day1bus')}
-                  </button>
-                </div>
+                <button className="th-sort" onClick={(e) => handleSort('day1bus', e.shiftKey)} disabled={modalMode !== null}>
+                  ①バス {getSortIndicator('day1bus')}
+                </button>
               </th>
               <th className="w-24">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'③研修先'}</span>
-                  <button onClick={(e) => handleSort('day3id', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('day3id')}
-                  </button>
-                </div>
+                <button className="th-sort" onClick={(e) => handleSort('day3id', e.shiftKey)} disabled={modalMode !== null}>
+                  ③研修先 {getSortIndicator('day3id')}
+                </button>
               </th>
               <th className="w-24">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'③バス'}</span>
-                  <button onClick={(e) => handleSort('day3bus', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('day3bus')}
-                  </button>
-                </div>
+                <button className="th-sort" onClick={(e) => handleSort('day3bus', e.shiftKey)} disabled={modalMode !== null}>
+                  ③バス {getSortIndicator('day3bus')}
+                </button>
               </th>
               <th className="w-24">
-                <div className="flex flex-col items-center justify-center">
-                  <span>{'④クラス'}</span>
-                  <button onClick={(e) => handleSort('day4class', e.shiftKey)} disabled={modalMode !== null}>
-                    {getSortIndicator('day4class')}
-                  </button>
-                </div>
+                <button className="th-sort" onClick={(e) => handleSort('day4class', e.shiftKey)} disabled={modalMode !== null}>
+                  ④クラス {getSortIndicator('day4class')}
+                </button>
               </th>
-              <th className="w-20 sticky-col">
-                <div className="flex flex-col items-center justify-center">
-                  <span>
-                    {'編集'}
-                    <br />
-                    {'削除'}
-                  </span>
-                </div>
-              </th>
+              <th className="w-20 sticky-col">操作</th>
             </tr>
           </thead>
           <tbody>

@@ -179,6 +179,33 @@ const Otanoshimi = () => {
     navigate(`/otanoshimi?preview=${newOrder}`);
   };
 
+  const splitTime = (range: string): { start: string; end: string | null } => {
+    if (!range) return { start: '', end: null };
+    // Normalize separators
+    const cleaned = range.replace(/（/g, '(').replace(/）/g, ')');
+    if (cleaned.includes('-')) {
+      const [s, e] = cleaned.split('-').map((x) => x.trim());
+      // guard for cases like '21:30 (厳守)'
+      if (/^[0-2]?\d:\d{2}/.test(e)) {
+        return { start: s, end: e };
+      }
+      return { start: s, end: e || null };
+    }
+    return { start: cleaned, end: null };
+  };
+
+  const renderTimeCell = (range: string) => {
+    const { start, end } = splitTime(range);
+    return (
+      <td className="text-center time-col">
+        <div className="time-range">
+          <span>{start}</span>
+          {end ? <span>{end}</span> : null}
+        </div>
+      </td>
+    );
+  };
+
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">
       {previewOrder && teams ? <OtanoshimiPreviewModal order={parseInt(previewOrder || '')} max={teams.length || 0} onClose={handleCloseModal} onNavigate={handleNavigate} /> : <></>}
@@ -205,36 +232,37 @@ const Otanoshimi = () => {
 
       <div className="flex flex-col items-center justify-center m-5">
         <h2 className="text-xl text-center font-bold">{'当日のスケジュール'}</h2>
-        <section id="table" className="mt-2">
-          <table className="index-table">
+        <section id="table" className="mt-2 space-y-6 schedule-table-wrapper">
+          {/* 第1部: リハーサル & 夕食 */}
+          <table className="index-table schedule-table modern-table table-rounded table-shadow">
             <thead className="bg-white">
               <tr>
-                <th>{'時間'}</th>
-                <th colSpan={2}>{'内容'}</th>
+                <th className="time-col">{'時間'}</th>
+                <th>{'内容'}</th>
               </tr>
             </thead>
             <tbody>
               <tr className="bg-gray-100">
-                <td className="text-center">{'17:00 - 18:00'}</td>
-                <td colSpan={2} className="text-center">
-                  {'お楽しみ会 リハーサル'}
-                </td>
+                {renderTimeCell('17:00 - 18:00')}
+                <td className="text-center">{'お楽しみ会 リハーサル'}</td>
               </tr>
               <tr className="bg-white">
-                <td className="text-center">{'18:00 - 19:00'}</td>
-                <td colSpan={2} className="text-center">
-                  {'～ 夕食 ～'}
-                </td>
+                {renderTimeCell('18:00 - 19:00')}
+                <td className="text-center">{'～ 夕食 ～'}</td>
               </tr>
               <tr>
-                <td colSpan={3} className="font-bold text-center bg-yellow-200">
+                <td colSpan={2} className="font-bold text-center schedule-divider">
                   {'お楽しみ会 START'}
                 </td>
               </tr>
             </tbody>
+          </table>
+
+          {/* 第2部: 出演団体 */}
+          <table className="index-table schedule-table modern-table table-rounded table-shadow">
             <thead className="bg-white">
               <tr>
-                <th>{'時間'}</th>
+                <th className="time-col">{'時間'}</th>
                 <th>{'団体名'}</th>
                 <th>{'演目'}</th>
               </tr>
@@ -253,17 +281,25 @@ const Otanoshimi = () => {
                   </td>
                 </tr>
               ) : (
-                teams.map((x, i) => (
-                  <tr key={x.appearance_order} className={i % 2 === 0 ? 'bg-gray-100' : 'bg-white'}>
-                    <td className="text-center">{x.schedule}</td>
-                    <td className="text-center">{x.name}</td>
-                    <td className="text-center">{x.enmoku}</td>
-                  </tr>
-                ))
+                teams.map((x, i) => {
+                  const [start, end] = x.schedule.split('-').map((s) => s.trim());
+                  return (
+                    <tr key={x.appearance_order} className={i % 2 === 0 ? 'bg-gray-100' : 'bg-white'}>
+                      <td className="text-center time-col">
+                        <div className="time-range">
+                          <span>{start}</span>
+                          <span>{end}</span>
+                        </div>
+                      </td>
+                      <td className="text-center col-team">{x.name}</td>
+                      <td className="text-center col-enmoku">{x.enmoku}</td>
+                    </tr>
+                  );
+                })
               )}
               <tr className={teams ? (teams.length % 2 === 0 ? 'bg-gray-100' : 'bg-white') : 'bg-white'}>
-                <td className="text-center">{'21:30 (厳守)'}</td>
-                <td className="text-center font-bold" colSpan={2}>
+                {renderTimeCell('21:30 (厳守)')}
+                <td className="text-center font-bold col-team col-enmoku schedule-divider" colSpan={2}>
                   {'終了 + 解散'}
                 </td>
               </tr>

@@ -1,14 +1,73 @@
+/* IndexTable 用の微調整 (共通 table-base 上書き) */
 .index-table th,
 .index-table td {
-  padding: 1.5dvh 1dvw;
+  padding: 0.75rem 0.75rem;
+}
+.index-table thead th {
+  font-size: 1rem;
+}
+.index-table thead th[colspan] {
+  text-align: center;
+  font-size: 1.1rem;
+}
+/* table-base の thead 背景(#e5e7eb) を確実に上書き */
+.index-table.table-base thead {
+  background: #fde68a;
+}
+/* 念のため th 個別にも適用 (一部ブラウザの継承/重ね順対策) */
+.index-table.table-base thead th {
+  background: #fde68a;
 }
 
+/* レイアウト最適化 */
+.index-table-wrapper {
+  max-width: min(640px, 92dvw);
+  margin-left: auto;
+  margin-right: auto;
+}
+.index-table {
+  table-layout: fixed;
+  width: 100%;
+}
+.index-table .col-day {
+  width: 32px;
+}
+.index-table .col-label {
+  width: 120px;
+}
+.index-table .col-value {
+  width: auto;
+}
+.index-table td,
 .index-table th {
-  border-bottom: 3px;
-  border-color: gray;
-  border-style: double;
+  word-break: break-word;
+}
+.index-table td span.align-middle {
+  display: inline-block;
+}
+.index-table td p {
+  margin: 2px 0;
+}
+.index-table td.bg-gray-200 {
+  background: #f3f4f6;
 }
 
-.index-table td {
-  border-bottom: gray solid 1px;
+@media (max-width: 480px) {
+  .index-table th,
+  .index-table td {
+    padding: 0.55rem 0.5rem;
+  }
+  .index-table .col-day {
+    width: 28px;
+  }
+  .index-table .col-label {
+    width: 92px;
+  }
+}
+
+/* 1列目だけ更にパディング削減して極力狭く */
+.index-table td:first-child,
+.index-table th:first-child {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
 }

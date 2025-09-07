@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback, memo, type ChangeEve
 import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 import { useRequireAuth } from '../auth-context';
 import '../styles/admin-table.css';
+import '../styles/table.css';
 import { SERVER_ENDPOINT } from '../App';
 import CenterMessage from '../components/CenterMessage';
 
@@ -578,7 +579,7 @@ const UserAdmin = () => {
   return (
     <div className="p-[5px] flex flex-col">
       <div className="table-root overflow-y-auto flex flex-grow max-h-[60dvh] max-w-[90dvw] mx-auto rounded-xl">
-        <table border={1} className="w-full">
+        <table className="table-base table-rounded table-shadow">
           <thead className="sticky top-0 bg-white z-10">
             <tr>
               <th className="w-24">

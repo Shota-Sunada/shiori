@@ -277,8 +277,8 @@ const OtanoshimiAdmin = () => {
   return (
     <div className="p-[5px] flex flex-col">
       <div className="table-root overflow-y-auto flex flex-grow max-h-[80dvh] max-w-[90dvw] mx-auto rounded-xl">
-        <table border={1} className="w-full">
-          <thead className="sticky top-0 bg-white z-10">
+        <table className="table-base table-rounded table-shadow">
+          <thead>
             <tr>
               <th className="w-12">{'順番'}</th>
               <th className="w-48">{'チーム名'}</th>

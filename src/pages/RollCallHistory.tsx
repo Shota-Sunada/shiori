@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
 import CenterMessage from '../components/CenterMessage';
+import '../styles/table.css';
 import Button from '../components/Button';
 
 interface HistoryItem {
@@ -15,10 +16,19 @@ interface HistoryItem {
   location?: string | null;
 }
 
-const formatTime = (ms: number) => {
+const formatDateTimeJP = (ms: number) => {
   const d = new Date(ms);
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const y = d.getFullYear();
+  const m = d.getMonth() + 1;
+  const day = d.getDate();
+  const hh = d.getHours();
+  const mm = d.getMinutes().toString().padStart(2, '0');
+  return (
+    <div className="leading-tight">
+      <div>{`${y}年${m}月${day}日`}</div>
+      <div>{`${hh}時${mm}分`}</div>
+    </div>
+  );
 };
 
 const statusLabel = (item: HistoryItem) => {
@@ -65,8 +75,8 @@ const RollCallHistory = () => {
 
     return (
       <div className="w-full max-w-2xl mx-auto p-4">
-        <table className="w-full text-sm bg-white shadow rounded overflow-hidden">
-          <thead className="bg-gray-200">
+        <table className="table-base table-rounded table-shadow">
+          <thead>
             <tr>
               <th className="p-2 text-left">開始</th>
               <th className="p-2 text-left">状態</th>
@@ -79,18 +89,9 @@ const RollCallHistory = () => {
               const label = statusLabel(it);
               return (
                 <tr key={it.id} className="border-b last:border-none hover:bg-gray-50">
-                  <td className="p-2 whitespace-nowrap">{formatTime(it.created_at)}</td>
+                  <td className="p-2">{formatDateTimeJP(it.created_at)}</td>
                   <td className="p-2">
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-semibold ${
-                        label === '応答'
-                          ? 'bg-green-100 text-green-700'
-                          : label === '不在'
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : label === '未応答'
-                              ? 'bg-red-100 text-red-600'
-                              : 'bg-blue-100 text-blue-600'
-                      }`}>
+                    <span className={`table-badge ${label === '応答' ? 'table-badge-green' : label === '不在' ? 'table-badge-yellow' : label === '未応答' ? 'table-badge-red' : 'table-badge-blue'}`}>
                       {label}
                     </span>
                   </td>
@@ -108,7 +109,7 @@ const RollCallHistory = () => {
                       <p className="text-gray-500">進行中...</p>
                     )}
                   </td>
-                  <td className="p-2 whitespace-nowrap">{formatTime(it.expires_at)}</td>
+                  <td className="p-2">{formatDateTimeJP(it.expires_at)}</td>
                 </tr>
               );
             })}
@@ -123,10 +124,10 @@ const RollCallHistory = () => {
 
   return (
     <div className="flex flex-col items-center m-4">
+      <h1 className="text-xl font-bold">点呼履歴</h1>
       <div className="flex w-full max-w-2xl justify-between items-center mb-4">
-        <Button text="戻る" arrowLeft link="/" />
-        <h1 className="text-xl font-bold">点呼履歴</h1>
-        <Button text="更新" onClick={fetchHistory} />
+        <Button text="戻る" arrowLeft link="/" width="mobiry-button-150" />
+        <Button text="更新" onClick={fetchHistory} width="mobiry-button-150" />
       </div>
       {content}
     </div>

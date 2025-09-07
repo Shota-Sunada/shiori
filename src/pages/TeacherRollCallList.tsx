@@ -5,6 +5,7 @@ import Button from '../components/Button';
 import { Link } from 'react-router-dom';
 import { FaArrowRight } from 'react-icons/fa';
 import CenterMessage from '../components/CenterMessage';
+import '../styles/table.css';
 
 export interface RollCall {
   id: string;
@@ -66,100 +67,67 @@ const TeacherRollCallList = () => {
       </CenterMessage>
     );
 
-  const RollCallTable = ({ rollCalls }: RollCallTableProps) => {
-    return (
-      <div className="overflow-y-auto flex flex-grow max-w-[90dvw] mx-auto rounded-xl">
-        <table className="w-full bg-white">
-          <thead>
-            <tr>
-              <th className="py-2 border-b align-middle" rowSpan={2} style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }}>
-                {'状態'}
-              </th>
-              <th className="py-2 px-0.5 border-b">{'開始日時'}</th>
-              <th className="py-2 px-0.5 border-b">{'応答状況'}</th>
-              <th className="py-2 px-0.5 border-b" rowSpan={2}>
-                {'詳細'}
-              </th>
-            </tr>
-            <tr>
-              <th className="py-2 px-0.5 border-b">{'終了日時'}</th>
-              <th className="py-2 px-0.5 border-b">{'先生'}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rollCalls.map((rollCall) => (
-              <tr key={rollCall.id} className={`${!rollCall.is_active ? 'bg-gray-200' : ''}`}>
-                <td className="py-1 px-0.5 border-b text-center min-w-4 align-middle" rowSpan={2} style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }}>
-                  {rollCall.is_active ? <span className="bg-green-500 text-white py-1 px-1 rounded">{'実施'}</span> : <span className="bg-gray-500 text-white py-1 px-1 rounded">{'終了'}</span>}
+  const RollCallTable = ({ rollCalls }: RollCallTableProps) => (
+    <div className="overflow-y-auto flex flex-grow max-w-[90dvw] mx-auto rounded-xl">
+      <table className="table-base table-rounded table-shadow">
+        <thead>
+          <tr>
+            <th className="p-2 text-left">状態</th>
+            <th className="p-2 text-left time-col-inline">開始</th>
+            <th className="p-2 text-left time-col-inline">終了</th>
+            <th className="p-2 text-left time-col-stacked">時間</th>
+            <th className="p-2 text-left">応答状況</th>
+            <th className="p-2 text-left">先生</th>
+            <th className="p-2 text-left">詳細</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rollCalls.map((rc) => {
+            const ratio = `${rc.checked_in_students}/${rc.total_students}`;
+            const active = rc.is_active;
+            const renderDate = (ms: number) => {
+              const d = new Date(ms);
+              const y = d.getFullYear();
+              const m = d.getMonth() + 1;
+              const day = d.getDate();
+              const hh = d.getHours();
+              const mm = d.getMinutes().toString().padStart(2, '0');
+              return `${y}年${m}月${day}日 ${hh}時${mm}分`;
+            };
+            return (
+              <tr key={rc.id} className={!active ? 'opacity-70' : ''}>
+                <td className="p-2">
+                  <span className={`table-badge ${active ? 'table-badge-green' : 'table-badge-gray'} ${!active ? 'table-badge-red' : ''}`}>{active ? '実施' : '終了'}</span>
                 </td>
-                <td className="py-1 px-0.5 border-b text-center">{rollCall.created_at ? new Date(rollCall.created_at).toLocaleString() : '-'}</td>
-                <td className="py-1 px-0.5 border-b text-center min-w-12">
-                  {rollCall.checked_in_students}
-                  {'/'}
-                  {rollCall.total_students}
-                </td>
-                <td className="py-1 px-0.5 border-b text-center" rowSpan={2}>
-                  <div className="flex items-center justify-center">
-                    <Link to={`/teacher/call-viewer?id=${rollCall.id}`}>
-                      <FaArrowRight className="cursor-pointer bg-[#219ace30] rounded-2xl p-1.5" size={'30px'} color="#219bce" />
-                    </Link>
+                <td className="p-2 time-col-inline">{renderDate(rc.created_at)}</td>
+                <td className="p-2 time-col-inline">{renderDate(rc.expires_at)}</td>
+                <td className="p-2 time-col-stacked">
+                  <div className="time-range">
+                    <span>{renderDate(rc.created_at)}</span>
+                    <span>{renderDate(rc.expires_at)}</span>
                   </div>
                 </td>
+                <td className="p-2">{ratio}</td>
+                <td className="p-2">{rc.teacher_id}</td>
+                <td className="p-2">
+                  <Link to={`/teacher/call-viewer?id=${rc.id}`} className="inline-flex items-center justify-center rounded-full bg-blue-50 hover:bg-blue-100 transition px-2 py-1">
+                    <FaArrowRight size={16} className="text-blue-600" />
+                  </Link>
+                </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  };
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
 
   // Second row (end time / teacher) handled via separate table? Simplify by merging info under first row.
   // 以前の2行構成を1行に簡略化しました。
   // 必要なら再導入可能です。
   // (teacher_id と expires_at をツールチップ表示などにする案もあり)
 
-  const LegacyEndedTable = ({ rollCalls }: RollCallTableProps) => {
-    return (
-      <div className="overflow-y-auto flex flex-grow max-w-[90dvw] mx-auto rounded-xl">
-        <table className="w-full bg-white">
-          <thead>
-            <tr>
-              <th className="py-2 border-b align-middle" style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }}>
-                {'状態'}
-              </th>
-              <th className="py-2 px-0.5 border-b">{'開始日時'}</th>
-              <th className="py-2 px-0.5 border-b">{'終了日時'}</th>
-              <th className="py-2 px-0.5 border-b">{'応答状況'}</th>
-              <th className="py-2 px-0.5 border-b">{'先生'}</th>
-              <th className="py-2 px-0.5 border-b">{'詳細'}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rollCalls.map((rollCall) => (
-              <tr key={rollCall.id} className={`${!rollCall.is_active ? 'bg-gray-200' : ''}`}>
-                <td className="py-1 px-0.5 border-b text-center min-w-4 align-middle" rowSpan={2} style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }}>
-                  {rollCall.is_active ? <span className="bg-green-500 text-white py-1 px-1 rounded">{'実施'}</span> : <span className="bg-gray-500 text-white py-1 px-1 rounded">{'終了'}</span>}
-                </td>
-                <td className="py-1 px-0.5 border-b text-center">{rollCall.created_at ? new Date(rollCall.created_at).toLocaleString() : '-'}</td>
-                <td className="py-1 px-0.5 border-b text-center">{rollCall.expires_at ? new Date(rollCall.expires_at).toLocaleString() : '-'}</td>
-                <td className="py-1 px-0.5 border-b text-center min-w-12">
-                  {rollCall.checked_in_students}/{rollCall.total_students}
-                </td>
-                <td className="py-1 px-0.5 border-b text-center">{rollCall.teacher_id}</td>
-                <td className="py-1 px-0.5 border-b text-center">
-                  <div className="flex items-center justify-center">
-                    <Link to={`/teacher/call-viewer?id=${rollCall.id}`}>
-                      <FaArrowRight className="cursor-pointer bg-[#219ace30] rounded-2xl p-1.5" size={'30px'} color="#219bce" />
-                    </Link>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  };
+  const LegacyEndedTable = RollCallTable; // 終了テーブルも同じスタイルで統一
 
   return (
     <div className="container mx-auto p-4">

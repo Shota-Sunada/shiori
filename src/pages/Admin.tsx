@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, type ChangeEvent, type KeyboardEvent, useM
 import type { student } from '../data/students';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
 import '../styles/admin-table.css';
+import '../styles/table.css';
 import StudentModal from '../components/StudentModal';
 import { Link } from 'react-router-dom';
 import { SERVER_ENDPOINT } from '../App';
@@ -606,7 +607,7 @@ const Admin = () => {
         ))}
       </div>
       <div className="table-root overflow-y-auto flex flex-grow max-h-[50dvh] max-w-[90dvw] mx-auto rounded-xl">
-        <table border={1} className="w-full">
+        <table className="table-base table-rounded table-shadow">
           <thead className="sticky top-0 bg-white z-10">
             <tr>
               {allColumns

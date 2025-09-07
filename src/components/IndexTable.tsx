@@ -109,9 +109,14 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
   }, [hasStudent, studentData]);
 
   return (
-    <section id="table" className="rounded-2xl overflow-hidden m-1">
-      <table className="index-table">
-        <thead className="bg-amber-200">
+    <section id="table" className="index-table-wrapper m-2">
+      <table className="table-base table-rounded table-shadow index-table">
+        <colgroup>
+          <col className="col-day" />
+          <col className="col-label" />
+          <col className="col-value" />
+        </colgroup>
+        <thead>
           <tr>
             <th colSpan={3}>
               {hasStudent ? (
@@ -130,7 +135,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white">
+        <tbody>
           {/* day1 START */}
           <tr>
             <td rowSpan={2}>
