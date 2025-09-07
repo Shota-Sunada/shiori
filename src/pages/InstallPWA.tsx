@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MDButton from '../components/MDButton';
 import { usePWAInstallPrompt } from '../hooks/usePWAInstallPrompt';
@@ -34,6 +34,7 @@ const InstallPWA = () => {
   const navigate = useNavigate();
   const { unsupportedPush, reason } = detectPWAPushSupport();
   const env = parseClientEnvironment();
+  const [showFallbackHelp, setShowFallbackHelp] = useState(false);
 
   const proceed = (to: string) => {
     try {
@@ -187,10 +188,10 @@ const InstallPWA = () => {
           </div>
         )}
 
-          <>
-            <p className="text-base text-gray-700">このアプリは、ホーム画面に追加することでアプリのように利用できます。下記で「インストール可能」と表示されている場合は追加をおすすめします。</p>
-            <p className="text-base text-gray-700">インストールにより通知受信などすべての機能が有効になります。</p>
-          </>
+        <>
+          <p className="text-base text-gray-700">このアプリは、ホーム画面に追加することでアプリのように利用できます。下記で「インストール可能」と表示されている場合はインストールしてください。</p>
+          <p className="text-base text-gray-700">インストールにより通知受信などすべての機能が有効になります。</p>
+        </>
 
         {unsupportedPush && (
           <div className="p-3 rounded-md bg-yellow-50 border border-yellow-300 text-left text-sm text-yellow-800 leading-snug">
@@ -200,35 +201,60 @@ const InstallPWA = () => {
           </div>
         )}
 
-        {isSupportedEnv && !unsupportedPush && supported && deferred && (
-          <div className="space-y-3">
-            <p className="font-semibold">インストールが可能です。</p>
-            <MDButton text="インストールダイアログを開く" arrowRight onClick={promptInstall} />
-          </div>
-        )}
-
-        {isSupportedEnv && !unsupportedPush && !supported && !ios && (
-          <div className="space-y-2">
-            <p className="font-semibold text-base">ブラウザのメニューから「インストール」または「アプリをインストール」を選択してください。</p>
-            <p className="text-sm text-gray-600">(Chrome: 右上︙ → インストール / Edge: … → アプリ → このサイトをインストール)</p>
-          </div>
-        )}
-
-        {isSupportedEnv && !unsupportedPush && ios && (
-          <div className="space-y-2 text-left">
-            <p className="font-semibold text-center text-base">iOS (Safari) の場合:</p>
-            <ol className="list-decimal ml-5 space-y-1 text-base">
-              <li>Safari の共有ボタン(□↑)をタップ</li>
-              <li>「ホーム画面に追加」を選択</li>
-              <li>右上の「追加」をタップ</li>
-            </ol>
+        {isSupportedEnv && !unsupportedPush && (
+          <div className="space-y-4 text-left">
+            {supported && deferred ? (
+              <div className="space-y-3 text-center flex flex-col items-center justify-center">
+                <p className="font-semibold">インストール可能</p>
+                <MDButton text="インストール" arrowRight onClick={promptInstall} />
+              </div>
+            ) : (
+              <div className="space-y-3 flex flex-col items-center justify-center">
+                <p className="font-semibold">インストール (ホーム画面追加) 手順</p>
+                {!ios && (
+                  <p className="text-sm text-gray-700">
+                    ブラウザメニューから「インストール」または「アプリをインストール」を選択してください (Chrome: 右上︙ → インストール / Edge: … → アプリ → このサイトをインストール)。
+                  </p>
+                )}
+                {ios && (
+                  <ol className="list-decimal ml-5 space-y-1 text-sm">
+                    <li>Safari の共有ボタン(□↑)をタップ</li>
+                    <li>「ホーム画面に追加」を選択</li>
+                    <li>右上の「追加」をタップ</li>
+                  </ol>
+                )}
+                <MDButton
+                  text={showFallbackHelp ? '手順を隠す' : supported ? '再度インストールを試す' : 'ｲﾝｽﾄｰﾙ手順を表示'}
+                  onClick={() => {
+                    if (supported && deferred) {
+                      promptInstall?.();
+                    } else {
+                      setShowFallbackHelp((v) => !v);
+                    }
+                  }}
+                />
+                {showFallbackHelp && !supported && (
+                  <div className="text-xs bg-white/70 rounded p-3 space-y-2">
+                    {!ios && (
+                      <>
+                        <p className="font-medium">アイコンが出ない場合</p>
+                        <p>
+                          バージョンが古いか、PWA インストールバナー条件をまだ満たしていない可能性があります。数回ページを利用すると出現することがあります。出ない場合でもメニューから追加できます。
+                        </p>
+                      </>
+                    )}
+                    {ios && <p>iOS では必ず Safari の共有メニューから追加します。他ブラウザではインストールが表示されません。</p>}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
         <BrowserMatrix currentBrowserName={env.browser} currentOS={env.os} />
         {outcome === 'accepted' && <p className="text-green-600 font-semibold">インストールを受け付けました。ホーム画面を確認してください。</p>}
         {outcome === 'dismissed' && <p className="text-orange-600 text-base">インストールがキャンセルされました。後でもう一度お試しください。</p>}
-        <div className="pt-4 space-y-3">
+        <div className="pt-4 space-y-3 flex flex-col items-center justify-center">
           <MDButton text={unsupportedPush ? 'ログインへ進む (通知非対応)' : 'ログインへ進む'} arrowRight onClick={() => proceed('/login')} />
           {!unsupportedPush && isSupportedEnv && <MDButton text="後でまた表示" arrowRight onClick={() => proceed('/login')} />}
         </div>

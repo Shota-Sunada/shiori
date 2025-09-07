@@ -4,6 +4,7 @@ import { onMessage } from 'firebase/messaging';
 import { AuthProvider, useAuth } from './auth-context';
 import { messaging } from './firebase';
 import Header from './components/Header';
+import FloatingPWAInstallButton from './components/FloatingPWAInstallButton';
 import Footer from './components/Footer';
 import Index from './pages/Index';
 import Login from './pages/Login';
@@ -185,6 +186,7 @@ function App() {
   return (
     <div className="grid grid-rows-[auto_1fr_auto] bg-[#f7f4e5] min-h-dvh">
       <Header />
+      <FloatingPWAInstallButton />
       <main>
         <Routes>
           {/* PWA 未インストール時は常に /install へ誘導 */}
