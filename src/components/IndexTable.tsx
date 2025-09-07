@@ -100,11 +100,11 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
   // 閉じアニメ完了後に関連データをクリア (600ms + 余裕)
   useEffect(() => {
     if (!showRoommateModal && (currentRoommates.length > 0 || currentHotelName || currentRoomNumber)) {
-  const t = setTimeout(() => {
+      const t = setTimeout(() => {
         setCurrentRoommates([]);
         setCurrentHotelName('');
         setCurrentRoomNumber('');
-  }, UI_ANIMATION.modal.dialogMs + UI_ANIMATION.modal.dataClearExtraMs);
+      }, UI_ANIMATION.modal.dialogMs + UI_ANIMATION.modal.dataClearExtraMs);
       return () => clearTimeout(t);
     }
   }, [showRoommateModal, currentRoommates.length, currentHotelName, currentRoomNumber]);

@@ -86,13 +86,13 @@ export const Modal: React.FC<ModalProps> = ({
       setClosing(false);
     };
     node.addEventListener('animationend', handleEnd);
-  // フォールバック: アニメ想定 + safety
+    // フォールバック: アニメ想定 + safety
     const fallback = setTimeout(() => {
       if (!finished) {
         setRendered(false);
         setClosing(false);
       }
-  }, UI_ANIMATION.modal.dialogMs + UI_ANIMATION.modal.fallbackExtraMs);
+    }, UI_ANIMATION.modal.dialogMs + UI_ANIMATION.modal.fallbackExtraMs);
     return () => {
       node.removeEventListener('animationend', handleEnd);
       clearTimeout(fallback);
