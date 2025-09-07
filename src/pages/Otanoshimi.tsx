@@ -11,7 +11,7 @@ interface OtanoshimiDataWithSchedule extends OtanoshimiData {
   schedule: string;
 }
 
-const OtanoshimiPreviewModal = ({ order, onClose, onNavigate }: { order: string; onClose: () => void; onNavigate: (newOrder: number) => void }) => {
+const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate }: { order: number; max: number; onClose: () => void; onNavigate: (newOrder: number) => void }) => {
   const [team, setTeam] = useState<OtanoshimiData | null>(null);
   const [allStudents, setAllStudents] = useState<student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,7 +31,7 @@ const OtanoshimiPreviewModal = ({ order, onClose, onNavigate }: { order: string;
         }
         const teamsData: OtanoshimiData[] = await teamsResponse.json();
 
-        const appearanceOrder = parseInt(order || '', 10);
+        const appearanceOrder = order || 10;
         const currentTeam = teamsData.find((t) => t.appearance_order === appearanceOrder);
 
         if (currentTeam) {
@@ -116,8 +116,30 @@ const OtanoshimiPreviewModal = ({ order, onClose, onNavigate }: { order: string;
 
               <Button text="閉じる" onClick={onClose} color="purple" />
               <div className="flex flex-row">
-                <Button text="前へ" arrowLeft onClick={() => onNavigate(Number(order) - 1)} width={'mobiry-button-150'} />
-                <Button text="次へ" arrowRight onClick={() => onNavigate(Number(order) + 1)} width={'mobiry-button-150'} />
+                <Button
+                  text="前へ"
+                  arrowLeft
+                  onClick={() => {
+                    if (order === 1) {
+                      onNavigate(max);
+                    } else {
+                      onNavigate(order - 1);
+                    }
+                  }}
+                  width={'mobiry-button-150'}
+                />
+                <Button
+                  text="次へ"
+                  arrowRight
+                  onClick={() => {
+                    if (order === max) {
+                      onNavigate(1);
+                    } else {
+                      onNavigate(order + 1);
+                    }
+                  }}
+                  width={'mobiry-button-150'}
+                />
               </div>
             </div>
           </>
@@ -198,7 +220,7 @@ const Otanoshimi = () => {
 
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">
-      {previewOrder && <OtanoshimiPreviewModal order={previewOrder} onClose={handleCloseModal} onNavigate={handleNavigate} />}
+      {previewOrder && <OtanoshimiPreviewModal order={parseInt(previewOrder || '')} max={teams?.length || 0} onClose={handleCloseModal} onNavigate={handleNavigate} />}
 
       <div className="m-2 flex flex-col items-center justify-center">
         <h1 className="text-3xl font-bold">{'お楽しみ会'}</h1>
