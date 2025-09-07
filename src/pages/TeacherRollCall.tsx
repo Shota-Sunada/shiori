@@ -204,9 +204,7 @@ const TeacherRollCall = () => {
               <p className="text-xs text-gray-600 mt-1">{'ここに学籍番号を入力すると、その生徒にのみ通知が送信されます。空の場合は、選択されたプリセットが適用されます。'}</p>
             </div>
             <div className="flex items-center justify-center">
-              <button type="submit">
-                <Button text="点呼開始" arrowRight color="red" />
-              </button>
+              <Button text="点呼開始" arrowRight color="red" type="submit" />
             </div>
           </form>
         </div>

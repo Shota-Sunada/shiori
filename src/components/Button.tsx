@@ -36,9 +36,11 @@ const Button = ({ text, arrowRight, arrowLeft, onClick, link, color = 'blue', wi
   );
 
   if (link && !disabled) {
+    // Link バリアントでも "type" を全状態で反映させたい要求に対応するため data attribute に保持
+    // (a 要素 / Link 自体には button の type 属性は無効なので UI テストやスタイル用に露出)
     return (
       <div className="m-2">
-        <Link to={link} className={`${baseClass} ${stateClass} ${className}`}>
+        <Link to={link} data-button-type={type} className={`${baseClass} ${stateClass} ${className}`}>
           {content}
         </Link>
       </div>
