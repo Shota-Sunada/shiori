@@ -21,6 +21,7 @@ import Credits from './pages/Credits';
 import TeacherRollCall from './pages/TeacherRollCall';
 import TeacherRollCallViewer from './pages/TeacherRollCallViewer';
 import TeacherIndexTable from './pages/TeacherIndexTable';
+import TeacherAdmin from './pages/TeacherAdmin';
 
 export const SERVER_ENDPOINT = 'https://api.shiori.shudo-physics.com';
 
@@ -173,6 +174,14 @@ function App() {
                 element={
                   <AdminOrTeacherRoute>
                     <OtanoshimiAdmin />
+                  </AdminOrTeacherRoute>
+                }
+              />
+              <Route
+                path="/teacher-admin"
+                element={
+                  <AdminOrTeacherRoute>
+                    <TeacherAdmin />
                   </AdminOrTeacherRoute>
                 }
               />

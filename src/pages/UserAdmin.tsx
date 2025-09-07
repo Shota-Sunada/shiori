@@ -121,7 +121,7 @@ const UserModal: FC<UserModalProps> = memo(({ modalMode, editRowForm, handleSave
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50">
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50 modal-overlay">
       <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
         <h2 className="text-2xl font-bold mb-4">{modalMode === 'add' ? 'ユーザー追加' : 'ユーザー編集'}</h2>
         <form
@@ -434,8 +434,12 @@ const UserAdmin = () => {
   };
 
   const handleCellChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { value } = e.target;
-    setEditingValue(value === 'true' ? true : value === 'false' ? false : value);
+    if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
+      setEditingValue(e.target.checked);
+    } else {
+      const { value } = e.target;
+      setEditingValue(value === 'true' ? true : value === 'false' ? false : value);
+    }
   };
 
   const handleCellEditSave = async () => {
@@ -502,10 +506,7 @@ const UserAdmin = () => {
     if (editingCell?.userId === u.id && editingCell?.field === field) {
       if (field === 'is_admin' || field === 'is_teacher' || field === 'is_banned') {
         return (
-          <select value={String(editingValue)} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="w-full">
-            <option value="true">{'true'}</option>
-            <option value="false">{'false'}</option>
-          </select>
+          <input type="checkbox" checked={editingValue as boolean} onChange={(e) => handleCellChange(e)} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="w-full" />
         );
       }
       return <input type="text" value={editingValue as string} onChange={handleCellChange} onBlur={handleCellEditSave} onKeyDown={handleCellKeyDown} autoFocus className="w-full" />;

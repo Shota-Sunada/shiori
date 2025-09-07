@@ -110,6 +110,15 @@ const Header = () => {
                   <p className="text-sm">{'※管理者専用'}</p>
                 </Link>
                 <Link
+                  to={'/teacher-admin'}
+                  className="text-left px-4 py-3 hover:bg-gray-100 border-b cursor-pointer"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                  }}>
+                  <p>{'先生管理'}</p>
+                  <p className="text-sm">{'※管理者専用'}</p>
+                </Link>
+                <Link
                   to={'/credits'}
                   className="text-left px-4 py-3 hover:bg-gray-100 border-b cursor-pointer"
                   onClick={() => {
