@@ -5,17 +5,18 @@
     Inter,
     Noto Sans JP,
     sans-serif;
+  /* Safari 旧版対策 */
+  -webkit-user-select: none;
   user-select: none;
+  /* 日本語の自然な改行: Safari 未対応の場合のフォールバックを先に */
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  /* 対応ブラウザではより自然な分かち書き */
   word-break: auto-phrase;
-  scrollbar-width: thin;
-  scrollbar-color: #a0a0a0 transparent;
-}
-
-html,
-body,
-main,
-#root {
-  word-break: auto-phrase;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #a0a0a0 transparent; /* Firefox */
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0); /* iOS ハイライト除去 */
+  -webkit-font-smoothing: antialiased;
 }
 
 button {
@@ -24,6 +25,15 @@ button {
 
 body {
   overscroll-behavior-y: none;
+  /* iOS Safari ビューポート揺れ対策用カスタムvh */
+  min-height: 100vh; /* 古い環境 */
+}
+
+/* Dynamic viewport unit が使えるなら優先 */
+@supports (min-height: 100dvh) {
+  body {
+    min-height: 100dvh;
+  }
 }
 
 .mobiry-button-blue {
@@ -155,4 +165,41 @@ body.modal-open {
   background-color: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
+}
+
+/* ===== iOS Safe Area (ノッチ) 対応: 必要に応じてラッパーで利用 ===== */
+:root {
+  /* Fallback */
+  --safe-top: 0px;
+  --safe-right: 0px;
+  --safe-bottom: 0px;
+  --safe-left: 0px;
+}
+@supports (padding: max(0px)) {
+  :root {
+    --safe-top: env(safe-area-inset-top);
+    --safe-right: env(safe-area-inset-right);
+    --safe-bottom: env(safe-area-inset-bottom);
+    --safe-left: env(safe-area-inset-left);
+  }
+}
+
+/* ヘッダーやフッターに適用するためのユーティリティ */
+.pad-safe-top {
+  padding-top: calc(var(--safe-top));
+}
+.pad-safe-bottom {
+  padding-bottom: calc(var(--safe-bottom));
+}
+
+/* ===== JS なしでの簡易フォントサイズ調整防止 ===== */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ===== word-break: auto-phrase 非対応ブラウザ用 明示的補強 ===== */
+@supports not (word-break: auto-phrase) {
+  * {
+    word-break: break-word;
+  }
 }
