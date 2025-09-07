@@ -74,76 +74,57 @@ const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate }: { order: nu
 
   return (
     <div className="fixed inset-0 flex justify-center items-center z-50 modal-overlay">
-      <div className="bg-white p-4 rounded-lg shadow-lg w-full m-4 max-w-[95dvw]">
-        {loading ? (
-          <div className="flex items-center justify-center m-[10px]">
-            <p>{'読み込み中...'}</p>
-            <Button text="戻る" arrowRight onClick={onClose} />
-          </div>
-        ) : !team ? (
-          <div className="flex flex-col items-center justify-center m-[10px]">
-            <p>{'指定された出演順のチームが見つかりません。'}</p>
-            <Button text="戻る" arrowRight onClick={onClose} />
-          </div>
-        ) : (
-          <>
-            <div className="flex flex-col items-center justify-center m-[10px]">
-              <section className="m-2 p-4 border rounded-lg shadow-lg bg-white w-full max-w-md">
-                <h2 className="text-2xl font-bold text-center mb-4">
-                  {order}
-                  {'.「'}
-                  {team.name}
-                  {'」'}
-                </h2>
-                <p className="text-lg text-center mb-2">
-                  {'演目: '}
-                  {team.enmoku}
-                </p>
-                <div className="mt-4">
-                  <h3 className="font-semibold">{'リーダー'}</h3>
-                  <p>{getNameById(team.leader)}</p>
-                </div>
-                <div className="mt-4">
-                  <h3 className="font-semibold">{'メンバー'}</h3>
-                  <ul className="list-disc list-inside grid grid-cols-2 gap-1">
-                    {team.members.map((memberId) => (
-                      <li key={memberId}>{getNameById(memberId)}</li>
-                    ))}
-                    {team.custom_performers && team.custom_performers.length > 0 ? team.custom_performers.map((performer, index) => <li key={index}>{performer}</li>) : <></>}
-                  </ul>
-                </div>
-              </section>
-
-              <Button text="閉じる" onClick={onClose} color="purple" />
-              <div className="flex flex-row">
-                <Button
-                  text="前へ"
-                  arrowLeft
-                  onClick={() => {
-                    if (order === 1) {
-                      onNavigate(max);
-                    } else {
-                      onNavigate(order - 1);
-                    }
-                  }}
-                  width={'mobiry-button-150'}
-                />
-                <Button
-                  text="次へ"
-                  arrowRight
-                  onClick={() => {
-                    if (order === max) {
-                      onNavigate(1);
-                    } else {
-                      onNavigate(order + 1);
-                    }
-                  }}
-                  width={'mobiry-button-150'}
-                />
-              </div>
+      <div className="bg-white p-4 rounded-lg shadow-lg w-full m-4 max-w-[95dvw] h-[90dvh]">
+        <div className="flex flex-col items-center justify-center m-[10px]">
+          <section className="m-2 p-4 border rounded-lg shadow-lg bg-white w-full max-w-md">
+            <h2 className="text-2xl font-bold text-center mb-4">{loading ? '読込中' : !team ? '指定された出演順のチームが見つかりません。' : `${order}.「${team.name}」`}</h2>
+            <p className="text-lg text-center mb-2">
+              {'演目: '}
+              {loading ? '読込中' : !team ? '演目不詳' : team.enmoku}
+            </p>
+            <div className="mt-4">
+              <h3 className="font-semibold">{'リーダー'}</h3>
+              <p>{loading ? '読込中' : !team ? '不詳' : getNameById(team.leader)}</p>
             </div>
-          </>
-        )}
+            <div className="mt-4">
+              <h3 className="font-semibold">{'メンバー'}</h3>
+              <ul className="list-disc list-inside grid grid-cols-2 gap-1">
+                {loading ? '読込中' : !team ? '不詳' : team.members.map((memberId) => <li key={memberId}>{getNameById(memberId)}</li>)}
+                {loading ? <></> : !team ? <></> : team.custom_performers.length > 0 ? team.custom_performers.map((performer, index) => performer ? <li key={index}>{performer}</li> : <></>) : <></>}
+              </ul>
+            </div>
+          </section>
+
+          <section id="buttons" className="flex flex-col items-center justify-center absolute bottom-15">
+            <div className="flex flex-row">
+              <Button
+                text="前へ"
+                arrowLeft
+                onClick={() => {
+                  if (order === 1) {
+                    onNavigate(max);
+                  } else {
+                    onNavigate(order - 1);
+                  }
+                }}
+                width={'mobiry-button-150'}
+              />
+              <Button
+                text="次へ"
+                arrowRight
+                onClick={() => {
+                  if (order === max) {
+                    onNavigate(1);
+                  } else {
+                    onNavigate(order + 1);
+                  }
+                }}
+                width={'mobiry-button-150'}
+              />
+            </div>
+            <Button text="閉じる" onClick={onClose} color="purple" />
+          </section>
+        </div>
       </div>
     </div>
   );
@@ -220,7 +201,7 @@ const Otanoshimi = () => {
 
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">
-      {previewOrder && <OtanoshimiPreviewModal order={parseInt(previewOrder || '')} max={teams?.length || 0} onClose={handleCloseModal} onNavigate={handleNavigate} />}
+      {previewOrder ? <OtanoshimiPreviewModal order={parseInt(previewOrder || '')} max={teams?.length || 0} onClose={handleCloseModal} onNavigate={handleNavigate} /> : <></>}
 
       <div className="m-2 flex flex-col items-center justify-center">
         <h1 className="text-3xl font-bold">{'お楽しみ会'}</h1>
