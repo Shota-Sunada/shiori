@@ -84,9 +84,7 @@ const TeacherIndex = () => {
               <th colSpan={3}>
                 {teacherData ? (
                   <>
-                    {teacherData?.surname}
-                    {" "}
-                    {teacherData?.forename}
+                    {teacherData?.surname} {teacherData?.forename}
                   </>
                 ) : (
                   '5年◯組◯番 ◯◯◯◯'
