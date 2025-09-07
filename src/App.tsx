@@ -263,9 +263,28 @@ function App() {
   );
 }
 
+// ルート変更ごとにスクロールをトップへ戻す
+function ScrollToTop() {
+  const location = useLocation();
+  useEffect(() => {
+    if ('scrollRestoration' in history) {
+      try {
+        history.scrollRestoration = 'manual';
+      } catch {
+        // 一部ブラウザで設定失敗しても無視
+      }
+    }
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+    });
+  }, [location.pathname, location.search]);
+  return null;
+}
+
 const AppWrapper = () => (
   <BrowserRouter>
     <AuthProvider>
+      <ScrollToTop />
       <App />
     </AuthProvider>
   </BrowserRouter>
