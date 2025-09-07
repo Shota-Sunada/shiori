@@ -5,7 +5,7 @@ import { SERVER_ENDPOINT } from '../App';
 import OtanoshimiCard from '../components/OtanoshimiCard';
 import { useAuth } from '../auth-context';
 import type { student } from '../data/students';
-import Button from '../components/Button';
+import MDButton from '../components/MDButton';
 
 interface OtanoshimiDataWithSchedule extends OtanoshimiData {
   schedule: string;
@@ -91,7 +91,7 @@ const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate }: { order: nu
 
           <section id="buttons" className="flex flex-col items-center justify-center">
             <div className="flex flex-row">
-              <Button
+              <MDButton
                 text="前へ"
                 arrowLeft
                 onClick={() => {
@@ -103,7 +103,7 @@ const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate }: { order: nu
                 }}
                 width={'mobiry-button-150'}
               />
-              <Button
+              <MDButton
                 text="次へ"
                 arrowRight
                 onClick={() => {
@@ -116,7 +116,7 @@ const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate }: { order: nu
                 width={'mobiry-button-150'}
               />
             </div>
-            <Button text="閉じる" onClick={onClose} color="purple" />
+            <MDButton text="閉じる" onClick={onClose} color="purple" />
           </section>
         </div>
       </div>
@@ -228,7 +228,7 @@ const Otanoshimi = () => {
           )}
         </div>
       </div>
-      <Button text="ホームに戻る" arrowLeft link="/index" />
+      <MDButton text="ホームに戻る" arrowLeft link="/index" />
 
       <div className="flex flex-col items-center justify-center m-5">
         <h2 className="text-xl text-center font-bold">{'当日のスケジュール'}</h2>
@@ -313,7 +313,7 @@ const Otanoshimi = () => {
         </div>
       </div>
 
-      <Button text="ホームに戻る" arrowLeft link="/index" />
+      <MDButton text="ホームに戻る" arrowLeft link="/index" />
 
       <div className="flex flex-col items-center justify-center mt-8">
         <p className="text-xl font-bold">{'STAFF'}</p>

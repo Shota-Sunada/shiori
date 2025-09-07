@@ -4,7 +4,7 @@ import { useAuth } from '../auth-context';
 import type { student } from '../data/students';
 import { SERVER_ENDPOINT } from '../App';
 import IndexTable from '../components/IndexTable';
-import Button from '../components/Button';
+import MDButton from '../components/MDButton';
 import CenterMessage from '../components/CenterMessage';
 
 interface ActiveRollCall {
@@ -107,7 +107,7 @@ const Index = () => {
 
       {!user.is_teacher && (
         <div className="mt-4">
-          <Button text="点呼履歴" arrowRight link="/roll-call-history" />
+          <MDButton text="点呼履歴" arrowRight link="/roll-call-history" />
         </div>
       )}
 

@@ -209,9 +209,9 @@ const StudentModal = ({ open, onSave, onCancel, day1idOptions, day3idOptions, in
           </div>
         </div>
         <div className="flex flex-row items-center justify-center mt-6 gap-2">
-          <Button text="キャンセル" onClick={handleCancel} />
+          <MDButton text="キャンセル" onClick={handleCancel} />
           <div className="opacity-60 text-xs px-2">{!isValid && touched ? '未入力の必須項目があります' : ''}</div>
-          <Button text="保存" onClick={handleSave} arrowRight disabled={!isValid} />
+          <MDButton text="保存" onClick={handleSave} arrowRight disabled={!isValid} />
         </div>
       </div>
     </div>

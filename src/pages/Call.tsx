@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
-import Button from '../components/Button';
+import MDButton from '../components/MDButton';
 import CenterMessage from '../components/CenterMessage';
 
 interface StudentStatus {
@@ -195,7 +195,7 @@ const Call = () => {
     return (
       <CenterMessage>
         <p className="text-xl text-red-500 mb-4">{error}</p>
-        <Button text="戻る" arrowLeft link="/index" />
+        <MDButton text="戻る" arrowLeft link="/index" />
       </CenterMessage>
     );
 
@@ -233,11 +233,11 @@ const Call = () => {
           <p className="whitespace-pre-line">{renderDate(rollCall.expires_at)}</p>
         </div>
       ) : null}
-      {isDone || !rollCall?.is_active || remainingTime < 0 ? <Button text="戻る" arrowLeft link="/index" /> : <></>}
+      {isDone || !rollCall?.is_active || remainingTime < 0 ? <MDButton text="戻る" arrowLeft link="/index" /> : <></>}
 
       {!isDone && rollCall?.is_active && remainingTime > 0 ? (
         <div className="mt-5">
-          <Button text="点呼できません" arrowRight onClick={() => setShowAbsenceForm(true)} />
+          <MDButton text="点呼できません" arrowRight onClick={() => setShowAbsenceForm(true)} />
         </div>
       ) : (
         <></>
@@ -250,8 +250,8 @@ const Call = () => {
             <textarea className="w-full p-2 border rounded mb-4" rows={4} placeholder="理由を入力してください" value={absenceReason} onChange={(e) => setAbsenceReason(e.target.value)} />
             <input type="text" className="w-full p-2 border rounded" placeholder="現在地を入力してください" value={currentLocation} onChange={(e) => setCurrentLocation(e.target.value)} />
             <div className="flex justify-end space-x-2 mt-4">
-              <Button text="キャンセル" onClick={() => setShowAbsenceForm(false)} />
-              <Button text="送信" arrowRight onClick={handleAbsenceSubmit} />
+              <MDButton text="キャンセル" onClick={() => setShowAbsenceForm(false)} />
+              <MDButton text="送信" arrowRight onClick={handleAbsenceSubmit} />
             </div>
           </div>
         </div>

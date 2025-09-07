@@ -1,4 +1,4 @@
-import Button from '../components/Button';
+import MDButton from '../components/MDButton';
 import { Link } from 'react-router-dom';
 
 const Page404 = () => {
@@ -8,7 +8,7 @@ const Page404 = () => {
       <p className="mb-2">ページが見つかりません。</p>
       <p className="text-sm text-gray-600 mb-6">URL が正しいか確認してください。</p>
       <div className="flex gap-2 flex-wrap items-center justify-center">
-        <Button text="ホームへ" arrowLeft link="/" />
+        <MDButton text="ホームへ" arrowLeft link="/" />
         <Link to="/login" className="underline text-sm text-blue-700">
           ログインページ
         </Link>

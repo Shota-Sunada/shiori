@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import Button from '../components/Button';
+import MDButton from '../components/MDButton';
 import { SERVER_ENDPOINT } from '../App';
 import { useAuth } from '../auth-context';
 import CenterMessage from '../components/CenterMessage';
@@ -42,14 +42,14 @@ const Credits = () => {
     return (
       <CenterMessage>
         <p className="text-red-500">エラー: {error}</p>
-        <Button text="再試行" onClick={fetchCredits} />
+        <MDButton text="再試行" onClick={fetchCredits} />
       </CenterMessage>
     );
   if (!credits || credits.length === 0)
     return (
       <CenterMessage>
         <p>{'クレジット情報がありません。'}</p>
-        <Button text="ホームに戻る" arrowLeft link="/index" />
+        <MDButton text="ホームに戻る" arrowLeft link="/index" />
       </CenterMessage>
     );
 
@@ -66,7 +66,7 @@ const Credits = () => {
           </div>
         ))}
       </div>
-      <Button text="ホームに戻る" arrowLeft link="/index" />
+      <MDButton text="ホームに戻る" arrowLeft link="/index" />
     </div>
   );
 };

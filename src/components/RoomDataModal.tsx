@@ -72,7 +72,7 @@ const RoomDataModal: FC<RoommateModalProps> = ({ roommates, onClose, hotelName, 
           <p>{'ルームメイトが見つかりませんでした。'}</p>
         )}
         <div className="flex items-center justify-center mt-4">
-          <Button text="閉じる" arrowLeft onClick={onClose} color="purple" />
+          <MDButton text="閉じる" arrowLeft onClick={onClose} color="purple" />
         </div>
       </div>
     </div>

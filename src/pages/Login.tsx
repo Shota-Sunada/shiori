@@ -1,6 +1,6 @@
 import { useRef, type FormEvent, useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Button from '../components/Button';
+import MDButton from '../components/MDButton';
 import '../styles/login.css';
 import { useAuth, type AuthUser } from '../auth-context';
 import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
@@ -97,7 +97,7 @@ const Login = () => {
             </span>
           </div>
         </div>
-        <Button text={'ログイン'} arrowRight type="submit" />
+        <MDButton text={'ログイン'} arrowRight type="submit" />
         {error && <p className="text-red-500 mt-4">{error}</p>}
       </form>
     </div>

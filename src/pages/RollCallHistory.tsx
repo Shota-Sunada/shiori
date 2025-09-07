@@ -3,7 +3,7 @@ import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
 import CenterMessage from '../components/CenterMessage';
 import '../styles/table.css';
-import Button from '../components/Button';
+import MDButton from '../components/MDButton';
 
 interface HistoryItem {
   id: string;
@@ -126,8 +126,8 @@ const RollCallHistory = () => {
     <div className="flex flex-col items-center m-4">
       <h1 className="text-xl font-bold">点呼履歴</h1>
       <div className="flex w-full max-w-2xl justify-between items-center mb-4">
-        <Button text="戻る" arrowLeft link="/" width="mobiry-button-150" />
-        <Button text="更新" onClick={fetchHistory} width="mobiry-button-150" />
+        <MDButton text="戻る" arrowLeft link="/" width="mobiry-button-150" />
+        <MDButton text="更新" onClick={fetchHistory} width="mobiry-button-150" />
       </div>
       {content}
     </div>

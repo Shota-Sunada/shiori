@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
-import Button from '../components/Button';
+import MDButton from '../components/MDButton';
 import { Link } from 'react-router-dom';
-import { FaArrowRight } from 'react-icons/fa';
 import CenterMessage from '../components/CenterMessage';
 import '../styles/table.css';
+import MDRightArrow from '../components/MDRightArrow';
 
 export interface RollCall {
   id: string;
@@ -63,7 +63,7 @@ const TeacherRollCallList = () => {
     return (
       <CenterMessage>
         <p className="text-red-500 mb-4">{error}</p>
-        <Button text="戻る" arrowLeft link="/teacher/call" />
+        <MDButton text="戻る" arrowLeft link="/teacher/call" />
       </CenterMessage>
     );
 
@@ -110,8 +110,8 @@ const TeacherRollCallList = () => {
                 <td className="p-2">{ratio}</td>
                 <td className="p-2">{rc.teacher_id}</td>
                 <td className="p-2">
-                  <Link to={`/teacher/call-viewer?id=${rc.id}`} className="inline-flex items-center justify-center rounded-full bg-blue-50 hover:bg-blue-100 transition px-2 py-1">
-                    <FaArrowRight size={16} className="text-blue-600" />
+                  <Link to={`/teacher/call-viewer?id=${rc.id}`}>
+                    <MDRightArrow />
                   </Link>
                 </td>
               </tr>
@@ -144,7 +144,7 @@ const TeacherRollCallList = () => {
       </section>
 
       <div className="flex items-center justify-center m-2">
-        <Button text="戻る" arrowLeft link="/teacher/call" />
+        <MDButton text="戻る" arrowLeft link="/teacher/call" />
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent, useMemo } from 'react';
 import type { student } from '../data/students';
-import Button from '../components/Button';
+import MDButton from '../components/MDButton';
 import GroupEditorModal from '../components/GroupEditorModal';
 import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
@@ -147,13 +147,13 @@ const TeacherRollCall = () => {
 
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">
-      <Button text="ホームに戻る" arrowLeft link="/teacher" />
+      <MDButton text="ホームに戻る" arrowLeft link="/teacher" />
       <section id="call" className="m-2 w-full max-w-md mx-auto">
         <div className="flex flex-col items-center bg-gray-100 p-6 rounded-lg shadow-md">
           <div className="flex flex-col justify-between items-center w-full">
             <p className="m-[10px] text-2xl font-bold">{'点呼システム'}</p>
-            <Button text="点呼一覧へ" arrowRight link="/teacher/roll-call-list" />
-            <Button text="ﾌﾟﾘｾｯﾄを編集" arrowRight color="white" onClick={() => setGroupEditorOpen(true)} />
+            <MDButton text="点呼一覧へ" arrowRight link="/teacher/roll-call-list" />
+            <MDButton text="ﾌﾟﾘｾｯﾄを編集" arrowRight color="white" onClick={() => setGroupEditorOpen(true)} />
           </div>
 
           <form className="w-full mt-4" onSubmit={handleCallSubmit}>
@@ -204,7 +204,7 @@ const TeacherRollCall = () => {
               <p className="text-xs text-gray-600 mt-1">{'ここに学籍番号を入力すると、その生徒にのみ通知が送信されます。空の場合は、選択されたプリセットが適用されます。'}</p>
             </div>
             <div className="flex items-center justify-center">
-              <Button text="点呼開始" arrowRight color="red" type="submit" />
+              <MDButton text="点呼開始" arrowRight color="red" type="submit" />
             </div>
           </form>
         </div>

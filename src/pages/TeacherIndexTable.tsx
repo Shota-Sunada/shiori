@@ -4,7 +4,7 @@ import type { student } from '../data/students';
 import KanaSearchModal from '../components/KanaSearchModal';
 import { SERVER_ENDPOINT } from '../App';
 import IndexTable from '../components/IndexTable';
-import Button from '../components/Button';
+import MDButton from '../components/MDButton';
 
 const TeacherIndexTable = () => {
   const { token } = useAuth();
@@ -39,17 +39,17 @@ const TeacherIndexTable = () => {
   }, []);
   return (
     <div className="flex flex-col items-center justify-center m-2">
-      <Button text="ホームに戻る" arrowLeft link="/teacher" />
+      <MDButton text="ホームに戻る" arrowLeft link="/teacher" />
       <section id="search" className="m-2 flex flex-col items-center">
         <div className="flex flex-col items-center">
           <p className="text-2xl">{'生徒情報検索'}</p>
-          <Button text="生徒カタカナ検索" color="green" onClick={() => setKanaSearchVisible(true)} />
+          <MDButton text="生徒カタカナ検索" color="green" onClick={() => setKanaSearchVisible(true)} />
         </div>
       </section>
 
       <IndexTable studentData={studentData} />
 
-      <Button text="ホームに戻る" arrowLeft link="/teacher" />
+      <MDButton text="ホームに戻る" arrowLeft link="/teacher" />
 
       <KanaSearchModal isOpen={isKanaSearchVisible} onClose={() => setKanaSearchVisible(false)} allStudents={allStudents} onStudentSelect={handleStudentSelect} />
     </div>

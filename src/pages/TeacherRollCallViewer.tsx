@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SERVER_ENDPOINT } from '../App';
-import Button from '../components/Button';
+import MDButton from '../components/MDButton';
 import { useAuth } from '../auth-context';
 import type { RollCall } from './TeacherRollCallList';
 import { FaArrowRight } from 'react-icons/fa';
@@ -133,7 +133,7 @@ const TeacherRollCallViewer = () => {
 
   const endButton = (disabled: boolean) => (
     <div className="m-3 flex items-center justify-center">
-      <Button
+      <MDButton
         onClick={onEndSession}
         disabled={disabled}
         text={rollCall?.is_active && remainingTime > 0 ? '点呼終了' : '点呼は終了しています'}
@@ -158,7 +158,7 @@ const TeacherRollCallViewer = () => {
             {location}
           </p>
           <div className="text-center mt-4">
-            <Button text="閉じる" arrowLeft onClick={onClose} />
+            <MDButton text="閉じる" arrowLeft onClick={onClose} />
           </div>
         </div>
       </div>
@@ -170,7 +170,7 @@ const TeacherRollCallViewer = () => {
     return (
       <CenterMessage>
         <p className="text-red-500 mb-4">エラー: {error}</p>
-        <Button text="一覧へ戻る" arrowLeft link="/teacher/roll-call-list" />
+        <MDButton text="一覧へ戻る" arrowLeft link="/teacher/roll-call-list" />
       </CenterMessage>
     );
 
@@ -269,7 +269,7 @@ const TeacherRollCallViewer = () => {
         {endButton(!rollCall?.is_active || remainingTime <= 0)}
       </div>
 
-      <Button text="点呼一覧へ戻る" arrowLeft link="/teacher/roll-call-list" />
+      <MDButton text="点呼一覧へ戻る" arrowLeft link="/teacher/roll-call-list" />
       <ReasonModal isOpen={modal.isOpen} reason={modal.reason} location={modal.location} onClose={() => setModal({ isOpen: false, reason: '', location: '' })} />
     </div>
   );

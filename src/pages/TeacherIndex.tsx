@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
-import Button from '../components/Button';
+import MDButton from '../components/MDButton';
 import CenterMessage from '../components/CenterMessage';
 import { SERVER_ENDPOINT } from '../App';
 import type { Teacher } from './TeacherAdmin';
@@ -294,9 +294,9 @@ const TeacherIndex = () => {
         </table>
       </section>
 
-      <Button text="生徒を検索" arrowRight link="/teacher/search"></Button>
-      <Button text="点呼" arrowRight link="/teacher/call"></Button>
-      <Button text="お楽しみ会" arrowRight link="/otanoshimi" color="green"></Button>
+      <MDButton text="生徒を検索" arrowRight link="/teacher/search"></MDButton>
+      <MDButton text="点呼" arrowRight link="/teacher/call"></MDButton>
+      <MDButton text="お楽しみ会" arrowRight link="/otanoshimi" color="green"></MDButton>
     </div>
   );
 };

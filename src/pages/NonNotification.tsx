@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../auth-context';
-import Button from '../components/Button';
+import MDButton from '../components/MDButton';
 import { handleEnableNotifications } from '../helpers/notifications';
 import CenterMessage from '../components/CenterMessage';
 
@@ -144,7 +144,7 @@ const NonNotification = () => {
       <>
         <p className="font-bold text-2xl mb-2">{'ありがとうございます！'}</p>
         <p className="mb-4">{'通知が有効になりました。'}</p>
-        <Button text="ホームへ" arrowRight link="/" />
+        <MDButton text="ホームへ" arrowRight link="/" />
       </>
     );
   } else if (permission === 'denied') {
@@ -155,7 +155,7 @@ const NonNotification = () => {
         <p className="font-bold text-2xl mb-2">{'通知を有効化してください'}</p>
         <p className="mb-1">{'このしおりでは通知が重要な役割を果たします。'}</p>
         <p className="mb-4">{'点呼開始などを受け取るため通知を許可してください。'}</p>
-        <Button text="通知を許可する" arrowRight onClick={onEnable} />
+        <MDButton text="通知を許可する" arrowRight onClick={onEnable} />
       </>
     );
   }
