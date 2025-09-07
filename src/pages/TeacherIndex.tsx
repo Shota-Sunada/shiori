@@ -138,7 +138,7 @@ const TeacherIndex = () => {
             <tr>
               <td>{'お楽しみ会'}</td>
               <td
-                className="bg-gray-200 cursor-pointer"
+                className="cell-interactive"
                 onClick={() => {
                   navigate('/otanoshimi');
                 }}>
@@ -189,7 +189,7 @@ const TeacherIndex = () => {
                 <p>{'2泊目'}</p>
               </td>
               <td
-                className="cursor-pointer bg-gray-200"
+                className="cell-interactive"
                 onClick={() => {
                   if (teacherData?.room_tdh) {
                     // fetchRoommates('tdh', teacherData.room_tdh.toString(), '東京ドームホテル');
@@ -213,7 +213,7 @@ const TeacherIndex = () => {
             <tr>
               <td>{'3泊目'}</td>
               <td
-                className="cursor-pointer bg-gray-200"
+                className="cell-interactive"
                 onClick={() => {
                   if (teacherData?.room_fpr) {
                     // fetchRoommates('fpr', teacherData.room_fpr.toString(), 'フジプレミアムリゾート');
@@ -246,7 +246,7 @@ const TeacherIndex = () => {
                 <p className="text-sm">{'新横浜駅で下車'}</p>
               </td>
               <td
-                className="bg-gray-200 cursor-pointer"
+                className="cell-interactive"
                 onClick={() => {
                   window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=84', '_blank', 'noreferrer');
                 }}>
@@ -276,7 +276,7 @@ const TeacherIndex = () => {
                 <p className="text-sm">{'新横浜駅で乗車'}</p>
               </td>
               <td
-                className={'bg-gray-200 cursor-pointer'}
+                className={'cell-interactive'}
                 onClick={() => {
                   window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=77', '_blank', 'noreferrer');
                 }}>

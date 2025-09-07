@@ -320,6 +320,80 @@ table.modern-table tr:focus-within {
   }
 }
 
+/* ===== 強調: IndexTable 内のクリック可能セル視認性向上 (モバイル優先) ===== */
+/* 基本背景と軽いエレベーション */
+.index-table td.cell-interactive {
+  background: linear-gradient(180deg, #f0f7ff 0%, #e6f1ff 100%);
+  position: relative;
+  box-shadow: inset 0 0 0 1px #cfe3ff, 0 1px 2px rgba(0, 0, 0, 0.06);
+  border-radius: 6px; /* 角を少し丸く (表の罫線はそのまま) */
+  overflow: hidden; /* 擬似要素のはみ出し防止 */
+}
+/* 左側アクセントバー */
+.index-table td.cell-interactive::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+  opacity: 0.85;
+  /* 以前: scaleY アニメーション。要望により常時全高さ & アニメ除去 */
+  transform: none;
+  transform-origin: top;
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px;
+  pointer-events: none;
+}
+/* ホバー時の伸長アニメーションを削除 */
+/* 既存矢印バッジのサイズ微調整 (IndexTable 限定) */
+.index-table td.cell-interactive::after {
+  width: 1.45rem;
+  height: 1.45rem;
+  line-height: 1.45rem;
+  font-size: 0.95rem;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.25),
+    0 0 0 2px rgba(255, 255, 255, 0.75);
+}
+/* 既存の hover 拡大(transform scale) を無効化 */
+@media (hover: hover) {
+  .index-table td.cell-interactive:hover::after {
+    transform: translateY(-50%);
+  }
+}
+/* タップ時のフィードバック強調 */
+.index-table td.cell-interactive:active {
+  background: #e0efff;
+  box-shadow: inset 0 0 0 1px #b7d5ff, 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+/* モバイル (hover: none) で矢印を軽く鼓動させ視認性アップ */
+@media (hover: none) {
+  .index-table td.cell-interactive::after {
+    animation: pulseArrow 2.8s ease-in-out infinite;
+  }
+}
+@keyframes pulseArrow {
+  0%, 60%, 100% {
+    transform: translateY(-50%) scale(1);
+  }
+  30% {
+    transform: translateY(-50%) scale(1.15);
+  }
+}
+/* 低視覚コントラスト環境用 / prefers-reduced-motion でアニメ除去 */
+@media (prefers-reduced-motion: reduce) {
+  .index-table td.cell-interactive::after {
+    animation: none !important;
+  }
+}
+/* フォーカスリング調整 (キーボード操作 / アクセシビリティ) */
+.index-table td.cell-interactive:focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 2px;
+}
+
 /* ================= Index Table (非 modern / 非 table-base のものにも枠線適用) ================= */
 .index-table:not(.modern-table):not(.table-base) {
   border: 1px solid #d1d5db;
