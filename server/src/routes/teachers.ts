@@ -35,22 +35,8 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
 // 新しい先生データを追加
 router.post('/', authenticateToken, isAdmin, async (req: Request, res: Response) => {
   const teacherData = req.body;
-  const {
-    id,
-    surname,
-    forename,
-    room_fpr,
-    room_tdh,
-    shinkansen_day1_car_number,
-    shinkansen_day1_seat,
-    shinkansen_day4_car_number,
-    shinkansen_day4_seat,
-    day1id,
-    day1bus,
-    day3id,
-    day3bus,
-    day4class
-  } = teacherData;
+  const { id, surname, forename, room_fpr, room_tdh, shinkansen_day1_car_number, shinkansen_day1_seat, shinkansen_day4_car_number, shinkansen_day4_seat, day1id, day1bus, day3id, day3bus, day4class } =
+    teacherData;
 
   // IDが8桁の数字であることを確認
   if (!/^[0-9]{8}$/.test(id.toString())) {
@@ -59,10 +45,7 @@ router.post('/', authenticateToken, isAdmin, async (req: Request, res: Response)
 
   try {
     // まずusersテーブルにidが存在し、is_teacherがtrueであることを確認
-    const [userRows] = await pool.execute<RowDataPacket[]>(
-      'SELECT id, is_teacher FROM users WHERE id = ?',
-      [id]
-    );
+    const [userRows] = await pool.execute<RowDataPacket[]>('SELECT id, is_teacher FROM users WHERE id = ?', [id]);
 
     if (userRows.length === 0) {
       return res.status(404).json({ message: '指定されたIDのユーザーが見つかりません。' });
@@ -80,22 +63,7 @@ router.post('/', authenticateToken, isAdmin, async (req: Request, res: Response)
         shinkansen_day4_car_number, shinkansen_day4_seat,
         day1id, day1bus, day3id, day3bus, day4class
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        id,
-        surname,
-        forename,
-        room_fpr,
-        room_tdh,
-        shinkansen_day1_car_number,
-        shinkansen_day1_seat,
-        shinkansen_day4_car_number,
-        shinkansen_day4_seat,
-        day1id,
-        day1bus,
-        day3id,
-        day3bus,
-        day4class
-      ]
+      [id, surname, forename, room_fpr, room_tdh, shinkansen_day1_car_number, shinkansen_day1_seat, shinkansen_day4_car_number, shinkansen_day4_seat, day1id, day1bus, day3id, day3bus, day4class]
     );
     res.status(201).json({ message: '先生の追加に成功' });
   } catch (error) {
