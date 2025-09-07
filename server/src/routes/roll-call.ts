@@ -51,6 +51,7 @@ router.get('/active', async (req, res) => {
   }
 });
 
+// 指定教師の点呼一覧 (従来仕様)
 router.get('/teacher/:teacher_id', async (req, res) => {
   const { teacher_id } = req.params;
 
@@ -63,13 +64,20 @@ router.get('/teacher/:teacher_id', async (req, res) => {
     try {
       const [activeRollCalls] = await connection.execute<RowDataPacket[]>(
         `
-        SELECT rc.id, rc.teacher_id, UNIX_TIMESTAMP(rc.created_at) * 1000 AS created_at, rc.is_active, UNIX_TIMESTAMP(rc.expires_at) * 1000 AS expires_at,
-          COUNT(rcs.student_id) AS total_students,
-          SUM(CASE WHEN rcs.status = 'checked_in' THEN 1 ELSE 0 END) AS checked_in_students
+        SELECT rc.id,
+               rc.teacher_id,
+               t.surname AS teacher_surname,
+               t.forename AS teacher_forename,
+               UNIX_TIMESTAMP(rc.created_at) * 1000 AS created_at,
+               rc.is_active,
+               UNIX_TIMESTAMP(rc.expires_at) * 1000 AS expires_at,
+               COUNT(rcs.student_id) AS total_students,
+               SUM(CASE WHEN rcs.status = 'checked_in' THEN 1 ELSE 0 END) AS checked_in_students
         FROM roll_calls rc
         JOIN roll_call_students rcs ON rc.id = rcs.roll_call_id
+        LEFT JOIN teachers t ON rc.teacher_id = t.id
         WHERE rc.teacher_id = ?
-        GROUP BY rc.id, rc.teacher_id, rc.created_at, rc.is_active, rc.expires_at
+        GROUP BY rc.id, rc.teacher_id, t.surname, t.forename, rc.created_at, rc.is_active, rc.expires_at
         ORDER BY rc.created_at DESC
         `,
         [teacher_id]
@@ -80,6 +88,39 @@ router.get('/teacher/:teacher_id', async (req, res) => {
     }
   } catch (error) {
     logger.error('先生の有効な点呼の取得中にエラーが発生しました:', error as Error);
+    res.status(500).json({ message: 'サーバーエラー' });
+  }
+});
+
+// 全教師の点呼一覧 (教師全員が閲覧できる想定)
+router.get('/all', async (_req, res) => {
+  try {
+    const connection = await pool.getConnection();
+    try {
+      const [rows] = await connection.execute<RowDataPacket[]>(
+        `
+        SELECT rc.id,
+               rc.teacher_id,
+               t.surname AS teacher_surname,
+               t.forename AS teacher_forename,
+               UNIX_TIMESTAMP(rc.created_at) * 1000 AS created_at,
+               rc.is_active,
+               UNIX_TIMESTAMP(rc.expires_at) * 1000 AS expires_at,
+               COUNT(rcs.student_id) AS total_students,
+               SUM(CASE WHEN rcs.status = 'checked_in' THEN 1 ELSE 0 END) AS checked_in_students
+        FROM roll_calls rc
+        JOIN roll_call_students rcs ON rc.id = rcs.roll_call_id
+        LEFT JOIN teachers t ON rc.teacher_id = t.id
+        GROUP BY rc.id, rc.teacher_id, t.surname, t.forename, rc.created_at, rc.is_active, rc.expires_at
+        ORDER BY rc.created_at DESC
+        `
+      );
+      res.json(rows);
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    logger.error('全点呼一覧取得中にエラーが発生しました:', error as Error);
     res.status(500).json({ message: 'サーバーエラー' });
   }
 });

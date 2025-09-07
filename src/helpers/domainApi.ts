@@ -217,6 +217,8 @@ export interface ActiveRollCallDTO {
 export interface RollCallSummaryDTO {
   id: string;
   teacher_id: number;
+  teacher_surname?: string;
+  teacher_forename?: string;
   created_at: number;
   total_students: number;
   checked_in_students: number;
@@ -255,6 +257,12 @@ export const rollCallApi = {
       cacheKey: CacheKeys.rollCall.listForTeacher(teacherId),
       alwaysFetch: opts.alwaysFetch ?? false
     }),
+  listAll: (opts: { alwaysFetch?: boolean } = {}) =>
+    appFetch<RollCallSummaryDTO[]>(`${SERVER_ENDPOINT}/api/roll-call/all`, {
+      requiresAuth: true,
+      cacheKey: CacheKeys.rollCall.listAll,
+      alwaysFetch: opts.alwaysFetch ?? false
+    }),
   activeForStudent: (studentId: string | number) =>
     appFetch<ActiveRollCallDTO>(`${SERVER_ENDPOINT}/api/roll-call/active?student_id=${studentId}`, {
       requiresAuth: true,
@@ -271,6 +279,6 @@ export const rollCallApi = {
       url: `${SERVER_ENDPOINT}/api/roll-call/end`,
       method: 'POST',
       jsonBody: { roll_call_id: rollCallId },
-      invalidatePrefixes: [CachePrefixes.rollCallListForTeacher(teacherId)]
+      invalidatePrefixes: [CachePrefixes.rollCallListForTeacher(teacherId), CachePrefixes.rollCallListAll]
     })
 };

@@ -14,6 +14,8 @@ import { usePrefetchedData } from '../prefetch/usePrefetchedData';
 export interface RollCall {
   id: string;
   teacher_id: number;
+  teacher_surname?: string;
+  teacher_forename?: string;
   created_at: number;
   total_students: number;
   checked_in_students: number;
@@ -29,7 +31,17 @@ const TeacherRollCallList = () => {
   const { user, token } = useAuth();
   const fetcher = useCallback(async () => {
     if (!user || !token) return [] as RollCall[];
-    return rollCallApi.listForTeacher(user.userId, { alwaysFetch: true }) as Promise<RollCall[]>;
+    try {
+      // 新API(全件) まず試行
+      return (await rollCallApi.listAll({ alwaysFetch: true })) as RollCall[];
+    } catch (e) {
+      const msg = (e as Error).message;
+      if (msg.includes('404')) {
+        // デプロイ未反映などの場合: 従来 API にフォールバック
+        return (await rollCallApi.listForTeacher(user.userId, { alwaysFetch: true })) as RollCall[];
+      }
+      throw e;
+    }
   }, [user, token]);
   const { data: rollCalls = [], loading, error, refresh } = usePrefetchedData<RollCall[]>('rollCalls', fetcher);
   usePolling(
@@ -100,9 +112,18 @@ const TeacherRollCallList = () => {
                   </div>
                 </td>
                 <td className="p-2">{ratio}</td>
-                <td className="p-2">{rc.teacher_id}</td>
                 <td className="p-2">
-                  <PrefetchLink to={`/teacher/call-viewer?id=${rc.id}`} prefetchKey="rollCalls" fetcher={async () => rollCallApi.listForTeacher(user!.userId, { alwaysFetch: true })}>
+                  {rc.teacher_surname || rc.teacher_forename ? (
+                    <>
+                      {rc.teacher_surname}
+                      {rc.teacher_forename}先生
+                    </>
+                  ) : (
+                    <>{rc.teacher_id}</>
+                  )}
+                </td>
+                <td className="p-2">
+                  <PrefetchLink to={`/teacher/call-viewer?id=${rc.id}`} prefetchKey="rollCalls" fetcher={async () => rollCallApi.listAll({ alwaysFetch: true })}>
                     <MDRightArrow />
                   </PrefetchLink>
                 </td>

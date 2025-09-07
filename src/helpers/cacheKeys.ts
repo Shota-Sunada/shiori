@@ -20,6 +20,7 @@ export const CacheKeys = {
   rollCall: {
     groups: 'rollcall:groups',
     listForTeacher: (teacherId: string | number) => `rollCalls:list:teacher:${teacherId}`,
+    listAll: 'rollCalls:list:all',
     view: (id: string) => `rollcall:view:${id}`,
     activeForStudent: (studentId: string | number) => `activeRollCall:${studentId}`,
     historyForStudent: (studentId: string | number) => `rollcall:history:${studentId}`
@@ -28,5 +29,6 @@ export const CacheKeys = {
 
 // 前方一致を使うケース向けの prefix 集合
 export const CachePrefixes = {
-  rollCallListForTeacher: (teacherId: string | number) => `rollCalls:list:teacher:${teacherId}`
+  rollCallListForTeacher: (teacherId: string | number) => `rollCalls:list:teacher:${teacherId}`,
+  rollCallListAll: 'rollCalls:list:all'
 } as const;
