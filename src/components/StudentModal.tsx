@@ -125,7 +125,8 @@ const StudentModal = ({ open, onSave, onCancel, day1idOptions, day3idOptions, in
     onCancel();
   };
 
-  if (!open) return null;
+  // Modal コンポーネント内で閉じアニメーションを行うため、ここで早期 return しない
+  // (isOpen=false でも内部で closing 状態保持しアニメ完了後 unmount)
 
   return (
     <Modal

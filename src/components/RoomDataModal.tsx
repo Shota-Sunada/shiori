@@ -15,11 +15,19 @@ interface RoommateModalProps {
   onClose: () => void;
   hotelName: string;
   roomNumber: string;
+  isOpen?: boolean; // アニメーション制御用 (default true)
 }
 
-const RoomDataModal: FC<RoommateModalProps> = ({ roommates, onClose, hotelName, roomNumber }) => {
+const RoomDataModal: FC<RoommateModalProps> = ({ roommates, onClose, hotelName, roomNumber, isOpen = true }) => {
   return (
-    <Modal isOpen onClose={onClose} ariaLabelledBy="room-modal-title" className="p-6 rounded-lg shadow-lg max-w-md w-full" overlayClassName="p-4" closeOnEsc={false} closeOnOverlayClick={false}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabelledBy="room-modal-title"
+      className="p-6 rounded-lg shadow-lg max-w-md w-full"
+      overlayClassName="p-4"
+      closeOnEsc={false}
+      closeOnOverlayClick={false}>
       <p id="room-modal-title" className="text-xl font-bold mb-4">
         {hotelName} {roomNumber}
         {'号室'}

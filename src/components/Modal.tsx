@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import type { ReactNode, RefObject } from 'react';
 import { createPortal } from 'react-dom';
+import { UI_ANIMATION } from '../config/constants';
 
 interface ModalProps {
   isOpen: boolean;
@@ -49,6 +50,54 @@ export const Modal: React.FC<ModalProps> = ({
 }) => {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
+  // 表示有無 (DOM マウント制御) と closing 状態
+  const [rendered, setRendered] = useState(isOpen);
+  const [closing, setClosing] = useState(false);
+
+  // isOpen が true になったら描画開始
+  useEffect(() => {
+    if (isOpen) {
+      setRendered(true);
+      // リオープン時に closing フラグを解除
+      requestAnimationFrame(() => setClosing(false));
+    } else if (rendered && !closing) {
+      // 親から isOpen=false が通知されたら閉じアニメ開始
+      // layout を一度読んでから closing にしアニメ適用を安定させる
+      // (Safari 等で in -> out が同フレームだと out が飛ぶことがあるため)
+      const node = overlayRef.current;
+      if (node) {
+        // 強制 reflow
+        void node.getBoundingClientRect();
+      }
+      requestAnimationFrame(() => setClosing(true));
+    }
+  }, [isOpen, rendered, closing]);
+
+  // 閉じアニメ終了検知 (animationend)
+  useEffect(() => {
+    if (!closing) return;
+    const node = overlayRef.current;
+    if (!node) return;
+    let finished = false;
+    const handleEnd = (e: AnimationEvent) => {
+      if (e.target !== node) return; // overlay のアニメのみで判定
+      finished = true;
+      setRendered(false);
+      setClosing(false);
+    };
+    node.addEventListener('animationend', handleEnd);
+  // フォールバック: アニメ想定 + safety
+    const fallback = setTimeout(() => {
+      if (!finished) {
+        setRendered(false);
+        setClosing(false);
+      }
+  }, UI_ANIMATION.modal.dialogMs + UI_ANIMATION.modal.fallbackExtraMs);
+    return () => {
+      node.removeEventListener('animationend', handleEnd);
+      clearTimeout(fallback);
+    };
+  }, [closing]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -89,11 +138,24 @@ export const Modal: React.FC<ModalProps> = ({
     };
   }, [isOpen, closeOnEsc, lockScroll, handleKeyDown, initialFocusRef]);
 
-  if (!isOpen) return null;
+  if (!rendered) return null;
 
   const overlayEl = (
-    <div ref={overlayRef} className={`${defaultOverlayBase} ${zIndexClassName} ${overlayClassName}`.trim()} role="presentation" onClick={() => closeOnOverlayClick && onClose()}>
-      <div ref={dialogRef} className={`${defaultDialogBase} ${className}`.trim()} role={role} aria-modal="true" aria-labelledby={ariaLabelledBy} tabIndex={-1} onClick={(e) => e.stopPropagation()}>
+    <div
+      ref={overlayRef}
+      className={`${defaultOverlayBase} modal-anim-overlay ${closing ? 'modal-closing' : ''} ${zIndexClassName} ${overlayClassName}`.trim()}
+      data-state={closing ? 'closing' : 'open'}
+      role="presentation"
+      onClick={() => closeOnOverlayClick && onClose()}>
+      <div
+        ref={dialogRef}
+        className={`${defaultDialogBase} modal-anim-dialog ${className}`.trim()}
+        data-state={closing ? 'closing' : 'open'}
+        role={role}
+        aria-modal="true"
+        aria-labelledby={ariaLabelledBy}
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
     </div>

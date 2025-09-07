@@ -9,4 +9,15 @@ export const POLL_INTERVALS = {
 // 点呼残り時間表示での猶予秒数 (UI で 00:00 表示にしたいタイミング調整)
 export const ROLLCALL_GRACE_OFFSET_SECONDS = 20;
 
+// ===== UI Animation Durations =====
+export const UI_ANIMATION = {
+  modal: {
+    overlayMs: 500,
+    dialogMs: 500,
+    // safety (フォールバック / データクリア遅延など) 基本 +50~150ms で利用
+    fallbackExtraMs: 150,
+    dataClearExtraMs: 50
+  }
+} as const;
+
 // 追加が増えたらドメイン毎にネームスペース化検討

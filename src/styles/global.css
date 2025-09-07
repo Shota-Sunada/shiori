@@ -198,6 +198,10 @@ body.modal-open {
   --safe-right: 0px;
   --safe-bottom: 0px;
   --safe-left: 0px;
+  /* Modal animation durations (調整しやすいよう変数化) */
+  /* Keep in sync with UI_ANIMATION.modal.overlayMs / dialogMs */
+  --modal-overlay-duration: 0.5s;
+  --modal-dialog-duration: 0.5s;
 }
 @supports (padding: max(0px)) {
   :root {
@@ -230,13 +234,12 @@ html {
 
 /* ========= Page Transition ========= */
 .page-fade {
-  animation: pageFadeIn 0.32s ease both;
+  /* ルートコンポーネント用フェードイン。
+     モーダルは body (portal) 直下に描画されるため影響しない。 */
+  animation: pageFadeIn 0.28s cubic-bezier(0.4, 0, 0.2, 1) both;
   position: relative;
   min-height: 100%;
-}
-/* === TEMP DISABLE page-fade animation (restored) === */
-.page-fade {
-  animation: none !important;
+  will-change: opacity, transform;
 }
 @keyframes pageFadeIn {
   0% {
@@ -246,5 +249,80 @@ html {
   100% {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+/* アニメーション無効化: ユーザーが簡易表示を希望する場合 */
+@media (prefers-reduced-motion: reduce) {
+  .page-fade {
+    animation: none !important;
+  }
+}
+
+/* ========= Modal Transition ========= */
+.modal-anim-overlay {
+  animation: modalOverlayIn var(--modal-overlay-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.modal-anim-dialog {
+  animation: modalDialogIn var(--modal-dialog-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+  transform-origin: 50% 44%;
+}
+.modal-anim-overlay.modal-closing {
+  animation: modalOverlayOut var(--modal-overlay-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.modal-anim-overlay.modal-closing .modal-anim-dialog {
+  animation: modalDialogOut var(--modal-dialog-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+/* data-state フォールバック (JS 側 safety) */
+.modal-anim-overlay[data-state='closing'] {
+  pointer-events: none;
+}
+.modal-anim-dialog[data-state='closing'] {
+  pointer-events: none;
+}
+@keyframes modalOverlayIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes modalOverlayOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes modalDialogIn {
+  0% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes modalDialogOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal-anim-overlay,
+  .modal-anim-dialog,
+  .modal-anim-overlay.modal-closing,
+  .modal-anim-overlay.modal-closing .modal-anim-dialog {
+    animation: none !important;
   }
 }

@@ -1,4 +1,5 @@
 import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4, DAY4_DATA } from '../data/courses';
+import { UI_ANIMATION } from '../config/constants';
 import type { StudentDTO } from '../helpers/domainApi';
 import '../styles/index-table.css';
 import { useEffect, useState, useCallback, useMemo } from 'react';
@@ -92,11 +93,21 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
   );
 
   const handleCloseModal = useCallback(() => {
+    // アニメーションのためデータは即時クリアしない
     setShowRoommateModal(false);
-    setCurrentRoommates([]);
-    setCurrentHotelName('');
-    setCurrentRoomNumber('');
   }, []);
+
+  // 閉じアニメ完了後に関連データをクリア (600ms + 余裕)
+  useEffect(() => {
+    if (!showRoommateModal && (currentRoommates.length > 0 || currentHotelName || currentRoomNumber)) {
+  const t = setTimeout(() => {
+        setCurrentRoommates([]);
+        setCurrentHotelName('');
+        setCurrentRoomNumber('');
+  }, UI_ANIMATION.modal.dialogMs + UI_ANIMATION.modal.dataClearExtraMs);
+      return () => clearTimeout(t);
+    }
+  }, [showRoommateModal, currentRoommates.length, currentHotelName, currentRoomNumber]);
 
   const day4CourseName = useMemo(() => {
     if (!hasStudent) return null;
@@ -356,7 +367,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
           {/* shinkansen END */}
         </tbody>
       </table>
-      {showRoommateModal ? <RoomDataModal roommates={currentRoommates} onClose={handleCloseModal} hotelName={currentHotelName} roomNumber={currentRoomNumber} /> : <></>}
+      <RoomDataModal isOpen={showRoommateModal} roommates={currentRoommates} onClose={handleCloseModal} hotelName={currentHotelName} roomNumber={currentRoomNumber} />
     </section>
   );
 };
