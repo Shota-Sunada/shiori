@@ -52,6 +52,25 @@
   background: #f3f4f6;
 }
 
+/* 枠線強調 (縦横) */
+.index-table.table-base {
+  border: 1px solid #d1d5db;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.index-table.table-base th,
+.index-table.table-base td {
+  border-right: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+}
+.index-table.table-base th:last-child,
+.index-table.table-base td:last-child {
+  border-right: none;
+}
+.index-table.table-base tbody tr:last-child td {
+  border-bottom: none;
+}
+
 @media (max-width: 480px) {
   .index-table th,
   .index-table td {

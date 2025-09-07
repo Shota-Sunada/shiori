@@ -5,6 +5,7 @@
   border-spacing: 0;
   background: #fff;
   font-size: 0.875rem;
+  border: 1px solid #d1d5db; /* 外枠 */
 }
 .table-base thead {
   background: #e5e7eb;
@@ -13,12 +14,17 @@
 .table-base td {
   padding: 0.5rem 0.75rem;
   text-align: left;
+  border-right: 1px solid #e5e7eb; /* 縦区切り */
 }
 .table-base tbody tr {
   border-bottom: 1px solid #e5e7eb;
 }
 .table-base tbody tr:last-child {
   border-bottom: none;
+}
+.table-base th:last-child,
+.table-base td:last-child {
+  border-right: none;
 }
 .table-base tbody tr:hover {
   background: #f9fafb;
@@ -149,6 +155,7 @@ table.modern-table {
   border-collapse: separate;
   border-spacing: 0;
   overflow: hidden;
+  border: 1px solid #d1d5db; /* 外枠 */
 }
 table.modern-table thead th {
   position: relative;
@@ -179,7 +186,11 @@ table.modern-table tbody tr:hover {
 }
 table.modern-table td,
 table.modern-table th {
-  border-right: 1px solid #f1f5f9;
+  border-right: 1px solid #e5e7eb; /* 縦線 */
+  border-bottom: 1px solid #f1f5f9; /* 横線 */
+}
+table.modern-table tbody tr:last-child td {
+  border-bottom: none;
 }
 table.modern-table td:last-child,
 table.modern-table th:last-child {
@@ -227,4 +238,37 @@ table.modern-table.table-shadow {
 table.modern-table tr:focus-within {
   outline: 2px solid #fbbf24;
   outline-offset: -2px;
+}
+
+/* ================= Index Table (非 modern / 非 table-base のものにも枠線適用) ================= */
+.index-table:not(.modern-table):not(.table-base) {
+  border: 1px solid #d1d5db;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.index-table:not(.modern-table):not(.table-base) th,
+.index-table:not(.modern-table):not(.table-base) td {
+  border-right: 1px solid #e5e7eb;
+  padding: 0.6rem 0.75rem;
+}
+.index-table:not(.modern-table):not(.table-base) th:last-child,
+.index-table:not(.modern-table):not(.table-base) td:last-child {
+  border-right: none;
+}
+.index-table:not(.modern-table):not(.table-base) tr {
+  border-bottom: 1px solid #e5e7eb;
+}
+.index-table:not(.modern-table):not(.table-base) tr:last-child {
+  border-bottom: none;
+}
+
+@media (orientation: landscape) {
+  /* 横向き時も同じ枠線を明示（将来の上書き衝突防止） */
+  .index-table:not(.modern-table):not(.table-base) {
+    border-color: #d1d5db;
+  }
+  .index-table:not(.modern-table):not(.table-base) th,
+  .index-table:not(.modern-table):not(.table-base) td {
+    border-right: 1px solid #e5e7eb;
+  }
 }
