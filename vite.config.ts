@@ -40,12 +40,24 @@ export default defineConfig(({ command }) => ({
       filename: 'firebase-messaging-sw.js',
       manifest: {
         name: '修学旅行のしおり for 79th',
+        short_name: 'しおり79th',
         description: '修道高校79回生のための修学旅行のしおり',
+        theme_color: '#607d8b', // 目立ちすぎない落ち着いたブルーグレー
+        background_color: '#ffffff',
+        display: 'standalone',
+        orientation: 'portrait-primary',
         icons: [
           {
             sizes: '192x192',
             src: 'icon.png',
             type: 'image/png'
+          },
+          // 必要であれば 512x512 も同一ファイルで流用（実サイズが充分であることを確認）
+          {
+            sizes: '512x512',
+            src: 'icon.png',
+            type: 'image/png',
+            purpose: 'any maskable'
           }
         ]
       }
