@@ -84,6 +84,47 @@ router.get('/teacher/:teacher_id', async (req, res) => {
   }
 });
 
+// 生徒用: 自分の点呼履歴
+router.get('/history', async (req, res) => {
+  const { student_id, limit } = req.query;
+  if (!student_id) return res.status(400).json({ message: '生徒IDが必要です。' });
+  // LIMIT 句は一部の MySQL 設定でプレースホルダ不許可になるため、安全にバリデーションして文字列埋め込み
+  let takeNum = Number(limit);
+  if (!Number.isFinite(takeNum) || takeNum <= 0) takeNum = 50;
+  if (takeNum > 200) takeNum = 200;
+  const take = Math.trunc(takeNum);
+
+  try {
+    const connection = await pool.getConnection();
+    try {
+      const [rows] = await connection.execute<RowDataPacket[]>(
+        `SELECT
+            rc.id,
+            rc.teacher_id,
+            UNIX_TIMESTAMP(rc.created_at) * 1000 AS created_at,
+            UNIX_TIMESTAMP(rc.expires_at) * 1000 AS expires_at,
+            rc.is_active,
+            rcs.status,
+            rca.reason AS absence_reason,
+            rca.location
+          FROM roll_calls rc
+          JOIN roll_call_students rcs ON rc.id = rcs.roll_call_id
+          LEFT JOIN roll_call_absences rca ON rca.roll_call_id = rc.id AND rca.student_id = rcs.student_id
+          WHERE rcs.student_id = ?
+          ORDER BY rc.created_at DESC
+          LIMIT ${take}`,
+        [student_id]
+      );
+      res.json(rows);
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    logger.error('点呼履歴取得中にエラーが発生しました:', error as Error);
+    res.status(500).json({ message: 'サーバーエラー' });
+  }
+});
+
 router.get('/', async (req, res) => {
   const { id } = req.query;
 

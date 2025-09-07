@@ -21,6 +21,7 @@ import TeacherRollCall from './pages/TeacherRollCall';
 import TeacherRollCallViewer from './pages/TeacherRollCallViewer';
 import TeacherIndexTable from './pages/TeacherIndexTable';
 import TeacherAdmin from './pages/TeacherAdmin';
+import RollCallHistory from './pages/RollCallHistory';
 
 export const SERVER_ENDPOINT = 'https://api.shiori.shudo-physics.com';
 
@@ -111,6 +112,7 @@ function App() {
               <Route path="/teacher/roll-call-list" element={<TeacherRollCallList />} />
               <Route path="/teacher/call" element={<TeacherRollCall />} />
               <Route path="/teacher/call-viewer" element={<TeacherRollCallViewer />} />
+              <Route path="/roll-call-history" element={<RollCallHistory />} />
               <Route
                 path="/admin"
                 element={

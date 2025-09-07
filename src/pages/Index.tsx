@@ -4,6 +4,7 @@ import { useAuth } from '../auth-context';
 import type { student } from '../data/students';
 import { SERVER_ENDPOINT } from '../App';
 import IndexTable from '../components/IndexTable';
+import Button from '../components/Button';
 import CenterMessage from '../components/CenterMessage';
 
 interface ActiveRollCall {
@@ -103,6 +104,12 @@ const Index = () => {
       )}
 
       <IndexTable studentData={studentData} />
+
+      {!user.is_teacher && (
+        <div className="mt-4">
+          <Button text="点呼履歴" arrowRight link="/roll-call-history" />
+        </div>
+      )}
 
       <section id="index">
         <div>{'目次 - 項目をクリックすると、そのページに移動します'}</div>
