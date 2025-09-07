@@ -334,6 +334,15 @@ html {
 .header-menu-anim-out {
   animation: headerMenuOut 0.15s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
+/* 閉じアニメ中はクリック無効 (視覚的には消えかけている状態) */
+[data-state='closing'].header-menu-anim-out {
+  pointer-events: none;
+}
+/* そもそもアンマウントされるが将来 display 切替に変えた場合の保険 */
+.header-menu-hidden {
+  display: none !important;
+  pointer-events: none !important;
+}
 @keyframes headerMenuIn {
   0% {
     opacity: 0;

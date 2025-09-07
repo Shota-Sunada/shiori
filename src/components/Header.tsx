@@ -108,6 +108,8 @@ const Header = () => {
               <div
                 ref={menuRef}
                 data-state={menuClosing ? 'closing' : 'open'}
+                role="menu"
+                aria-hidden={menuClosing ? 'true' : 'false'}
                 className={`absolute right-0 top-full mt-2 bg-white text-black rounded shadow-lg w-52 z-50 flex flex-col border divide-y header-menu-anim-container ${
                   menuClosing ? 'header-menu-anim-out' : 'header-menu-anim-in'
                 }`}
