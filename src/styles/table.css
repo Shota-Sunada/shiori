@@ -240,6 +240,86 @@ table.modern-table tr:focus-within {
   outline-offset: -2px;
 }
 
+/* ============ Interactive Cell (モバイル優先) ============ */
+.cell-interactive {
+  position: relative;
+  cursor: pointer;
+  padding-right: 2.2rem !important; /* アイコン分スペース拡張 */
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+  background: #f3f4f6;
+}
+.cell-interactive:active {
+  background: #e5e7eb;
+}
+/* ベースアイコン（右向き chevron を丸背景で常時表示） */
+.cell-interactive::after {
+  content: '›';
+  position: absolute;
+  top: 50%;
+  right: 0.55rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  line-height: 1.35rem;
+  text-align: center;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-radius: 9999px;
+  transform: translateY(-50%);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.18),
+    0 0 0 2px rgba(255, 255, 255, 0.65);
+  transition:
+    background 0.22s ease,
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .cell-interactive:hover {
+    background: #eef6ff;
+  }
+  .cell-interactive:hover::after {
+    background: #1d4ed8;
+    transform: translateY(-50%) scale(1.06);
+    box-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.25),
+      0 0 0 2px rgba(255, 255, 255, 0.7);
+  }
+}
+/* タッチ環境: わずかに大きく */
+@media (hover: none) {
+  .cell-interactive::after {
+    background: #2563eb;
+  }
+  .cell-interactive:active::after {
+    transform: translateY(-50%) scale(0.92);
+  }
+}
+.cell-interactive:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+/* 外部リンク用バリエーション */
+.cell-interactive.cell-external::after {
+  content: '↗';
+  font-size: 0.8rem;
+}
+/* モーダル表示用（目アイコン風にするためにUnicode） */
+.cell-interactive.cell-modal::after {
+  content: '👁';
+  font-size: 0.95rem;
+  background: #334155;
+}
+@media (hover: hover) {
+  .cell-interactive.cell-modal:hover::after {
+    background: #1e293b;
+  }
+}
+
 /* ================= Index Table (非 modern / 非 table-base のものにも枠線適用) ================= */
 .index-table:not(.modern-table):not(.table-base) {
   border: 1px solid #d1d5db;
