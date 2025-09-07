@@ -1,7 +1,7 @@
 {
   "name": "shiori",
   "private": true,
-  "version": "4.0.8",
+  "version": "4.0.9",
   "description": "修道高校79回生のための修学旅行のしおり",
   "type": "module",
   "scripts": {
@@ -48,6 +48,8 @@
   },
   "browserslist": [
     "defaults",
+    "last 2 safari versions",
+    "last 3 ios_saf versions",
     "not ios_saf 15.2-15.3"
   ]
 }

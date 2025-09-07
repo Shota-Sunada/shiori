@@ -19,6 +19,23 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* ================= Safari / iOS Fallback Utilities ================= */
+/* 100dvh 未対応 (またはブラウザUI高さ揺れ) 環境向けフォールバック */
+.min-h-dvh {
+  min-height: 100vh; /* 先に古い/静的 */
+  min-height: 100dvh; /* 対応ブラウザで上書き (Safari 16+, Chromium, FF) */
+}
+/* iOS Safari 一部で 100vh がアドレスバー表示/非表示で跳ねる問題への緩和 */
+@supports (-webkit-touch-callout: none) {
+  body {
+    min-height: -webkit-fill-available; /* iOS 13+ */
+  }
+}
+html,
+body {
+  height: 100%; /* -webkit-fill-available の基準用 */
+}
+
 /* Budoux 風自然改行用ユーティリティ (必要箇所だけで強制) */
 @supports (word-break: auto-phrase) {
   .jp-auto-line,
@@ -209,6 +226,15 @@ body.modal-open {
     --safe-right: env(safe-area-inset-right);
     --safe-bottom: env(safe-area-inset-bottom);
     --safe-left: env(safe-area-inset-left);
+  }
+}
+/* 旧 iOS 11.x ~ 12.x legacy constant() シンタックス (存在すれば上書き) */
+@supports (padding: constant(safe-area-inset-top)) {
+  :root {
+    --safe-top: constant(safe-area-inset-top);
+    --safe-right: constant(safe-area-inset-right);
+    --safe-bottom: constant(safe-area-inset-bottom);
+    --safe-left: constant(safe-area-inset-left);
   }
 }
 

@@ -102,7 +102,7 @@ function App() {
   }, [navigate]);
 
   return (
-    <div className="grid grid-rows-[auto_1fr_auto] bg-[#f7f4e5] min-h-[100dvh]">
+    <div className="grid grid-rows-[auto_1fr_auto] bg-[#f7f4e5] min-h-dvh">
       <Header />
       <main>
         <Routes>
