@@ -22,6 +22,40 @@ import TeacherRollCallViewer from './pages/TeacherRollCallViewer';
 import TeacherIndexTable from './pages/TeacherIndexTable';
 import TeacherAdmin from './pages/TeacherAdmin';
 import RollCallHistory from './pages/RollCallHistory';
+import InstallPWA from './pages/InstallPWA';
+import { parseClientEnvironment } from './helpers/pwaSupport';
+import React from 'react';
+
+class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: unknown }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: unknown) {
+    return { error };
+  }
+  componentDidCatch(error: unknown, info: unknown) {
+    // Safari デバッグ用: localStorage に最後のエラーを保存
+    try {
+      localStorage.setItem('lastRenderError', String(error));
+    } catch {
+      /* ignore store error */
+    }
+    console.error('App boundary caught error', error, info);
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="p-6 text-sm text-red-700 bg-red-50 min-h-dvh">
+          <p className="font-bold mb-2">アプリでエラーが発生しました。</p>
+          <p className="mb-2 break-all">{String(this.state.error)}</p>
+          <p className="text-xs text-gray-500">Safari で白画面になる問題の暫定デバッグ表示です。再読み込みを試してください。</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // ログイン状態をチェックし、未ログインならログインページにリダイレクト
 function ProtectedRoute() {
@@ -84,6 +118,72 @@ function NotificationGuard() {
   return <Outlet />;
 }
 
+// PWA インストール案内を通知許可チェックより先に挟むガード
+function PWAInstallGuard() {
+  const location = useLocation();
+  let isStandalone = false;
+  try {
+    if (typeof window !== 'undefined' && 'matchMedia' in window) {
+      const mq = window.matchMedia('(display-mode: standalone)');
+      const nav = navigator as Navigator & { standalone?: boolean };
+      isStandalone = mq.matches || nav.standalone === true;
+    }
+  } catch (e) {
+    console.warn('PWAInstallGuard standalone detection failed', e);
+  }
+  if (!isStandalone && location.pathname !== '/install') {
+    return <Navigate to="/install" replace state={{ from: location.pathname + location.search }} />;
+  }
+  if (isStandalone && location.pathname === '/install') {
+    const state = location.state as { from?: string } | null;
+    return <Navigate to={state?.from || '/login'} replace />;
+  }
+  return <Outlet />;
+}
+
+// ブラウザ要件ガード: iOS は Safari 必須 / それ以外は Chrome 必須
+function BrowserRequirementGuard() {
+  const env = parseClientEnvironment();
+  const isIOS = env.os === 'iOS';
+  const requiredBrowser = isIOS ? 'Safari' : 'Chrome';
+  const ok = env.browser === requiredBrowser;
+  if (!ok) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-dvh p-6 text-center bg-[#f7f4e5]">
+        <h1 className="text-2xl font-bold mb-4">対応ブラウザで開いてください</h1>
+        <p className="mb-2 text-sm">
+          このアプリは <span className="font-semibold">{isIOS ? 'iOS: Safari' : 'Chrome (最新版)'} のみ</span>をサポートします。
+        </p>
+        <p className="mb-4 text-sm">
+          現在検出: OS {env.os} {env.osVersion} / Browser {env.browser} {env.browserVersion}
+        </p>
+        {isIOS ? (
+          <div className="text-left text-xs space-y-1 bg-white/70 rounded p-3 max-w-sm">
+            <p className="font-semibold">Safari で開く手順 (iOS)</p>
+            <ol className="list-decimal ml-5 space-y-1">
+              <li>このページの URL をコピー</li>
+              <li>ホーム画面で Safari を開く</li>
+              <li>アドレスバーに貼り付けてアクセス</li>
+            </ol>
+            <p className="pt-1">Chrome / その他ブラウザ内では通知やインストール要件を満たしません。</p>
+          </div>
+        ) : (
+          <div className="text-left text-xs space-y-1 bg-white/70 rounded p-3 max-w-sm">
+            <p className="font-semibold">Chrome で開く手順</p>
+            <ol className="list-decimal ml-5 space-y-1">
+              <li>Chrome を起動 (未インストールならインストール)</li>
+              <li>アドレスバーに現在の URL を入力</li>
+              <li>ページへアクセスし直してください</li>
+            </ol>
+            <p className="pt-1">Edge / Safari / Firefox / その他ブラウザはサポート対象外です。</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+  return <Outlet />;
+}
+
 // 管理者または教員かどうかをチェック
 function AdminOrTeacherRoute({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -131,145 +231,162 @@ function App() {
       <Header />
       <main>
         <Routes>
-          <Route
-            path="/login"
-            element={
-              <FadeContainer>
-                <Login />
-              </FadeContainer>
-            }
-          />
-          <Route element={<ProtectedRoute />}>
-            <Route element={<NotificationGuard />}>
+          {/* ブラウザ要件 → PWA インストールガード の順 */}
+          <Route element={<BrowserRequirementGuard />}>
+            {/* PWA 未インストール時は常に /install へ誘導 */}
+            <Route element={<PWAInstallGuard />}>
               <Route
-                path="/"
+                path="/login"
                 element={
                   <FadeContainer>
-                    <Index />
+                    <Login />
                   </FadeContainer>
                 }
               />
               <Route
-                path="/otanoshimi"
+                path="/install"
                 element={
                   <FadeContainer>
-                    <Otanoshimi />
+                    <InstallPWA />
                   </FadeContainer>
                 }
               />
+              {/* ログイン後領域 */}
+              <Route element={<ProtectedRoute />}>
+                <Route element={<NotificationGuard />}>
+                  <Route
+                    path="/"
+                    element={
+                      <FadeContainer>
+                        <Index />
+                      </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/otanoshimi"
+                    element={
+                      <FadeContainer>
+                        <Otanoshimi />
+                      </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/call"
+                    element={
+                      <FadeContainer>
+                        <Call />
+                      </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/credits"
+                    element={
+                      <FadeContainer>
+                        <Credits />
+                      </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/teacher"
+                    element={
+                      <FadeContainer>
+                        <TeacherIndex />
+                      </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/teacher/search"
+                    element={
+                      <FadeContainer>
+                        <TeacherIndexTable />
+                      </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/teacher/roll-call-list"
+                    element={
+                      <FadeContainer>
+                        <TeacherRollCallList />
+                      </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/teacher/call"
+                    element={
+                      <FadeContainer>
+                        <TeacherRollCall />
+                      </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/teacher/call-viewer"
+                    element={
+                      <FadeContainer>
+                        <TeacherRollCallViewer />
+                      </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/roll-call-history"
+                    element={
+                      <FadeContainer>
+                        <RollCallHistory />
+                      </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/admin"
+                    element={
+                      <AdminOrTeacherRoute>
+                        <FadeContainer>
+                          <Admin />
+                        </FadeContainer>
+                      </AdminOrTeacherRoute>
+                    }
+                  />
+                  <Route
+                    path="/user-admin"
+                    element={
+                      <AdminOrTeacherRoute>
+                        <FadeContainer>
+                          <UserAdmin />
+                        </FadeContainer>
+                      </AdminOrTeacherRoute>
+                    }
+                  />
+                  <Route
+                    path="/otanoshimi-admin"
+                    element={
+                      <AdminOrTeacherRoute>
+                        <FadeContainer>
+                          <OtanoshimiAdmin />
+                        </FadeContainer>
+                      </AdminOrTeacherRoute>
+                    }
+                  />
+                  <Route
+                    path="/teacher-admin"
+                    element={
+                      <AdminOrTeacherRoute>
+                        <FadeContainer>
+                          <TeacherAdmin />
+                        </FadeContainer>
+                      </AdminOrTeacherRoute>
+                    }
+                  />
+                </Route>
+                {/* NotificationGuard 終了 */}
+              </Route>
+              {/* PWAInstallGuard 終了 */}
               <Route
-                path="/call"
+                path="/non-notification"
                 element={
                   <FadeContainer>
-                    <Call />
+                    <NonNotification />
                   </FadeContainer>
-                }
-              />
-              <Route
-                path="/credits"
-                element={
-                  <FadeContainer>
-                    <Credits />
-                  </FadeContainer>
-                }
-              />
-              <Route
-                path="/teacher"
-                element={
-                  <FadeContainer>
-                    <TeacherIndex />
-                  </FadeContainer>
-                }
-              />
-              <Route
-                path="/teacher/search"
-                element={
-                  <FadeContainer>
-                    <TeacherIndexTable />
-                  </FadeContainer>
-                }
-              />
-              <Route
-                path="/teacher/roll-call-list"
-                element={
-                  <FadeContainer>
-                    <TeacherRollCallList />
-                  </FadeContainer>
-                }
-              />
-              <Route
-                path="/teacher/call"
-                element={
-                  <FadeContainer>
-                    <TeacherRollCall />
-                  </FadeContainer>
-                }
-              />
-              <Route
-                path="/teacher/call-viewer"
-                element={
-                  <FadeContainer>
-                    <TeacherRollCallViewer />
-                  </FadeContainer>
-                }
-              />
-              <Route
-                path="/roll-call-history"
-                element={
-                  <FadeContainer>
-                    <RollCallHistory />
-                  </FadeContainer>
-                }
-              />
-              <Route
-                path="/admin"
-                element={
-                  <AdminOrTeacherRoute>
-                    <FadeContainer>
-                      <Admin />
-                    </FadeContainer>
-                  </AdminOrTeacherRoute>
-                }
-              />
-              <Route
-                path="/user-admin"
-                element={
-                  <AdminOrTeacherRoute>
-                    <FadeContainer>
-                      <UserAdmin />
-                    </FadeContainer>
-                  </AdminOrTeacherRoute>
-                }
-              />
-              <Route
-                path="/otanoshimi-admin"
-                element={
-                  <AdminOrTeacherRoute>
-                    <FadeContainer>
-                      <OtanoshimiAdmin />
-                    </FadeContainer>
-                  </AdminOrTeacherRoute>
-                }
-              />
-              <Route
-                path="/teacher-admin"
-                element={
-                  <AdminOrTeacherRoute>
-                    <FadeContainer>
-                      <TeacherAdmin />
-                    </FadeContainer>
-                  </AdminOrTeacherRoute>
                 }
               />
             </Route>
-            <Route
-              path="/non-notification"
-              element={
-                <FadeContainer>
-                  <NonNotification />
-                </FadeContainer>
-              }
-            />
           </Route>
           <Route
             path="*"
@@ -308,7 +425,9 @@ const AppWrapper = () => (
   <BrowserRouter>
     <AuthProvider>
       <ScrollToTop />
-      <App />
+      <AppErrorBoundary>
+        <App />
+      </AppErrorBoundary>
     </AuthProvider>
   </BrowserRouter>
 );

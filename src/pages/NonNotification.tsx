@@ -1,4 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
+
+type NavigatorWithPermissions = Navigator & {
+  permissions?: {
+    query: (descriptor: { name: PermissionName | 'notifications' }) => Promise<PermissionStatus>;
+  };
+};
 import { useAuth } from '../auth-context';
 import MDButton from '../components/MDButton';
 import { handleEnableNotifications } from '../helpers/notifications';
@@ -116,20 +122,26 @@ const DeniedInstructions = () => {
 
 const NonNotification = () => {
   const { user } = useAuth();
-  const [permission, setPermission] = useState<NotificationPermission | 'prompt'>(Notification.permission);
+  const initialPermission: NotificationPermission | 'prompt' = typeof Notification !== 'undefined' ? Notification.permission : 'default';
+  const [permission, setPermission] = useState<NotificationPermission | 'prompt'>(initialPermission);
 
   useEffect(() => {
     const updatePermission = () => {
-      setPermission(Notification.permission);
+      if (typeof Notification !== 'undefined') {
+        setPermission(Notification.permission);
+      }
     };
 
-    if ('permissions' in navigator && 'query' in navigator.permissions) {
-      navigator.permissions.query({ name: 'notifications' }).then((status) => {
-        setPermission(status.state);
-        status.onchange = () => {
+    if (typeof navigator !== 'undefined' && (navigator as NavigatorWithPermissions).permissions && typeof (navigator as NavigatorWithPermissions).permissions?.query === 'function') {
+      try {
+        (navigator as NavigatorWithPermissions).permissions!.query({ name: 'notifications' }).then((status: PermissionStatus) => {
           setPermission(status.state);
-        };
-      });
+          status.onchange = () => setPermission(status.state);
+        });
+      } catch {
+        const interval = setInterval(updatePermission, 1200);
+        return () => clearInterval(interval);
+      }
     } else {
       const interval = setInterval(updatePermission, 1000);
       return () => clearInterval(interval);

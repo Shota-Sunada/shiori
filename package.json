@@ -1,7 +1,7 @@
 {
   "name": "shiori",
   "private": true,
-  "version": "4.0.10",
+  "version": "4.0.22",
   "description": "修道高校79回生のための修学旅行のしおり",
   "type": "module",
   "scripts": {
@@ -14,11 +14,11 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.10",
+    "budoux": "^0.6.2",
     "csv-parse": "^6.1.0",
     "csv-parser": "^3.2.0",
     "firebase": "^12.2.1",
     "jwt-decode": "^4.0.0",
-    "budoux": "^0.6.2",
     "prettier": "^3.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -31,6 +31,15 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "devDependencies": {
+    "@browser-logos/brave": "^3.0.13",
+    "@browser-logos/chrome": "^2.0.0",
+    "@browser-logos/edge": "^2.0.7",
+    "@browser-logos/firefox": "^3.0.10",
+    "@browser-logos/opera": "^1.1.11",
+    "@browser-logos/safari-ios": "^1.0.15",
+    "@browser-logos/samsung-internet": "^4.0.6",
+    "@browser-logos/vivaldi": "^2.1.10",
+    "@browser-logos/web": "^3.0.1",
     "@eslint/js": "^9.25.0",
     "@tailwindcss/postcss": "^4.1.10",
     "@types/react": "^19.1.2",

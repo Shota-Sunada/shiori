@@ -88,7 +88,8 @@ const Header = () => {
       { type: 'link', to: '/user-admin', label: 'ユーザー管理', note: '※管理者専用' },
       { type: 'link', to: '/otanoshimi-admin', label: 'お楽しみ会管理', note: '※管理者専用' },
       { type: 'link', to: '/teacher-admin', label: '先生管理', note: '※管理者専用' },
-      { type: 'link', to: '/credits', label: 'クレジット' }
+      { type: 'link', to: '/credits', label: 'クレジット' },
+      { type: 'link', to: '/install', label: 'インストール案内' }
     ],
     [user]
   );
