@@ -161,6 +161,15 @@ async function initializeDatabase() {
       );
     `);
     logger.log('テーブル「roll_call_groups」の存在を確認。');
+
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS credits (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        category VARCHAR(255) NOT NULL,
+        items TEXT NOT NULL
+      );
+    `);
+    logger.log('テーブル「credits」の存在を確認。');
   } catch (error) {
     logger.error('データベースの初期化に失敗:', error as Error);
     process.exit(1);

@@ -1,49 +1,73 @@
+import { useState, useEffect } from 'react';
 import Button from '../components/Button';
+import { SERVER_ENDPOINT } from '../App';
+import { useAuth } from '../auth-context';
+
+interface Credit {
+  category: string;
+  items: string;
+}
 
 const Credits = () => {
+  const [credits, setCredits] = useState<Credit[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { token } = useAuth();
+
+  useEffect(() => {
+    const fetchCredits = async () => {
+      try {
+        const response = await fetch(`${SERVER_ENDPOINT}/api/credits`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data: Credit[] = await response.json();
+        setCredits(data);
+      } catch (e: unknown) {
+        setError((e as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (token) {
+      fetchCredits();
+    }
+  }, [token]);
+
+  if (loading || !credits) {
+    return (
+      <div className="flex flex-col items-center justify-center m-[10px] text-center">
+        <p>{'読み込み中...'}</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center m-[10px] text-center">
+        <p>エラー: {error}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center justify-center m-[10px] text-center">
       <p className="text-xl font-bold">{'クレジット'}</p>
-      <div className="m-2">
-        <p className="font-bold">{'企画・原案'}</p>
-        <p>{'野上知宏'}</p>
-      </div>
-      <div className="m-2">
-        <p className="font-bold">{'開発'}</p>
-        <p>{'砂田翔太'}</p>
-      </div>
-      <div className="m-2">
-        <p className="font-bold">{'開発協力'}</p>
-        <p>{'町一誠'}</p>
-        <p>{'藤島真介'}</p>
-      </div>
-      <div className="m-2">
-        <p className="font-bold">{'デバッグ協力'}</p>
-        <p>{'川井大和'}</p>
-        <p>{'武田啓成'}</p>
-        <p>{'永末翔太'}</p>
-        <p>{'和氣巧弥'}</p>
-        <p>{'野間大生樹'}</p>
-        <p>{'福井隆輔'}</p>
-        <p>{'藤川和樹'}</p>
-        <p>{'山田和陽'}</p>
-      </div>
-      <div className="m-2">
-        <p className="font-bold">{'協力'}</p>
-        <p className="text-sm">{'お楽しみ会実行委員'}</p>
-        <p>{'砂田翔太'}</p>
-        <p>{'野間大生樹'}</p>
-        <p>{'藤岡大颯'}</p>
-        <p>{'藤村英輝'}</p>
-      </div>
-      <div className="m-2">
-        <p className="font-bold">{'サーバー提供'}</p>
-        <p>{'株式会社Urth'}</p>
-      </div>
-      <div className="m-2">
-        <p className="font-bold">{'ドメイン提供'}</p>
-        <p>{'修道物理班'}</p>
-      </div>
+      {credits.map((credit, index) => (
+        <div key={index} className="m-2">
+          <p className="font-bold">{credit.category}</p>
+          {credit.items.split(",").map((item, itemIndex) => (
+            <p key={itemIndex}>
+              {item}
+            </p>
+          ))}
+        </div>
+      ))}
       <Button text="ホームに戻る" arrowLeft link="/index"></Button>
     </div>
   );

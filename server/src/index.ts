@@ -53,6 +53,9 @@ app.use('/api/roll-call-groups', authenticateToken, rollCallGroupsRouter);
 import teachersRouter from './routes/teachers';
 app.use('/api/teachers', authenticateToken, teachersRouter);
 
+import creditsRouter from './routes/credits';
+app.use('/api/credits', authenticateToken, creditsRouter);
+
 import { initializeDatabase, pool } from './db';
 
 // Initialize the database and tables
