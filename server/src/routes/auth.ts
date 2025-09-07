@@ -56,14 +56,8 @@ router.post('/register', async (req: Request, res: Response) => {
 // Login endpoint
 router.post('/login', async (req: Request, res: Response) => {
   const { id, password } = req.body;
-
-  if (!id || !password) {
-    return res.status(400).json({ message: 'IDとパスワードが必要です。' });
-  }
-  if (isNaN(Number(id))) {
-    // id が数字であることを確認
-    return res.status(400).json({ message: 'IDは整数8桁である必要があります。' });
-  }
+  if (!id || !password) return res.status(400).json({ message: 'IDとパスワードが必要です。' });
+  if (isNaN(Number(id))) return res.status(400).json({ message: 'IDは整数8桁である必要があります。' });
 
   try {
     const [rows] = await pool.execute<RowDataPacket[]>('SELECT * FROM users WHERE id = ?', [id]);
@@ -101,6 +95,7 @@ router.post('/login', async (req: Request, res: Response) => {
     // Generate JWT
     const token = jwt.sign({ userId: user.id, is_admin: user.is_admin, is_teacher: user.is_teacher }, JWT_SECRET, { expiresIn: '7d' });
 
+    logger.info(`ユーザー ${user.id} がログイン成功`);
     res.status(200).json({ message: 'ログインに成功', token });
   } catch (error) {
     logger.error('ログイン時にエラーが発生:', error as Error);

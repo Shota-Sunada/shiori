@@ -10,19 +10,17 @@ if (!JWT_SECRET) {
 }
 
 export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.sendStatus(401);
+  const [scheme, token] = authHeader.split(' ');
+  if (scheme !== 'Bearer' || !token) return res.sendStatus(401);
 
-  if (token == null) {
-    return res.sendStatus(401); // Unauthorized
-  }
-
-  jwt.verify(token, JWT_SECRET, (err, user) => {
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
-      logger.error('JWT verification error:', err);
-      return res.sendStatus(403); // Forbidden
+      logger.warn('JWT検証失敗', err as Error);
+      return res.sendStatus(403);
     }
-    req.user = user;
+    req.user = decoded;
     next();
   });
 };

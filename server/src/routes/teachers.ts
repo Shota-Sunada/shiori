@@ -39,9 +39,7 @@ router.post('/', authenticateToken, isAdmin, async (req: Request, res: Response)
     teacherData;
 
   // IDが8桁の数字であることを確認
-  if (!/^[0-9]{8}$/.test(id.toString())) {
-    return res.status(400).json({ message: 'IDは8桁の数字である必要があります。' });
-  }
+  if (!/^[0-9]{8}$/.test(String(id))) return res.status(400).json({ message: 'IDは8桁の数字である必要があります。' });
 
   try {
     // まずusersテーブルにidが存在し、is_teacherがtrueであることを確認

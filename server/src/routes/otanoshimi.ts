@@ -42,21 +42,14 @@ router.post('/', async (req: Request, res: Response) => {
 
     await connection.execute('TRUNCATE TABLE otanoshimi_teams');
 
-    for (const team of teams) {
-      const membersJson = JSON.stringify(team.members);
-      const customPerformersJson = JSON.stringify(team.custom_performers);
-      const supervisorJson = JSON.stringify(team.supervisor);
-      await connection.execute('INSERT INTO otanoshimi_teams (name, enmoku, leader, members, time, appearance_order, custom_performers, comment, supervisor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [
-        team.name,
-        team.enmoku,
-        team.leader,
-        membersJson,
-        team.time,
-        team.appearance_order,
-        customPerformersJson,
-        team.comment,
-        supervisorJson
-      ]);
+    for (const t of teams) {
+      const membersJson = JSON.stringify(t.members);
+      const customPerformersJson = JSON.stringify(t.custom_performers);
+      const supervisorJson = JSON.stringify(t.supervisor);
+      await connection.execute(
+        'INSERT INTO otanoshimi_teams (name, enmoku, leader, members, time, appearance_order, custom_performers, comment, supervisor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [t.name, t.enmoku, t.leader, membersJson, t.time, t.appearance_order, customPerformersJson, t.comment, supervisorJson]
+      );
     }
 
     await connection.commit();

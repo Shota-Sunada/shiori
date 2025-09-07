@@ -22,10 +22,7 @@ router.use(updateExpiredRollCalls);
 
 router.get('/active', async (req, res) => {
   const { student_id } = req.query;
-
-  if (!student_id) {
-    return res.status(400).json({ message: '生徒IDが必要です。' });
-  }
+  if (!student_id) return res.status(400).json({ message: '生徒IDが必要です。' });
 
   try {
     const connection = await pool.getConnection();
@@ -138,9 +135,7 @@ router.get('/', async (req, res) => {
 router.post('/start', async (req, res) => {
   const { teacher_id, specific_student_id, duration_minutes, group_name } = req.body;
 
-  if (!teacher_id) {
-    return res.status(400).json({ message: '先生のIDが必要です。' });
-  }
+  if (!teacher_id) return res.status(400).json({ message: '先生のIDが必要です。' });
 
   if (!duration_minutes || isNaN(Number(duration_minutes)) || Number(duration_minutes) <= 0) {
     return res.status(400).json({ message: '有効な時間（分）を指定してください。' });

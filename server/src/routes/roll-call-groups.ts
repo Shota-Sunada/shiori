@@ -30,6 +30,7 @@ router.post('/', async (req, res) => {
 
   try {
     const [result] = await pool.execute<ResultSetHeader>('INSERT INTO roll_call_groups (name, student_ids) VALUES (?, ?)', [name, JSON.stringify(student_ids)]);
+    logger.info(`点呼グループ作成 name=${name}`);
     res.status(201).json({ id: result.insertId, name, student_ids });
   } catch (error) {
     logger.error('点呼グループの作成中にエラーが発生しました:', error as Error);

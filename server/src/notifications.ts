@@ -3,45 +3,30 @@ import { RowDataPacket } from 'mysql2/promise';
 import { pool } from './db';
 import { logger } from './logger';
 
+async function getUserFcmToken(userId: string): Promise<string | null> {
+  const [rows] = await pool.execute<RowDataPacket[]>('SELECT token FROM fcm_tokens WHERE user_id = ?', [userId]);
+  if (rows.length === 0) return null;
+  return rows[0].token || null;
+}
+
 /**
- * 指定したユーザーに通知を送信する一般化された関数
- * @param userId 通知を送信するユーザーのID
- * @param title 通知のタイトル
- * @param body 通知の本文
- * @returns {Promise<boolean>} 送信が成功した場合はtrue、失敗した場合はfalse
+ * 指定したユーザーに通知を送信
  */
 export async function sendNotification(userId: string, title: string, body: string, link?: string): Promise<boolean> {
   try {
-    // データベースからトークンを取得
-    const [rows] = await pool.execute<RowDataPacket[]>('SELECT token FROM fcm_tokens WHERE user_id = ?', [userId]);
-
-    if (rows.length === 0) {
-      logger.log(`ユーザー「${userId}」のトークンがデータベースに存在しません。`);
-      return false;
-    }
-
-    const token = rows[0].token;
+    const token = await getUserFcmToken(userId);
     if (!token) {
-      logger.log(`ユーザー「${userId}」のトークンが無効です。`);
+      logger.warn(`ユーザー「${userId}」の有効なトークンなし。`);
       return false;
     }
 
     const message: admin.messaging.Message = {
-      notification: {
-        title,
-        body
-      },
+      token,
+      notification: { title, body },
       webpush: {
-        notification: {
-          title,
-          body,
-          icon: 'https://shiori.shudo-physics.com/icon.png'
-        },
-        fcmOptions: {
-          link: link || 'https://shiori.shudo-physics.com'
-        }
+        notification: { title, body, icon: 'https://shiori.shudo-physics.com/icon.png' },
+        fcmOptions: { link: link || 'https://shiori.shudo-physics.com' }
       },
-      token: token,
       data: {
         type: 'default_notification',
         originalTitle: title,
@@ -51,14 +36,13 @@ export async function sendNotification(userId: string, title: string, body: stri
     };
 
     await admin.messaging().send(message);
-    logger.log(`ユーザー「${userId}」への通知送信に成功。`);
+    logger.info(`通知送信成功 user=${userId}`);
     return true;
   } catch (error) {
-    logger.error(`ユーザー「${userId}」への通知送信に失敗:`, error as Error);
-
+    logger.error(`通知送信失敗 user=${userId}`, error as Error);
     if ((error as admin.FirebaseError).code === 'messaging/registration-token-not-registered') {
-      logger.log(`ユーザー「${userId}」のトークンが無効だったので、データベースから削除しました。`);
       await pool.execute('DELETE FROM fcm_tokens WHERE user_id = ?', [userId]);
+      logger.warn(`無効トークン削除 user=${userId}`);
     }
     return false;
   }

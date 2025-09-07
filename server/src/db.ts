@@ -1,11 +1,20 @@
 import mysql from 'mysql2/promise';
 import { logger } from './logger';
 
+function requireEnv(key: string): string {
+  const v = process.env[key];
+  if (!v) {
+    logger.error(`環境変数 ${key} が未設定です。`);
+    process.exit(1);
+  }
+  return v;
+}
+
 const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  host: requireEnv('DB_HOST'),
+  user: requireEnv('DB_USER'),
+  password: requireEnv('DB_PASSWORD'),
+  database: requireEnv('DB_NAME'),
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -20,10 +29,7 @@ async function initializeDatabase() {
       password: process.env.DB_PASSWORD
     });
 
-    const dbName = process.env.DB_NAME;
-    if (!dbName) {
-      throw new Error('環境変数「DB_NAME」が設定されていません。');
-    }
+    const dbName = requireEnv('DB_NAME');
 
     await connection.execute(`CREATE DATABASE IF NOT EXISTS ${dbName}`);
     logger.log(`データベース「${dbName}」の存在を確認。`);

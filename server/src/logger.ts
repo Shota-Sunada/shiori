@@ -49,6 +49,12 @@ class Logger {
     console.error(`[${this.getTimeStamp()}] [ERROR] ${message}`, ...args);
     this.logToFile('error', message, ...args);
   }
+
+  public debug(message: string, ...args: object[]): void {
+    if (process.env.NODE_ENV === 'production') return;
+    console.debug(`[${this.getTimeStamp()}] [DEBUG] ${message}`, ...args);
+    this.logToFile('debug', message, ...args);
+  }
 }
 
 export const logger = new Logger();

@@ -49,45 +49,30 @@ router.post('/', isAdmin, async (req: Request, res: Response) => {
 // 特定のユーザーデータを更新
 router.put('/:id', isAdmin, async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { password, is_admin, is_teacher, is_banned, failed_login_attempts } = req.body;
+  // 個別フィールドは下のループで直接 req.body から参照するため分割代入は不要
 
   if (isNaN(Number(id))) {
     return res.status(400).json({ message: 'IDは整数8桁である必要があります。' });
   }
 
   try {
-    const updates = [];
-    const values = [];
+    const allowed = ['password', 'is_admin', 'is_teacher', 'is_banned', 'failed_login_attempts'] as const;
+    const updates: string[] = [];
+    const values: (string | number | boolean)[] = [];
 
-    if (password) {
-      const passwordHash = await bcrypt.hash(password, 10);
-      updates.push('passwordHash = ?');
-      values.push(passwordHash);
+    for (const key of allowed) {
+      if (req.body[key] !== undefined) {
+        if (key === 'password') {
+          const passwordHash = await bcrypt.hash(req.body.password, 10);
+          updates.push('passwordHash = ?');
+          values.push(passwordHash);
+        } else {
+          updates.push(`${key} = ?`);
+          values.push(req.body[key]);
+        }
+      }
     }
-
-    if (is_admin !== undefined) {
-      updates.push('is_admin = ?');
-      values.push(is_admin);
-    }
-
-    if (is_teacher !== undefined) {
-      updates.push('is_teacher = ?');
-      values.push(is_teacher);
-    }
-
-    if (is_banned !== undefined) {
-      updates.push('is_banned = ?');
-      values.push(is_banned);
-    }
-
-    if (failed_login_attempts !== undefined) {
-      updates.push('failed_login_attempts = ?');
-      values.push(failed_login_attempts);
-    }
-
-    if (updates.length === 0) {
-      return res.status(400).json({ message: '更新対象なし' });
-    }
+    if (!updates.length) return res.status(400).json({ message: '更新対象なし' });
 
     values.push(id);
 
@@ -143,6 +128,7 @@ router.delete('/:id', isAdmin, async (req: Request, res: Response) => {
   }
 });
 
+// 一括追加エンドポイント
 router.post('/bulk', isAdmin, async (req: Request, res: Response) => {
   const { users } = req.body;
 

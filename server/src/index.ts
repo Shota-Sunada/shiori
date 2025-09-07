@@ -33,28 +33,36 @@ const authLimiter = rateLimit({
 });
 
 import authRouter from './routes/auth';
-app.use('/api/auth', authLimiter, authRouter);
-
 import studentsRouter from './routes/students';
-app.use('/api/students', authenticateToken, studentsRouter);
-
 import usersRouter from './routes/users';
-app.use('/api/users', authenticateToken, usersRouter);
-
 import otanoshimiRouter from './routes/otanoshimi';
-app.use('/api/otanoshimi', authenticateToken, otanoshimiRouter);
-
 import rollCallRouter from './routes/roll-call';
-app.use('/api/roll-call', authenticateToken, rollCallRouter);
-
 import rollCallGroupsRouter from './routes/roll-call-groups';
-app.use('/api/roll-call-groups', authenticateToken, rollCallGroupsRouter);
-
 import teachersRouter from './routes/teachers';
-app.use('/api/teachers', authenticateToken, teachersRouter);
-
 import creditsRouter from './routes/credits';
-app.use('/api/credits', authenticateToken, creditsRouter);
+
+// ルータ設定統合
+type RouteConfig = {
+  path: string;
+  router: express.Router;
+  middlewares?: express.RequestHandler[];
+};
+
+const routeConfigs: RouteConfig[] = [
+  { path: '/api/auth', router: authRouter, middlewares: [authLimiter] },
+  { path: '/api/students', router: studentsRouter, middlewares: [authenticateToken] },
+  { path: '/api/users', router: usersRouter, middlewares: [authenticateToken] },
+  { path: '/api/otanoshimi', router: otanoshimiRouter, middlewares: [authenticateToken] },
+  { path: '/api/roll-call', router: rollCallRouter, middlewares: [authenticateToken] },
+  { path: '/api/roll-call-groups', router: rollCallGroupsRouter, middlewares: [authenticateToken] },
+  { path: '/api/teachers', router: teachersRouter, middlewares: [authenticateToken] },
+  { path: '/api/credits', router: creditsRouter, middlewares: [authenticateToken] }
+];
+
+routeConfigs.forEach(({ path, router, middlewares }) => {
+  if (middlewares?.length) app.use(path, ...middlewares, router);
+  else app.use(path, router);
+});
 
 import { initializeDatabase, pool } from './db';
 
@@ -110,8 +118,23 @@ app.post('/send-notification', authenticateToken, async (req: Request, res: Resp
 import * as readline from 'readline';
 import bcrypt from 'bcrypt';
 
-app.listen(port, () => {
-  logger.log(`「http://localhost:${port}」でサーバーが起動中。`);
+const routers: Array<[string, express.Router, boolean?]> = [
+  ['/api/auth', authRouter, false],
+  ['/api/students', studentsRouter, true],
+  ['/api/users', usersRouter, true],
+  ['/api/otanoshimi', otanoshimiRouter, true],
+  ['/api/roll-call', rollCallRouter, true],
+  ['/api/roll-call-groups', rollCallGroupsRouter, true],
+  ['/api/teachers', teachersRouter, true],
+  ['/api/credits', creditsRouter, true]
+];
+
+routers.forEach(([path, r, needAuth]) => {
+  if (needAuth) app.use(path, authenticateToken, r);
+  else app.use(path, r);
+});
+
+function initCli() {
   logger.log('コンソールコマンド入力可能');
   logger.log('createuser <id> <password> [--admin] [--teacher]');
   logger.log('deleteuser <id>');
@@ -181,4 +204,9 @@ app.listen(port, () => {
       logger.log(`不明なコマンド: ${command}`);
     }
   });
+}
+
+app.listen(port, () => {
+  logger.log(`「http://localhost:${port}」でサーバー起動。`);
+  initCli();
 });

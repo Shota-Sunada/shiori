@@ -91,21 +91,21 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // 特定の生徒データを更新
+function buildUpdate(data: Record<string, unknown>) {
+  const keys = Object.keys(data);
+  if (!keys.length) return { fragment: '', values: [] };
+  return {
+    fragment: keys.map((k) => `${k} = ?`).join(', '),
+    values: keys.map((k) => data[k])
+  };
+}
+
 router.put('/:gakuseki', async (req: Request, res: Response) => {
   const { gakuseki } = req.params;
-  const studentData = req.body; // 部分更新を考慮
-
-  const fields = Object.keys(studentData)
-    .map((key) => `${key} = ?`)
-    .join(', ');
-  const values = Object.values(studentData);
-
-  if (fields.length === 0) {
-    return res.status(400).json({ message: '更新対象なし' });
-  }
-
+  const { fragment, values } = buildUpdate(req.body);
+  if (!fragment) return res.status(400).json({ message: '更新対象なし' });
   try {
-    const [result] = await pool.execute(`UPDATE students SET ${fields} WHERE gakuseki = ?`, [...values, gakuseki]);
+    const [result] = await pool.execute(`UPDATE students SET ${fragment} WHERE gakuseki = ?`, [...values, gakuseki]);
 
     if ((result as ResultSetHeader).affectedRows === 0) {
       return res.status(404).json({ message: '生徒が見つかりませんでした。' });
