@@ -17,6 +17,25 @@ const Header = () => {
   const { user, logout } = useAuth();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuClosing, setMenuClosing] = useState(false);
+
+  // 開: 表示即マウント + オープンアニメ, 閉: クローズアニメ後にアンマウント
+  useEffect(() => {
+    if (isMenuOpen) {
+      // 開く: 可視化して closing 状態解除
+      setMenuVisible(true);
+      requestAnimationFrame(() => setMenuClosing(false));
+    } else if (menuVisible && !menuClosing) {
+      // 閉じ開始: closing フラグを立ててアニメ終了後にアンマウント
+      setMenuClosing(true);
+      const t = setTimeout(() => {
+        setMenuVisible(false);
+        setMenuClosing(false);
+      }, 160); // CSS の 150ms + 余裕
+      return () => clearTimeout(t);
+    }
+  }, [isMenuOpen, menuVisible, menuClosing]);
 
   const menuRef = useRef<HTMLDivElement>(null);
   const hamburgerRef = useRef<HTMLDivElement>(null);
@@ -85,17 +104,29 @@ const Header = () => {
             <div onClick={() => setIsMenuOpen(!isMenuOpen)} ref={hamburgerRef}>
               <HamburgerIcon open={isMenuOpen} />
             </div>
-            {isMenuOpen && (
-              <div ref={menuRef} className="absolute right-0 top-full mt-2 bg-white text-black rounded shadow-lg w-52 z-50 flex flex-col border divide-y">
+            {menuVisible && (
+              <div
+                ref={menuRef}
+                data-state={menuClosing ? 'closing' : 'open'}
+                className={`absolute right-0 top-full mt-2 bg-white text-black rounded shadow-lg w-52 z-50 flex flex-col border divide-y header-menu-anim-container ${
+                  menuClosing ? 'header-menu-anim-out' : 'header-menu-anim-in'
+                }`}
+                style={{ transformOrigin: '100% 0%' }}>
                 {menuItems.map((item, i) =>
                   item.type === 'link' ? (
                     item.prefetchKey && item.fetcher ? (
-                      <PrefetchLink key={i} to={item.to} prefetchKey={item.prefetchKey} fetcher={item.fetcher} className="text-left px-4 py-3 hover:bg-gray-100 cursor-pointer" onClick={closeMenu}>
+                      <PrefetchLink
+                        key={i}
+                        to={item.to}
+                        prefetchKey={item.prefetchKey}
+                        fetcher={item.fetcher}
+                        className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
+                        onClick={closeMenu}>
                         <p>{item.label}</p>
                         {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
                       </PrefetchLink>
                     ) : (
-                      <Link key={i} to={item.to} className="text-left px-4 py-3 hover:bg-gray-100 cursor-pointer" onClick={closeMenu}>
+                      <Link key={i} to={item.to} className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer" onClick={closeMenu}>
                         <p>{item.label}</p>
                         {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
                       </Link>
@@ -103,7 +134,7 @@ const Header = () => {
                   ) : (
                     <button
                       key={i}
-                      className="text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
+                      className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
                       onClick={() => {
                         item.onClick?.();
                         closeMenu();
@@ -113,7 +144,7 @@ const Header = () => {
                   )
                 )}
                 <button
-                  className="text-left px-4 py-3 hover:bg-red-50 text-red-600 cursor-pointer"
+                  className="header-menu-item text-left px-4 py-3 hover:bg-red-50 text-red-600 cursor-pointer"
                   onClick={() => {
                     closeMenu();
                     handleLogout();

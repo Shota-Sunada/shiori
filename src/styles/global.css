@@ -326,3 +326,90 @@ html {
     animation: none !important;
   }
 }
+
+/* ========= Header Menu Animation ========= */
+.header-menu-anim-in {
+  animation: headerMenuIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.header-menu-anim-out {
+  animation: headerMenuOut 0.15s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@keyframes headerMenuIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes headerMenuOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.96);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .header-menu-anim-in,
+  .header-menu-anim-out {
+    animation: none !important;
+  }
+}
+
+/* ========= Header Menu Item Stagger ========= */
+.header-menu-anim-in .header-menu-item {
+  opacity: 0;
+  transform: translateY(-6px);
+  animation: headerMenuItemIn 0.38s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.header-menu-anim-in .header-menu-item:nth-child(1) {
+  animation-delay: 40ms;
+}
+.header-menu-anim-in .header-menu-item:nth-child(2) {
+  animation-delay: 70ms;
+}
+.header-menu-anim-in .header-menu-item:nth-child(3) {
+  animation-delay: 100ms;
+}
+.header-menu-anim-in .header-menu-item:nth-child(4) {
+  animation-delay: 130ms;
+}
+.header-menu-anim-in .header-menu-item:nth-child(5) {
+  animation-delay: 160ms;
+}
+.header-menu-anim-in .header-menu-item:nth-child(6) {
+  animation-delay: 190ms;
+}
+.header-menu-anim-in .header-menu-item:nth-child(7) {
+  animation-delay: 220ms;
+}
+.header-menu-anim-in .header-menu-item:nth-child(8) {
+  animation-delay: 250ms;
+}
+/* 閉じは即時非表示のため Out アニメ不要 */
+@keyframes headerMenuItemIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .header-menu-anim .header-menu-item,
+  .header-menu-closing .header-menu-item {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
