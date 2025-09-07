@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
 import '../styles/student-modal.css';
-import Button from './Button';
+import MDButton from './MDButton';
 
 // フォームデータ型
 export interface StudentFormData {

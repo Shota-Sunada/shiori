@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useRef, type FC } from 'react';
-import Button from './Button';
+import MDButton from './MDButton';
 
 interface Roommate {
   gakuseki: string;
