@@ -85,6 +85,7 @@ const TeacherIndex = () => {
                 {teacherData ? (
                   <>
                     {teacherData?.surname}
+                    {" "}
                     {teacherData?.forename}
                   </>
                 ) : (
