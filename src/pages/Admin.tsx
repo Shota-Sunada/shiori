@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef, type ChangeEvent, type KeyboardEvent, useMemo, useCallback, memo, type FC } from 'react';
-import type { student } from '../data/students';
+import type { StudentDTO } from '../helpers/domainApi';
+import { studentApi } from '../helpers/domainApi';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
 import '../styles/admin-table.css';
 import '../styles/table.css';
 import StudentModal from '../components/StudentModal';
-import { SERVER_ENDPOINT } from '../App';
 import { useAuth } from '../auth-context';
 import CenterMessage from '../components/CenterMessage';
-import { appFetch, clearAppFetchCache } from '../helpers/apiClient';
+import { clearAppFetchCache } from '../helpers/apiClient';
 
-type SortKey = keyof student;
+type SortKey = keyof StudentDTO;
 type SortDirection = 'asc' | 'desc';
 type SortConfig = {
   key: SortKey;
@@ -17,14 +17,14 @@ type SortConfig = {
 };
 
 interface MemoizedRowProps {
-  s: student;
-  visibleColumns: Array<keyof student>;
-  renderCellContent: (s: student, field: keyof student) => React.ReactNode;
-  handleEditClick: (s: student) => void;
+  s: StudentDTO;
+  visibleColumns: Array<keyof StudentDTO>;
+  renderCellContent: (s: StudentDTO, field: keyof StudentDTO) => React.ReactNode;
+  handleEditClick: (s: StudentDTO) => void;
   handleDelete: (gakuseki: number) => void;
   modalMode: 'add' | 'edit' | null;
-  editingCell: { studentId: number; field: keyof student } | null;
-  handleCellDoubleClick: (s: student, field: keyof student) => void;
+  editingCell: { studentId: number; field: keyof StudentDTO } | null;
+  handleCellDoubleClick: (s: StudentDTO, field: keyof StudentDTO) => void;
 }
 
 const CLASS_COLORS: string[] = ['bg-red-400', 'bg-gray-400', 'bg-blue-300', 'bg-green-400', 'bg-orange-400', 'bg-blue-600 text-white', 'bg-yellow-400'];
@@ -52,7 +52,7 @@ const DAY3_COLORS: [id: string, css: string][] = [
   ['yokohama', 'bg-gray-400']
 ];
 
-const allColumns: { key: keyof student; label: string; className: string; sortable: boolean }[] = [
+const allColumns: { key: keyof StudentDTO; label: string; className: string; sortable: boolean }[] = [
   { key: 'gakuseki', label: '学籍番号', className: 'w-24', sortable: true },
   { key: 'surname', label: '姓', className: 'w-20', sortable: false },
   { key: 'forename', label: '名', className: 'w-28', sortable: false },
@@ -72,7 +72,7 @@ const allColumns: { key: keyof student; label: string; className: string; sortab
   { key: 'shinkansen_day4_seat', label: 'NSX④席', className: 'w-20', sortable: true }
 ];
 
-const getCellClassName = (s: student, field: keyof student) => {
+const getCellClassName = (s: StudentDTO, field: keyof StudentDTO) => {
   switch (field) {
     case 'class':
       return CLASS_COLORS[s.class - 1];
@@ -85,7 +85,7 @@ const getCellClassName = (s: student, field: keyof student) => {
   }
 };
 
-const sortList = (list: student[], configs: SortConfig[]): student[] => {
+const sortList = (list: StudentDTO[], configs: SortConfig[]): StudentDTO[] => {
   const sortedList = [...list];
   if (configs.length === 0) {
     return sortedList;
@@ -130,7 +130,7 @@ const sortList = (list: student[], configs: SortConfig[]): student[] => {
   return sortedList;
 };
 
-const initialForm: Omit<student, 'class' | 'number' | 'gakuseki' | 'shinkansen_day1_car_number' | 'shinkansen_day4_car_number'> & {
+const initialForm: Omit<StudentDTO, 'class' | 'number' | 'gakuseki' | 'shinkansen_day1_car_number' | 'shinkansen_day4_car_number'> & {
   class: string;
   number: string;
   gakuseki: string;
@@ -190,21 +190,21 @@ const MemoizedRow: FC<MemoizedRowProps> = memo(({ s, visibleColumns, renderCellC
 
 const Admin = () => {
   useAuth(); // 認証状態が必要なら呼び出しのみ(将来 user 利用拡張用)
-  const [studentsList, setStudentsList] = useState<student[] | null>(null);
+  const [studentsList, setStudentsList] = useState<StudentDTO[] | null>(null);
   const [editRowId, setEditRowId] = useState<number | null>(null);
   const [editRowForm, setEditRowForm] = useState<typeof initialForm>(initialForm);
   const [status, setStatus] = useState<string>('');
   const [modalMode, setModalMode] = useState<'add' | 'edit' | null>(null);
 
-  const [editingCell, setEditingCell] = useState<{ studentId: number; field: keyof student } | null>(null);
+  const [editingCell, setEditingCell] = useState<{ studentId: number; field: keyof StudentDTO } | null>(null);
   const [editingValue, setEditingValue] = useState<string | number>('');
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<string>('');
 
-  const [visibleColumns, setVisibleColumns] = useState<Array<keyof student>>(allColumns.map((c) => c.key));
+  const [visibleColumns, setVisibleColumns] = useState<Array<keyof StudentDTO>>(allColumns.map((c) => c.key));
 
-  const handleColumnVisibilityChange = useCallback((key: keyof student) => {
+  const handleColumnVisibilityChange = useCallback((key: keyof StudentDTO) => {
     setVisibleColumns((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
   }, []);
 
@@ -217,11 +217,7 @@ const Admin = () => {
   const STUDENTS_CACHE_KEY = 'admin:students';
   const fetchStudents = useCallback(async (force = false) => {
     try {
-      const data = await appFetch<student[]>(`${SERVER_ENDPOINT}/api/students`, {
-        requiresAuth: true,
-        cacheKey: STUDENTS_CACHE_KEY,
-        alwaysFetch: force
-      });
+      const data = await studentApi.list({ alwaysFetch: force, ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true });
       setStudentsList(data);
       setStatus('');
     } catch (error) {
@@ -305,7 +301,7 @@ const Admin = () => {
     };
   }, [searchQuery]);
 
-  const handleEditClick = useCallback((s: student) => {
+  const handleEditClick = useCallback((s: StudentDTO) => {
     setEditRowId(s.gakuseki);
     setEditRowForm({
       ...s,
@@ -325,7 +321,7 @@ const Admin = () => {
       if (!window.confirm('本当に削除しますか？')) return;
       setStatus('削除中...');
       try {
-        await appFetch(`${SERVER_ENDPOINT}/api/students/${gakuseki}`, { method: 'DELETE', requiresAuth: true, alwaysFetch: true });
+        await studentApi.remove(gakuseki);
         setStatus('生徒データを削除しました。');
         clearAppFetchCache(STUDENTS_CACHE_KEY);
         fetchStudents(true);
@@ -348,14 +344,15 @@ const Admin = () => {
   }, []);
 
   const handleSave = useCallback(
-    async (data: student) => {
+    async (data: StudentDTO) => {
       if (modalMode === 'add') {
         setStatus('追加中...');
         try {
-          await appFetch(`${SERVER_ENDPOINT}/api/students`, { method: 'POST', jsonBody: data, requiresAuth: true, alwaysFetch: true });
+          await studentApi.create(data as StudentDTO);
           setStatus('生徒データを追加しました。');
           setModalMode(null);
           clearAppFetchCache(STUDENTS_CACHE_KEY);
+          // 基本 create はリスト再取得で反映 (後で最適化可)
           fetchStudents(true);
         } catch (e) {
           setStatus('エラーが発生しました: ' + (e as Error).message);
@@ -365,10 +362,11 @@ const Admin = () => {
         if (editRowId === null) return; // editRowIdがnullの場合は処理しない
         setStatus('更新中...');
         try {
-          await appFetch(`${SERVER_ENDPOINT}/api/students/${editRowId}`, { method: 'PUT', jsonBody: data, requiresAuth: true, alwaysFetch: true });
+          await studentApi.update(editRowId, data as Partial<StudentDTO>);
           setStatus('生徒データを更新しました。');
           setModalMode(null);
           setEditRowId(null);
+          // 基本 update はリスト再取得で反映 (後で最適化可)
           clearAppFetchCache(STUDENTS_CACHE_KEY);
           fetchStudents(true);
         } catch (e) {
@@ -385,14 +383,15 @@ const Admin = () => {
         const reader = new FileReader();
         reader.onload = async (e) => {
           const data = e.target?.result as string;
-          const studentsToProcess = JSON.parse(data) as student[];
+          const studentsToProcess = JSON.parse(data) as StudentDTO[];
 
           setStatus('更新中...');
           try {
-            await appFetch(`${SERVER_ENDPOINT}/api/students/batch`, { method: 'POST', jsonBody: studentsToProcess, requiresAuth: true, alwaysFetch: true });
+            await studentApi.batch(studentsToProcess as unknown as StudentDTO[]);
             setStatus('生徒データを更新しました。');
           } catch (e) {
             setStatus('エラーが発生しました: ' + (e as Error).message);
+            // 基本 remove はリスト再取得で反映 (後で最適化可)
           }
           setModalMode(null);
           setEditRowId(null);
@@ -406,7 +405,7 @@ const Admin = () => {
   );
 
   const handleCellDoubleClick = useCallback(
-    (student: student, field: keyof student) => {
+    (student: StudentDTO, field: keyof StudentDTO) => {
       if (modalMode !== null) return;
       setEditingCell({ studentId: student.gakuseki, field });
       setEditingValue(student[field]);
@@ -441,15 +440,15 @@ const Admin = () => {
 
     setStatus('更新中...');
     try {
-      await appFetch(`${SERVER_ENDPOINT}/api/students/${studentId}`, { method: 'PUT', jsonBody: { [field]: valueToSave }, requiresAuth: true, alwaysFetch: true });
+      await studentApi.update(studentId, { [field]: valueToSave } as Partial<StudentDTO>, { optimisticList: true });
 
       setStudentsList((prevList) => {
         if (!prevList) return null;
-        return prevList.map((student) => {
-          if (student.gakuseki === studentId) {
-            return { ...student, [field]: valueToSave };
+        return prevList.map((studentItem) => {
+          if (studentItem.gakuseki === studentId) {
+            return { ...studentItem, [field]: valueToSave } as StudentDTO;
           }
-          return student;
+          return studentItem;
         });
       });
       setStatus('更新しました。');
@@ -472,7 +471,7 @@ const Admin = () => {
   );
 
   const renderCellContent = useCallback(
-    (s: student, field: keyof student) => {
+    (s: StudentDTO, field: keyof StudentDTO) => {
       if (editingCell?.studentId === s.gakuseki && editingCell?.field === field) {
         if (field === 'day1id') {
           return (
@@ -649,17 +648,17 @@ const Admin = () => {
           open={modalMode !== null}
           mode={modalMode || 'add'}
           onSave={(formData) => {
-            const data: student = {
+            const data: StudentDTO = {
               ...formData,
-              day1id: formData.day1id as student['day1id'],
-              day3id: formData.day3id as student['day3id'],
-              class: Number(formData.class) as student['class'],
-              number: Number(formData.number) as student['number'],
-              gakuseki: Number(formData.gakuseki) as student['gakuseki'],
-              room_fpr: Number(formData.room_fpr) as student['room_fpr'],
-              room_tdh: Number(formData.room_tdh) as student['room_tdh'],
-              shinkansen_day1_car_number: Number(formData.shinkansen_day1_car_number) as student['shinkansen_day1_car_number'],
-              shinkansen_day4_car_number: Number(formData.shinkansen_day4_car_number) as student['shinkansen_day4_car_number']
+              day1id: formData.day1id,
+              day3id: formData.day3id,
+              class: Number(formData.class),
+              number: Number(formData.number),
+              gakuseki: Number(formData.gakuseki),
+              room_fpr: Number(formData.room_fpr),
+              room_tdh: Number(formData.room_tdh),
+              shinkansen_day1_car_number: Number(formData.shinkansen_day1_car_number),
+              shinkansen_day4_car_number: Number(formData.shinkansen_day4_car_number)
             };
             handleSave(data);
           }}

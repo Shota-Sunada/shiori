@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState, type FormEvent, useMemo } from 'react';
-import type { student } from '../data/students';
+import type { StudentDTO } from '../helpers/domainApi';
 import MDButton from '../components/MDButton';
 import GroupEditorModal from '../components/GroupEditorModal';
 import { useAuth } from '../auth-context';
-import { SERVER_ENDPOINT } from '../App';
-import { appFetch, clearAppFetchCache } from '../helpers/apiClient';
+import { rollCallApi, studentApi } from '../helpers/domainApi';
 import { useNavigate } from 'react-router-dom';
 import CenterMessage from '../components/CenterMessage';
 interface RollCallGroup {
@@ -16,7 +15,7 @@ const TeacherRollCall = () => {
   const { user, token } = useAuth();
   const navigate = useNavigate();
 
-  const [allStudents, setAllStudents] = useState<student[]>([]);
+  const [allStudents, setAllStudents] = useState<StudentDTO[]>([]);
   const [specificStudentId, setSpecificStudentId] = useState('');
   const [durationMinutes, setDurationMinutes] = useState(2);
   const [targetStudents, setTargetStudents] = useState<string>('default');
@@ -26,11 +25,8 @@ const TeacherRollCall = () => {
   const fetchRollCallGroups = useCallback(async () => {
     if (!token) return;
     try {
-      const groups = await appFetch<RollCallGroup[]>(`${SERVER_ENDPOINT}/api/roll-call-groups`, {
-        requiresAuth: true,
-        cacheKey: 'rollcall:groups'
-      });
-      setRollCallGroups(groups);
+      const groups = await rollCallApi.groups();
+      setRollCallGroups(groups as RollCallGroup[]);
     } catch (error) {
       console.error('点呼グループの取得に失敗:', error);
     }
@@ -39,11 +35,8 @@ const TeacherRollCall = () => {
   const fetchAllStudents = useCallback(async () => {
     if (!token) return;
     try {
-      const students = await appFetch<student[]>(`${SERVER_ENDPOINT}/api/students`, {
-        requiresAuth: true,
-        cacheKey: 'students:all'
-      });
-      students.sort((a: student, b: student) => (a.gakuseki < b.gakuseki ? -1 : a.gakuseki > b.gakuseki ? 1 : 0));
+      const students = await studentApi.list({ ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true });
+      students.sort((a, b) => (a.gakuseki < b.gakuseki ? -1 : a.gakuseki > b.gakuseki ? 1 : 0));
       setAllStudents(students);
     } catch (e) {
       console.error('生徒データの取得に失敗:', e);
@@ -104,14 +97,7 @@ const TeacherRollCall = () => {
       }
 
       try {
-        const data = await appFetch<{ rollCallId: string }>(`${SERVER_ENDPOINT}/api/roll-call/start`, {
-          requiresAuth: true,
-          method: 'POST',
-          jsonBody: requestBody
-        });
-        // セッション一覧キャッシュ無効化
-        clearAppFetchCache(`rollCalls:list:teacher:${user.userId}`);
-        const { rollCallId } = data;
+        const { rollCallId } = await rollCallApi.start(requestBody);
 
         navigate(`/teacher/call-viewer?id=${rollCallId}`);
       } catch (error) {
@@ -146,9 +132,7 @@ const TeacherRollCall = () => {
               arrowRight
               link="/teacher/roll-call-list"
               prefetchKey="rollCalls"
-              prefetchFetcher={async () => {
-                return appFetch(`${SERVER_ENDPOINT}/api/roll-call/teacher/${user!.userId}`, { requiresAuth: true, alwaysFetch: true });
-              }}
+              prefetchFetcher={async () => rollCallApi.listForTeacher(user!.userId, { alwaysFetch: true })}
             />
             <MDButton text="ﾌﾟﾘｾｯﾄを編集" arrowRight color="white" onClick={() => setGroupEditorOpen(true)} />
           </div>

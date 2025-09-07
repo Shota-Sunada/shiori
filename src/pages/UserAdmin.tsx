@@ -3,8 +3,7 @@ import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 import { useRequireAuth } from '../auth-context';
 import '../styles/admin-table.css';
 import '../styles/table.css';
-import { SERVER_ENDPOINT } from '../App';
-import { appFetch, clearAppFetchCache } from '../helpers/apiClient';
+import { userApi } from '../helpers/domainApi';
 import CenterMessage from '../components/CenterMessage';
 
 interface User {
@@ -222,11 +221,8 @@ const UserAdmin = () => {
   const fetchUsers = useCallback(async () => {
     if (!token) return;
     try {
-      const data = await appFetch<User[]>(`${SERVER_ENDPOINT}/api/users`, {
-        requiresAuth: true,
-        cacheKey: 'users:list'
-      });
-      setUsersList(data);
+      const data = await userApi.list();
+      setUsersList(data as User[]);
     } catch (error) {
       console.error('ユーザーの取得に失敗:', error);
       setStatus('ユーザーデータの取得に失敗しました。');
@@ -239,12 +235,8 @@ const UserAdmin = () => {
       if (!window.confirm('このユーザーのBANを解除しますか？')) return;
       setStatus('BANを解除中...');
       try {
-        await appFetch(`${SERVER_ENDPOINT}/api/users/${id}/unban`, {
-          method: 'PUT',
-          requiresAuth: true
-        });
+        await userApi.unban(id);
         setStatus('ユーザーのBANを解除しました。');
-        clearAppFetchCache('users:list');
         fetchUsers();
       } catch (e) {
         setStatus('エラーが発生しました: ' + (e as Error).message);
@@ -318,12 +310,8 @@ const UserAdmin = () => {
       if (!window.confirm('本当に削除しますか？')) return;
       setStatus('削除中...');
       try {
-        await appFetch(`${SERVER_ENDPOINT}/api/users/${id}`, {
-          method: 'DELETE',
-          requiresAuth: true
-        });
+        await userApi.remove(id);
         setStatus('ユーザーを削除しました。');
-        clearAppFetchCache('users:list');
         fetchUsers();
       } catch (e) {
         setStatus('エラーが発生しました: ' + (e as Error).message);
@@ -352,13 +340,8 @@ const UserAdmin = () => {
             const data = e.target?.result as string;
             const usersToProcess = JSON.parse(data);
             setStatus('更新中...');
-            const result = await appFetch<{ message: string }>(`${SERVER_ENDPOINT}/api/users/bulk`, {
-              method: 'POST',
-              requiresAuth: true,
-              jsonBody: { users: usersToProcess }
-            });
+            const result = await userApi.bulk(usersToProcess);
             setStatus(result.message);
-            clearAppFetchCache('users:list');
             fetchUsers();
           } catch (error) {
             setStatus('エラーが発生しました: ' + (error as Error).message);
@@ -383,14 +366,9 @@ const UserAdmin = () => {
         }
         setStatus('追加中...');
         try {
-          await appFetch(`${SERVER_ENDPOINT}/api/users`, {
-            method: 'POST',
-            requiresAuth: true,
-            jsonBody: { id, password, is_admin, is_teacher }
-          });
+          await userApi.add({ id, password, is_admin, is_teacher });
           setStatus('ユーザーを追加しました。');
           setModalMode(null);
-          clearAppFetchCache('users:list');
           fetchUsers();
         } catch (e) {
           setStatus('エラーが発生しました: ' + (e as Error).message);
@@ -407,15 +385,10 @@ const UserAdmin = () => {
             body.password = password;
           }
 
-          await appFetch(`${SERVER_ENDPOINT}/api/users/${editRowId}`, {
-            method: 'PUT',
-            requiresAuth: true,
-            jsonBody: body
-          });
+          await userApi.update(editRowId, body);
           setStatus('ユーザーを更新しました。');
           setModalMode(null);
           setEditRowId(null);
-          clearAppFetchCache('users:list');
           fetchUsers();
         } catch (e) {
           setStatus('エラーが発生しました: ' + (e as Error).message);
@@ -466,11 +439,7 @@ const UserAdmin = () => {
 
     setStatus('更新中...');
     try {
-      await appFetch(`${SERVER_ENDPOINT}/api/users/${userId}`, {
-        method: 'PUT',
-        requiresAuth: true,
-        jsonBody: { [field]: valueToSave }
-      });
+      await userApi.update(userId, { [field]: valueToSave } as Partial<Pick<User, 'is_admin' | 'is_teacher' | 'is_banned'>>);
 
       setUsersList((prevList) => {
         if (!prevList) return null;
@@ -483,7 +452,6 @@ const UserAdmin = () => {
       });
       setStatus('更新しました。');
       setEditingCell(null);
-      clearAppFetchCache('users:list');
     } catch (error) {
       setStatus('エラーが発生しました: ' + (error as Error).message);
       setEditingCell(null);
@@ -629,7 +597,6 @@ const UserAdmin = () => {
             disabled={modalMode !== null}
             onClick={async () => {
               setStatus('リロード中...');
-              clearAppFetchCache('users:list');
               await fetchUsers();
               setStatus('リロード完了');
             }}>

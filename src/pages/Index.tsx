@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
-import type { student } from '../data/students';
+import type { StudentDTO } from '../helpers/domainApi';
+import { studentApi } from '../helpers/domainApi';
 import { SERVER_ENDPOINT } from '../App';
 import IndexTable from '../components/IndexTable';
 import MDButton from '../components/MDButton';
@@ -19,7 +20,7 @@ const Index = () => {
 
   const navigate = useNavigate();
 
-  const [studentData, setStudentData] = useState<student | null | undefined>(undefined); // undefined: ロード中, null: 404 等
+  const [studentData, setStudentData] = useState<StudentDTO | null | undefined>(undefined); // undefined: ロード中, null: 404 等
   const [studentLoading, setStudentLoading] = useState<boolean>(true);
   const [activeRollCall, setActiveRollCall] = useState<ActiveRollCall | null>(null);
   const pollTimerRef = useRef<number | null>(null);
@@ -33,10 +34,7 @@ const Index = () => {
         return;
       }
       try {
-        const data = await appFetch<student>(`${SERVER_ENDPOINT}/api/students/${user.userId}`, {
-          requiresAuth: true,
-          cacheKey: `student:${user.userId}`
-        });
+        const data = await studentApi.getById(user.userId); // 単体取得は頻度低いので TTL なし
         setStudentData(data);
       } catch (e: unknown) {
         const msg = (e as Error).message || '';

@@ -1,8 +1,8 @@
 import { type FC } from 'react';
-import type { student } from '../data/students';
+import type { StudentDTO } from '../helpers/domainApi';
 
 interface StudentCardContentProps {
-  student: student;
+  student: Pick<StudentDTO, 'class' | 'number' | 'surname' | 'forename' | 'surname_kana' | 'forename_kana'>;
 }
 
 const StudentCardContent: FC<StudentCardContentProps> = ({ student }) => {

@@ -1,7 +1,9 @@
 import { useCallback, useMemo } from 'react';
+import { usePolling } from '../hooks/usePolling';
+import { POLL_INTERVALS } from '../config/constants';
 import { useAuth } from '../auth-context';
-import { SERVER_ENDPOINT } from '../App';
-import { appFetch } from '../helpers/apiClient';
+// SERVER_ENDPOINT / appFetch は domainApi で隠蔽
+import { rollCallApi } from '../helpers/domainApi';
 import MDButton from '../components/MDButton';
 import { PrefetchLink } from '../prefetch/PrefetchLink';
 import CenterMessage from '../components/CenterMessage';
@@ -27,13 +29,16 @@ const TeacherRollCallList = () => {
   const { user, token } = useAuth();
   const fetcher = useCallback(async () => {
     if (!user || !token) return [] as RollCall[];
-    return appFetch<RollCall[]>(`${SERVER_ENDPOINT}/api/roll-call/teacher/${user.userId}`, {
-      requiresAuth: true,
-      cacheKey: `rollCalls:list:teacher:${user.userId}`,
-      alwaysFetch: true
-    });
+    return rollCallApi.listForTeacher(user.userId, { alwaysFetch: true }) as Promise<RollCall[]>;
   }, [user, token]);
-  const { data: rollCalls = [], loading, error } = usePrefetchedData<RollCall[]>('rollCalls', fetcher);
+  const { data: rollCalls = [], loading, error, refresh } = usePrefetchedData<RollCall[]>('rollCalls', fetcher);
+  usePolling(
+    () => {
+      refresh();
+    },
+    POLL_INTERVALS.rollCallList,
+    [refresh, user?.userId, token]
+  );
 
   // Hook以降で条件分岐
 
@@ -97,12 +102,7 @@ const TeacherRollCallList = () => {
                 <td className="p-2">{ratio}</td>
                 <td className="p-2">{rc.teacher_id}</td>
                 <td className="p-2">
-                  <PrefetchLink
-                    to={`/teacher/call-viewer?id=${rc.id}`}
-                    prefetchKey="rollCalls"
-                    fetcher={async () => {
-                      return appFetch(`${SERVER_ENDPOINT}/api/roll-call/teacher/${user!.userId}`, { requiresAuth: true, alwaysFetch: true });
-                    }}>
+                  <PrefetchLink to={`/teacher/call-viewer?id=${rc.id}`} prefetchKey="rollCalls" fetcher={async () => rollCallApi.listForTeacher(user!.userId, { alwaysFetch: true })}>
                     <MDRightArrow />
                   </PrefetchLink>
                 </td>

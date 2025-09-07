@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, memo, type FC } from 'react';
 import { SERVER_ENDPOINT } from '../App';
 import { appFetch } from '../helpers/apiClient';
-import type { student } from '../data/students';
+import type { StudentDTO } from '../helpers/domainApi';
 import KanaSearchModal from './KanaSearchModal';
 import Modal from './Modal';
 
@@ -36,7 +36,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   token: string | null;
-  allStudents: student[];
+  allStudents: StudentDTO[];
   rollCallGroups: RollCallGroup[];
   onGroupsUpdated: () => void;
 }
@@ -103,7 +103,7 @@ const GroupEditorModal = ({ isOpen, onClose, token, allStudents, rollCallGroups,
 
   if (!isOpen) return null;
 
-  const handleStudentSelect = (student: student) => {
+  const handleStudentSelect = (student: StudentDTO) => {
     setSelectedStudents((prev) => (prev.includes(student.gakuseki) ? prev : [...prev, student.gakuseki]));
   };
 

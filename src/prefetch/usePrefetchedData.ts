@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { consumePrefetchData } from './cache';
 import type { PrefetchKey } from './cache';
 
@@ -16,8 +16,7 @@ export function usePrefetchedData<T>(key: PrefetchKey, fetcher: () => Promise<T>
   const [loading, setLoading] = useState(!consumedRef.current);
   const [error, setError] = useState<unknown>(null);
 
-  useEffect(() => {
-    if (consumedRef.current) return;
+  const runFetch = useCallback(() => {
     let cancelled = false;
     setLoading(true);
     fetcher()
@@ -31,5 +30,15 @@ export function usePrefetchedData<T>(key: PrefetchKey, fetcher: () => Promise<T>
     };
   }, [fetcher]);
 
-  return { data, loading, error };
+  useEffect(() => {
+    if (consumedRef.current) return;
+    const cleanup = runFetch();
+    return cleanup;
+  }, [runFetch, fetcher]);
+
+  const refresh = useCallback(() => {
+    runFetch();
+  }, [runFetch]);
+
+  return { data, loading, error, refresh };
 }

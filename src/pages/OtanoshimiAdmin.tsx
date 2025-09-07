@@ -2,10 +2,12 @@ import { useState, useEffect, type ChangeEvent, type DragEvent, useCallback, typ
 import { SERVER_ENDPOINT } from '../App';
 import '../styles/admin-table.css';
 import KanaSearchModal from '../components/KanaSearchModal';
-import type { student } from '../data/students';
+import type { StudentDTO } from '../helpers/domainApi';
+import { studentApi } from '../helpers/domainApi';
 import type { OtanoshimiData } from '../data/otanoshimi';
 import { useAuth } from '../auth-context';
 import { appFetch, clearAppFetchCache } from '../helpers/apiClient';
+import { CacheKeys } from '../helpers/cacheKeys';
 import CenterMessage from '../components/CenterMessage';
 
 interface StudentChipProps {
@@ -34,7 +36,7 @@ const OtanoshimiAdmin = () => {
   const dragImageRef = useRef<HTMLDivElement | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const [allStudents, setAllStudents] = useState<student[]>([]);
+  const [allStudents, setAllStudents] = useState<StudentDTO[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTarget, setModalTarget] = useState<{ index: number; field: 'leader' | 'members' } | null>(null);
 
@@ -43,7 +45,7 @@ const OtanoshimiAdmin = () => {
     try {
       const data = await appFetch<OtanoshimiData[]>(`${SERVER_ENDPOINT}/api/otanoshimi`, {
         requiresAuth: true,
-        cacheKey: 'otanoshimi:teams'
+        cacheKey: CacheKeys.otanoshimi.teams
       });
       const teamsWithDefaults = data.map((team) => ({
         ...team,
@@ -60,10 +62,7 @@ const OtanoshimiAdmin = () => {
   const fetchAllStudents = useCallback(async () => {
     if (!token) return;
     try {
-      const studentsData = await appFetch<student[]>(`${SERVER_ENDPOINT}/api/students`, {
-        requiresAuth: true,
-        cacheKey: 'students:all'
-      });
+      const studentsData = await studentApi.list({ ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true });
       setAllStudents(studentsData);
       const newStudentMap = new Map<number, string>();
       for (const student of studentsData) {
@@ -141,7 +140,7 @@ const OtanoshimiAdmin = () => {
         parse: 'none'
       });
       // 変更後キャッシュを無効化
-      clearAppFetchCache('otanoshimi:teams');
+      clearAppFetchCache(CacheKeys.otanoshimi.teams);
       setStatus('保存しました。');
       setEditingIndex(null);
       fetchTeams();
@@ -221,7 +220,7 @@ const OtanoshimiAdmin = () => {
   }, []);
 
   const handleStudentSelect = useCallback(
-    (student: student) => {
+    (student: StudentDTO) => {
       if (!modalTarget) return;
 
       const { index, field } = modalTarget;

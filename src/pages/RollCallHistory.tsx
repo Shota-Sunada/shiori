@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../App';
 import { appFetch } from '../helpers/apiClient';
+import { CacheKeys } from '../helpers/cacheKeys';
 import CenterMessage from '../components/CenterMessage';
 import '../styles/table.css';
 import MDButton from '../components/MDButton';
@@ -53,7 +54,7 @@ const RollCallHistory = () => {
     try {
       const data = await appFetch<HistoryItem[]>(`${SERVER_ENDPOINT}/api/roll-call/history?student_id=${user.userId}&limit=100`, {
         requiresAuth: true,
-        cacheKey: `rollcall:history:${user.userId}`,
+        cacheKey: CacheKeys.rollCall.historyForStudent(user.userId),
         alwaysFetch: true
       });
       setItems(data);

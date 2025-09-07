@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
+import { usePolling } from '../hooks/usePolling';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { SERVER_ENDPOINT } from '../App';
-import { appFetch, clearAppFetchCache } from '../helpers/apiClient';
+import { rollCallApi } from '../helpers/domainApi';
+import { POLL_INTERVALS, ROLLCALL_GRACE_OFFSET_SECONDS } from '../config/constants';
 import MDButton from '../components/MDButton';
 import { useAuth } from '../auth-context';
 import type { RollCall } from './TeacherRollCallList';
@@ -19,6 +20,8 @@ interface Student {
   absence_reason?: string;
   location?: string;
 }
+
+// オフセットは config/constants.ts で集中管理
 
 const TeacherRollCallViewer = () => {
   const { token } = useAuth();
@@ -48,12 +51,8 @@ const TeacherRollCallViewer = () => {
   const fetchData = useCallback(async () => {
     if (!rollCallId || !token) return;
     try {
-      const data = await appFetch<{ rollCall: RollCall; students: Student[] }>(`${SERVER_ENDPOINT}/api/roll-call?id=${rollCallId}`, {
-        requiresAuth: true,
-        cacheKey: `rollcall:view:${rollCallId}`,
-        alwaysFetch: true
-      });
-      setRollCall(data.rollCall);
+      const data = await rollCallApi.detail(rollCallId);
+      setRollCall(data.rollCall as RollCall);
       setStudents(data.students);
     } catch (err) {
       setError((err as Error).message);
@@ -62,11 +61,7 @@ const TeacherRollCallViewer = () => {
     }
   }, [rollCallId, token]);
 
-  useEffect(() => {
-    fetchData();
-    const id = setInterval(fetchData, 5000);
-    return () => clearInterval(id);
-  }, [fetchData]);
+  usePolling(fetchData, POLL_INTERVALS.rollCallViewer, [fetchData, rollCallId, token]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;
@@ -98,34 +93,27 @@ const TeacherRollCallViewer = () => {
   }, [rollCall]);
 
   const formattedTime = useMemo(() => {
-    const s = remainingTime - 20;
-    if (s <= 0) return '00:00';
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
+    const adjusted = remainingTime - ROLLCALL_GRACE_OFFSET_SECONDS;
+    if (adjusted <= 0) return '00:00';
+    const m = Math.floor(adjusted / 60);
+    const sec = adjusted % 60;
     return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
   }, [remainingTime]);
 
   const onEndSession = useCallback(async () => {
-    if (!rollCallId || !token) return;
+    if (!rollCallId || !token || !rollCall) return;
 
     if (!window.confirm('本当に点呼を終了しますか？')) return;
 
     try {
-      await appFetch(`${SERVER_ENDPOINT}/api/roll-call/end`, {
-        requiresAuth: true,
-        method: 'POST',
-        jsonBody: { roll_call_id: rollCallId },
-        parse: 'none'
-      });
-      // 一覧キャッシュ無効化
-      clearAppFetchCache(`rollCalls:list:teacher:`); // teacher id 不明のため前方一致削除検討 (現状キー固定利用想定)
+      await rollCallApi.end(rollCallId, rollCall.teacher_id);
       alert('点呼を終了しました。');
       navigate('/teacher/roll-call-list');
     } catch (error) {
       console.error('点呼の終了に失敗しました:', error);
       alert('点呼の終了に失敗しました。');
     }
-  }, [rollCallId, token, navigate]);
+  }, [rollCallId, token, navigate, rollCall]);
 
   const endButton = (disabled: boolean) => (
     <div className="m-3 flex items-center justify-center">
@@ -171,7 +159,7 @@ const TeacherRollCallViewer = () => {
           arrowLeft
           link="/teacher/roll-call-list"
           prefetchKey="rollCalls"
-          prefetchFetcher={async () => appFetch('/api/roll-call/sessions', { requiresAuth: true, alwaysFetch: true })}
+          prefetchFetcher={async () => (rollCall ? rollCallApi.listForTeacher(rollCall.teacher_id, { alwaysFetch: true }) : [])}
         />
       </CenterMessage>
     );
@@ -276,7 +264,7 @@ const TeacherRollCallViewer = () => {
         arrowLeft
         link="/teacher/roll-call-list"
         prefetchKey="rollCalls"
-        prefetchFetcher={async () => appFetch('/api/roll-call/sessions', { requiresAuth: true, alwaysFetch: true })}
+        prefetchFetcher={async () => (rollCall ? rollCallApi.listForTeacher(rollCall.teacher_id, { alwaysFetch: true }) : [])}
       />
       <ReasonModal isOpen={modal.isOpen} reason={modal.reason} location={modal.location} onClose={() => setModal({ isOpen: false, reason: '', location: '' })} />
     </div>

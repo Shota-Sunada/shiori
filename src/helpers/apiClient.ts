@@ -40,14 +40,44 @@ interface AppFetchOptions extends Omit<BaseRequestOptions, 'authToken' | 'json'>
   jsonBody?: unknown; // JSON送信したい場合
   cacheKey?: string; // 指定でキャッシュ利用
   alwaysFetch?: boolean; // キャッシュを無視
+  ttlMs?: number; // 有効期間 (指定時のみ判定)
+  staleWhileRevalidate?: boolean; // 期限切れ時: キャッシュを即返し裏で更新
 }
 
 const responseCache: Record<string, { data: unknown; at: number }> = {};
 
+export const DEFAULT_TTL_MS = 0; // 明示未指定の場合はTTL無効 (0で判定スキップ)
+
 export async function appFetch<T = unknown>(url: string, opts: AppFetchOptions = {}): Promise<T> {
-  const { requiresAuth, jsonBody, cacheKey, alwaysFetch, ...rest } = opts;
+  const { requiresAuth, jsonBody, cacheKey, alwaysFetch, ttlMs = DEFAULT_TTL_MS, staleWhileRevalidate, ...rest } = opts;
   if (cacheKey && !alwaysFetch && responseCache[cacheKey]) {
-    return responseCache[cacheKey].data as T;
+    const entry = responseCache[cacheKey];
+    const age = Date.now() - entry.at;
+    const expired = ttlMs > 0 && age > ttlMs;
+    if (!expired) {
+      // 新鮮 or TTL無し
+      return entry.data as T;
+    }
+    if (expired && staleWhileRevalidate) {
+      // 期限切れだが即時返却 + 裏で更新
+      // Fire & forget refresh
+      (async () => {
+        try {
+          const fresh = await apiRequest<T>(url, {
+            ...rest,
+            method: rest.method || (jsonBody ? 'POST' : 'GET'),
+            requiresAuth,
+            authToken: getAuthToken() || undefined,
+            json: jsonBody
+          });
+          responseCache[cacheKey] = { data: fresh, at: Date.now() };
+        } catch {
+          /* 静かに失敗 */
+        }
+      })();
+      return entry.data as T;
+    }
+    // expired & no staleWhileRevalidate -> fallthrough to network fetch
   }
   const token = getAuthToken();
   const data = await apiRequest<T>(url, {
@@ -66,4 +96,66 @@ export async function appFetch<T = unknown>(url: string, opts: AppFetchOptions =
 export function clearAppFetchCache(key?: string) {
   if (key) delete responseCache[key];
   else Object.keys(responseCache).forEach((k) => delete responseCache[k]);
+}
+
+// 指定 prefix に一致するキャッシュを削除
+export function clearAppFetchCacheByPrefix(prefix: string) {
+  Object.keys(responseCache)
+    .filter((k) => k.startsWith(prefix))
+    .forEach((k) => delete responseCache[k]);
+}
+
+// Mutation 用ヘルパ (API 呼び出し + キャッシュ無効化)
+interface MutateOptions<TResp> {
+  url: string;
+  method?: 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  jsonBody?: unknown;
+  requiresAuth?: boolean;
+  // 完全一致で無効化するキャッシュキー
+  invalidateKeys?: string[];
+  // prefix で無効化するキャッシュキー
+  invalidatePrefixes?: string[];
+  // レスポンス変換 (任意)
+  mapResponse?: (data: TResp) => TResp;
+  // 楽観的更新: キャッシュを事前に書き換える (失敗時ロールバック)
+  optimistic?: Array<{
+    key: string;
+    apply: (current: unknown) => unknown;
+  }>;
+  rollbackOnError?: boolean;
+}
+
+export async function mutate<TResp = unknown>(opts: MutateOptions<TResp>): Promise<TResp> {
+  const { url, method, jsonBody, requiresAuth = true, invalidateKeys = [], invalidatePrefixes = [], mapResponse, optimistic, rollbackOnError = true } = opts;
+  const optimisticSnapshots: Record<string, { data: unknown; at: number }> = {};
+  const optimisticKeys = new Set<string>(optimistic?.map((o) => o.key) || []);
+  // Apply optimistic updates
+  if (optimistic) {
+    for (const o of optimistic) {
+      if (responseCache[o.key]) {
+        optimisticSnapshots[o.key] = { ...responseCache[o.key] };
+        try {
+          const next = o.apply(responseCache[o.key].data);
+          responseCache[o.key] = { data: next, at: Date.now() };
+        } catch {
+          // ignore faulty optimistic transformation
+        }
+      }
+    }
+  }
+  try {
+    const data = await appFetch<TResp>(url, { method, jsonBody, requiresAuth, alwaysFetch: true });
+    // Invalidation (avoid wiping keys we just optimistically updated unless明示的に指定されたが ここでは除外)
+    invalidateKeys.filter((k) => !optimisticKeys.has(k)).forEach((k) => clearAppFetchCache(k));
+    invalidatePrefixes.forEach((p) => clearAppFetchCacheByPrefix(p));
+    return mapResponse ? mapResponse(data) : data;
+  } catch (e) {
+    if (rollbackOnError && optimistic) {
+      // rollback
+      for (const key of Object.keys(optimisticSnapshots)) {
+        responseCache[key] = optimisticSnapshots[key];
+      }
+    }
+    throw e;
+  }
 }

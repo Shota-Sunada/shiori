@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo, useCallback, memo, type ChangeEvent, type KeyboardEvent, type FC } from 'react';
 import { useRequireAuth } from '../auth-context';
 import '../styles/admin-table.css';
-import { SERVER_ENDPOINT } from '../App';
+// SERVER_ENDPOINT 依存除去 (domainApi 経由で隠蔽)
 import CenterMessage from '../components/CenterMessage';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
-import { appFetch, clearAppFetchCache } from '../helpers/apiClient';
+import { clearAppFetchCache } from '../helpers/apiClient';
+import { teacherApi } from '../helpers/domainApi';
+import { CacheKeys } from '../helpers/cacheKeys';
 
 export interface Teacher {
   id: number;
@@ -419,11 +421,8 @@ const TeacherAdmin = () => {
   const fetchTeachers = useCallback(async () => {
     if (!token) return;
     try {
-      const data = await appFetch<Teacher[]>(`${SERVER_ENDPOINT}/api/teachers`, {
-        requiresAuth: true,
-        cacheKey: 'teachers:list'
-      });
-      setTeachersList(data);
+      const data = await teacherApi.list();
+      setTeachersList(data as Teacher[]); // DTO は Teacher と同形で運用
     } catch (error) {
       console.error('先生の取得に失敗:', error);
       setStatus('先生データの取得に失敗しました。');
@@ -489,12 +488,8 @@ const TeacherAdmin = () => {
     if (!window.confirm('本当に削除しますか？')) return;
     setStatus('削除中...');
     try {
-      await appFetch(`${SERVER_ENDPOINT}/api/teachers/${id}`, {
-        requiresAuth: true,
-        method: 'DELETE',
-        parse: 'none'
-      });
-      clearAppFetchCache('teachers:list');
+      await teacherApi.remove(id);
+      clearAppFetchCache(CacheKeys.teachers.list); // mutate 内で無効化済みだが念のため即時反映
       setStatus('先生を削除しました。');
       fetchTeachers();
     } catch (e) {
@@ -518,39 +513,8 @@ const TeacherAdmin = () => {
     if (modalMode === 'add') {
       setStatus('追加中...');
       try {
-        await appFetch(`${SERVER_ENDPOINT}/api/teachers`, {
-          requiresAuth: true,
-          method: 'POST',
-          jsonBody: {
-            id,
-            surname: formData.surname,
-            forename: formData.forename,
-            room_fpr: formData.room_fpr,
-            room_tdh: formData.room_tdh,
-            shinkansen_day1_car_number: formData.shinkansen_day1_car_number,
-            shinkansen_day1_seat: formData.shinkansen_day1_seat,
-            shinkansen_day4_car_number: formData.shinkansen_day4_car_number,
-            shinkansen_day4_seat: formData.shinkansen_day4_seat,
-            day1id: formData.day1id,
-            day1bus: formData.day1bus,
-            day3id: formData.day3id,
-            day3bus: formData.day3bus,
-            day4class: formData.day4class
-          },
-          parse: 'none'
-        });
-        clearAppFetchCache('teachers:list');
-        setStatus('先生を追加しました。');
-        setModalMode(null);
-        fetchTeachers();
-      } catch (e) {
-        setStatus('エラーが発生しました: ' + (e as Error).message);
-      }
-    } else if (modalMode === 'edit') {
-      if (editRowId === null) return;
-      setStatus('更新中...');
-      try {
-        const body = {
+        await teacherApi.add({
+          id,
           surname: formData.surname,
           forename: formData.forename,
           room_fpr: formData.room_fpr,
@@ -564,14 +528,34 @@ const TeacherAdmin = () => {
           day3id: formData.day3id,
           day3bus: formData.day3bus,
           day4class: formData.day4class
-        };
-        await appFetch(`${SERVER_ENDPOINT}/api/teachers/${editRowId}`, {
-          requiresAuth: true,
-          method: 'PUT',
-          jsonBody: body,
-          parse: 'none'
         });
-        clearAppFetchCache('teachers:list');
+        clearAppFetchCache(CacheKeys.teachers.list);
+        setStatus('先生を追加しました。');
+        setModalMode(null);
+        fetchTeachers();
+      } catch (e) {
+        setStatus('エラーが発生しました: ' + (e as Error).message);
+      }
+    } else if (modalMode === 'edit') {
+      if (editRowId === null) return;
+      setStatus('更新中...');
+      try {
+        await teacherApi.update(editRowId, {
+          surname: formData.surname,
+          forename: formData.forename,
+          room_fpr: formData.room_fpr,
+          room_tdh: formData.room_tdh,
+          shinkansen_day1_car_number: formData.shinkansen_day1_car_number,
+          shinkansen_day1_seat: formData.shinkansen_day1_seat,
+          shinkansen_day4_car_number: formData.shinkansen_day4_car_number,
+          shinkansen_day4_seat: formData.shinkansen_day4_seat,
+          day1id: formData.day1id,
+          day1bus: formData.day1bus,
+          day3id: formData.day3id,
+          day3bus: formData.day3bus,
+          day4class: formData.day4class
+        });
+        clearAppFetchCache(CacheKeys.teachers.list);
         setStatus('先生を更新しました。');
         setModalMode(null);
         setEditRowId(null);
@@ -619,13 +603,8 @@ const TeacherAdmin = () => {
 
     setStatus('更新中...');
     try {
-      await appFetch(`${SERVER_ENDPOINT}/api/teachers/${teacherId}`, {
-        requiresAuth: true,
-        method: 'PUT',
-        jsonBody: { [field]: valueToSave },
-        parse: 'none'
-      });
-      clearAppFetchCache('teachers:list');
+      await teacherApi.update(teacherId, { [field]: valueToSave } as Partial<Omit<Teacher, 'id'>>);
+      clearAppFetchCache(CacheKeys.teachers.list);
 
       setTeachersList((prevList) => {
         if (!prevList) return null;

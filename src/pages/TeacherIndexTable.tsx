@@ -1,17 +1,16 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAuth } from '../auth-context';
-import { appFetch } from '../helpers/apiClient';
-import type { student } from '../data/students';
+import type { StudentDTO } from '../helpers/domainApi';
+import { studentApi } from '../helpers/domainApi';
 import KanaSearchModal from '../components/KanaSearchModal';
-import { SERVER_ENDPOINT } from '../App';
 import IndexTable from '../components/IndexTable';
 import MDButton from '../components/MDButton';
 
 const TeacherIndexTable = () => {
   const { token } = useAuth();
 
-  const [allStudents, setAllStudents] = useState<student[]>([]);
-  const [studentData, setStudentData] = useState<student | null>(null);
+  const [allStudents, setAllStudents] = useState<StudentDTO[]>([]);
+  const [studentData, setStudentData] = useState<StudentDTO | null>(null);
   const [isKanaSearchVisible, setKanaSearchVisible] = useState(false);
 
   const [loading, setLoading] = useState(false);
@@ -22,11 +21,7 @@ const TeacherIndexTable = () => {
       if (!token) return;
       setLoading(true);
       try {
-        const students = await appFetch<student[]>(`${SERVER_ENDPOINT}/api/students`, {
-          requiresAuth: true,
-          cacheKey: 'students:list',
-          alwaysFetch: force // interval時は最新取得
-        });
+        const students = await studentApi.list({ alwaysFetch: force, ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true });
         students.sort((a, b) => a.gakuseki - b.gakuseki);
         setAllStudents(students);
       } catch (e) {
@@ -55,7 +50,7 @@ const TeacherIndexTable = () => {
     };
   }, [token, loadStudents]);
 
-  const handleStudentSelect = useCallback((student: student) => {
+  const handleStudentSelect = useCallback((student: StudentDTO) => {
     setStudentData(student);
     setKanaSearchVisible(false);
     window.scrollTo({ top: document.getElementById('table')?.offsetTop, behavior: 'smooth' });

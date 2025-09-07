@@ -1,13 +1,13 @@
 import { useState, useEffect, type FC, useRef } from 'react';
-import type { student } from '../data/students';
+import type { StudentDTO } from '../helpers/domainApi';
 import StudentCardContent from './StudentCardContent';
 import Modal from './Modal';
 
 interface KanaSearchModalProps {
   isOpen: boolean;
   onClose: () => void;
-  allStudents: student[];
-  onStudentSelect: (student: student) => void;
+  allStudents: StudentDTO[];
+  onStudentSelect: (student: StudentDTO) => void;
   closeOnSelect?: boolean;
 }
 
@@ -53,8 +53,8 @@ const KanaSearchModal: FC<KanaSearchModalProps> = ({ isOpen, onClose, allStudent
   const [showResults, setShowResults] = useState(false);
   const [currentKana, setCurrentKana] = useState<string | undefined>('');
   const [selectedKana, setSelectedKana] = useState('');
-  const [filteredBySurnameKana, setFilteredBySurnameKana] = useState<student[]>([]);
-  const [filteredByForenameKana, setFilteredByForenameKana] = useState<student[]>([]);
+  const [filteredBySurnameKana, setFilteredBySurnameKana] = useState<StudentDTO[]>([]);
+  const [filteredByForenameKana, setFilteredByForenameKana] = useState<StudentDTO[]>([]);
 
   useEffect(() => {
     const body = document.body;
@@ -111,7 +111,7 @@ const KanaSearchModal: FC<KanaSearchModalProps> = ({ isOpen, onClose, allStudent
     }
   };
 
-  const handleStudentClick = (student: student) => {
+  const handleStudentClick = (student: StudentDTO) => {
     onStudentSelect(student);
     if (closeOnSelect) {
       onClose();

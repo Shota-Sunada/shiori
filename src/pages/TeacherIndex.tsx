@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import MDButton from '../components/MDButton';
 import CenterMessage from '../components/CenterMessage';
-import { SERVER_ENDPOINT } from '../App';
-import { appFetch } from '../helpers/apiClient';
+// SERVER_ENDPOINT 直接利用を削除 (domainApi 経由)
 import type { Teacher } from './TeacherAdmin';
+import { teacherApi } from '../helpers/domainApi';
 import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4, DAY4_DATA } from '../data/courses';
 
 const TeacherIndex = () => {
@@ -22,12 +22,8 @@ const TeacherIndex = () => {
   const fetchTeacherData = useCallback(async () => {
     if (!user?.userId || !token) return;
     try {
-      const data = await appFetch<Teacher>(`${SERVER_ENDPOINT}/api/teachers/${user.userId}`, {
-        requiresAuth: true,
-        cacheKey: `teacher:self:${user.userId}`,
-        alwaysFetch: true
-      });
-      setTeacherData(data);
+      const data = await teacherApi.self(user.userId);
+      setTeacherData(data as Teacher);
     } catch (error) {
       console.error('Failed to fetch teacher data:', error);
       setTeacherData(null);
@@ -41,11 +37,8 @@ const TeacherIndex = () => {
   const fetchAllTeachers = useCallback(async () => {
     if (!token) return;
     try {
-      const data = await appFetch<Teacher[]>(`${SERVER_ENDPOINT}/api/teachers`, {
-        requiresAuth: true,
-        cacheKey: 'teachers:list'
-      });
-      setAllTeachers(data);
+      const data = await teacherApi.list();
+      setAllTeachers(data as Teacher[]);
     } catch (error) {
       console.error('Error fetching all teachers:', error);
     }

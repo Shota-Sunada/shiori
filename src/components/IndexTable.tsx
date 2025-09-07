@@ -1,5 +1,5 @@
 import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4, DAY4_DATA } from '../data/courses';
-import type { student } from '../data/students';
+import type { StudentDTO } from '../helpers/domainApi';
 import '../styles/index-table.css';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import RoomDataModal from './RoomDataModal';
@@ -7,6 +7,7 @@ import { SERVER_ENDPOINT } from '../App';
 import { usePrefetchNavigate } from '../prefetch/usePrefetchNavigate';
 import { useAuth } from '../auth-context';
 import { appFetch } from '../helpers/apiClient';
+import { CacheKeys } from '../helpers/cacheKeys';
 
 interface Roommate {
   gakuseki: string;
@@ -34,7 +35,7 @@ interface Teacher {
 }
 
 interface IndexTableProps {
-  studentData: student | null;
+  studentData: StudentDTO | null;
 }
 
 const IndexTable = ({ studentData }: IndexTableProps) => {
@@ -63,7 +64,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
   const fetchTeachers = useCallback(async () => {
     if (!token) return;
     try {
-      const data = await appFetch<Teacher[]>(`${SERVER_ENDPOINT}/api/teachers`, { requiresAuth: true, cacheKey: 'teachers:list' });
+      const data = await appFetch<Teacher[]>(`${SERVER_ENDPOINT}/api/teachers`, { requiresAuth: true, cacheKey: CacheKeys.teachers.list });
       setTeachers(data);
     } catch (error) {
       console.error('Error fetching teachers:', error);

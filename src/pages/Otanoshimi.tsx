@@ -5,7 +5,9 @@ import OtanoshimiCard from '../components/OtanoshimiCard';
 import Modal from '../components/Modal';
 import { useAuth } from '../auth-context';
 import { appFetch } from '../helpers/apiClient';
-import type { student } from '../data/students';
+import { CacheKeys } from '../helpers/cacheKeys';
+import type { StudentDTO } from '../helpers/domainApi';
+import { studentApi } from '../helpers/domainApi';
 import MDButton from '../components/MDButton';
 import { consumePrefetchData } from '../prefetch/cache';
 
@@ -19,7 +21,7 @@ interface PreviewModalProps {
   onClose: () => void;
   onNavigate: (newOrder: number) => void;
   teams: OtanoshimiDataWithSchedule[] | null;
-  students: student[] | null;
+  students: StudentDTO[] | null;
   loadingStudents: boolean;
 }
 
@@ -88,7 +90,7 @@ const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate, teams, studen
 const Otanoshimi = () => {
   const { token } = useAuth();
   const [teams, setTeams] = useState<OtanoshimiDataWithSchedule[] | null>(null);
-  const [allStudents, setAllStudents] = useState<student[] | null>(null);
+  const [allStudents, setAllStudents] = useState<StudentDTO[] | null>(null);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [previewOrderLocal, setPreviewOrderLocal] = useState<number | null>(null);
 
@@ -97,10 +99,7 @@ const Otanoshimi = () => {
     const fetchStudents = async () => {
       setLoadingStudents(true);
       try {
-        const data = await appFetch<student[]>(`${SERVER_ENDPOINT}/api/students`, {
-          requiresAuth: true,
-          cacheKey: 'students:all'
-        });
+        const data = await studentApi.list({ ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true });
         setAllStudents(data);
       } catch (e) {
         console.error('学生データ取得失敗:', e);
@@ -117,7 +116,7 @@ const Otanoshimi = () => {
     try {
       const data = await appFetch<OtanoshimiData[]>(`${SERVER_ENDPOINT}/api/otanoshimi`, {
         requiresAuth: true,
-        cacheKey: 'otanoshimi:teams'
+        cacheKey: CacheKeys.otanoshimi.teams
       });
       const base = data.map((team) => ({ ...team, custom_performers: team.custom_performers || [], enmoku: team.enmoku || '' })).sort((a, b) => a.appearance_order - b.appearance_order);
       const scheduleStart = new Date();
