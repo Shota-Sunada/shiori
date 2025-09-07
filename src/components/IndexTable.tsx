@@ -103,6 +103,16 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
     return COURSES_DAY4.find((x) => x.key === DAY4_DATA[Number(studentData!.class) - 1])?.name;
   }, [hasStudent, studentData]);
 
+  // rowspan(2) の2行目をホバーした時にも左端(縦書き)セルをハイライトさせるためのヘルパー
+  const addHover = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('rowspan-hover');
+  };
+  const removeHover = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('rowspan-hover');
+  };
+
   return (
     <section id="table" className="index-table-wrapper m-2">
       <table className="table-base table-rounded table-shadow index-table">
@@ -133,7 +143,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
         <tbody>
           {/* day1 START */}
           <tr>
-            <td rowSpan={2}>
+            <td id="day1-rowspan" rowSpan={2}>
               <span style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
                 {'１日目'}
               </span>
@@ -141,7 +151,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
             <td>{'研修先'}</td>
             <td>{hasStudent ? COURSES_DAY1.find((x) => x.key === studentData!.day1id)?.name : '◯◯◯◯◯◯◯◯'}</td>
           </tr>
-          <tr>
+          <tr onMouseEnter={() => addHover('day1-rowspan')} onMouseLeave={() => removeHover('day1-rowspan')}>
             <td>{'バス号車'}</td>
             <td>{hasStudent ? studentData!.day1bus : '◯◯'}</td>
           </tr>
@@ -224,7 +234,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
           {/* day4 END */}
           {/* hotel START */}
           <tr>
-            <td rowSpan={2} style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
+            <td id="hotel-rowspan" rowSpan={2} style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
               {'ホテル'}
             </td>
             <td>
@@ -253,7 +263,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
               </p>
             </td>
           </tr>
-          <tr>
+          <tr onMouseEnter={() => addHover('hotel-rowspan')} onMouseLeave={() => removeHover('hotel-rowspan')}>
             <td>{'3泊目'}</td>
             <td
               className="cell-interactive"
@@ -281,7 +291,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
           {/* hotel END */}
           {/* shinkansen START */}
           <tr>
-            <td rowSpan={2} style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
+            <td id="shinkansen-rowspan" rowSpan={2} style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
               {'新幹線'}
             </td>
             <td>
@@ -313,7 +323,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
               )}
             </td>
           </tr>
-          <tr>
+          <tr onMouseEnter={() => addHover('shinkansen-rowspan')} onMouseLeave={() => removeHover('shinkansen-rowspan')}>
             <td>
               <p>{'4日目'}</p>
               <p className="text-sm">{'新横浜駅で乗車'}</p>

@@ -52,6 +52,12 @@
   background: #f3f4f6;
 }
 
+/* rowspan 連携ホバー: 2行目のみ hover されたときでも左の縦書きセルを同じ色に */
+td.rowspan-hover {
+  background: #f9fafb !important; /* table-base tbody tr:hover と同一色 */
+  transition: background 0.18s ease;
+}
+
 /* 枠線強調 (縦横) */
 .index-table.table-base {
   border: 1px solid #d1d5db;
