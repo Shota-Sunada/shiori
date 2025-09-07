@@ -182,6 +182,27 @@ export const teacherApi = {
     })
 };
 
+// ---- Otanoshimi ----
+export interface OtanoshimiTeamDTO {
+  name: string;
+  enmoku: string;
+  leader: number;
+  members: number[];
+  time: number;
+  appearance_order: number;
+  custom_performers: string[];
+  comment: string;
+  supervisor: string[];
+}
+
+export const otanoshimiApi = {
+  list: () =>
+    appFetch<OtanoshimiTeamDTO[]>(`${SERVER_ENDPOINT}/api/otanoshimi`, {
+      requiresAuth: true,
+      alwaysFetch: true // 毎回最新
+    })
+};
+
 // ---- Roll Call ----
 export interface RollCallGroupDTO {
   id: number;

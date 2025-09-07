@@ -82,10 +82,17 @@ function App() {
   const FadeContainer = ({ children }: { children: ReactNode }) => <div className="page-fade">{children}</div>;
 
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/firebase-messaging-sw.js').catch((err) => {
-        console.error('Service Worker registration failed:', err);
-      });
+    // 開発中(vite dev)は SW を登録しない: importScripts + CDN 利用での頻繁な SyntaxError/リロードを避ける
+    // 本番ビルド (import.meta.env.PROD) のみ登録
+    if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/firebase-messaging-sw.js')
+        .then(() => {
+          // 登録成功時のログ (必要なら DEBUG 変数で制御可能)
+        })
+        .catch((err) => {
+          console.error('Service Worker registration failed:', err);
+        });
     }
     const unsubscribe = onMessage(messaging, (payload) => {
       if (payload.data?.type === 'default_notification') {

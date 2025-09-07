@@ -6,8 +6,15 @@
 importScripts('https://www.gstatic.com/firebasejs/12.0.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/12.0.0/firebase-messaging-compat.js');
 
-// 2. Workbox（ビルド時に __WB_MANIFEST が注入される想定）
-import { precacheAndRoute } from 'workbox-precaching';
+// 2. Workbox（CDN版）: Vite dev サーバーでは bare import は使えないため importScripts で読込
+//    既存の ESM import { precacheAndRoute } from 'workbox-precaching'; は classic SW では SyntaxError になる
+//    build 時に injectManifest 等を使わない場合でも空配列で問題なし
+try {
+  importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox-sw.js');
+} catch (e) {
+  // 失敗しても致命的でない
+  console.error('[FCM SW] workbox import failed (ignored)', e);
+}
 
 // 3. 即時適用（新 SW を素早く有効化）
 self.skipWaiting();
@@ -28,8 +35,12 @@ const logError = (...args) => console.error('[FCM SW]', ...args);
 
 // Workbox precache （injectManifest では self.__WB_MANIFEST が 1 回だけ存在する必要あり）
 try {
-  precacheAndRoute(self.__WB_MANIFEST); // ここで 1 回だけ参照
-  log('Precache manifest applied.');
+  if (self.workbox && self.workbox.precaching) {
+    self.workbox.precaching.precacheAndRoute(self.__WB_MANIFEST || []);
+    log('Precache manifest applied (workbox global).');
+  } else {
+    log('Workbox not available (dev or CDN load failed) - skipping precache.');
+  }
 } catch (e) {
   logError('Precache error (likely during dev when not injected):', e);
 }
