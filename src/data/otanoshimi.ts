@@ -6,4 +6,6 @@ export interface OtanoshimiData {
   time: number;
   appearance_order: number;
   custom_performers: string[];
+  comment: string;
+  supervisor: string[];
 }

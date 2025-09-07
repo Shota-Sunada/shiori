@@ -13,6 +13,8 @@ interface OtanoshimiData {
   time: number;
   appearance_order: number;
   custom_performers: string[];
+  comment: string;
+  supervisor: string[];
 }
 
 router.get('/', async (req: Request, res: Response) => {
@@ -21,7 +23,9 @@ router.get('/', async (req: Request, res: Response) => {
     const teams = rows.map((row) => ({
       ...row,
       members: JSON.parse(row.members || '[]'),
-      custom_performers: JSON.parse(row.custom_performers || '[]')
+      custom_performers: JSON.parse(row.custom_performers || '[]'),
+      comment: row.comment || '',
+      supervisor: JSON.parse(row.supervisor || '[]')
     }));
     res.status(200).json(teams);
   } catch (error) {
@@ -41,14 +45,17 @@ router.post('/', async (req: Request, res: Response) => {
     for (const team of teams) {
       const membersJson = JSON.stringify(team.members);
       const customPerformersJson = JSON.stringify(team.custom_performers);
-      await connection.execute('INSERT INTO otanoshimi_teams (name, enmoku, leader, members, time, appearance_order, custom_performers) VALUES (?, ?, ?, ?, ?, ?, ?)', [
+      const supervisorJson = JSON.stringify(team.supervisor);
+      await connection.execute('INSERT INTO otanoshimi_teams (name, enmoku, leader, members, time, appearance_order, custom_performers, comment, supervisor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [
         team.name,
         team.enmoku,
         team.leader,
         membersJson,
         team.time,
         team.appearance_order,
-        customPerformersJson
+        customPerformersJson,
+        team.comment,
+        supervisorJson
       ]);
     }
 

@@ -106,7 +106,9 @@ async function initializeDatabase() {
         members TEXT NOT NULL,
         time INT NOT NULL,
         appearance_order INT NOT NULL,
-        custom_performers TEXT
+        custom_performers TEXT,
+        comment TEXT,
+        supervisor TEXT
       );
     `);
     logger.log('テーブル「otanoshimi_teams」の存在を確認。');

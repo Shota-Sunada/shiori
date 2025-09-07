@@ -49,7 +49,9 @@ const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate }: { order: nu
           setTeam({
             ...currentTeam,
             custom_performers: currentTeam.custom_performers || [],
-            enmoku: currentTeam.enmoku || ''
+            enmoku: currentTeam.enmoku || '',
+            comment: currentTeam.comment || '',
+            supervisor: currentTeam.supervisor || []
           });
         } else {
           setTeam(null);
@@ -76,7 +78,7 @@ const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate }: { order: nu
     <div className="fixed inset-0 flex justify-center items-center z-50 modal-overlay">
       <div className="bg-white p-4 rounded-lg shadow-lg w-full m-4 max-w-[95dvw] h-[90dvh]">
         <div className="flex flex-col items-center justify-center m-[10px]">
-          <section className="m-2 p-4 border rounded-lg shadow-lg bg-white w-full max-w-md">
+          <section className="m-2 p-4 border rounded-lg shadow-lg bg-white w-full max-w-md h-full min-h-[70dvh] max-h-[70dvh] overflow-y-auto">
             <h2 className="text-2xl font-bold text-center mb-4">{loading ? '読込中' : !team ? '指定された出演順のチームが見つかりません。' : `${order}.「${team.name}」`}</h2>
             <p className="text-lg text-center mb-2">
               {'演目: '}
@@ -86,16 +88,32 @@ const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate }: { order: nu
               <h3 className="font-semibold">{'リーダー'}</h3>
               <p>{loading ? '読込中' : !team ? '不詳' : getNameById(team.leader)}</p>
             </div>
+            {team?.comment ? (
+              <div className="mt-4">
+                <h3 className="font-semibold">{'コメント'}</h3>
+                <p style={{ whiteSpace: 'pre-wrap' }}>{team.comment}</p>
+              </div>
+            ) : (
+              <></>
+            )}
             <div className="mt-4">
               <h3 className="font-semibold">{'メンバー'}</h3>
               <ul className="list-disc list-inside grid grid-cols-2 gap-1">
                 {loading ? '読込中' : !team ? '不詳' : team.members.map((memberId) => <li key={memberId}>{getNameById(memberId)}</li>)}
-                {loading ? <></> : !team ? <></> : team.custom_performers.length > 0 ? team.custom_performers.map((performer, index) => performer ? <li key={index}>{performer}</li> : <></>) : <></>}
+                {loading ? <></> : !team ? <></> : team.custom_performers.length > 0 ? team.custom_performers.map((performer, index) => (performer ? <li key={index}>{performer}</li> : <></>)) : <></>}
               </ul>
             </div>
+            {team?.supervisor && team.supervisor.length > 0 ? (
+              <div className="mt-4">
+                <h3 className="font-semibold">{'監修'}</h3>
+                <ul className="list-disc list-inside">{team.supervisor.map((sup, index) => (sup ? <li key={index}>{sup}</li> : <></>))}</ul>
+              </div>
+            ) : (
+              <></>
+            )}
           </section>
 
-          <section id="buttons" className="flex flex-col items-center justify-center absolute bottom-15">
+          <section id="buttons" className="flex flex-col items-center justify-center">
             <div className="flex flex-row">
               <Button
                 text="前へ"

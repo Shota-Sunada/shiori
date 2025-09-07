@@ -91,7 +91,7 @@ const OtanoshimiAdmin = () => {
     }
   }, [token, fetchTeams, fetchAllStudents]);
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>, index: number, field: keyof OtanoshimiData) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index: number, field: keyof OtanoshimiData) => {
     const newTeams = [...teams];
     const value = e.target.value;
 
@@ -99,7 +99,7 @@ const OtanoshimiAdmin = () => {
       newTeams[index] = { ...newTeams[index], [field]: Number(value) };
     } else if (field === 'members') {
       newTeams[index] = { ...newTeams[index], [field]: value.split(',').map(Number) };
-    } else if (field === 'custom_performers') {
+    } else if (field === 'custom_performers' || field === 'supervisor') {
       newTeams[index] = { ...newTeams[index], [field]: value.split(',') };
     } else {
       newTeams[index] = { ...newTeams[index], [field]: value };
@@ -138,7 +138,9 @@ const OtanoshimiAdmin = () => {
       members: [],
       time: 0,
       appearance_order: teams.length + 1,
-      custom_performers: []
+      custom_performers: [],
+      comment: '',
+      supervisor: []
     };
     setTeams([...teams, newTeam]);
     setEditingIndex(teams.length);
@@ -165,7 +167,7 @@ const OtanoshimiAdmin = () => {
     setTeams(newTeams);
   };
 
-  const onDragStart = (e: DragEvent<HTMLTableRowElement>, index: number) => {
+  const onDragStart = (e: DragEvent<HTMLDivElement>, index: number) => {
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', String(index));
     e.dataTransfer.setDragImage(dragItem, 0, 0);
@@ -221,15 +223,21 @@ const OtanoshimiAdmin = () => {
               <th className="w-48">{'演目'}</th>
               <th className="w-48">{'リーダー'}</th>
               <th className="w-96">{'メンバー'}</th>
-              <th className="w-48">{'カスタム出演者'}</th>
-              <th className="w-24">{'時間 (分)'}</th>
-              <th className="w-32 sticky-col">{'操作'}</th>
+              <th className="w-28">{'カスタム出演者'}</th>
+              <th className="w-48">{'コメント'}</th>
+              <th className="w-28">{'監修'}</th>
+              <th className="w-12">{'時間 (分)'}</th>
+              <th className="w-20 sticky-col">{'操作'}</th>
             </tr>
           </thead>
           <tbody onDragOver={onDragOver}>
             {teams.map((team, index) => (
-              <tr key={index} draggable onDragStart={(e) => onDragStart(e, index)} onDrop={(e) => onDrop(e, index)}>
-                <td className="bg-white text-center">{team.appearance_order}</td>
+              <tr key={index} onDrop={(e) => onDrop(e, index)}>
+                <td className="bg-white text-center">
+                  <div draggable onDragStart={(e) => onDragStart(e, index)} className="drag-handle">
+                    {team.appearance_order}
+                  </div>
+                </td>
                 {editingIndex === index ? (
                   <>
                     <td className="bg-white">
@@ -275,6 +283,12 @@ const OtanoshimiAdmin = () => {
                       <input type="text" value={(team.custom_performers || []).join(',')} onChange={(e) => handleInputChange(e, index, 'custom_performers')} className="w-full" />
                     </td>
                     <td className="bg-white">
+                      <textarea value={team.comment || ''} onChange={(e) => handleInputChange(e, index, 'comment')} className="w-full" />
+                    </td>
+                    <td className="bg-white">
+                      <input type="text" value={(team.supervisor || []).join(',')} onChange={(e) => handleInputChange(e, index, 'supervisor')} className="w-full" />
+                    </td>
+                    <td className="bg-white">
                       <input type="number" value={team.time} onChange={(e) => handleInputChange(e, index, 'time')} className="w-full" />
                     </td>
                   </>
@@ -285,6 +299,8 @@ const OtanoshimiAdmin = () => {
                     <td className="bg-white">{studentMap.get(team.leader) || '未設定'}</td>
                     <td className="bg-white">{team.members.map((id) => studentMap.get(id)).join(', ')}</td>
                     <td className="bg-white">{(team.custom_performers || []).join(', ')}</td>
+                    <td className="bg-white">{team.comment}</td>
+                    <td className="bg-white">{(team.supervisor || []).join(', ')}</td>
                     <td className="bg-white">{team.time}</td>
                   </>
                 )}
