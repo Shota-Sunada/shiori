@@ -46,10 +46,17 @@ router.post('/', async (req: Request, res: Response) => {
       const membersJson = JSON.stringify(t.members);
       const customPerformersJson = JSON.stringify(t.custom_performers);
       const supervisorJson = JSON.stringify(t.supervisor);
-      await connection.execute(
-        'INSERT INTO otanoshimi_teams (name, enmoku, leader, members, time, appearance_order, custom_performers, comment, supervisor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [t.name, t.enmoku, t.leader, membersJson, t.time, t.appearance_order, customPerformersJson, t.comment, supervisorJson]
-      );
+      await connection.execute('INSERT INTO otanoshimi_teams (name, enmoku, leader, members, time, appearance_order, custom_performers, comment, supervisor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+        t.name,
+        t.enmoku,
+        t.leader,
+        membersJson,
+        t.time,
+        t.appearance_order,
+        customPerformersJson,
+        t.comment,
+        supervisorJson
+      ]);
     }
 
     await connection.commit();

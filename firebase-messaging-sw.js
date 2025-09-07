@@ -26,16 +26,12 @@ const log = (...args) => {
 };
 const logError = (...args) => console.error('[FCM SW]', ...args);
 
-// Workbox precache を安全に呼び出し
+// Workbox precache （injectManifest では self.__WB_MANIFEST が 1 回だけ存在する必要あり）
 try {
-  if (typeof self.__WB_MANIFEST !== 'undefined') {
-    precacheAndRoute(self.__WB_MANIFEST);
-    log('Precache manifest applied.');
-  } else {
-    log('No __WB_MANIFEST found (skipping precache).');
-  }
+  precacheAndRoute(self.__WB_MANIFEST); // ここで 1 回だけ参照
+  log('Precache manifest applied.');
 } catch (e) {
-  logError('Precache error:', e);
+  logError('Precache error (likely during dev when not injected):', e);
 }
 
 log('Service Worker starting...');
