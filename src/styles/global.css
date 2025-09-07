@@ -5,18 +5,42 @@
     Inter,
     Noto Sans JP,
     sans-serif;
-  /* Safari 旧版対策 */
   -webkit-user-select: none;
   user-select: none;
-  /* 日本語の自然な改行: Safari 未対応の場合のフォールバックを先に */
+  /* 基本フォールバック */
   word-break: break-word;
-  overflow-wrap: anywhere;
-  /* 対応ブラウザではより自然な分かち書き */
+  /* anywhere は日本語の不自然改行を誘発するため全体から外す */
+  overflow-wrap: break-word;
+  /* Chrome など対応環境で自然な文節改行 (budoux 風) */
   word-break: auto-phrase;
   scrollbar-width: thin; /* Firefox */
   scrollbar-color: #a0a0a0 transparent; /* Firefox */
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0); /* iOS ハイライト除去 */
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Budoux 風自然改行用ユーティリティ (必要箇所だけで強制) */
+@supports (word-break: auto-phrase) {
+  .jp-auto-line,
+  .auto-phrase {
+    word-break: auto-phrase;
+    overflow-wrap: normal;
+    line-break: strict;
+  }
+}
+@supports not (word-break: auto-phrase) {
+  .jp-auto-line,
+  .auto-phrase {
+    /* 未対応ブラウザでは従来の安全な折り返し */
+    word-break: break-word;
+    line-break: strict;
+  }
+}
+
+/* 長い英数字やURLだけをどこでも折りたい場合に明示利用 */
+.force-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 button {
