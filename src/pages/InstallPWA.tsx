@@ -75,7 +75,9 @@ const InstallPWA = () => {
           <p className="text-sm text-gray-700">このページは {ios ? 'iOS では Safari' : 'Safari 以外では Google Chrome'} を使用する必要があります。</p>
           <div className="text-[11px] text-gray-500 bg-gray-100 rounded px-2 py-1 leading-snug">
             <p className="font-medium mb-0.5">現在の検出環境</p>
-            <p className="break-all">OS: {env.os} {env.osVersion} / Browser: {env.browser} {env.browserVersion}</p>
+            <p className="break-all">
+              OS: {env.os} {env.osVersion} / Browser: {env.browser} {env.browserVersion}
+            </p>
           </div>
           <BrowserMatrix />
           {ios ? (
@@ -164,11 +166,7 @@ export default InstallPWA;
 
 // 画面全体高さを Header/Footer の 1fr グリッド内で埋めつつスクロール許可
 function PageContainer({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-full w-full py-10 px-2 flex flex-col items-stretch overflow-y-auto">
-      {children}
-    </div>
-  );
+  return <div className="min-h-full w-full py-10 px-2 flex flex-col items-stretch overflow-y-auto">{children}</div>;
 }
 
 function BrowserMatrix() {
