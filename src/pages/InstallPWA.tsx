@@ -296,12 +296,12 @@ function BrowserMatrix({ currentBrowserName, currentOS }: { currentBrowserName?:
       platform: 'iOS / iPadOS',
       browsers: [
         { name: 'Safari', icon: safariIcon, status: 'supported', note: '動作 ✓' },
-        { name: 'Chrome', icon: chromeIcon, status: 'unsupported', note: '動作しません ✗' },
-        { name: 'Brave', icon: braveIcon, status: 'unsupported', note: '動作しません ✗' },
-        { name: 'Firefox', icon: firefoxIcon, status: 'partial', note: '動作未確認 △' },
         { name: 'Edge', icon: edgeIcon, status: 'partial', note: '動作未確認 △' },
+        { name: 'Firefox', icon: firefoxIcon, status: 'partial', note: '動作未確認 △' },
         { name: 'Vivaldi', icon: vivaldiIcon, status: 'partial', note: '動作未確認 △' },
-        { name: 'Opera', icon: operaIcon, status: 'partial', note: '動作未確認 △' }
+        { name: 'Opera', icon: operaIcon, status: 'partial', note: '動作未確認 △' },
+        { name: 'Chrome', icon: chromeIcon, status: 'unsupported', note: '動作不良 ✗' },
+        { name: 'Brave', icon: braveIcon, status: 'unsupported', note: '動作不良 ✗' }
       ]
     },
     {
@@ -311,9 +311,9 @@ function BrowserMatrix({ currentBrowserName, currentOS }: { currentBrowserName?:
         { name: 'Edge', icon: edgeIcon, status: 'supported', note: '動作 ✓' },
         { name: 'Brave', icon: braveIcon, status: 'partial', note: '一応動作 ✓' },
         { name: 'Samsung', icon: samsungIcon, status: 'partial', note: '動作未確認 △' },
-        { name: 'Opera', icon: operaIcon, status: 'unsupported', note: '動作しません ✗' },
-        { name: 'Firefox', icon: firefoxIcon, status: 'unsupported', note: '動作しません ✗' },
-        { name: 'Vivaldi', icon: vivaldiIcon, status: 'unsupported', note: '動作しません ✗' }
+        { name: 'Firefox', icon: firefoxIcon, status: 'unsupported', note: '動作不良 ✗' },
+        { name: 'Vivaldi', icon: vivaldiIcon, status: 'unsupported', note: '動作不良 ✗' },
+        { name: 'Opera', icon: operaIcon, status: 'unsupported', note: '動作不良 ✗' }
       ]
     },
     {
@@ -321,9 +321,10 @@ function BrowserMatrix({ currentBrowserName, currentOS }: { currentBrowserName?:
       browsers: [
         { name: 'Chrome', icon: chromeIcon, status: 'supported', note: '動作 ✓' },
         { name: 'Edge', icon: edgeIcon, status: 'supported', note: '動作 ✓' },
-        { name: 'Firefox', icon: firefoxIcon, status: 'unsupported', note: '動作しません ✗' },
         { name: 'Safari', icon: safariIcon, status: 'partial', note: '動作未確認 △' },
-        { name: 'Opera', icon: operaIcon, status: 'partial', note: '動作未確認 △' }
+        { name: 'Firefox', icon: firefoxIcon, status: 'unsupported', note: '一部動作不良 ✗' },
+        { name: 'Vivaldi', icon: vivaldiIcon, status: 'unsupported', note: '動作不良 ✗' },
+        { name: 'Opera', icon: operaIcon, status: 'unsupported', note: '非推奨 ✗' }
       ]
     }
   ];
@@ -362,7 +363,7 @@ function BrowserMatrix({ currentBrowserName, currentOS }: { currentBrowserName?:
                       <img src={b.icon || genericIcon} alt={b.name} width={16} height={16} className="shrink-0" />
                       <span className="font-medium text-[12px] flex items-center gap-1">
                         {b.name}
-                        {isRecommended && <span className="text-[10px] leading-none px-1 py-[1px] rounded bg-emerald-600 text-white">推奨</span>}
+                        {isRecommended && <span className="text-[10px] leading-none px-1.5 py-[3px] rounded bg-emerald-600 text-white">推奨</span>}
                       </span>
                       <StatusPill status={b.status} note={b.note} />
                       {isExactCurrent && <span className="absolute -top-1 -right-1 bg-blue-600 text-white rounded px-1 py-[1px] text-[10px] leading-none">現在</span>}
