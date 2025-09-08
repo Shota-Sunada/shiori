@@ -10,18 +10,7 @@ import CenterMessage from '../components/CenterMessage';
 import '../styles/table.css';
 import MDRightArrow from '../components/MDRightArrow';
 import { usePrefetchedData } from '../prefetch/usePrefetchedData';
-
-export interface RollCall {
-  id: string;
-  teacher_id: number;
-  teacher_surname?: string;
-  teacher_forename?: string;
-  created_at: number;
-  total_students: number;
-  checked_in_students: number;
-  is_active: boolean;
-  expires_at: number;
-}
+import type { RollCall } from '../interface/models';
 
 interface RollCallTableProps {
   rollCalls: RollCall[];

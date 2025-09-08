@@ -20,18 +20,7 @@ import macIcon from '@egoistdeveloper/operating-system-logos/src/32x32/MAC.png';
 import linIcon from '@egoistdeveloper/operating-system-logos/src/32x32/LIN.png';
 
 // ===================== 定数 / 設定 =====================
-type SupportStatus = 'supported' | 'partial' | 'unsupported';
-interface BrowserInfo {
-  name: string;
-  icon: string;
-  status: SupportStatus;
-  note?: string;
-}
-interface PlatformRow {
-  platform: string;
-  match: (os: string) => boolean;
-  browsers: BrowserInfo[];
-}
+import type { PlatformRow, SupportStatus } from '../interface/models';
 
 const BROWSER_ICONS: Record<string, string> = {
   Safari: safariIcon,

@@ -4,6 +4,7 @@ import { appFetch } from '../helpers/apiClient';
 import type { StudentDTO } from '../helpers/domainApi';
 import KanaSearchModal from './KanaSearchModal';
 import Modal from './Modal';
+import type { RollCallGroup } from '../interface/models';
 
 // --- StudentChip Component (from OtanoshimiAdmin) ---
 interface StudentChipProps {
@@ -25,12 +26,6 @@ const StudentChip: FC<StudentChipProps> = memo(({ studentId, studentMap, onDelet
 });
 
 // --- Main Component ---
-
-interface RollCallGroup {
-  id: number;
-  name: string;
-  student_ids: number[];
-}
 
 interface Props {
   isOpen: boolean;

@@ -3,27 +3,7 @@ import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
 import '../styles/student-modal.css';
 import MDButton from './MDButton';
 import Modal from './Modal';
-
-// フォームデータ型
-export interface StudentFormData {
-  surname: string;
-  forename: string;
-  surname_kana: string;
-  forename_kana: string;
-  class: string; // 入力中は文字列（number型にすると空文字を扱いにくいため）
-  number: string;
-  gakuseki: string;
-  day1id: string;
-  day3id: string;
-  day1bus: string;
-  day3bus: string;
-  room_fpr: number | '';
-  room_tdh: number | '';
-  shinkansen_day1_car_number: string;
-  shinkansen_day4_car_number: string;
-  shinkansen_day1_seat: string;
-  shinkansen_day4_seat: string;
-}
+import type { StudentFormData } from '../interface/models';
 
 const localInitialForm: StudentFormData = {
   surname: '',

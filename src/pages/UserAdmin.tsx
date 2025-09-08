@@ -5,14 +5,7 @@ import '../styles/admin-table.css';
 import '../styles/table.css';
 import { userApi } from '../helpers/domainApi';
 import CenterMessage from '../components/CenterMessage';
-
-interface User {
-  id: number;
-  is_admin: boolean;
-  is_teacher: boolean;
-  failed_login_attempts: number;
-  is_banned: boolean;
-}
+import type { User } from '../interface/models';
 
 interface MemoizedRowProps {
   u: User;

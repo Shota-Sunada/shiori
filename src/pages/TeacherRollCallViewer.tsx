@@ -5,21 +5,12 @@ import { rollCallApi } from '../helpers/domainApi';
 import { POLL_INTERVALS, ROLLCALL_GRACE_OFFSET_SECONDS } from '../config/constants';
 import MDButton from '../components/MDButton';
 import { useAuth } from '../auth-context';
-import type { RollCall } from './TeacherRollCallList';
+import type { RollCall, RollCallStudent } from '../interface/models';
 import { FaArrowRight } from 'react-icons/fa';
 import CenterMessage from '../components/CenterMessage';
 import '../styles/table.css';
 
-interface Student {
-  gakuseki: number;
-  surname: string;
-  forename: string;
-  class: number;
-  number: number;
-  status: 'targeted' | 'checked_in';
-  absence_reason?: string;
-  location?: string;
-}
+type Student = RollCallStudent;
 
 // オフセットは config/constants.ts で集中管理
 

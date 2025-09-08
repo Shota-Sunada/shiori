@@ -7,23 +7,7 @@ import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
 import { clearAppFetchCache } from '../helpers/apiClient';
 import { teacherApi } from '../helpers/domainApi';
 import { CacheKeys } from '../helpers/cacheKeys';
-
-export interface Teacher {
-  id: number;
-  surname: string;
-  forename: string;
-  room_fpr: number;
-  room_tdh: number;
-  shinkansen_day1_car_number: number;
-  shinkansen_day1_seat: string;
-  shinkansen_day4_car_number: number;
-  shinkansen_day4_seat: string;
-  day1id: string;
-  day1bus: number;
-  day3id: string;
-  day3bus: number;
-  day4class: number;
-}
+import type { Teacher } from '../interface/models';
 
 interface MemoizedTeacherRowProps {
   t: Teacher;

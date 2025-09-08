@@ -9,31 +9,9 @@ import { usePrefetchNavigate } from '../prefetch/usePrefetchNavigate';
 import { useAuth } from '../auth-context';
 import { appFetch } from '../helpers/apiClient';
 import { CacheKeys } from '../helpers/cacheKeys';
+import type { Roommate, IndexTeacher } from '../interface/models';
 
-interface Roommate {
-  gakuseki: string;
-  surname: string;
-  forename: string;
-  class: number;
-  number: number;
-}
-
-interface Teacher {
-  id: number;
-  surname: string;
-  forename: string;
-  room_fpr: number;
-  room_tdh: number;
-  shinkansen_day1_car_number: string;
-  shinkansen_day1_seat: string;
-  shinkansen_day4_car_number: string;
-  shinkansen_day4_seat: string;
-  day1id: string;
-  day1bus: string;
-  day3id: string;
-  day3bus: string;
-  day4class: number;
-}
+// 型は interface/models に移動 (IndexTeacher / Roommate)
 
 interface IndexTableProps {
   studentData: StudentDTO | null;
@@ -47,7 +25,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
   const [currentRoommates, setCurrentRoommates] = useState<Roommate[]>([]);
   const [currentHotelName, setCurrentHotelName] = useState('');
   const [currentRoomNumber, setCurrentRoomNumber] = useState('');
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [teachers, setTeachers] = useState<IndexTeacher[]>([]);
   const hasStudent = !!studentData;
 
   useEffect(() => {
@@ -65,7 +43,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
   const fetchTeachers = useCallback(async () => {
     if (!token) return;
     try {
-      const data = await appFetch<Teacher[]>(`${SERVER_ENDPOINT}/api/teachers`, { requiresAuth: true, cacheKey: CacheKeys.teachers.list });
+      const data = await appFetch<IndexTeacher[]>(`${SERVER_ENDPOINT}/api/teachers`, { requiresAuth: true, cacheKey: CacheKeys.teachers.list });
       setTeachers(data);
     } catch (error) {
       console.error('Error fetching teachers:', error);
