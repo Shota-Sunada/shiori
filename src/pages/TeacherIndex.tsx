@@ -4,7 +4,7 @@ import { useAuth } from '../auth-context';
 import MDButton from '../components/MDButton';
 import CenterMessage from '../components/CenterMessage';
 // SERVER_ENDPOINT 直接利用を削除 (domainApi 経由)
-import type { Teacher } from './TeacherAdmin';
+import type { Teacher } from '../interface/models';
 import { teacherApi } from '../helpers/domainApi';
 import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4, DAY4_DATA } from '../data/courses';
 // 生徒 IndexTable と同じ幅/スタイルを適用するため CSS を追加インポート
