@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
-import { handleEnableNotifications } from '../helpers/notifications';
 import { PrefetchLink } from '../prefetch/PrefetchLink';
 import { otanoshimiApi } from '../helpers/domainApi';
 
@@ -83,13 +82,12 @@ const Header = () => {
         prefetchKey: 'otanoshimiTeams',
         fetcher: async () => otanoshimiApi.list()
       },
-      { type: 'action', label: '通知を有効にする', onClick: () => handleEnableNotifications(user) },
+      { type: 'action', label: 'リロード', onClick: () => window.location.reload() },
       { type: 'link', to: '/admin', label: '管理パネル', note: '※管理者専用' },
       { type: 'link', to: '/user-admin', label: 'ユーザー管理', note: '※管理者専用' },
       { type: 'link', to: '/otanoshimi-admin', label: 'お楽しみ会管理', note: '※管理者専用' },
       { type: 'link', to: '/teacher-admin', label: '先生管理', note: '※管理者専用' },
-      { type: 'link', to: '/credits', label: 'クレジット' },
-      { type: 'link', to: '/install', label: 'インストール案内' }
+      { type: 'link', to: '/credits', label: 'クレジット' }
     ],
     [user]
   );
