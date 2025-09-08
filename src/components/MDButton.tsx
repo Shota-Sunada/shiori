@@ -33,19 +33,19 @@ const MDButton = ({
   className = '',
   type = 'button'
 }: MDButtonProps) => {
-  const baseClass = `mobiry-button-${color} text-align p-[8px] ${width} rounded-[20px] text-white transition-[0.2s] font-[15px] flex flex-row items-center justify-center relative`;
+  const baseClass = `mobiry-button-${color} text-align p-[8px] ${width} rounded-[80px] text-white transition-[0.2s] font-[14px] flex flex-row items-center justify-center relative`;
   const stateClass = disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer';
 
   const content = (
     <>
       <p className="font-medium select-none">{text}</p>
       {arrowRight && (
-        <div className="absolute right-[6px] bg-white rounded-full min-w-[28px] min-h-[28px] flex items-center justify-center">
+        <div className="absolute right-[6px] bg-white rounded-[50%] min-w-[28px] min-h-[28px] flex items-center justify-center">
           <FaArrowRight className={`mobiry-button-arrow-${color}`} size={15} />
         </div>
       )}
       {arrowLeft && (
-        <div className="absolute left-[6px] bg-white rounded-full min-w-[28px] min-h-[28px] flex items-center justify-center">
+        <div className="absolute left-[6px] bg-white rounded-[50%] min-w-[28px] min-h-[28px] flex items-center justify-center">
           <FaArrowLeft className={`mobiry-button-arrow-${color}`} size={15} />
         </div>
       )}
