@@ -254,10 +254,11 @@ const InstallPWA = () => {
         <BrowserMatrix currentBrowserName={env.browser} currentOS={env.os} />
         {outcome === 'accepted' && <p className="text-green-600 font-semibold">インストールを受け付けました。ホーム画面を確認してください。</p>}
         {outcome === 'dismissed' && <p className="text-orange-600 text-base">インストールがキャンセルされました。後でもう一度お試しください。</p>}
-        <div className="pt-4 space-y-3 flex flex-col items-center justify-center">
-          <MDButton text={unsupportedPush ? 'ログインへ進む (通知非対応)' : 'ログインへ進む'} arrowRight onClick={() => proceed('/login')} />
-          {!unsupportedPush && isSupportedEnv && <MDButton text="後でまた表示" arrowRight onClick={() => proceed('/login')} />}
-        </div>
+        {!(isSupportedEnv && !unsupportedPush) && (
+          <div className="pt-4 flex flex-col items-center justify-center">
+            <MDButton text={unsupportedPush ? 'インストールせず続行 (通知非対応)' : 'インストールせず続行'} arrowRight onClick={() => proceed('/login')} />
+          </div>
+        )}
       </div>
     </PageContainer>
   );
