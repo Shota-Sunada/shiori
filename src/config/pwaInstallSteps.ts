@@ -56,10 +56,10 @@ export function getDetailedInstallBlock(os: string, browser: string, isIOS: bool
       steps: [
         'ページを開く (数回操作後にバナー出現する場合あり)',
         '右上メニュー(︙ / …) をタップ',
-        browser === 'Chrome' ? '「インストール」 を選択' : '「アプリ」→「このサイトをインストール」',
+        browser === 'Chrome' ? '「ホーム画面に追加」→「インストール」を選択' : '「アプリ」→「このサイトをインストール」を選択',
         '追加を確認'
       ],
-      note: '項目が無い場合: 最新版へ更新 / 何度かページ遷移'
+      note: '項目が無い場合: 最新版へ更新 / 何度かページをリロード'
     };
   }
 
