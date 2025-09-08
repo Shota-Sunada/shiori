@@ -24,7 +24,9 @@ import TeacherIndexTable from './pages/TeacherIndexTable';
 import TeacherAdmin from './pages/TeacherAdmin';
 import RollCallHistory from './pages/RollCallHistory';
 import InstallPWA from './pages/InstallPWA';
+import VersionMismatch from './pages/VersionMismatch';
 import React from 'react';
+import { SERVER_ENDPOINT } from './config/serverEndpoint';
 
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: unknown }> {
   constructor(props: { children: React.ReactNode }) {
@@ -159,7 +161,37 @@ function CenterMessage({ children }: { children: ReactNode }) {
 
 function App() {
   const navigate = useNavigate();
+  const location = useLocation();
   const FadeContainer = ({ children }: { children: ReactNode }) => <div className="page-fade">{children}</div>;
+  const [versionChecked, setVersionChecked] = useState(false);
+  const [versionMismatch, setVersionMismatch] = useState(false);
+
+  // バージョンチェック (最初のレンダリング前に判定し、ミスマッチ時のみ遷移)
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch(`${SERVER_ENDPOINT}/api/version`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data: { version?: string } = await res.json();
+        const current = import.meta.env.APP_VERSION;
+        if (active && data.version && current && data.version !== current) {
+          setVersionMismatch(true);
+          if (location.pathname !== '/version-mismatch') {
+            const from = window.location.pathname + window.location.search;
+            navigate('/version-mismatch', { replace: true, state: { from } });
+          }
+        }
+      } catch (e) {
+        console.warn('version check failed', e);
+      } finally {
+        if (active) setVersionChecked(true);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [navigate, location.pathname]);
 
   useEffect(() => {
     // 開発中(vite dev)は SW を登録しない: importScripts + CDN 利用での頻繁な SyntaxError/リロードを避ける
@@ -188,170 +220,186 @@ function App() {
       <Header />
       <FloatingPWAInstallButton />
       <main>
-        <Routes>
-          {/* PWA 未インストール時は常に /install へ誘導 */}
-          <Route element={<PWAInstallGuard />}>
-            <Route
-              path="/login"
-              element={
-                <FadeContainer>
-                  <Login />
-                </FadeContainer>
-              }
-            />
-            <Route
-              path="/install"
-              element={
-                <FadeContainer>
-                  <InstallPWA />
-                </FadeContainer>
-              }
-            />
-            {/* ログイン後領域 */}
-            <Route element={<ProtectedRoute />}>
-              <Route element={<NotificationGuard />}>
-                <Route
-                  path="/"
-                  element={
-                    <FadeContainer>
-                      <Index />
-                    </FadeContainer>
-                  }
-                />
-                <Route
-                  path="/otanoshimi"
-                  element={
-                    <FadeContainer>
-                      <Otanoshimi />
-                    </FadeContainer>
-                  }
-                />
-                <Route
-                  path="/call"
-                  element={
-                    <FadeContainer>
-                      <Call />
-                    </FadeContainer>
-                  }
-                />
-                <Route
-                  path="/credits"
-                  element={
-                    <FadeContainer>
-                      <Credits />
-                    </FadeContainer>
-                  }
-                />
-                <Route
-                  path="/teacher"
-                  element={
-                    <FadeContainer>
-                      <TeacherIndex />
-                    </FadeContainer>
-                  }
-                />
-                <Route
-                  path="/teacher/search"
-                  element={
-                    <FadeContainer>
-                      <TeacherIndexTable />
-                    </FadeContainer>
-                  }
-                />
-                <Route
-                  path="/teacher/roll-call-list"
-                  element={
-                    <FadeContainer>
-                      <TeacherRollCallList />
-                    </FadeContainer>
-                  }
-                />
-                <Route
-                  path="/teacher/call"
-                  element={
-                    <FadeContainer>
-                      <TeacherRollCall />
-                    </FadeContainer>
-                  }
-                />
-                <Route
-                  path="/teacher/call-viewer"
-                  element={
-                    <FadeContainer>
-                      <TeacherRollCallViewer />
-                    </FadeContainer>
-                  }
-                />
-                <Route
-                  path="/roll-call-history"
-                  element={
-                    <FadeContainer>
-                      <RollCallHistory />
-                    </FadeContainer>
-                  }
-                />
-                <Route
-                  path="/admin"
-                  element={
-                    <AdminOrTeacherRoute>
+        {!versionChecked && <div className="flex items-center justify-center h-[60dvh] text-sm text-gray-600">バージョン確認中...</div>}
+        {versionChecked && (
+          <Routes>
+            {/* バージョン不一致時のみ VersionMismatch を有効化 */}
+            {versionMismatch ? (
+              <Route
+                path="/version-mismatch"
+                element={
+                  <FadeContainer>
+                    <VersionMismatch />
+                  </FadeContainer>
+                }
+              />
+            ) : (
+              <Route path="/version-mismatch" element={<Navigate to="/" replace />} />
+            )}
+            {/* PWA 未インストール時は常に /install へ誘導 (ただし version-mismatch には干渉しない) */}
+            <Route element={<PWAInstallGuard />}>
+              <Route
+                path="/login"
+                element={
+                  <FadeContainer>
+                    <Login />
+                  </FadeContainer>
+                }
+              />
+              <Route
+                path="/install"
+                element={
+                  <FadeContainer>
+                    <InstallPWA />
+                  </FadeContainer>
+                }
+              />
+              {/* ログイン後領域 */}
+              <Route element={<ProtectedRoute />}>
+                <Route element={<NotificationGuard />}>
+                  <Route
+                    path="/"
+                    element={
                       <FadeContainer>
-                        <Admin />
+                        <Index />
                       </FadeContainer>
-                    </AdminOrTeacherRoute>
-                  }
-                />
-                <Route
-                  path="/user-admin"
-                  element={
-                    <AdminOrTeacherRoute>
+                    }
+                  />
+                  <Route
+                    path="/otanoshimi"
+                    element={
                       <FadeContainer>
-                        <UserAdmin />
+                        <Otanoshimi />
                       </FadeContainer>
-                    </AdminOrTeacherRoute>
-                  }
-                />
-                <Route
-                  path="/otanoshimi-admin"
-                  element={
-                    <AdminOrTeacherRoute>
+                    }
+                  />
+                  <Route
+                    path="/call"
+                    element={
                       <FadeContainer>
-                        <OtanoshimiAdmin />
+                        <Call />
                       </FadeContainer>
-                    </AdminOrTeacherRoute>
-                  }
-                />
-                <Route
-                  path="/teacher-admin"
-                  element={
-                    <AdminOrTeacherRoute>
+                    }
+                  />
+                  <Route
+                    path="/credits"
+                    element={
                       <FadeContainer>
-                        <TeacherAdmin />
+                        <Credits />
                       </FadeContainer>
-                    </AdminOrTeacherRoute>
-                  }
-                />
+                    }
+                  />
+                  <Route
+                    path="/teacher"
+                    element={
+                      <FadeContainer>
+                        <TeacherIndex />
+                      </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/teacher/search"
+                    element={
+                      <FadeContainer>
+                        <TeacherIndexTable />
+                      </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/teacher/roll-call-list"
+                    element={
+                      <FadeContainer>
+                        <TeacherRollCallList />
+                      </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/teacher/call"
+                    element={
+                      <FadeContainer>
+                        <TeacherRollCall />
+                      </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/teacher/call-viewer"
+                    element={
+                      <FadeContainer>
+                        <TeacherRollCallViewer />
+                      </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/roll-call-history"
+                    element={
+                      <FadeContainer>
+                        <RollCallHistory />
+                      </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/admin"
+                    element={
+                      <AdminOrTeacherRoute>
+                        <FadeContainer>
+                          <Admin />
+                        </FadeContainer>
+                      </AdminOrTeacherRoute>
+                    }
+                  />
+                  <Route
+                    path="/user-admin"
+                    element={
+                      <AdminOrTeacherRoute>
+                        <FadeContainer>
+                          <UserAdmin />
+                        </FadeContainer>
+                      </AdminOrTeacherRoute>
+                    }
+                  />
+                  <Route
+                    path="/otanoshimi-admin"
+                    element={
+                      <AdminOrTeacherRoute>
+                        <FadeContainer>
+                          <OtanoshimiAdmin />
+                        </FadeContainer>
+                      </AdminOrTeacherRoute>
+                    }
+                  />
+                  <Route
+                    path="/teacher-admin"
+                    element={
+                      <AdminOrTeacherRoute>
+                        <FadeContainer>
+                          <TeacherAdmin />
+                        </FadeContainer>
+                      </AdminOrTeacherRoute>
+                    }
+                  />
+                </Route>
+                {/* NotificationGuard 終了 */}
               </Route>
-              {/* NotificationGuard 終了 */}
+              {/* PWAInstallGuard 終了 */}
+              <Route
+                path="/non-notification"
+                element={
+                  <FadeContainer>
+                    <NonNotification />
+                  </FadeContainer>
+                }
+              />
             </Route>
-            {/* PWAInstallGuard 終了 */}
             <Route
-              path="/non-notification"
+              path="*"
               element={
                 <FadeContainer>
-                  <NonNotification />
+                  <Page404 />
                 </FadeContainer>
               }
             />
-          </Route>
-          <Route
-            path="*"
-            element={
-              <FadeContainer>
-                <Page404 />
-              </FadeContainer>
-            }
-          />
-        </Routes>
+          </Routes>
+        )}
       </main>
       <Footer />
     </div>

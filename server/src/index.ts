@@ -40,6 +40,8 @@ import rollCallRouter from './routes/roll-call';
 import rollCallGroupsRouter from './routes/roll-call-groups';
 import teachersRouter from './routes/teachers';
 import creditsRouter from './routes/credits';
+// バージョン取得用 (package.json から) - PWA クライアントのバージョン不一致検出に利用
+import serverPkg from '../package.json';
 
 // ルータ設定統合
 type RouteConfig = {
@@ -78,6 +80,11 @@ initializeDatabase()
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello from Shiori Firebase Messaging Server!');
+});
+
+// クライアントが自身の組み込みバージョンと比較するための公開エンドポイント
+app.get('/api/version', (_req: Request, res: Response) => {
+  res.json({ version: serverPkg.version });
 });
 
 app.post('/register-token', authenticateToken, async (req: Request, res: Response) => {
