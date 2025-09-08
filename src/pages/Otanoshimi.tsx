@@ -42,8 +42,8 @@ const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate, teams, studen
       overlayClassName="p-2"
       closeOnEsc={false}
       closeOnOverlayClick={false}>
-      <div className="flex flex-col items-center justify-center flex-1">
-        <section className="m-2 p-4 border rounded-lg shadow-lg bg-white w-full max-w-md h-full min-h-[70dvh] max-h-[70dvh] overflow-y-auto">
+      <div className="flex flex-col items-center justify-center flex-1 bg-white">
+        <section className="m-2 p-4 border rounded-lg shadow-lg w-full max-w-md h-full min-h-[65dvh] max-h-[65dvh] overflow-y-auto">
           <h2 id="otanoshimi-preview-title" className="text-2xl font-bold text-center mb-4">
             {contentLoading ? '読込中...' : `${order}.「${team!.name}」`}
           </h2>
@@ -63,7 +63,7 @@ const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate, teams, studen
           ) : null}
           <div className="mt-4">
             <h3 className="font-semibold">{'メンバー'}</h3>
-            <ul className="list-disc list-inside grid grid-cols-2 gap-1">
+            <ul className="list-disc list-inside grid grid-cols-1 gap-1">
               {contentLoading ? '読込中...' : team!.members.map((memberId) => <li key={memberId}>{getNameById(memberId)}</li>)}
               {!contentLoading && team!.custom_performers?.length > 0 ? team!.custom_performers.map((performer, index) => (performer ? <li key={`c-${index}`}>{performer}</li> : null)) : null}
             </ul>
@@ -210,7 +210,7 @@ const Otanoshimi = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center m-[10px]">
+    <div className="flex flex-col items-center justify-center m-2">
       {previewOrderLocal ? (
         <OtanoshimiPreviewModal
           order={previewOrderLocal}
@@ -228,7 +228,7 @@ const Otanoshimi = () => {
         <p>{'修学旅行最後の夜、最高の思い出を。'}</p>
       </div>
 
-      <div className="m-5">
+      <div className="m-1">
         <h2 className="text-xl text-center font-bold">{'出演団体一覧'}</h2>
         <p className="text-center">{'クリックすると、各団体の詳細を閲覧できます。'}</p>
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mt-4">
@@ -243,7 +243,7 @@ const Otanoshimi = () => {
       </div>
       <MDButton text="ホームに戻る" arrowLeft link="/" />
 
-      <div className="flex flex-col items-center justify-center m-5">
+      <div className="flex flex-col items-center justify-center m-1">
         <h2 className="text-xl text-center font-bold">{'当日のスケジュール'}</h2>
         <section id="table" className="mt-2 space-y-6 schedule-table-wrapper">
           {/* 第1部: リハーサル & 夕食 */}
@@ -275,9 +275,9 @@ const Otanoshimi = () => {
           <table className="index-table schedule-table modern-table table-rounded table-shadow">
             <thead className="bg-white">
               <tr>
-                <th className="time-col">{'時間'}</th>
-                <th>{'団体名'}</th>
-                <th>{'演目'}</th>
+                <th className="time-col w-[20%]">{'時間'}</th>
+                <th className='w-[50%]'>{'団体名'}</th>
+                <th className='w-[30%]'>{'演目'}</th>
               </tr>
             </thead>
             <tbody>
@@ -319,7 +319,7 @@ const Otanoshimi = () => {
             </tbody>
           </table>
         </section>
-        <div className="mt-4">
+        <div className="mt-3">
           <p className="text-gray-600 text-sm">{'※当日の進行状況により、時間が変動する場合があります。'}</p>
           <p className="text-gray-600 text-sm">{'※リハーサルでは、各出演団体が最終確認を行うのみとし、演技は行いません。'}</p>
           {/* <p className="text-gray-600 text-sm">{'※演技時間は、各団体あたり5~10分(最長)です。'}</p> */}
