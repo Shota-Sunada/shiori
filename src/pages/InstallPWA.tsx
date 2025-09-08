@@ -346,7 +346,7 @@ function BrowserMatrix({ currentBrowserName, currentOS }: { currentBrowserName?:
               <div className="px-2 py-1.5 font-medium flex items-center gap-2 bg-gray-50 text-gray-700">
                 <span>{r.platform}</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 p-2">
+              <div className="grid grid-cols-1 gap-2 p-2">
                 {r.browsers.map((b) => {
                   const isExactCurrent = platformMatch && b.name === currentBrowserName; // OS & Browser 両方一致
                   const isRecommended =
