@@ -2,6 +2,7 @@ import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4, DAY4_DATA } from '../data/cou
 import { UI_ANIMATION } from '../config/constants';
 import type { StudentDTO } from '../helpers/domainApi';
 import '../styles/index-table.css';
+import VerticalLabel from './VerticalLabel';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import RoomDataModal from './RoomDataModal';
 import { SERVER_ENDPOINT } from '../config/serverEndpoint';
@@ -132,46 +133,40 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
         <tbody>
           {/* day1 START */}
           <tr>
-            <td id="day1-rowspan" rowSpan={2}>
-              <span style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
-                {'１日目'}
-              </span>
+            <td id="day1-rowspan" rowSpan={2} className="vcell day-col">
+              <VerticalLabel text="１日目" />
             </td>
-            <td>{'研修先'}</td>
+            <td className="label-cell">{'研修先'}</td>
             <td>{hasStudent ? COURSES_DAY1.find((x) => x.key === studentData!.day1id)?.name : '◯◯◯◯◯◯◯◯'}</td>
           </tr>
           <tr onMouseEnter={() => addHover('day1-rowspan')} onMouseLeave={() => removeHover('day1-rowspan')}>
-            <td>{'バス号車'}</td>
+            <td className="label-cell">{'バス号車'}</td>
             <td>{hasStudent ? studentData!.day1bus : '◯◯'}</td>
           </tr>
           {/* day1 END */}
           {/* day2 START */}
           <tr>
-            <td rowSpan={1}>
-              <span style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
-                {'２日目'}
-              </span>
+            <td rowSpan={1} className="vcell vcell--min day-col">
+              <VerticalLabel text="２日目" />
             </td>
-            <td>{''}</td>
+            <td className="label-cell">{''}</td>
             <td>{'班別自由行動'}</td>
           </tr>
           {/* day2 END */}
           {/* day3 START */}
           <tr>
-            <td rowSpan={3}>
-              <span style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
-                {'３日目'}
-              </span>
+            <td rowSpan={3} className="vcell day-col">
+              <VerticalLabel text="３日目" />
             </td>
-            <td>{'研修先'}</td>
+            <td className="label-cell">{'研修先'}</td>
             <td>{hasStudent ? COURSES_DAY3.find((x) => x.key === studentData!.day3id)?.name : '◯◯◯◯◯◯◯◯'}</td>
           </tr>
           <tr>
-            <td>{'バス号車'}</td>
+            <td className="label-cell">{'バス号車'}</td>
             <td>{hasStudent ? studentData!.day3bus : '◯◯'}</td>
           </tr>
           <tr>
-            <td>{'お楽しみ会'}</td>
+            <td className="label-cell">{'お楽しみ会'}</td>
             <td
               className="cell-interactive"
               onClick={() => {
@@ -192,12 +187,10 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
           {/* day3 END */}
           {/* day4 START */}
           <tr>
-            <td rowSpan={1}>
-              <span style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
-                {'４日目'}
-              </span>
+            <td rowSpan={1} className="vcell vcell--min day-col">
+              <VerticalLabel text="４日目" />
             </td>
-            <td>{'研修先'}</td>
+            <td className="label-cell">{'研修先'}</td>
             <td>
               {hasStudent ? (
                 <>
@@ -225,10 +218,10 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
           {/* day4 END */}
           {/* hotel START */}
           <tr>
-            <td id="hotel-rowspan" rowSpan={2} style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
-              {'ホテル'}
+            <td id="hotel-rowspan" rowSpan={2} className="vcell day-col">
+              <VerticalLabel text="ホテル" />
             </td>
-            <td>
+            <td className="label-cell">
               <p>{'1泊目'}</p>
               <p>{'2泊目'}</p>
             </td>
@@ -255,7 +248,9 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
             </td>
           </tr>
           <tr onMouseEnter={() => addHover('hotel-rowspan')} onMouseLeave={() => removeHover('hotel-rowspan')}>
-            <td>{'3泊目'}</td>
+            <td className="label-cell">
+              <p>{'3泊目'}</p>
+            </td>
             <td
               className="cell-interactive"
               onClick={() => {
@@ -282,10 +277,10 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
           {/* hotel END */}
           {/* shinkansen START */}
           <tr>
-            <td id="shinkansen-rowspan" rowSpan={2} style={{ writingMode: 'vertical-rl', textOrientation: 'upright', textAlign: 'center' }} className="align-middle">
-              {'新幹線'}
+            <td id="shinkansen-rowspan" rowSpan={2} className="vcell day-col">
+              <VerticalLabel text="新幹線" />
             </td>
-            <td>
+            <td className="label-cell">
               <p>{'1日目'}</p>
               <p className="text-sm">{'新横浜駅で下車'}</p>
             </td>
@@ -315,7 +310,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
             </td>
           </tr>
           <tr onMouseEnter={() => addHover('shinkansen-rowspan')} onMouseLeave={() => removeHover('shinkansen-rowspan')}>
-            <td>
+            <td className="label-cell">
               <p>{'4日目'}</p>
               <p className="text-sm">{'新横浜駅で乗車'}</p>
             </td>

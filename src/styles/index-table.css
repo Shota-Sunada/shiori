@@ -25,6 +25,75 @@
   margin-left: auto;
   margin-right: auto;
 }
+
+/* iOS Safari 縦書き崩れ対策: vertical-stack */
+.vertical-stack {
+  display: inline-flex;
+  flex-direction: column; /* 文字列順そのまま上→下 */
+  justify-content: center;
+  align-items: center;
+  line-height: 1.1;
+  font-feature-settings: 'pkna' 1;
+  min-height: 72px;
+}
+.vertical-stack .vertical-char {
+  display: block;
+}
+.vertical-stack.need-reverse {
+  flex-direction: column-reverse !important; /* 自動検出で逆転していた場合に補正 */
+}
+
+/* セル内で縦ラベルを完全中央寄せするためのラッパ */
+td.vcell,
+th.vcell {
+  position: relative;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+td.vcell .vertical-stack,
+th.vcell .vertical-stack {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-height: unset; /* セル高さに合わせる */
+}
+
+/* 単独行の縦セル最小高さ (2日目/4日目) */
+td.vcell.vcell--min,
+th.vcell.vcell--min {
+  height: 110px;
+}
+td.vcell.vcell--min::after,
+th.vcell.vcell--min::after {
+  content: '';
+  display: block;
+  height: 110px;
+  width: 0;
+}
+@media (max-width: 480px) {
+  td.vcell.vcell--min,
+  th.vcell.vcell--min {
+    height: 92px;
+  }
+  td.vcell.vcell--min::after,
+  th.vcell.vcell--min::after {
+    height: 92px;
+  }
+}
+
+@supports (writing-mode: vertical-rl) {
+  /* 通常ブラウザでは従来の縦書き表示を優先し自然な並びを得る */
+  .vertical-stack:not(.is-ios) {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    flex-direction: initial;
+    display: inline-block;
+  }
+  .vertical-stack:not(.is-ios) .vertical-char {
+    display: inline;
+  }
+}
 .index-table {
   table-layout: fixed;
   width: 100%;
@@ -52,11 +121,17 @@
   background: #f3f4f6;
 }
 
-/* rowspan 連携ホバー: 2行目のみ hover されたときでも左の縦書きセルを同じ色に */
-td.rowspan-hover {
-  background: #f9fafb !important; /* table-base tbody tr:hover と同一色 */
-  transition: background 0.18s ease;
+/* ラベル列中央揃え（rowSpan の影響を受けないよう class ベース） */
+.index-table td.label-cell {
+  text-align: center;
+  vertical-align: middle;
+  padding: 0.55rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
+/* .index-table td.label-cell p { margin: 2px 0; } */
 
 /* 枠線強調 (縦横) */
 .index-table.table-base {
@@ -90,9 +165,9 @@ td.rowspan-hover {
   }
 }
 
-/* 1列目だけ更にパディング削減して極力狭く */
-.index-table td:first-child,
-.index-table th:first-child {
+/* 縦ラベル(１日目 等)のみ狭くしたい → 汎用 first-child では rowSpan 行の次行に副作用が出るため専用クラスに変更 */
+.index-table td.day-col,
+.index-table th.day-col {
   padding-left: 0.25rem;
   padding-right: 0.25rem;
 }
