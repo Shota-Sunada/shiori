@@ -142,6 +142,10 @@ function NotificationGuard() {
 // PWA インストール案内を通知許可チェックより先に挟むガード
 function PWAInstallGuard() {
   const location = useLocation();
+  // 開発環境 (vite dev / import.meta.env.PROD === false) では PWA インストール状態を問わずそのまま通す
+  if (!import.meta.env.PROD) {
+    return <Outlet />;
+  }
   let isStandalone = false;
   try {
     if (typeof window !== 'undefined' && 'matchMedia' in window) {
