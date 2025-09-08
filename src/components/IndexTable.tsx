@@ -199,7 +199,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
                     {'組 '}
                     {day4CourseName}
                   </p>
-                  <p className="text-gray-600 text-sm">
+                  <p className="text-gray-600 text-xs">
                     {'引率: '}
                     {teachers
                       .filter((teacher) => teacher.day4class === studentData!.class)
@@ -210,7 +210,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
               ) : (
                 <>
                   <p>{'◯組 ◯◯◯◯◯◯◯◯'}</p>
-                  <p className="text-gray-600 text-sm">{'引率: ◯◯先生 ◯◯先生 ◯◯先生'}</p>
+                  <p className="text-gray-600 text-xs">{'引率: ◯◯先生 ◯◯先生 ◯◯先生'}</p>
                 </>
               )}
             </td>
@@ -282,7 +282,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
             </td>
             <td className="label-cell">
               <p>{'1日目'}</p>
-              <p className="text-sm">{'新横浜駅で下車'}</p>
+              <p className="text-xs">{'新横浜駅で下車'}</p>
             </td>
             <td
               className="cell-interactive"
@@ -312,7 +312,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
           <tr onMouseEnter={() => addHover('shinkansen-rowspan')} onMouseLeave={() => removeHover('shinkansen-rowspan')}>
             <td className="label-cell">
               <p>{'4日目'}</p>
-              <p className="text-sm">{'新横浜駅で乗車'}</p>
+              <p className="text-xs">{'新横浜駅で乗車'}</p>
             </td>
             <td
               className={'cell-interactive'}

@@ -62,13 +62,13 @@ th.vcell .vertical-stack {
 /* 単独行の縦セル最小高さ (2日目/4日目) */
 td.vcell.vcell--min,
 th.vcell.vcell--min {
-  height: 110px;
+  height: 50px;
 }
 td.vcell.vcell--min::after,
 th.vcell.vcell--min::after {
   content: '';
   display: block;
-  height: 110px;
+  height: 50px;
   width: 0;
 }
 @media (max-width: 480px) {
@@ -126,12 +126,7 @@ th.vcell.vcell--min::after {
   text-align: center;
   vertical-align: middle;
   padding: 0.55rem 0.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
 }
-/* .index-table td.label-cell p { margin: 2px 0; } */
 
 /* 枠線強調 (縦横) */
 .index-table.table-base {
