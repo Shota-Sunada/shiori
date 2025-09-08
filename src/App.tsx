@@ -74,6 +74,8 @@ function NotificationGuard() {
   // Safari (<16.4) など Notification API 未実装環境での ReferenceError 防止
   const initialPermission: NotificationPermission = typeof Notification !== 'undefined' && typeof Notification.permission === 'string' ? Notification.permission : 'default';
   const [permission, setPermission] = useState<NotificationPermission>(initialPermission);
+  // 許可試行後に即座に default -> granted へ遷移しない iOS 対策として、
+  // 直近試行時間 (localStorage) を用いたグレース期間のみ利用。
 
   useEffect(() => {
     type NavigatorWithPermissions = typeof navigator & {
@@ -111,10 +113,27 @@ function NotificationGuard() {
   }, []);
 
   if (loading) return <CenterMessage>認証中...</CenterMessage>;
-  if (user && permission !== 'granted' && location.pathname !== '/non-notification') {
-    return <Navigate to="/non-notification" replace />;
+
+  // ローカルストレージから直近の許可試行時間を取得
+  let recentAttempt = 0;
+  try {
+    recentAttempt = parseInt(localStorage.getItem('notifyAttemptTs') || '0', 10) || 0;
+  } catch {
+    /* ignore */
   }
-  if (user && permission === 'granted' && location.pathname === '/non-notification') {
+  const GRACE_MS = 10_000; // 許可操作後 10 秒は permission=default でもリダイレクト抑制
+  const withinGrace = recentAttempt && Date.now() - recentAttempt < GRACE_MS;
+
+  // denied のみ強制誘導。default は (1) グレース過ぎた (2) まだ未許可 の場合のみ誘導。
+  if (user && location.pathname !== '/non-notification') {
+    if (permission === 'denied') {
+      return <Navigate to="/non-notification" replace />;
+    }
+    if (permission === 'default' && !withinGrace) {
+      return <Navigate to="/non-notification" replace />;
+    }
+  }
+  if (user && location.pathname === '/non-notification' && permission === 'granted') {
     return <Navigate to={user.is_teacher ? '/teacher' : '/'} replace />;
   }
   return <Outlet />;

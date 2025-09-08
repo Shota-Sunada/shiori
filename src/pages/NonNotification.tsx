@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 type NavigatorWithPermissions = Navigator & {
   permissions?: {
@@ -7,7 +8,7 @@ type NavigatorWithPermissions = Navigator & {
 };
 import { useAuth } from '../auth-context';
 import MDButton from '../components/MDButton';
-import { handleEnableNotifications } from '../helpers/notifications';
+import { handleEnableNotifications, requestPermissionWithTimeout } from '../helpers/notifications';
 import CenterMessage from '../components/CenterMessage';
 
 const DeniedInstructions = () => {
@@ -124,6 +125,7 @@ const NonNotification = () => {
   const { user } = useAuth();
   const initialPermission: NotificationPermission | 'prompt' = typeof Notification !== 'undefined' ? Notification.permission : 'default';
   const [permission, setPermission] = useState<NotificationPermission | 'prompt'>(initialPermission);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const updatePermission = () => {
@@ -148,7 +150,67 @@ const NonNotification = () => {
     }
   }, []);
 
-  const onEnable = useCallback(() => handleEnableNotifications(user), [user]);
+  const isiOS = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+  const onEnable = useCallback(async () => {
+    if (!isiOS) {
+      try {
+        localStorage.setItem('notifyAttemptTs', String(Date.now()));
+      } catch {
+        /* ignore storage error */
+      }
+      handleEnableNotifications(user);
+      return;
+    }
+    // iOS: requestPermission のハング対策として直接 timeout 付き呼び出し + ポーリング
+    console.info('[notifications] iOS enable click');
+    try {
+      localStorage.setItem('notifyAttemptTs', String(Date.now()));
+    } catch {
+      /* ignore storage error */
+    }
+    const result = await requestPermissionWithTimeout(3500);
+    if (result === 'timeout') {
+      // タイムアウト後数回ポーリングして granted を拾いに行く
+      let attempts = 0;
+      const maxAttempts = 7; // 約 7 * 400ms ≒ 2.8s
+      const poll = () => {
+        attempts++;
+        const p = typeof Notification !== 'undefined' ? Notification.permission : 'default';
+        setPermission(p as NotificationPermission);
+        if (p === 'granted' || p === 'denied' || attempts >= maxAttempts) {
+          console.info('[notifications] poll end', { p, attempts });
+          return;
+        }
+        setTimeout(poll, 400);
+      };
+      poll();
+    } else {
+      // 正常に permission 取得できた場合は state 更新
+      if (result !== Notification.permission) {
+        // 取りこぼし防止：現行値を再確認
+        const current = Notification.permission;
+        setPermission(current);
+      } else {
+        setPermission(result);
+      }
+    }
+  }, [user, isiOS]);
+
+  // 許可されたら自動でホームへ遷移（iOS PWAで「許可」後画面が変わらない問題への対策）
+  useEffect(() => {
+    if (permission === 'granted') {
+      // 少し遅延して ServiceWorker 登録等の非同期処理を進めつつ UX を自然に
+      const timer = setTimeout(() => {
+        if (user) {
+          navigate('/');
+        } else {
+          navigate('/login');
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [permission, user, navigate]);
 
   let content: React.ReactNode;
   if (permission === 'granted') {
