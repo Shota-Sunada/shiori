@@ -43,24 +43,33 @@ export function getDetailedInstallBlock(os: string, browser: string, isIOS: bool
     return {
       type: 'steps',
       title: 'iOS / iPadOS (Safari)',
-      steps: ['Safari で開く (他ブラウザ不可)', '共有ボタン(□↑) をタップ', '「ホーム画面に追加」を選択', '右上「追加」で完了'],
+      steps: ['Safari で開く (他ブラウザ不可)', '共有ボタン(□↑) をタップ', '「ホーム画面に追加」を選択', '右上「追加」で完了', 'ホーム画面への追加を確認'],
       note: '共有メニューに無い場合: 端末再起動 / iOS を最新化'
     };
   }
 
   // Android Chrome / Edge
-  if (os === 'Android' && (browser === 'Chrome' || browser === 'Edge')) {
-    return {
-      type: 'steps',
-      title: `Android (${browser})`,
-      steps: [
-        'ページを開く (数回操作後にバナー出現する場合あり)',
-        '右上メニュー(︙ / …) をタップ',
-        browser === 'Chrome' ? '「ホーム画面に追加」→「インストール」を選択' : '「アプリ」→「このサイトをインストール」を選択',
-        '追加を確認'
-      ],
-      note: '項目が無い場合: 最新版へ更新 / 何度かページをリロード'
-    };
+  if (os === 'Android') {
+    if (browser === 'Chrome') {
+      return {
+        type: 'steps',
+        title: `Android (${browser})`,
+        steps: ['上または下にある、メニュー(︙ / …) を押す', '「ホーム画面に追加」から「インストール」を選択', 'ホーム画面への追加を確認'],
+        note: '項目が無い場合: 最新版へ更新 / 何度かページをリロード'
+      };
+    } else if (browser === 'Edge') {
+      return {
+        type: 'steps',
+        title: `Android (${browser})`,
+        steps: [
+          '上または下にある、メニューの「≡」ボタンを押す',
+          '「ホーム」や「拡張機能」のある下の段から、「電話に追加」を探す (2ページ目もあります)',
+          '「電話に追加」から「インストール」を選択',
+          'ホーム画面への追加を確認'
+        ],
+        note: '項目が無い場合: 最新版へ更新 / 何度かページをリロード'
+      };
+    }
   }
 
   // Android その他ブラウザ
@@ -68,7 +77,7 @@ export function getDetailedInstallBlock(os: string, browser: string, isIOS: bool
     return {
       type: 'note',
       title: 'Android (その他)',
-      body: '標準的なインストールは不安定。Chrome / Edge の利用を推奨。'
+      body: '現在使用中のブラウザは動作確認ができていない、もしくは一部の機能が制限されているので、Chrome または Edge の利用を推奨します。詳しくはページ下部の「対応ブラウザ一覧」をご確認ください。'
     };
   }
 
