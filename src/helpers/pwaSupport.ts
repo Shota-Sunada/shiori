@@ -76,15 +76,16 @@ export function parseClientEnvironment() {
   }
 
   // Browser 判定 (順序注意)
+  // Edge はプラットフォームでトークンが Edg/ (Desktop), EdgA/ (Android), EdgiOS/ (iOS) になる
   if (/Firefox\//.test(ua)) {
     browser = 'Firefox';
     const m = ua.match(/Firefox\/(\d+\.?\d*)/);
     if (m) browserVersion = m[1];
-  } else if (/Edg\//.test(ua)) {
+  } else if (/(Edg|EdgA|EdgiOS)\//.test(ua)) {
     browser = 'Edge';
-    const m = ua.match(/Edg\/(\d+\.?\d*)/);
-    if (m) browserVersion = m[1];
-  } else if (/Chrome\//.test(ua) && /Safari\//.test(ua) && !/Edg\//.test(ua) && !/OPR\//.test(ua)) {
+    const m = ua.match(/(Edg|EdgA|EdgiOS)\/(\d+\.?\d*)/);
+    if (m) browserVersion = m[2];
+  } else if (/Chrome\//.test(ua) && /Safari\//.test(ua) && !/(Edg|EdgA|EdgiOS)\//.test(ua) && !/OPR\//.test(ua)) {
     browser = 'Chrome';
     const m = ua.match(/Chrome\/(\d+\.?\d*)/);
     if (m) browserVersion = m[1];
