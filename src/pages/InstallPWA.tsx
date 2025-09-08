@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MDButton from '../components/MDButton';
 import { usePWAInstallPrompt } from '../hooks/usePWAInstallPrompt';
 import { detectPWAPushSupport, parseClientEnvironment } from '../helpers/pwaSupport';
+import { getDetailedInstallBlock } from '../config/pwaInstallSteps';
 import safariIcon from '@browser-logos/safari-ios/safari-ios.svg';
 import chromeIcon from '@browser-logos/chrome/chrome.svg';
 import edgeIcon from '@browser-logos/edge/edge.svg';
@@ -12,12 +13,144 @@ import vivaldiIcon from '@browser-logos/vivaldi/vivaldi.svg';
 import braveIcon from '@browser-logos/brave/brave.svg';
 import genericIcon from '@browser-logos/web/web.svg';
 import operaIcon from '@browser-logos/opera/opera.svg';
-// OS icons (32x32)
 import winIcon from '@egoistdeveloper/operating-system-logos/src/32x32/WIN.png';
 import andIcon from '@egoistdeveloper/operating-system-logos/src/32x32/AND.png';
 import iosIcon from '@egoistdeveloper/operating-system-logos/src/32x32/IOS.png';
 import macIcon from '@egoistdeveloper/operating-system-logos/src/32x32/MAC.png';
 import linIcon from '@egoistdeveloper/operating-system-logos/src/32x32/LIN.png';
+
+// ===================== 定数 / 設定 =====================
+type SupportStatus = 'supported' | 'partial' | 'unsupported';
+interface BrowserInfo {
+  name: string;
+  icon: string;
+  status: SupportStatus;
+  note?: string;
+}
+interface PlatformRow {
+  platform: string;
+  match: (os: string) => boolean;
+  browsers: BrowserInfo[];
+}
+
+const BROWSER_ICONS: Record<string, string> = {
+  Safari: safariIcon,
+  Chrome: chromeIcon,
+  Edge: edgeIcon,
+  Firefox: firefoxIcon,
+  Samsung: samsungIcon,
+  Vivaldi: vivaldiIcon,
+  Brave: braveIcon,
+  Opera: operaIcon
+};
+const OS_ICONS: Record<string, string> = {
+  Windows: winIcon,
+  Android: andIcon,
+  iOS: iosIcon,
+  macOS: macIcon,
+  Linux: linIcon
+};
+
+// 一元的サポートマトリクス (動作ノート込み)
+const SUPPORT_MATRIX: PlatformRow[] = [
+  {
+    platform: 'iOS / iPadOS',
+    match: (os) => os === 'iOS',
+    browsers: [
+      { name: 'Safari', icon: safariIcon, status: 'supported', note: '動作 ✓' },
+      { name: 'Edge', icon: edgeIcon, status: 'partial', note: '未確認 △' },
+      { name: 'Firefox', icon: firefoxIcon, status: 'partial', note: '未確認 △' },
+      { name: 'Vivaldi', icon: vivaldiIcon, status: 'partial', note: '未確認 △' },
+      { name: 'Opera', icon: operaIcon, status: 'partial', note: '未確認 △' },
+      { name: 'Chrome', icon: chromeIcon, status: 'unsupported', note: '不良 ✗' },
+      { name: 'Brave', icon: braveIcon, status: 'unsupported', note: '不良 ✗' }
+    ]
+  },
+  {
+    platform: 'Android',
+    match: (os) => os === 'Android',
+    browsers: [
+      { name: 'Chrome', icon: chromeIcon, status: 'supported', note: '動作 ✓' },
+      { name: 'Edge', icon: edgeIcon, status: 'supported', note: '動作 ✓' },
+      { name: 'Brave', icon: braveIcon, status: 'partial', note: '一応 ✓' },
+      { name: 'Samsung', icon: samsungIcon, status: 'partial', note: '未確認 △' },
+      { name: 'Firefox', icon: firefoxIcon, status: 'unsupported', note: '不良 ✗' },
+      { name: 'Vivaldi', icon: vivaldiIcon, status: 'unsupported', note: '不良 ✗' },
+      { name: 'Opera', icon: operaIcon, status: 'unsupported', note: '不良 ✗' }
+    ]
+  },
+  {
+    platform: 'Windows / macOS / Linux',
+    match: (os) => ['Windows', 'macOS', 'Linux'].includes(os),
+    browsers: [
+      { name: 'Chrome', icon: chromeIcon, status: 'supported', note: '動作 ✓' },
+      { name: 'Edge', icon: edgeIcon, status: 'supported', note: '動作 ✓' },
+      { name: 'Safari', icon: safariIcon, status: 'partial', note: '未確認 △' },
+      { name: 'Firefox', icon: firefoxIcon, status: 'unsupported', note: '一部不良 ✗' },
+      { name: 'Vivaldi', icon: vivaldiIcon, status: 'unsupported', note: '不良 ✗' },
+      { name: 'Opera', icon: operaIcon, status: 'unsupported', note: '非推奨 ✗' }
+    ]
+  }
+];
+
+// ===================== ヘルパ =====================
+function getSupportContext(os: string, browser: string) {
+  const row = SUPPORT_MATRIX.find((r) => r.match(os));
+  const info = row?.browsers.find((b) => b.name === browser);
+  return {
+    platformRow: row,
+    browserStatus: info?.status as SupportStatus | undefined,
+    supportedBrowserNames: row?.browsers.filter((b) => b.status === 'supported').map((b) => b.name) || []
+  };
+}
+
+function DetailedInstallSteps({ os, browser, ios }: { os: string; browser: string; ios: boolean }) {
+  const block = getDetailedInstallBlock(os, browser, ios);
+  const osIcon = OS_ICONS[os] || genericIcon;
+  const browserIcon = BROWSER_ICONS[browser] || genericIcon;
+  const iconSet = block.type === 'steps' ? [osIcon, browserIcon] : [osIcon];
+  if (block.type === 'steps') {
+    return (
+      <StepBlock title={block.title} note={block.note} icons={iconSet}>
+        {block.steps.map((s, i) => (
+          <li key={i}>{s}</li>
+        ))}
+      </StepBlock>
+    );
+  }
+  return <NoteBlock title={block.title} body={block.body} icons={iconSet} />;
+}
+
+// 再利用可能な小コンポーネント群
+function StepBlock({ title, children, note, icons }: { title: string; children: React.ReactNode; note?: string; icons?: string[] }) {
+  return (
+    <div className="text-sm space-y-3 bg-white/90 rounded-2xl border border-gray-200 shadow-sm p-4 backdrop-blur-sm">
+      <div className="flex items-center gap-2">
+        {icons?.map((src, i) => (
+          <img key={i} src={src} alt="icon" className="w-5 h-5 shrink-0" />
+        ))}
+        <p className="font-medium">{title}</p>
+      </div>
+      <ol className="list-decimal ml-5 space-y-1 marker:text-blue-600 marker:font-semibold">{children}</ol>
+      {note && <p className="text-xs text-gray-500">{note}</p>}
+    </div>
+  );
+}
+function NoteBlock({ title, body, icons }: { title: string; body: string; icons?: string[] }) {
+  return (
+    <div className="text-sm space-y-2 bg-white/90 rounded-2xl border border-gray-200 shadow-sm p-4 backdrop-blur-sm">
+      <div className="flex items-center gap-2">
+        {icons?.map((src, i) => (
+          <img key={i} src={src} alt="icon" className="w-5 h-5 shrink-0" />
+        ))}
+        <p className="font-medium">{title}</p>
+      </div>
+      <p>{body}</p>
+    </div>
+  );
+}
+
+// Overview (以前の "この環境でのインストール概要" 表示) は不要となり削除
 
 // 判定: 既に PWA モード (standalone / display-mode: standalone)
 function useIsStandalone() {
@@ -34,7 +167,9 @@ const InstallPWA = () => {
   const navigate = useNavigate();
   const { unsupportedPush, reason } = detectPWAPushSupport();
   const env = parseClientEnvironment();
-  const [showFallbackHelp, setShowFallbackHelp] = useState(false);
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const { browserStatus, supportedBrowserNames } = getSupportContext(env.os, env.browser);
+  const isSupportedEnv = browserStatus === 'supported';
 
   const proceed = (to: string) => {
     try {
@@ -70,72 +205,8 @@ const InstallPWA = () => {
     );
   }
 
-  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  // icon mapping
-  const browserIcons: Record<string, string> = {
-    Safari: safariIcon,
-    Chrome: chromeIcon,
-    Edge: edgeIcon,
-    Firefox: firefoxIcon,
-    Samsung: samsungIcon,
-    Vivaldi: vivaldiIcon,
-    Brave: braveIcon,
-    Opera: operaIcon
-  };
-  const osIcons: Record<string, string> = {
-    Windows: winIcon,
-    Android: andIcon,
-    iOS: iosIcon,
-    macOS: macIcon,
-    Linux: linIcon
-  };
-  const currentBrowserIcon = browserIcons[env.browser] || genericIcon;
-  const currentOsIcon = osIcons[env.os] || genericIcon;
-
-  // BrowserMatrix の定義と同じロジックで現在 OS 行を判定し、現在ブラウザのサポート状況を取得
-  const matrixRows = [
-    {
-      platform: 'iOS / iPadOS',
-      match: (os: string) => os === 'iOS',
-      browsers: [
-        { name: 'Safari', icon: safariIcon, status: 'supported' as const },
-        { name: 'Chrome', icon: chromeIcon, status: 'unsupported' as const },
-        { name: 'Brave', icon: braveIcon, status: 'unsupported' as const },
-        { name: 'Firefox', icon: firefoxIcon, status: 'partial' as const },
-        { name: 'Edge', icon: edgeIcon, status: 'partial' as const },
-        { name: 'Vivaldi', icon: vivaldiIcon, status: 'partial' as const },
-        { name: 'Opera', icon: operaIcon, status: 'partial' as const }
-      ]
-    },
-    {
-      platform: 'Android',
-      match: (os: string) => os === 'Android',
-      browsers: [
-        { name: 'Chrome', icon: chromeIcon, status: 'supported' as const },
-        { name: 'Edge', icon: edgeIcon, status: 'supported' as const },
-        { name: 'Brave', icon: braveIcon, status: 'partial' as const },
-        { name: 'Samsung', icon: samsungIcon, status: 'partial' as const },
-        { name: 'Opera', icon: operaIcon, status: 'unsupported' as const },
-        { name: 'Firefox', icon: firefoxIcon, status: 'unsupported' as const },
-        { name: 'Vivaldi', icon: vivaldiIcon, status: 'unsupported' as const }
-      ]
-    },
-    {
-      platform: 'Windows / macOS / Linux',
-      match: (os: string) => ['Windows', 'macOS', 'Linux'].includes(os),
-      browsers: [
-        { name: 'Chrome', icon: chromeIcon, status: 'supported' as const },
-        { name: 'Edge', icon: edgeIcon, status: 'supported' as const },
-        { name: 'Firefox', icon: firefoxIcon, status: 'unsupported' as const },
-        { name: 'Safari', icon: safariIcon, status: 'partial' as const },
-        { name: 'Opera', icon: operaIcon, status: 'partial' as const }
-      ]
-    }
-  ];
-  const currentRow = matrixRows.find((r) => r.match(env.os));
-  const currentBrowserStatus = currentRow?.browsers.find((b) => b.name === env.browser)?.status;
-  const isSupportedEnv = currentBrowserStatus === 'supported';
-  const supportedBrowserNames = currentRow?.browsers.filter((b) => b.status === 'supported').map((b) => b.name) || [];
+  const currentBrowserIcon = BROWSER_ICONS[env.browser] || genericIcon;
+  const currentOsIcon = OS_ICONS[env.os] || genericIcon;
 
   return (
     <PageContainer>
@@ -156,34 +227,14 @@ const InstallPWA = () => {
                 サポートブラウザ: <span className="font-medium">{supportedBrowserNames.join(', ')}</span>
               </p>
             )}
-            {ios ? (
-              <div className="space-y-1">
-                <p className="font-medium">Safari で開く手順</p>
-                <ol className="list-decimal ml-5 space-y-1">
-                  <li>このページの URL をコピー</li>
-                  <li>ホーム画面で Safari を起動</li>
-                  <li>アドレスバーへ貼り付けて移動</li>
-                </ol>
-              </div>
-            ) : currentRow?.platform === 'Android' ? (
-              <div className="space-y-1">
-                <p className="font-medium">Chrome / Edge で開く手順</p>
-                <ol className="list-decimal ml-5 space-y-1">
-                  <li>Chrome または Edge を起動 (無ければストアからインストール)</li>
-                  <li>アドレスバーに URL を入力</li>
-                  <li>ページへアクセス</li>
-                </ol>
-              </div>
-            ) : (
-              <div className="space-y-1">
-                <p className="font-medium">Chrome / Edge で開く手順</p>
-                <ol className="list-decimal ml-5 space-y-1">
-                  <li>Chrome または Edge を起動 (未インストールなら公式サイト/ストアから追加)</li>
-                  <li>アドレスバーに URL を入力</li>
-                  <li>ページへアクセス</li>
-                </ol>
-              </div>
-            )}
+            <div className="space-y-1">
+              <p className="font-medium">推奨ブラウザで開く簡易手順</p>
+              <ol className="list-decimal ml-5 space-y-1">
+                {ios && <li>ホーム画面で Safari を起動</li>}
+                <li>アドレスバーに URL を入力</li>
+                <li>ページへアクセス</li>
+              </ol>
+            </div>
             <p className="text-xs text-amber-700">切り替えなくても閲覧は可能ですが、通知 / オフライン / インストール機能が制限される場合があります。</p>
           </div>
         )}
@@ -202,50 +253,35 @@ const InstallPWA = () => {
         )}
 
         {isSupportedEnv && !unsupportedPush && (
-          <div className="space-y-4 text-left">
+          <div className="space-y-6 text-left">
             {supported && deferred ? (
-              <div className="space-y-3 text-center flex flex-col items-center justify-center">
+              <div className="space-y-4 text-center flex flex-col items-center justify-center">
                 <p className="font-semibold">インストール可能</p>
                 <MDButton text="インストール" arrowRight onClick={promptInstall} />
+                <p className="text-xs text-gray-600">上手くいかない場合は下記補足を参照してください。</p>
+                <div className="text-xs bg-white/70 rounded p-3 space-y-2 w-full text-left">
+                  <p className="font-medium">インストール項目が表示されない / 失敗する場合</p>
+                  <ul className="list-disc ml-5 space-y-1">
+                    <li>数回ページ操作後に再度インストールを試す。</li>
+                    <li>ブラウザを再起動してキャッシュを更新。</li>
+                    {ios ? <li>必ず Safari を使用 (共有ボタンから追加)。他ブラウザは非対応。</li> : <li>Chrome / Edge を最新版へ更新。</li>}
+                    <li>それでも出ない場合は下の「対応ブラウザ一覧」を確認し推奨ブラウザへ切替。</li>
+                  </ul>
+                </div>
               </div>
             ) : (
-              <div className="space-y-3 flex flex-col items-center justify-center">
-                <p className="font-semibold">インストール (ホーム画面追加) 手順</p>
-                {!ios && (
-                  <p className="text-sm text-gray-700">
-                    ブラウザメニューから「インストール」または「アプリをインストール」を選択してください (Chrome: 右上︙ → インストール / Edge: … → アプリ → このサイトをインストール)。
-                  </p>
-                )}
-                {ios && (
-                  <ol className="list-decimal ml-5 space-y-1 text-sm">
-                    <li>Safari の共有ボタン(□↑)をタップ</li>
-                    <li>「ホーム画面に追加」を選択</li>
-                    <li>右上の「追加」をタップ</li>
-                  </ol>
-                )}
-                <MDButton
-                  text={showFallbackHelp ? '手順を隠す' : supported ? '再度インストールを試す' : 'ｲﾝｽﾄｰﾙ手順を表示'}
-                  onClick={() => {
-                    if (supported && deferred) {
-                      promptInstall?.();
-                    } else {
-                      setShowFallbackHelp((v) => !v);
-                    }
-                  }}
-                />
-                {showFallbackHelp && !supported && (
-                  <div className="text-xs bg-white/70 rounded p-3 space-y-2">
-                    {!ios && (
-                      <>
-                        <p className="font-medium">アイコンが出ない場合</p>
-                        <p>
-                          バージョンが古いか、PWA インストールバナー条件をまだ満たしていない可能性があります。数回ページを利用すると出現することがあります。出ない場合でもメニューから追加できます。
-                        </p>
-                      </>
-                    )}
-                    {ios && <p>iOS では必ず Safari の共有メニューから追加します。他ブラウザではインストールが表示されません。</p>}
-                  </div>
-                )}
+              <div className="space-y-5 flex flex-col items-stretch">
+                <p className="font-semibold text-center">インストール (ホーム画面追加) 詳細手順</p>
+                <DetailedInstallSteps os={env.os} browser={env.browser} ios={ios} />
+                <div className="text-xs bg-white/70 rounded p-3 space-y-2">
+                  <p className="font-medium">インストール項目が表示されない場合</p>
+                  <ul className="list-disc ml-5 space-y-1">
+                    <li>数回利用 (ナビゲーション) 後にバナーが出ることがあります。</li>
+                    <li>ブラウザを一度終了して再起動。</li>
+                    {ios ? <li>iOS は Safari の共有メニューからのみ追加可能。</li> : <li>Chrome / Edge の最新版を利用しているか確認。</li>}
+                    <li>出ない場合でもメニュー内「ホーム画面に追加」等で手動追加できます。</li>
+                  </ul>
+                </div>
               </div>
             )}
           </div>
@@ -292,44 +328,7 @@ function EnvBox({ osIcon, browserIcon, env }: { osIcon: string; browserIcon: str
 }
 
 function BrowserMatrix({ currentBrowserName, currentOS }: { currentBrowserName?: string; currentOS?: string }) {
-  const rows: { platform: string; browsers: { name: string; icon: string; status: 'supported' | 'partial' | 'unsupported'; note?: string }[] }[] = [
-    {
-      platform: 'iOS / iPadOS',
-      browsers: [
-        { name: 'Safari', icon: safariIcon, status: 'supported', note: '動作 ✓' },
-        { name: 'Edge', icon: edgeIcon, status: 'partial', note: '動作未確認 △' },
-        { name: 'Firefox', icon: firefoxIcon, status: 'partial', note: '動作未確認 △' },
-        { name: 'Vivaldi', icon: vivaldiIcon, status: 'partial', note: '動作未確認 △' },
-        { name: 'Opera', icon: operaIcon, status: 'partial', note: '動作未確認 △' },
-        { name: 'Chrome', icon: chromeIcon, status: 'unsupported', note: '動作不良 ✗' },
-        { name: 'Brave', icon: braveIcon, status: 'unsupported', note: '動作不良 ✗' }
-      ]
-    },
-    {
-      platform: 'Android',
-      browsers: [
-        { name: 'Chrome', icon: chromeIcon, status: 'supported', note: '動作 ✓' },
-        { name: 'Edge', icon: edgeIcon, status: 'supported', note: '動作 ✓' },
-        { name: 'Brave', icon: braveIcon, status: 'partial', note: '一応動作 ✓' },
-        { name: 'Samsung', icon: samsungIcon, status: 'partial', note: '動作未確認 △' },
-        { name: 'Firefox', icon: firefoxIcon, status: 'unsupported', note: '動作不良 ✗' },
-        { name: 'Vivaldi', icon: vivaldiIcon, status: 'unsupported', note: '動作不良 ✗' },
-        { name: 'Opera', icon: operaIcon, status: 'unsupported', note: '動作不良 ✗' }
-      ]
-    },
-    {
-      platform: 'Windows / macOS / Linux',
-      browsers: [
-        { name: 'Chrome', icon: chromeIcon, status: 'supported', note: '動作 ✓' },
-        { name: 'Edge', icon: edgeIcon, status: 'supported', note: '動作 ✓' },
-        { name: 'Safari', icon: safariIcon, status: 'partial', note: '動作未確認 △' },
-        { name: 'Firefox', icon: firefoxIcon, status: 'unsupported', note: '一部動作不良 ✗' },
-        { name: 'Vivaldi', icon: vivaldiIcon, status: 'unsupported', note: '動作不良 ✗' },
-        { name: 'Opera', icon: operaIcon, status: 'unsupported', note: '非推奨 ✗' }
-      ]
-    }
-  ];
-  // 現在 OS と行のマッチ判定
+  const rows = SUPPORT_MATRIX.map((r) => ({ platform: r.platform, browsers: r.browsers }));
   const matchPlatform = (platform: string) => {
     if (!currentOS) return false;
     if (platform.startsWith('iOS') && currentOS === 'iOS') return true;
