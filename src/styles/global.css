@@ -472,3 +472,30 @@ html {
     transform: none !important;
   }
 }
+
+/* Safari / animation-unavailable fallback:
+   If the JS-driven out-animation doesn't run (or animations are disabled),
+   animate opacity/transform via CSS transitions so the menu fades/zooms out smoothly.
+   Use a 0s visibility transition with matching delay so visibility becomes hidden
+   after the fade completes (prevents sudden disappearance).
+*/
+#header-menu[data-state='closing'],
+#header-menu[aria-hidden='true'] {
+  opacity: 0 !important;
+  transform: translateY(-4px) scale(0.96) !important;
+  pointer-events: none !important;
+  will-change: opacity, transform;
+  transition:
+    opacity 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 150ms;
+}
+
+/* Base visibility/transition so visibility change can be delayed to let opacity/transform animate */
+#header-menu {
+  visibility: visible;
+  transition:
+    opacity 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 150ms;
+}

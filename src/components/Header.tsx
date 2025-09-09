@@ -53,14 +53,31 @@ const Header = () => {
   }, [logout, navigate]);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: Event) => {
       if (!isMenuOpen) return;
-      if (menuRef.current && !menuRef.current.contains(event.target as Node) && hamburgerRef.current && !hamburgerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node | null;
+      if (!menuRef.current) return;
+      const clickedInsideMenu = target && menuRef.current.contains(target);
+      const clickedOnHamburger = hamburgerRef.current && target && hamburgerRef.current.contains(target);
+      if (!clickedInsideMenu && !clickedOnHamburger) {
         setIsMenuOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    // Use capture phase listeners so we detect taps before other handlers stop propagation (helps Safari)
+    document.addEventListener('pointerdown', handleClickOutside, true);
+    document.addEventListener('touchstart', handleClickOutside, true);
+    document.addEventListener('mousedown', handleClickOutside, true);
+    // Also close on scroll to avoid stuck-open state when the page moves
+    const scrollHandler = handleClickOutside as EventListener;
+    window.addEventListener('scroll', scrollHandler, { capture: true, passive: true });
+
+    return () => {
+      document.removeEventListener('pointerdown', handleClickOutside, true);
+      document.removeEventListener('touchstart', handleClickOutside, true);
+      document.removeEventListener('mousedown', handleClickOutside, true);
+      window.removeEventListener('scroll', scrollHandler, { capture: true } as AddEventListenerOptions);
+    };
   }, [isMenuOpen]);
 
   const closeMenu = useCallback(() => setIsMenuOpen(false), []);
@@ -125,7 +142,7 @@ const Header = () => {
                 aria-hidden={menuClosing ? 'true' : undefined}
                 // inert: 閉じアニメ中はフォーカス/操作不可 (対応ブラウザのみ)
                 {...(menuClosing ? { inert: true } : {})}
-                className={`absolute right-0 top-full mt-2 bg-white text-black rounded shadow-lg w-52 z-50 flex flex-col border divide-y header-menu-anim-container ${
+                className={`absolute right-0 top-full mt-2 bg-white text-black rounded shadow-lg w-52 z-50 flex flex-col border divide-y header-menu-anim-container overflow-hidden ${
                   menuClosing ? 'header-menu-anim-out' : 'header-menu-anim-in'
                 }`}
                 style={{ transformOrigin: '100% 0%' }}>
