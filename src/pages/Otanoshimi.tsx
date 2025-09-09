@@ -16,7 +16,8 @@ interface OtanoshimiDataWithSchedule extends OtanoshimiData {
 }
 
 interface PreviewModalProps {
-  order: number;
+  isOpen: boolean;
+  order: number | null;
   max: number;
   onClose: () => void;
   onNavigate: (newOrder: number) => void;
@@ -25,8 +26,8 @@ interface PreviewModalProps {
   loadingStudents: boolean;
 }
 
-const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate, teams, students, loadingStudents }: PreviewModalProps) => {
-  const team = useMemo(() => teams?.find((t) => t.appearance_order === order) || null, [teams, order]);
+const OtanoshimiPreviewModal = ({ isOpen, order, max, onClose, onNavigate, teams, students, loadingStudents }: PreviewModalProps) => {
+  const team = useMemo(() => (order ? teams?.find((t) => t.appearance_order === order) || null : null), [teams, order]);
   const getNameById = (gakuseki: number) => {
     const s = students?.find((x) => x.gakuseki === gakuseki);
     return s ? `${s.surname} ${s.forename} (5-${s.class})` : loadingStudents ? '読込中...' : '不詳';
@@ -35,7 +36,7 @@ const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate, teams, studen
 
   return (
     <Modal
-      isOpen
+      isOpen={isOpen}
       onClose={onClose}
       ariaLabelledBy="otanoshimi-preview-title"
       className="p-4 rounded-lg shadow-lg w-full m-4 max-w-[95dvw] h-[90dvh] flex flex-col"
@@ -77,8 +78,8 @@ const OtanoshimiPreviewModal = ({ order, max, onClose, onNavigate, teams, studen
         </section>
         <section id="buttons" className="flex flex-col items-center justify-center">
           <div className="flex flex-row">
-            <MDButton text="前へ" arrowLeft onClick={() => onNavigate(order === 1 ? max : order - 1)} width={'mobiry-button-150'} />
-            <MDButton text="次へ" arrowRight onClick={() => onNavigate(order === max ? 1 : order + 1)} width={'mobiry-button-150'} />
+            <MDButton text="前へ" arrowLeft onClick={() => onNavigate(order === 1 ? max : (order || 1) - 1)} width={'mobiry-button-150'} />
+            <MDButton text="次へ" arrowRight onClick={() => onNavigate(order === max ? 1 : (order || 1) + 1)} width={'mobiry-button-150'} />
           </div>
           <MDButton text="閉じる" onClick={onClose} color="purple" />
         </section>
@@ -93,6 +94,7 @@ const Otanoshimi = () => {
   const [allStudents, setAllStudents] = useState<StudentDTO[] | null>(null);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [previewOrderLocal, setPreviewOrderLocal] = useState<number | null>(null);
+  const [isPreviewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     if (!previewOrderLocal || !token || allStudents || loadingStudents) return;
@@ -168,6 +170,7 @@ const Otanoshimi = () => {
       const detail = (e as CustomEvent).detail as { order?: number };
       if (detail?.order) {
         setPreviewOrderLocal(detail.order);
+        setPreviewOpen(true);
       }
     };
     window.addEventListener('otanoshimi:openPreview', handler as EventListener);
@@ -175,7 +178,7 @@ const Otanoshimi = () => {
   }, []);
 
   const handleCloseModal = () => {
-    setPreviewOrderLocal(null); // ローカル状態も閉じる
+    setPreviewOpen(false);
   };
 
   const handleNavigate = (newOrder: number) => {
@@ -211,17 +214,16 @@ const Otanoshimi = () => {
 
   return (
     <div className="flex flex-col items-center justify-center m-2">
-      {previewOrderLocal ? (
-        <OtanoshimiPreviewModal
-          order={previewOrderLocal}
-          max={teams?.length || 0}
-          onClose={handleCloseModal}
-          onNavigate={handleNavigate}
-          teams={teams}
-          students={allStudents}
-          loadingStudents={loadingStudents}
-        />
-      ) : null}
+      <OtanoshimiPreviewModal
+        isOpen={isPreviewOpen}
+        order={previewOrderLocal}
+        max={teams?.length || 0}
+        onClose={handleCloseModal}
+        onNavigate={handleNavigate}
+        teams={teams}
+        students={allStudents}
+        loadingStudents={loadingStudents}
+      />
 
       <div className="m-2 flex flex-col items-center justify-center">
         <h1 className="text-3xl font-bold">{'お楽しみ会'}</h1>
@@ -276,8 +278,8 @@ const Otanoshimi = () => {
             <thead className="bg-white">
               <tr>
                 <th className="time-col w-[20%]">{'時間'}</th>
-                <th className='w-[50%]'>{'団体名'}</th>
-                <th className='w-[30%]'>{'演目'}</th>
+                <th className="w-[50%]">{'団体名'}</th>
+                <th className="w-[30%]">{'演目'}</th>
               </tr>
             </thead>
             <tbody>
