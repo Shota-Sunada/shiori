@@ -79,18 +79,6 @@ try {
     const body = notif.body || '';
     const clickUrl = payload?.fcmOptions?.link || '/';
 
-    try {
-      const clientsList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-      if (clientsList && clientsList.length > 0) {
-        // 既にアプリ表示中: フォアグラウンドでは OS 通知を出さない
-        log('Window clients exist -> skip system notification.');
-        return;
-      }
-    } catch (err) {
-      // クライアント確認に失敗した場合は通知を諦めない
-      logError('clients.matchAll failed; proceeding to show notification.', err);
-    }
-
     const icon = '/icon.png'; // Precaching 対象 (Workbox) を想定
     const tag = `fcm-${Date.now()}`; // 重複防止やグルーピング調整可
     const options = {

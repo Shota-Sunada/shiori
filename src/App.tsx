@@ -264,8 +264,25 @@ function App() {
           console.error('Service Worker registration failed:', err);
         });
     }
-    const unsubscribe = onMessage(messaging, (payload) => {
+    const unsubscribe = onMessage(messaging, async (payload) => {
       if (payload.data?.type === 'default_notification') {
+        // iOS SafariではフォアグラウンドでもOS通知を出す方が気付きやすい
+        try {
+          if ('serviceWorker' in navigator) {
+            const reg = await navigator.serviceWorker.getRegistration();
+            if (reg && Notification.permission === 'granted') {
+              await reg.showNotification(payload.data.originalTitle || '通知', {
+                body: payload.data.originalBody || '',
+                icon: '/icon.png',
+                data: { url: payload.data.link || '/' }
+              });
+              return;
+            }
+          }
+        } catch {
+          /* ignore */
+        }
+        // フォールバック: 既存のalert
         alert(`${payload.data.originalTitle}\n${payload.data.originalBody}`);
         if (payload.data.link) navigate(payload.data.link);
       }

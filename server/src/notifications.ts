@@ -3,7 +3,7 @@ import { RowDataPacket } from 'mysql2/promise';
 import { pool } from './db';
 import { logger } from './logger';
 
-async function getUserFcmToken(userId: string): Promise<string | null> {
+export async function getUserFcmToken(userId: string): Promise<string | null> {
   const [rows] = await pool.execute<RowDataPacket[]>('SELECT token FROM fcm_tokens WHERE user_id = ?', [userId]);
   if (rows.length === 0) return null;
   return rows[0].token || null;
