@@ -38,4 +38,6 @@ csv2.csv
 merged.csv
 output/*
 shinkansen_seat_1.csv
-shinkansen_seat_1.csv
+shinkansen_seat_2.csv
+shinkansen_seat_1_output.csv
+shinkansen_seat_2_output.csv
