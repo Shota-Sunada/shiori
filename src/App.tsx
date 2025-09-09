@@ -24,6 +24,7 @@ import TeacherIndexTable from './pages/TeacherIndexTable';
 import TeacherAdmin from './pages/TeacherAdmin';
 import RollCallHistory from './pages/RollCallHistory';
 import InstallPWA from './pages/InstallPWA';
+import EnvDebug from './pages/EnvDebug';
 import VersionMismatch from './pages/VersionMismatch';
 import React from 'react';
 import { SERVER_ENDPOINT } from './config/serverEndpoint';
@@ -369,6 +370,14 @@ function App() {
                     element={
                       <FadeContainer>
                         <TeacherIndex />
+                      </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/env-debug"
+                    element={
+                      <FadeContainer>
+                        <EnvDebug />
                       </FadeContainer>
                     }
                   />
