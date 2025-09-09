@@ -6,6 +6,8 @@ import { UI_ANIMATION } from '../config/constants';
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** 非表示(閉じアニメ完了)になった直後に呼ばれる */
+  onClosed?: () => void;
   children: ReactNode;
   ariaLabelledBy?: string;
   role?: 'dialog' | 'alertdialog';
@@ -39,6 +41,7 @@ let prevBodyInlineStyle: Partial<CSSStyleDeclaration> | null = null;
 export const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
+  onClosed,
   children,
   ariaLabelledBy,
   role = 'dialog',
@@ -87,6 +90,8 @@ export const Modal: React.FC<ModalProps> = ({
       finished = true;
       setRendered(false);
       setClosing(false);
+      // 非表示直後に通知
+      onClosed?.();
     };
     node.addEventListener('animationend', handleEnd);
     // フォールバック: アニメ想定 + safety
@@ -94,13 +99,14 @@ export const Modal: React.FC<ModalProps> = ({
       if (!finished) {
         setRendered(false);
         setClosing(false);
+        onClosed?.();
       }
     }, UI_ANIMATION.modal.dialogMs + UI_ANIMATION.modal.fallbackExtraMs);
     return () => {
       node.removeEventListener('animationend', handleEnd);
       clearTimeout(fallback);
     };
-  }, [closing]);
+  }, [closing, onClosed]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {

@@ -1,5 +1,4 @@
 import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4, DAY4_DATA } from '../data/courses';
-import { UI_ANIMATION } from '../config/constants';
 import type { StudentDTO } from '../helpers/domainApi';
 import '../styles/index-table.css';
 import VerticalLabel from './VerticalLabel';
@@ -66,32 +65,17 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
     setShowRoommateModal(false);
   }, []);
 
-  // 閉じアニメ完了後に関連データをクリア (600ms + 余裕)
-  useEffect(() => {
-    if (!showRoommateModal && (currentRoommates.length > 0 || currentHotelName || currentRoomNumber)) {
-      const t = setTimeout(() => {
-        setCurrentRoommates([]);
-        setCurrentHotelName('');
-        setCurrentRoomNumber('');
-      }, UI_ANIMATION.modal.dialogMs + UI_ANIMATION.modal.dataClearExtraMs);
-      return () => clearTimeout(t);
-    }
-  }, [showRoommateModal, currentRoommates.length, currentHotelName, currentRoomNumber]);
+  // モーダルの閉じアニメ完了後に関連データをクリア
+  const handleModalClosed = useCallback(() => {
+    setCurrentRoommates([]);
+    setCurrentHotelName('');
+    setCurrentRoomNumber('');
+  }, []);
 
   const day4CourseName = useMemo(() => {
     if (!hasStudent) return null;
     return COURSES_DAY4.find((x) => x.key === DAY4_DATA[Number(studentData!.class) - 1])?.name;
   }, [hasStudent, studentData]);
-
-  // rowspan(2) の2行目をホバーした時にも左端(縦書き)セルをハイライトさせるためのヘルパー
-  const addHover = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) el.classList.add('rowspan-hover');
-  };
-  const removeHover = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) el.classList.remove('rowspan-hover');
-  };
 
   return (
     <section id="table" className="index-table-wrapper m-2">
@@ -129,7 +113,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
             <td className="label-cell">{'研修先'}</td>
             <td>{hasStudent ? COURSES_DAY1.find((x) => x.key === studentData!.day1id)?.name : '◯◯◯◯◯◯◯◯'}</td>
           </tr>
-          <tr onMouseEnter={() => addHover('day1-rowspan')} onMouseLeave={() => removeHover('day1-rowspan')}>
+          <tr>
             <td className="label-cell">{'バス号車'}</td>
             <td>{hasStudent ? studentData!.day1bus : '◯◯'}</td>
           </tr>
@@ -237,7 +221,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
               </p>
             </td>
           </tr>
-          <tr onMouseEnter={() => addHover('hotel-rowspan')} onMouseLeave={() => removeHover('hotel-rowspan')}>
+          <tr>
             <td className="label-cell">
               <p>{'3泊目'}</p>
             </td>
@@ -299,7 +283,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
               )}
             </td>
           </tr>
-          <tr onMouseEnter={() => addHover('shinkansen-rowspan')} onMouseLeave={() => removeHover('shinkansen-rowspan')}>
+          <tr>
             <td className="label-cell">
               <p>{'4日目'}</p>
               <p className="text-xs">{'新横浜駅で乗車'}</p>
@@ -332,7 +316,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
           {/* shinkansen END */}
         </tbody>
       </table>
-      <RoomDataModal isOpen={showRoommateModal} roommates={currentRoommates} onClose={handleCloseModal} hotelName={currentHotelName} roomNumber={currentRoomNumber} />
+      <RoomDataModal isOpen={showRoommateModal} roommates={currentRoommates} onClose={handleCloseModal} onClosed={handleModalClosed} hotelName={currentHotelName} roomNumber={currentRoomNumber} />
     </section>
   );
 };
