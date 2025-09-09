@@ -8,7 +8,7 @@ type NavigatorWithPermissions = Navigator & {
 };
 import { useAuth } from '../auth-context';
 import MDButton from '../components/MDButton';
-import { handleEnableNotifications, requestPermissionWithTimeout } from '../helpers/notifications';
+import { handleEnableNotifications, requestPermissionWithTimeout, ensureRegistrationIfGranted, attemptSilentRegistration } from '../helpers/notifications';
 import CenterMessage from '../components/CenterMessage';
 
 const DeniedInstructions = () => {
@@ -159,7 +159,9 @@ const NonNotification = () => {
       } catch {
         /* ignore storage error */
       }
+      // 権限取得 + サイレント登録の両方を試みる
       handleEnableNotifications(user);
+      attemptSilentRegistration(user);
       return;
     }
     // iOS: requestPermission のハング対策として直接 timeout 付き呼び出し + ポーリング
@@ -170,6 +172,8 @@ const NonNotification = () => {
       /* ignore storage error */
     }
     const result = await requestPermissionWithTimeout(3500);
+    // iOSでもサイレント登録を試みて、既に有効なケースでフラグを立てる
+    attemptSilentRegistration(user);
     if (result === 'timeout') {
       // タイムアウト後数回ポーリングして granted を拾いに行く
       let attempts = 0;
@@ -200,6 +204,8 @@ const NonNotification = () => {
   // 許可されたら自動でホームへ遷移（iOS PWAで「許可」後画面が変わらない問題への対策）
   useEffect(() => {
     if (permission === 'granted') {
+      // 許可直後にFCM登録を確実に実行
+      ensureRegistrationIfGranted(user);
       // 少し遅延して ServiceWorker 登録等の非同期処理を進めつつ UX を自然に
       const timer = setTimeout(() => {
         if (user) {

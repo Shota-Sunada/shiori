@@ -74,6 +74,29 @@ function NotificationGuard() {
   // Safari (<16.4) など Notification API 未実装環境での ReferenceError 防止
   const initialPermission: NotificationPermission = typeof Notification !== 'undefined' && typeof Notification.permission === 'string' ? Notification.permission : 'default';
   const [permission, setPermission] = useState<NotificationPermission>(initialPermission);
+  const [permReady, setPermReady] = useState(false); // 一部Safariで初期読み取りが不安定なため、判定前に短い安定化待ち
+  useEffect(() => {
+    // /non-notification 表示中は数秒おきにサイレント登録を試みる（既に権限ありでも誤判定されるSafari対策）
+    if (!user) return;
+    const path = typeof window !== 'undefined' ? window.location.pathname : '';
+    if (path !== '/non-notification') return;
+    let timer: number | undefined;
+    const loop = () => {
+      try {
+        // フラグが立っていれば停止
+        if (localStorage.getItem('notifications_enabled') === '1') return;
+      } catch {
+        /* ignore */
+      }
+      // 軽量の動的 import で循環依存を避ける
+      import('./helpers/notifications').then((m) => m.attemptSilentRegistration?.(user)).catch(() => {});
+      timer = window.setTimeout(loop, 5000);
+    };
+    timer = window.setTimeout(loop, 1500);
+    return () => {
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [user]);
   // 許可試行後に即座に default -> granted へ遷移しない iOS 対策として、
   // 直近試行時間 (localStorage) を用いたグレース期間のみ利用。
 
@@ -96,10 +119,14 @@ function NotificationGuard() {
           .then((status: PermissionStatus) => {
             setPermission(status.state as NotificationPermission);
             status.onchange = () => setPermission(status.state as NotificationPermission);
+            // 最初の結果を受け取ったので安定化完了
+            setPermReady(true);
           })
           .catch(() => {
             if (typeof Notification !== 'undefined') {
               const interval = setInterval(() => setPermission(Notification.permission as NotificationPermission), 1500);
+              // permissions API が使えない場合も、少し待ってからreadyに
+              setTimeout(() => setPermReady(true), 200);
               return () => clearInterval(interval);
             }
           });
@@ -108,32 +135,40 @@ function NotificationGuard() {
       }
     } else if (typeof Notification !== 'undefined') {
       const interval = setInterval(() => setPermission(Notification.permission as NotificationPermission), 1500);
+      setTimeout(() => setPermReady(true), 200);
       return () => clearInterval(interval);
     }
+    // 最低限、次フレームで一度同期読み取りしてreadyにする
+    const raf = requestAnimationFrame(() => {
+      try {
+        if (typeof Notification !== 'undefined') setPermission(Notification.permission as NotificationPermission);
+      } finally {
+        setPermReady(true);
+      }
+    });
+    return () => cancelAnimationFrame(raf);
   }, []);
 
   if (loading) return <CenterMessage>認証中...</CenterMessage>;
 
-  // ローカルストレージから直近の許可試行時間を取得
-  let recentAttempt = 0;
+  // FCMトークン登録成功時に立つローカルフラグ（誤判定抑止用の実質有効判定）
+  let locallyEnabled = false;
   try {
-    recentAttempt = parseInt(localStorage.getItem('notifyAttemptTs') || '0', 10) || 0;
+    locallyEnabled = localStorage.getItem('notifications_enabled') === '1';
   } catch {
     /* ignore */
   }
-  const GRACE_MS = 10_000; // 許可操作後 10 秒は permission=default でもリダイレクト抑制
-  const withinGrace = recentAttempt && Date.now() - recentAttempt < GRACE_MS;
 
-  // denied のみ強制誘導。default は (1) グレース過ぎた (2) まだ未許可 の場合のみ誘導。
-  if (user && location.pathname !== '/non-notification') {
-    if (permission === 'denied') {
-      return <Navigate to="/non-notification" replace />;
-    }
-    if (permission === 'default' && !withinGrace) {
-      return <Navigate to="/non-notification" replace />;
-    }
+  // 判定が安定するまで待つ（Safari初期化時の一瞬のdefaultを拾って誤誘導しない）
+  if (!permReady) return <CenterMessage>通知状態を確認中...</CenterMessage>;
+
+  const isEffectivelyGranted = permission === 'granted' || locallyEnabled;
+
+  // 通知は必須: 実質未許可（default/denied かつローカルフラグもなし）は専用ページへ誘導
+  if (user && location.pathname !== '/non-notification' && !isEffectivelyGranted) {
+    return <Navigate to="/non-notification" replace />;
   }
-  if (user && location.pathname === '/non-notification' && permission === 'granted') {
+  if (user && location.pathname === '/non-notification' && isEffectivelyGranted) {
     return <Navigate to={user.is_teacher ? '/teacher' : '/'} replace />;
   }
   return <Outlet />;

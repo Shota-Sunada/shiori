@@ -41,6 +41,11 @@ export const registerFCMToken = async (userId: string, swRegistration: ServiceWo
         alwaysFetch: true
       });
       console.log('サーバーでのFCMトークンの登録に成功。');
+      try {
+        localStorage.setItem('notifications_enabled', '1');
+      } catch {
+        /* ignore */
+      }
     } else {
       console.warn('getToken()がトークンを返送しませんでした。これは通常、権限不足か、VAPID_KEYが無効であることを意味します。');
     }

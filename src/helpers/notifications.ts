@@ -112,6 +112,11 @@ export const handleEnableNotifications = async (user: AuthUser | null) => {
   if (permission === 'granted') {
     if (user?.userId) {
       ensureServiceWorkerAndRegister(user.userId);
+      try {
+        localStorage.setItem('notifications_enabled', '1');
+      } catch {
+        /* ignore */
+      }
       alert('通知が有効になりました。');
     } else {
       alert('ログイン後に再度お試しください。');
@@ -130,10 +135,63 @@ export const registerOrRequestPermission = async (user: AuthUser | null) => {
   if (permission === 'granted') {
     if (user?.userId) {
       ensureServiceWorkerAndRegister(user.userId);
+      try {
+        localStorage.setItem('notifications_enabled', '1');
+      } catch {
+        /* ignore */
+      }
     } else {
       console.log('ユーザーがログインしていません。');
     }
   } else if (permission === 'denied') {
     console.log('通知が許可されていません。');
+  }
+};
+
+/**
+ * すでに通知が許可されている場合に、静かに（ダイアログやアラートなしで）FCM登録を行う。
+ * iOSで非同期にgrantedへ切り替わったケースや、設定アプリから許可を変更したケース向け。
+ */
+export const ensureRegistrationIfGranted = async (user: AuthUser | null) => {
+  try {
+    if (!user?.userId) return;
+    if (!('Notification' in window)) return;
+    if (Notification.permission !== 'granted') return;
+    ensureServiceWorkerAndRegister(user.userId);
+    try {
+      localStorage.setItem('notifications_enabled', '1');
+    } catch {
+      /* ignore */
+    }
+  } catch (e) {
+    console.warn('[notifications] ensureRegistrationIfGranted failed', e);
+  }
+};
+
+/**
+ * 許可状態の読み取りが不安定なSafari向けに、権限チェックをせず一度だけFCM登録を試みる。
+ * 失敗しても静かに無視。成功すれば registerFCMToken 側でローカルフラグが立つ。
+ */
+export const attemptSilentRegistration = async (user: AuthUser | null) => {
+  try {
+    if (!user?.userId) return;
+    if (!('serviceWorker' in navigator)) return;
+    // 1回/数秒に抑制
+    const key = 'notify_silent_probe_ts';
+    const now = Date.now();
+    try {
+      const last = parseInt(localStorage.getItem(key) || '0', 10) || 0;
+      if (now - last < 5000) return;
+      localStorage.setItem(key, String(now));
+    } catch {
+      /* ignore throttling errors */
+    }
+    navigator.serviceWorker.ready
+      .then((registration) => registerFCMToken(user.userId!, registration))
+      .catch(() => {
+        /* ignore */
+      });
+  } catch {
+    /* ignore */
   }
 };
