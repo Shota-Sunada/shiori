@@ -19,6 +19,9 @@ interface RollCall {
   is_active: boolean;
   created_at: number; // Add created_at as number
   expires_at: number; // Change expires_at to number
+  teacher_id?: number; // どの先生が開始したか
+  teacher_surname?: string;
+  teacher_forename?: string;
 }
 
 const Call = () => {
@@ -185,31 +188,60 @@ const Call = () => {
   return (
     <div className="flex flex-col items-center justify-center m-5">
       <p className="text-xl m-3">{'点呼です！'}</p>
-      {isDone ? (
-        <div className="bg-green-500 text-white p-18 text-4xl font-bold rounded-[100%] w-[40dvh] h-[40dvh] flex items-center justify-center cursor-pointer">
-          <p>{'点呼完了!'}</p>
-        </div>
-      ) : (
-        <div
-          className={`text-white p-18 text-4xl font-bold rounded-[100%] w-[40dvh] h-[40dvh] flex items-center justify-center flex-col ${
-            rollCall?.is_active && remainingTime > 0 ? 'bg-red-500 cursor-pointer' : 'bg-gray-500'
-          }`}
-          onClick={handleCheckIn}>
-          {rollCall?.is_active && remainingTime > 0 ? (
-            <>
-              <p> {'点呼!'}</p>
-              <p className="text-xl mt-5">{'残り時間'}</p>
-              <p className="text-xl">{formattedTime}</p>
-            </>
-          ) : (
-            <p>{'終了'}</p>
-          )}
-        </div>
-      )}
+      {(() => {
+        const isActive = !!(rollCall?.is_active && remainingTime > 0);
+        const base = 'group relative w-[40dvh] max-w-[85vw] aspect-square rounded-full flex items-center justify-center select-none ' + 'focus:outline-none transition-transform duration-200 ease-out';
+        const activeStyle =
+          'bg-gradient-to-br from-red-500 via-rose-500 to-rose-600 text-white ring-4 ring-red-300/40 ' + 'shadow-[0_10px_30px_rgba(244,63,94,0.45)] hover:scale-[1.03] active:scale-[0.98]';
+        const doneStyle = 'bg-gradient-to-br from-emerald-500 to-green-600 text-white ring-4 ring-emerald-300/40 ' + 'shadow-[0_10px_30px_rgba(16,185,129,0.45)]';
+        const inactiveStyle = 'bg-gradient-to-br from-gray-400 to-gray-500 text-white opacity-90 shadow-inner';
+
+        const className = isDone ? `${base} ${doneStyle}` : isActive ? `${base} ${activeStyle}` : `${base} ${inactiveStyle}`;
+
+        return (
+          <button
+            type="button"
+            aria-label={isDone ? '点呼完了' : isActive ? '点呼に応答する' : '点呼は終了しています'}
+            aria-disabled={!isActive}
+            disabled={!isActive || isDone}
+            onClick={() => (isActive ? handleCheckIn() : void 0)}
+            className={className}>
+            {/* アクティブ時: うっすら広がる波紋 */}
+            {isActive ? <span className="pointer-events-none absolute inset-0 rounded-full border-2 border-white/30 animate-ping" aria-hidden="true" /> : null}
+            {/* ほんのり発光 */}
+            <span
+              className="pointer-events-none absolute inset-0 rounded-full blur-2xl opacity-40"
+              style={{
+                background: isDone ? 'radial-gradient(circle, rgba(16,185,129,0.35), transparent 60%)' : isActive ? 'radial-gradient(circle, rgba(244,63,94,0.35), transparent 60%)' : 'transparent'
+              }}
+              aria-hidden="true"
+            />
+
+            {/* 内容 */}
+            {isDone ? (
+              <div className="flex flex-col items-center justify-center text-white">
+                <p className="text-4xl font-extrabold tracking-wide">{'点呼完了!'}</p>
+              </div>
+            ) : isActive ? (
+              <div className="flex flex-col items-center justify-center text-white">
+                <p className="text-4xl font-extrabold tracking-wide">{'点呼!'}</p>
+                <p className="text-base mt-4 opacity-90">{'残り時間'}</p>
+                <p className="text-2xl tabular-nums mt-1">{formattedTime}</p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center text-white">
+                <p className="text-3xl font-bold tracking-wide">{'終了'}</p>
+              </div>
+            )}
+          </button>
+        );
+      })()}
 
       <p className="text-xl mt-5">{isDone ? '確認しました！' : rollCall?.is_active && remainingTime > 0 ? '時間内に点呼に応答してください！' : 'この点呼は終了しています。'}</p>
       {rollCall ? (
         <div className="mt-4 grid grid-cols-2 gap-x-2 text-sm">
+          <p className="text-right">{'開始した先生: '}</p>
+          <p>{rollCall.teacher_surname && rollCall.teacher_forename ? `${rollCall.teacher_surname} ${rollCall.teacher_forename}` : (rollCall.teacher_id ?? '不明')}</p>
           <p className="text-right">{'開始: '}</p>
           <p className="whitespace-pre-line">{renderDate(rollCall.created_at)}</p>
           <p className="text-right">{'終了予定: '}</p>
@@ -232,9 +264,9 @@ const Call = () => {
             <h2 className="text-xl font-bold mb-4">{'不在理由・詳細情報'}</h2>
             <textarea className="w-full p-2 border rounded mb-4" rows={4} placeholder="理由を入力してください" value={absenceReason} onChange={(e) => setAbsenceReason(e.target.value)} />
             <input type="text" className="w-full p-2 border rounded" placeholder="現在地を入力してください" value={currentLocation} onChange={(e) => setCurrentLocation(e.target.value)} />
-            <div className="flex justify-end space-x-2 mt-4">
-              <MDButton text="キャンセル" onClick={() => setShowAbsenceForm(false)} />
-              <MDButton text="送信" arrowRight onClick={handleAbsenceSubmit} />
+            <div className="flex flex-row items-center justify-center space-x-2 mt-4">
+              <MDButton text="キャンセル" onClick={() => setShowAbsenceForm(false)} width="mobiry-button-150" color="white" />
+              <MDButton text="送信" arrowRight onClick={handleAbsenceSubmit} width="mobiry-button-150" />
             </div>
           </div>
         </div>
