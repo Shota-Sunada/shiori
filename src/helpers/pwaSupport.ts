@@ -77,7 +77,13 @@ export function parseClientEnvironment() {
 
   // Browser 判定 (順序注意)
   // Edge はプラットフォームでトークンが Edg/ (Desktop), EdgA/ (Android), EdgiOS/ (iOS) になる
-  if (/Firefox\//.test(ua)) {
+  // まず iOS 固有トークンや Chromium 派生で独自トークンを持つブラウザを優先的に検出する
+  if (/FxiOS\//.test(ua)) {
+    // Firefox on iOS
+    browser = 'Firefox';
+    const m = ua.match(/FxiOS\/(\d+\.?\d*)/);
+    if (m) browserVersion = m[1];
+  } else if (/Firefox\//.test(ua)) {
     browser = 'Firefox';
     const m = ua.match(/Firefox\/(\d+\.?\d*)/);
     if (m) browserVersion = m[1];
@@ -85,9 +91,35 @@ export function parseClientEnvironment() {
     browser = 'Edge';
     const m = ua.match(/(Edg|EdgA|EdgiOS)\/(\d+\.?\d*)/);
     if (m) browserVersion = m[2];
-  } else if (/Chrome\//.test(ua) && /Safari\//.test(ua) && !/(Edg|EdgA|EdgiOS)\//.test(ua) && !/OPR\//.test(ua)) {
+  } else if (/Vivaldi\//.test(ua)) {
+    browser = 'Vivaldi';
+    const m = ua.match(/Vivaldi\/(\d+\.?\d*)/);
+    if (m) browserVersion = m[1];
+  } else if (/SamsungBrowser\//.test(ua)) {
+    browser = 'Samsung';
+    const m = ua.match(/SamsungBrowser\/(\d+\.?\d*)/);
+    if (m) browserVersion = m[1];
+  } else if (/UCBrowser\//.test(ua)) {
+    browser = 'UCBrowser';
+    const m = ua.match(/UCBrowser\/(\d+\.?\d*)/);
+    if (m) browserVersion = m[1];
+  } else if (/Brave\//.test(ua) || /\bBrave\b/.test(ua)) {
+    // Brave は多くの UA が Chromium ベースを引き継ぐため、Brave トークンを優先的に検出
+    browser = 'Brave';
+    const m = ua.match(/Brave\/(\d+\.?\d*)/);
+    if (m) browserVersion = m[1];
+    else {
+      const cm = ua.match(/(?:CriOS|Chrome|Chromium)\/(\d+\.?\d*)/);
+      if (cm) browserVersion = cm[1];
+    }
+  } else if (/Chromium\//.test(ua)) {
+    browser = 'Chromium';
+    const m = ua.match(/Chromium\/(\d+\.?\d*)/);
+    if (m) browserVersion = m[1];
+  } else if (/(?:Chrome|CriOS)\//.test(ua) && /Safari\//.test(ua) && !/(Edg|EdgA|EdgiOS)\//.test(ua) && !/OPR\//.test(ua)) {
+    // Chrome on iOS uses the "CriOS/" token rather than "Chrome/". Accept both.
     browser = 'Chrome';
-    const m = ua.match(/Chrome\/(\d+\.?\d*)/);
+    const m = ua.match(/(?:CriOS|Chrome)\/(\d+\.?\d*)/);
     if (m) browserVersion = m[1];
   } else if (/Safari\//.test(ua) && /Version\//.test(ua)) {
     browser = 'Safari';
