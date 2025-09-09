@@ -1,6 +1,8 @@
 import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4, DAY4_DATA } from '../data/courses';
 import type { StudentDTO } from '../helpers/domainApi';
+import type { Teacher } from '../interface/models';
 import '../styles/index-table.css';
+import ModernTable from './ModernTable';
 import VerticalLabel from './VerticalLabel';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import RoomDataModal from './RoomDataModal';
@@ -14,10 +16,11 @@ import type { Roommate, IndexTeacher } from '../interface/models';
 // 型は interface/models に移動 (IndexTeacher / Roommate)
 
 interface IndexTableProps {
-  studentData: StudentDTO | null;
+  studentData?: StudentDTO | null;
+  teacherData?: Teacher | null;
 }
 
-const IndexTable = ({ studentData }: IndexTableProps) => {
+const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps) => {
   // useNavigateは他セルで今後使う可能性があるが現状未使用のため削除
   const { navigateWithPrefetch } = usePrefetchNavigate();
   const { token } = useAuth();
@@ -27,6 +30,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
   const [currentRoomNumber, setCurrentRoomNumber] = useState('');
   const [teachers, setTeachers] = useState<IndexTeacher[]>([]);
   const hasStudent = !!studentData;
+  const isTeacher = !!teacherData;
 
   // スクロールは Modal 側でロック・復元を一元管理する（ここでは触らない）
 
@@ -73,13 +77,20 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
   }, []);
 
   const day4CourseName = useMemo(() => {
-    if (!hasStudent) return null;
-    return COURSES_DAY4.find((x) => x.key === DAY4_DATA[Number(studentData!.class) - 1])?.name;
-  }, [hasStudent, studentData]);
+    if (hasStudent) {
+      return COURSES_DAY4.find((x) => x.key === DAY4_DATA[Number(studentData!.class) - 1])?.name || null;
+    }
+    if (isTeacher) {
+      const cls = Number(teacherData!.day4class || 0);
+      if (!cls) return null;
+      return COURSES_DAY4.find((x) => x.key === DAY4_DATA[cls - 1])?.name || null;
+    }
+    return null;
+  }, [hasStudent, isTeacher, studentData, teacherData]);
 
   return (
     <section id="table" className="index-table-wrapper m-2">
-      <table className="table-base table-rounded table-shadow index-table">
+      <ModernTable className="index-table">
         <colgroup>
           <col className="col-day" />
           <col className="col-label" />
@@ -98,6 +109,10 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
                   {studentData!.surname}
                   {studentData!.forename}
                 </>
+              ) : isTeacher && teacherData ? (
+                <>
+                  {teacherData.surname} {teacherData.forename}
+                </>
               ) : (
                 '5年◯組◯番 ◯◯◯◯'
               )}
@@ -111,11 +126,11 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
               <VerticalLabel text="１日目" />
             </td>
             <td className="label-cell">{'研修先'}</td>
-            <td>{hasStudent ? COURSES_DAY1.find((x) => x.key === studentData!.day1id)?.name : '◯◯◯◯◯◯◯◯'}</td>
+            <td>{hasStudent ? COURSES_DAY1.find((x) => x.key === studentData!.day1id)?.name : isTeacher ? COURSES_DAY1.find((x) => x.key === teacherData?.day1id)?.name || '◯◯◯◯◯◯◯◯' : '◯◯◯◯◯◯◯◯'}</td>
           </tr>
           <tr>
             <td className="label-cell">{'バス号車'}</td>
-            <td>{hasStudent ? studentData!.day1bus : '◯◯'}</td>
+            <td>{hasStudent ? studentData!.day1bus : isTeacher ? (teacherData?.day1bus ?? '◯◯') : '◯◯'}</td>
           </tr>
           {/* day1 END */}
           {/* day2 START */}
@@ -133,11 +148,11 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
               <VerticalLabel text="３日目" />
             </td>
             <td className="label-cell">{'研修先'}</td>
-            <td>{hasStudent ? COURSES_DAY3.find((x) => x.key === studentData!.day3id)?.name : '◯◯◯◯◯◯◯◯'}</td>
+            <td>{hasStudent ? COURSES_DAY3.find((x) => x.key === studentData!.day3id)?.name : isTeacher ? COURSES_DAY3.find((x) => x.key === teacherData?.day3id)?.name || '◯◯◯◯◯◯◯◯' : '◯◯◯◯◯◯◯◯'}</td>
           </tr>
           <tr>
             <td className="label-cell">{'バス号車'}</td>
-            <td>{hasStudent ? studentData!.day3bus : '◯◯'}</td>
+            <td>{hasStudent ? studentData!.day3bus : isTeacher ? (teacherData?.day3bus ?? '◯◯') : '◯◯'}</td>
           </tr>
           <tr>
             <td className="label-cell">{'お楽しみ会'}</td>
@@ -148,8 +163,6 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
                   to: '/otanoshimi',
                   key: 'otanoshimiTeams',
                   fetcher: async () => {
-                    // 相対パス '/api/otanoshimi' だと Vite 開発サーバー (5173) 側で 404 になるため、
-                    // 明示的に API エンドポイント + 認証付きで取得する。
                     return appFetch(`${SERVER_ENDPOINT}/api/otanoshimi`, { requiresAuth: true, alwaysFetch: true });
                   },
                   awaitFetch: true
@@ -181,6 +194,21 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
                       .join(' ')}
                   </p>
                 </>
+              ) : isTeacher ? (
+                <>
+                  <p>
+                    {teacherData?.day4class}
+                    {'組 '}
+                    {day4CourseName}
+                  </p>
+                  <p className="text-gray-600 text-xs">
+                    {'引率: '}
+                    {teachers
+                      .filter((t) => t.day4class === teacherData?.day4class)
+                      .map((t) => `${t.surname}${t.forename}先生`)
+                      .join(' ')}
+                  </p>
+                </>
               ) : (
                 <>
                   <p>{'◯組 ◯◯◯◯◯◯◯◯'}</p>
@@ -204,6 +232,8 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
               onClick={() => {
                 if (studentData?.room_tdh) {
                   fetchRoommates('tdh', studentData.room_tdh.toString(), '東京ドームホテル');
+                } else if (teacherData?.room_tdh) {
+                  fetchRoommates('tdh', teacherData.room_tdh.toString(), '東京ドームホテル');
                 }
               }}>
               <p>{'東京ドームホテル'}</p>
@@ -214,6 +244,19 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
                     {'階 '}
                     {studentData!.room_tdh}
                     {'号室'}
+                  </>
+                ) : isTeacher ? (
+                  <>
+                    {teacherData?.room_tdh ? (
+                      <>
+                        {teacherData.room_tdh.toString().substring(0, 2)}
+                        {'階 '}
+                        {teacherData.room_tdh}
+                        {'号室'}
+                      </>
+                    ) : (
+                      '◯階 ◯◯◯号室'
+                    )}
                   </>
                 ) : (
                   '◯階 ◯◯◯号室'
@@ -230,6 +273,8 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
               onClick={() => {
                 if (studentData?.room_fpr) {
                   fetchRoommates('fpr', studentData.room_fpr.toString(), 'フジプレミアムリゾート');
+                } else if (teacherData?.room_fpr) {
+                  fetchRoommates('fpr', teacherData.room_fpr.toString(), 'フジプレミアムリゾート');
                 }
               }}>
               <p>{'フジプレミアムリゾート'}</p>
@@ -241,6 +286,20 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
                     {'階 '}
                     {studentData!.room_fpr}
                     {'号室'}
+                  </>
+                ) : isTeacher ? (
+                  <>
+                    {teacherData?.room_fpr ? (
+                      <>
+                        {'Hotel Spor:Sion '}
+                        {teacherData.room_fpr.toString().substring(1, 2)}
+                        {'階 '}
+                        {teacherData.room_fpr}
+                        {'号室'}
+                      </>
+                    ) : (
+                      '◯◯◯号室'
+                    )}
                   </>
                 ) : (
                   '◯◯◯号室'
@@ -270,6 +329,17 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
                     {studentData!.shinkansen_day1_car_number}
                     {'号車 '}
                     {studentData!.shinkansen_day1_seat}
+                  </p>
+                  <p className="text-gray-600 text-sm">{'広島駅7:57発 - 新横浜駅11:34着'}</p>
+                  <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
+                </>
+              ) : isTeacher ? (
+                <>
+                  <p>
+                    {'東京駅行 のぞみ84号 - '}
+                    {teacherData?.shinkansen_day1_car_number}
+                    {'号車 '}
+                    {teacherData?.shinkansen_day1_seat}
                   </p>
                   <p className="text-gray-600 text-sm">{'広島駅7:57発 - 新横浜駅11:34着'}</p>
                   <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
@@ -304,6 +374,17 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
                   <p className="text-gray-600 text-sm">{'新横浜駅15:48発 - 広島駅19:46着'}</p>
                   <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
                 </>
+              ) : isTeacher ? (
+                <>
+                  <p>
+                    {'広島駅行 のぞみ77号 - '}
+                    {teacherData?.shinkansen_day4_car_number}
+                    {'号車 '}
+                    {teacherData?.shinkansen_day4_seat}
+                  </p>
+                  <p className="text-gray-600 text-sm">{'新横浜駅15:48発 - 広島駅19:46着'}</p>
+                  <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
+                </>
               ) : (
                 <>
                   <p>{'広島駅行 のぞみ77号 - ◯号車 ◯◯'}</p>
@@ -315,7 +396,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
           </tr>
           {/* shinkansen END */}
         </tbody>
-      </table>
+      </ModernTable>
       <RoomDataModal isOpen={showRoommateModal} roommates={currentRoommates} onClose={handleCloseModal} onClosed={handleModalClosed} hotelName={currentHotelName} roomNumber={currentRoomNumber} />
     </section>
   );

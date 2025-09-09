@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, memo, type ChangeEvent, type KeyboardEvent, type FC } from 'react';
 import { useRequireAuth } from '../auth-context';
 import '../styles/admin-table.css';
+import ModernTable from '../components/ModernTable';
 // SERVER_ENDPOINT 依存除去 (domainApi 経由で隠蔽)
 import CenterMessage from '../components/CenterMessage';
 import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
@@ -687,7 +688,7 @@ const TeacherAdmin = () => {
   return (
     <div className="p-[5px] flex flex-col">
       <div className="table-root overflow-y-auto flex flex-grow max-h-[60dvh] max-w-[90dvw] mx-auto rounded-xl">
-        <table className="table-base table-rounded table-shadow">
+        <ModernTable>
           <thead>
             <tr>
               <th className="w-24">
@@ -768,7 +769,7 @@ const TeacherAdmin = () => {
               <MemoizedTeacherRow key={t.id} t={t} handleDelete={handleDelete} modalMode={modalMode} renderCellContent={renderCellContent} handleCellDoubleClick={handleCellDoubleClick} />
             ))}
           </tbody>
-        </table>
+        </ModernTable>
       </div>
       <div className="text-sm text-gray-600 my-[10px]">
         <p>{'Tips: Shiftキーを押しながら列名をクリックすると、最大2個の条件でソートできます。'}</p>
