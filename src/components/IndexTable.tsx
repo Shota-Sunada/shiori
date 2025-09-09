@@ -129,8 +129,8 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
             <td>{hasStudent ? COURSES_DAY1.find((x) => x.key === studentData!.day1id)?.name : isTeacher ? COURSES_DAY1.find((x) => x.key === teacherData?.day1id)?.name || '◯◯◯◯◯◯◯◯' : '◯◯◯◯◯◯◯◯'}</td>
           </tr>
           <tr>
-            <td className="label-cell">{'バス号車'}</td>
-            <td>{hasStudent ? studentData!.day1bus : isTeacher ? (teacherData?.day1bus ?? '◯◯') : '◯◯'}</td>
+            <td className="label-cell">{'バス'}</td>
+            <td>{hasStudent ? `${studentData!.day1bus}号車` : isTeacher ? `${teacherData?.day1bus ?? '◯◯'}号車` : '◯◯号車'}</td>
           </tr>
           {/* day1 END */}
           {/* day2 START */}
@@ -151,8 +151,8 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
             <td>{hasStudent ? COURSES_DAY3.find((x) => x.key === studentData!.day3id)?.name : isTeacher ? COURSES_DAY3.find((x) => x.key === teacherData?.day3id)?.name || '◯◯◯◯◯◯◯◯' : '◯◯◯◯◯◯◯◯'}</td>
           </tr>
           <tr>
-            <td className="label-cell">{'バス号車'}</td>
-            <td>{hasStudent ? studentData!.day3bus : isTeacher ? (teacherData?.day3bus ?? '◯◯') : '◯◯'}</td>
+            <td className="label-cell">{'バス'}</td>
+            <td>{hasStudent ? `${studentData!.day3bus}号車` : isTeacher ? `${teacherData?.day3bus ?? '◯◯'}号車` : '◯◯号車'}</td>
           </tr>
           <tr>
             <td className="label-cell">{'お楽しみ会'}</td>
