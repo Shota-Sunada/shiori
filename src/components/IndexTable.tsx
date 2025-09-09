@@ -29,17 +29,7 @@ const IndexTable = ({ studentData }: IndexTableProps) => {
   const [teachers, setTeachers] = useState<IndexTeacher[]>([]);
   const hasStudent = !!studentData;
 
-  useEffect(() => {
-    if (showRoommateModal) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [showRoommateModal]);
+  // スクロールは Modal 側でロック・復元を一元管理する（ここでは触らない）
 
   const fetchTeachers = useCallback(async () => {
     if (!token) return;

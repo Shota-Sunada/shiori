@@ -57,26 +57,10 @@ const KanaSearchModal: FC<KanaSearchModalProps> = ({ isOpen, onClose, allStudent
   const [filteredByForenameKana, setFilteredByForenameKana] = useState<StudentDTO[]>([]);
 
   useEffect(() => {
-    const body = document.body;
-    const html = document.documentElement;
-
-    if (isOpen) {
-      body.classList.add('modal-open');
-      html.classList.add('modal-open');
-    } else {
-      body.classList.remove('modal-open');
-      html.classList.remove('modal-open');
-    }
-
     if (!isOpen) {
       setShowResults(false);
       setSelectedKana('');
     }
-
-    return () => {
-      body.classList.remove('modal-open');
-      html.classList.remove('modal-open');
-    };
   }, [isOpen]);
 
   useEffect(() => {

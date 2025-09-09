@@ -32,6 +32,9 @@ const defaultDialogBase = 'bg-white rounded-lg shadow-lg outline-none';
 
 // 同時に複数モーダルが開いた場合のスクロールロック管理
 let openModalCount = 0;
+// スクロールロック前のスクロール位置と body のインラインスタイルを保持
+let scrollYBeforeLock = 0;
+let prevBodyInlineStyle: Partial<CSSStyleDeclaration> | null = null;
 
 export const Modal: React.FC<ModalProps> = ({
   isOpen,
@@ -117,8 +120,20 @@ export const Modal: React.FC<ModalProps> = ({
     }
     if (lockScroll) {
       if (openModalCount === 0) {
-        document.body.classList.add('modal-open');
-        document.documentElement.classList.add('modal-open');
+        // 初回ロック時のみ現在のスクロール位置を保持して body を固定
+        scrollYBeforeLock = window.scrollY || document.documentElement.scrollTop || 0;
+        prevBodyInlineStyle = {
+          position: document.body.style.position,
+          top: document.body.style.top,
+          left: document.body.style.left,
+          right: document.body.style.right,
+          width: document.body.style.width
+        };
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${scrollYBeforeLock}px`;
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.width = '100%';
       }
       openModalCount += 1;
     }
@@ -131,8 +146,22 @@ export const Modal: React.FC<ModalProps> = ({
       if (lockScroll) {
         openModalCount = Math.max(0, openModalCount - 1);
         if (openModalCount === 0) {
-          document.body.classList.remove('modal-open');
-          document.documentElement.classList.remove('modal-open');
+          // body 固定解除とスクロール位置の復元
+          if (prevBodyInlineStyle) {
+            document.body.style.position = prevBodyInlineStyle.position || '';
+            document.body.style.top = prevBodyInlineStyle.top || '';
+            document.body.style.left = prevBodyInlineStyle.left || '';
+            document.body.style.right = prevBodyInlineStyle.right || '';
+            document.body.style.width = prevBodyInlineStyle.width || '';
+          } else {
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.left = '';
+            document.body.style.right = '';
+            document.body.style.width = '';
+          }
+          window.scrollTo(0, scrollYBeforeLock);
+          prevBodyInlineStyle = null;
         }
       }
     };
