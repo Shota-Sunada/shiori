@@ -105,7 +105,7 @@ const Call = () => {
   }, [rollCall]);
 
   const formattedTime = useMemo(() => {
-    const s = remainingTime - 20; // 仕様: 実際より20秒短く表示する？ (元実装踏襲)
+    const s = remainingTime;
     if (s <= 0) return '00:00';
     const m = Math.floor(s / 60);
     const sec = s % 60;

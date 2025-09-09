@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { usePolling } from '../hooks/usePolling';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { rollCallApi } from '../helpers/domainApi';
-import { POLL_INTERVALS, ROLLCALL_GRACE_OFFSET_SECONDS } from '../config/constants';
+import { POLL_INTERVALS } from '../config/constants';
 import MDButton from '../components/MDButton';
 import { useAuth } from '../auth-context';
 import type { RollCall, RollCallStudent } from '../interface/models';
@@ -84,10 +84,9 @@ const TeacherRollCallViewer = () => {
   }, [rollCall]);
 
   const formattedTime = useMemo(() => {
-    const adjusted = remainingTime - ROLLCALL_GRACE_OFFSET_SECONDS;
-    if (adjusted <= 0) return '00:00';
-    const m = Math.floor(adjusted / 60);
-    const sec = adjusted % 60;
+    if (remainingTime <= 0) return '00:00';
+    const m = Math.floor(remainingTime / 60);
+    const sec = remainingTime % 60;
     return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
   }, [remainingTime]);
 

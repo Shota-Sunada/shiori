@@ -76,7 +76,7 @@ const RollCallHistory = () => {
     if (!items || items.length === 0) return <CenterMessage>履歴がありません。</CenterMessage>;
 
     return (
-      <div className="w-full max-w-2xl mx-auto p-4">
+      <div className="w-full max-w-2xl mx-auto">
         <table className="table-base table-rounded table-shadow">
           <thead>
             <tr>
