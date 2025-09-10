@@ -117,7 +117,7 @@ const Header = () => {
       { type: 'link', to: '/user-admin', label: 'ユーザー管理', note: '※管理者専用' },
       { type: 'link', to: '/otanoshimi-admin', label: 'お楽しみ会管理', note: '※管理者専用' },
       { type: 'link', to: '/teacher-admin', label: '先生管理', note: '※管理者専用' },
-      { type: 'link', to: '/admin/schedule', label: 'スケジュール管理', note: '※管理者専用' },
+      { type: 'link', to: '/admin/schedules', label: 'スケジュール管理', note: '※管理者専用' },
     ],
     [user]
   );
