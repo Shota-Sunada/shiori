@@ -287,6 +287,48 @@ const Admin = () => {
     return sortList(filtered, sortConfigs);
   }, [studentsList, debouncedSearchQuery, sortConfigs]);
 
+  // 現在の表示順・可視列に沿ってCSVを出力
+  const handleExportCSV = useCallback(() => {
+    const columnsToExport = allColumns.filter((c) => visibleColumns.includes(c.key));
+    const headers = columnsToExport.map((c) => c.label);
+
+    const getDisplayValue = (s: StudentDTO, key: keyof StudentDTO): string => {
+      if (key === 'day1id') return String(COURSES_DAY1.find((x) => x.key === s.day1id)?.short_name ?? '');
+      if (key === 'day3id') return String(COURSES_DAY3.find((x) => x.key === s.day3id)?.short_name ?? '');
+      const v = s[key] as unknown;
+      return v == null ? '' : String(v);
+    };
+
+    const escapeCSV = (value: string) => {
+      // 値にカンマ/改行/ダブルクォートが含まれる場合はダブルクォートで囲み、中のダブルクォートは二重化
+      const needsQuote = /[",\n\r]/.test(value);
+      const escaped = value.replace(/"/g, '""');
+      return needsQuote ? `"${escaped}"` : escaped;
+    };
+
+    const lines: string[] = [];
+    lines.push(headers.map(escapeCSV).join(','));
+    for (const s of sortedAndFilteredStudents) {
+      const row = columnsToExport.map((c) => escapeCSV(getDisplayValue(s, c.key)));
+      lines.push(row.join(','));
+    }
+
+    const csvContent = lines.join('\r\n'); // Windows互換のCRLF
+    const bom = '\uFEFF'; // Excel互換のためBOM付与
+    const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const now = new Date();
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const fileName = `students_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}.csv`;
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, [sortedAndFilteredStudents, visibleColumns]);
+
   useEffect(() => {
     fetchStudents();
   }, [fetchStudents]);
@@ -614,6 +656,9 @@ const Admin = () => {
           </button>
           <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleAddJSONData}>
             {'JSONで更新'}
+          </button>
+          <button className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white" disabled={modalMode !== null} onClick={handleExportCSV}>
+            {'CSVで保存'}
           </button>
           <button
             className="border-2 border-black p-2 rounded-xl mr-2 cursor-pointer bg-white"
