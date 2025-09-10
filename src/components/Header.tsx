@@ -18,6 +18,7 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuClosing, setMenuClosing] = useState(false);
+  const closeTimerRef = useRef<number | null>(null);
 
   // 開: 表示即マウント + オープンアニメ, 閉: クローズアニメ後にアンマウント
   useEffect(() => {
@@ -32,11 +33,21 @@ const Header = () => {
       if (menuRef.current && menuRef.current.contains(document.activeElement)) {
         (hamburgerRef.current as HTMLButtonElement | null)?.focus();
       }
-      const t = setTimeout(() => {
+      // 既存タイマーがあればクリア
+      if (closeTimerRef.current) {
+        window.clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = null;
+      }
+      // セーフティ: onAnimationEnd が拾えない環境向けのアンマウント保険
+      const t = window.setTimeout(() => {
         setMenuVisible(false);
         setMenuClosing(false);
-      }, 160); // CSS の 150ms + 余裕
-      return () => clearTimeout(t);
+        closeTimerRef.current = null;
+      }, 220);
+      closeTimerRef.current = t;
+      return () => {
+        if (t) window.clearTimeout(t);
+      };
     }
   }, [isMenuOpen, menuVisible, menuClosing]);
 
@@ -145,7 +156,17 @@ const Header = () => {
                 className={`absolute right-0 top-full mt-2 bg-white text-black rounded shadow-lg w-52 z-50 flex flex-col border divide-y header-menu-anim-container overflow-hidden ${
                   menuClosing ? 'header-menu-anim-out' : 'header-menu-anim-in'
                 }`}
-                style={{ transformOrigin: '100% 0%' }}>
+                style={{ transformOrigin: '100% 0%' }}
+                onAnimationEnd={(e) => {
+                  if (menuClosing && typeof e.animationName === 'string' && e.animationName.includes('headerMenuOut')) {
+                    setMenuVisible(false);
+                    setMenuClosing(false);
+                    if (closeTimerRef.current) {
+                      window.clearTimeout(closeTimerRef.current);
+                      closeTimerRef.current = null;
+                    }
+                  }
+                }}>
                 {menuItems.map((item, i) =>
                   item.type === 'link' ? (
                     item.prefetchKey && item.fetcher ? (

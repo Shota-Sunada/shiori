@@ -479,8 +479,8 @@ html {
    Use a 0s visibility transition with matching delay so visibility becomes hidden
    after the fade completes (prevents sudden disappearance).
 */
-#header-menu[data-state='closing'],
-#header-menu[aria-hidden='true'] {
+#header-menu:not(.header-menu-anim-out)[data-state='closing'],
+#header-menu:not(.header-menu-anim-out)[aria-hidden='true'] {
   opacity: 0 !important;
   transform: translateY(-4px) scale(0.96) !important;
   pointer-events: none !important;
