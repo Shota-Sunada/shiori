@@ -113,52 +113,6 @@ const Index = () => {
           <MDButton text="点呼履歴" arrowRight link="/roll-call-history" />
         </div>
       )}
-
-      <section id="index">
-        <div>{'目次 - 項目をクリックすると、そのページに移動します'}</div>
-        <ol>
-          <li>
-            <p>{'予定表'}</p>
-            <ol>
-              <li>
-                <a href="#day1">{'1日目'}</a>
-              </li>
-              <li>
-                <a href="#day2">{'2日目'}</a>
-              </li>
-              <li>
-                <a href="#day3">{'3日目'}</a>
-              </li>
-              <li>
-                <a href="#day4">{'4日目'}</a>
-              </li>
-            </ol>
-          </li>
-          <li>
-            <p>{'新幹線 座席表'}</p>
-            <ol>
-              <li>
-                <a href="#shinkansen-nobori">{'上り (東京行)'}</a>
-              </li>
-              <li>
-                <a href="#shinkansen-kudari">{'下り (広島行)'}</a>
-              </li>
-            </ol>
-          </li>
-        </ol>
-      </section>
-
-      <section id="days">
-        <h2 id="day1">{'1日目'}</h2>
-        <h2 id="day2">{'2日目'}</h2>
-        <h2 id="day3">{'3日目'}</h2>
-        <h2 id="day4">{'4日目'}</h2>
-      </section>
-
-      <section id="shinkansen">
-        <h2 id="shinkansen-nobori">{'新幹線 (上り/東京行)'}</h2>
-        <h2 id="shinkansen-kudari">{'新幹線 (下り/広島行)'}</h2>
-      </section>
     </div>
   );
 };
