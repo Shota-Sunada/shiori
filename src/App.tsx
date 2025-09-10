@@ -465,11 +465,9 @@ function App() {
                   <Route
                     path="/yotei"
                     element={
-                      <AdminOrTeacherRoute>
-                        <FadeContainer>
-                          <Yotei />
-                        </FadeContainer>
-                      </AdminOrTeacherRoute>
+                      <FadeContainer>
+                        <Yotei />
+                      </FadeContainer>
                     }
                   />
                   <Route
