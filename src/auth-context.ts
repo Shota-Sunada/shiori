@@ -8,12 +8,14 @@ export interface AuthUser {
   userId: string;
   is_admin: boolean;
   is_teacher: boolean;
+  day1id?: number; // ユーザーが閲覧するDay1コースID（任意）
 }
 
 interface JwtPayload {
   userId: string;
   is_admin: boolean;
   is_teacher: boolean;
+  day1id?: number;
   exp?: number; // Optional: expiration time
   iat?: number; // Optional: issued at time
 }
@@ -60,7 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setGlobalAuthToken(token);
     try {
       const decoded = jwtDecode<JwtPayload>(token);
-      setUser({ userId: decoded.userId, is_admin: decoded.is_admin, is_teacher: decoded.is_teacher });
+      setUser({ userId: decoded.userId, is_admin: decoded.is_admin, is_teacher: decoded.is_teacher, day1id: decoded.day1id });
     } catch (error) {
       console.error('JWTのデコードに失敗:', error);
       setUser(null);
@@ -82,7 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (decoded.exp && decoded.exp * 1000 < Date.now()) {
           logout();
         } else {
-          setUser({ userId: decoded.userId, is_admin: decoded.is_admin, is_teacher: decoded.is_teacher });
+          setUser({ userId: decoded.userId, is_admin: decoded.is_admin, is_teacher: decoded.is_teacher, day1id: decoded.day1id });
           setToken(storedToken);
           setGlobalAuthToken(storedToken);
         }

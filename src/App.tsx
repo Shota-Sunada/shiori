@@ -28,6 +28,9 @@ import EnvDebug from './pages/EnvDebug';
 import VersionMismatch from './pages/VersionMismatch';
 import React from 'react';
 import { SERVER_ENDPOINT } from './config/serverEndpoint';
+import ScheduleAdmin from './pages/ScheduleAdmin';
+import { appFetch } from './helpers/apiClient';
+import Yotei from './pages/Yotei';
 
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: unknown }> {
   constructor(props: { children: React.ReactNode }) {
@@ -230,9 +233,7 @@ function App() {
     let active = true;
     (async () => {
       try {
-        const res = await fetch(`${SERVER_ENDPOINT}/api/version`, { cache: 'no-store' });
-        if (!res.ok) return;
-        const data: { version?: string } = await res.json();
+        const data = await appFetch<{ version?: string }>(`${SERVER_ENDPOINT}/api/version`, { parse: 'json', alwaysFetch: true });
         const current = import.meta.env.APP_VERSION;
         if (active && data.version && current && data.version !== current) {
           setVersionMismatch(true);
@@ -457,6 +458,26 @@ function App() {
                       <AdminOrTeacherRoute>
                         <FadeContainer>
                           <TeacherAdmin />
+                        </FadeContainer>
+                      </AdminOrTeacherRoute>
+                    }
+                  />
+                  <Route
+                    path="/yotei"
+                    element={
+                      <AdminOrTeacherRoute>
+                        <FadeContainer>
+                          <Yotei />
+                        </FadeContainer>
+                      </AdminOrTeacherRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/schedules"
+                    element={
+                      <AdminOrTeacherRoute>
+                        <FadeContainer>
+                          <ScheduleAdmin />
                         </FadeContainer>
                       </AdminOrTeacherRoute>
                     }

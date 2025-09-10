@@ -5,6 +5,7 @@ import '../styles/index-table.css';
 import ModernTable from './ModernTable';
 import VerticalLabel from './VerticalLabel';
 import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import RoomDataModal from './RoomDataModal';
 import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import { usePrefetchNavigate } from '../prefetch/usePrefetchNavigate';
@@ -23,6 +24,7 @@ interface IndexTableProps {
 const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps) => {
   // useNavigateは他セルで今後使う可能性があるが現状未使用のため削除
   const { navigateWithPrefetch } = usePrefetchNavigate();
+  const navigate = useNavigate();
   const { token } = useAuth();
   const [showRoommateModal, setShowRoommateModal] = useState(false);
   const [currentRoommates, setCurrentRoommates] = useState<Roommate[]>([]);
@@ -120,6 +122,26 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
           </tr>
         </thead>
         <tbody>
+          {/* yotei START */}
+          <tr>
+            <td id="day1-rowspan" rowSpan={2} className="vcell day-col">
+              <VerticalLabel text="予定表" />
+            </td>
+            <td className="label-cell" colSpan={2}>
+              {'修学旅行 全工程表'}
+            </td>
+          </tr>
+          <tr>
+            <td className="label-cell">{''}</td>
+            <td
+              className="cell-interactive"
+              onClick={() => {
+                navigate('/yotei');
+              }}>
+              {'工程表をチェック！'}
+            </td>
+          </tr>
+          {/* yotei END */}
           {/* day1 START */}
           <tr>
             <td id="day1-rowspan" rowSpan={2} className="vcell day-col">

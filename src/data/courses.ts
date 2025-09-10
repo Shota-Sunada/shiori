@@ -1,4 +1,8 @@
-export const COURSES_DAY1: { key: string; name: string; short_name: string }[] = [
+export type COURSES_DAY1_KEY = 'yrp_nifco' | 'yrp_yamashin' | 'yrp_air' | 'yrp_vtech' | 'ntt_labo_i' | 'ntt_labo_b' | 'kayakku' | 'jaxa' | 'astro' | 'arda' | 'urth_jip' | 'micro' | 'air';
+export type COURSES_DAY3_KEY = 'okutama' | 'yokosuka' | 'hakone' | 'kamakura' | 'hakkeijima' | 'yokohama';
+export type COURSES_DAY4_KEY = 'doukutsu' | 'fujikyu' | 'kanuu';
+
+export const COURSES_DAY1: { key: COURSES_DAY1_KEY; name: string; short_name: string }[] = [
   { key: 'yrp_nifco', name: 'YRP NIFCOコース', short_name: 'NIFCO' },
   { key: 'yrp_yamashin', name: 'YRP NIFCO + ヤマシンフィルタコース', short_name: 'NIFCO+ﾔﾏｼﾝ' },
   { key: 'yrp_air', name: 'YRP NIFCO + エア・リキードコース', short_name: 'NIFCO+ｴｱ･ﾘｷｰﾄﾞ' },
@@ -14,7 +18,7 @@ export const COURSES_DAY1: { key: string; name: string; short_name: string }[] =
   { key: 'air', name: 'キャリア エアークローゼットコース', short_name: 'ｴｱｰｸﾛｰｾﾞｯﾄ' }
 ];
 
-export const COURSES_DAY3: { key: string; name: string; short_name: string }[] = [
+export const COURSES_DAY3: { key: COURSES_DAY3_KEY; name: string; short_name: string }[] = [
   { key: 'okutama', name: '奥多摩ラフティングコース', short_name: '奥多摩ﾗﾌﾃｨﾝｸﾞ' },
   { key: 'yokosuka', name: '横須賀・小田原コース', short_name: '横須賀･小田原' },
   { key: 'hakone', name: '箱根コース', short_name: '箱根' },
@@ -24,7 +28,7 @@ export const COURSES_DAY3: { key: string; name: string; short_name: string }[] =
   // 高尾山中止
 ];
 
-export const COURSES_DAY4: { key: string; name: string }[] = [
+export const COURSES_DAY4: { key: COURSES_DAY4_KEY; name: string }[] = [
   { key: 'doukutsu', name: '富士山洞窟体験コース' },
   { key: 'fujikyu', name: '富士急ハイランドコース' },
   { key: 'kanuu', name: '河口湖カヌーコース' }

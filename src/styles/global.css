@@ -450,6 +450,9 @@ html {
 .header-menu-anim-in .header-menu-item:nth-child(10) {
   animation-delay: 310ms;
 }
+.header-menu-anim-in .header-menu-item:nth-child(11) {
+  animation-delay: 340ms;
+}
 /* 閉じは即時非表示のため Out アニメ不要 */
 @keyframes headerMenuItemIn {
   0% {

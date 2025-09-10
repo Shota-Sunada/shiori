@@ -36,6 +36,7 @@ async function initializeDatabase() {
 
     await connection.query(`USE ${dbName}`);
 
+    // --- 既存テーブル作成 ...existing code...
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS users (
         id INT PRIMARY KEY,
@@ -47,6 +48,56 @@ async function initializeDatabase() {
       );
     `);
     logger.log('テーブル「users」の存在を確認。');
+
+    // --- スケジュール管理用テーブル ---
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS courses (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        course_key VARCHAR(255) NOT NULL UNIQUE,
+        name VARCHAR(255)
+      );
+    `);
+    logger.log('テーブル「courses」の存在を確認。');
+
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS schedules (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        course_id INT NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+      );
+    `);
+    logger.log('テーブル「schedules」の存在を確認。');
+
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS events (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        schedule_id INT NOT NULL,
+        memo VARCHAR(255) NOT NULL,
+        time1_hour INT,
+        time1_minute INT,
+        time1_postfix VARCHAR(32),
+        time2_hour INT,
+        time2_minute INT,
+        time2_postfix VARCHAR(32),
+        FOREIGN KEY (schedule_id) REFERENCES schedules(id) ON DELETE CASCADE
+      );
+    `);
+    logger.log('テーブル「events」の存在を確認。');
+
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS event_details (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        event_id INT NOT NULL,
+        memo VARCHAR(255) NOT NULL,
+        time1_hour INT,
+        time1_minute INT,
+        time2_hour INT,
+        time2_minute INT,
+        FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+      );
+    `);
+    logger.log('テーブル「event_details」の存在を確認。');
 
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS students (

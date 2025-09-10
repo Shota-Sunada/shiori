@@ -41,6 +41,7 @@ import rollCallRouter from './routes/roll-call';
 import rollCallGroupsRouter from './routes/roll-call-groups';
 import teachersRouter from './routes/teachers';
 import creditsRouter from './routes/credits';
+import scheduleRouter from './routes/schedule';
 // バージョン取得用 (package.json から) - PWA クライアントのバージョン不一致検出に利用
 import serverPkg from '../package.json';
 
@@ -166,7 +167,8 @@ const routers: Array<[string, express.Router, boolean?]> = [
   ['/api/roll-call', rollCallRouter, true],
   ['/api/roll-call-groups', rollCallGroupsRouter, true],
   ['/api/teachers', teachersRouter, true],
-  ['/api/credits', creditsRouter, true]
+  ['/api/credits', creditsRouter, true],
+  ['/api/schedules', scheduleRouter, true]
 ];
 
 routers.forEach(([path, r, needAuth]) => {
