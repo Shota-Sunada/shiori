@@ -71,7 +71,7 @@ const OtanoshimiPreviewModal = ({ isOpen, order, max, onClose, onNavigate, teams
           </div>
           {team?.supervisor && team.supervisor.length > 0 ? (
             <div className="mt-4">
-              <h3 className="font-semibold">{'監修'}</h3>
+              <h3 className="font-semibold">{'サポーター'}</h3>
               <ul className="list-disc list-inside">{team.supervisor.map((sup, index) => (sup ? <li key={index}>{sup}</li> : null))}</ul>
             </div>
           ) : null}
