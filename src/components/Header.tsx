@@ -94,8 +94,8 @@ const Header = () => {
   const closeMenu = useCallback(() => setIsMenuOpen(false), []);
 
   type MenuItem =
-    | { type: 'link'; to: string; label: string; note?: string; prefetchKey?: import('../prefetch/cache').PrefetchKey; fetcher?: () => Promise<unknown> }
-    | { type: 'action'; label: string; onClick: () => void };
+    | { type: 'link'; to: string; label: string; note?: string; prefetchKey?: import('../prefetch/cache').PrefetchKey; fetcher?: () => Promise<unknown>; only_admin?: boolean }
+    | { type: 'action'; label: string; onClick: () => void; only_admin?: boolean };
   const menuItems: MenuItem[] = useMemo(
     () => [
       {
@@ -113,11 +113,11 @@ const Header = () => {
       { type: 'action', label: 'リロード', onClick: () => window.location.reload() },
       { type: 'link', to: '/env-debug', label: '動作環境表示' },
       { type: 'link', to: '/credits', label: 'クレジット' },
-      { type: 'link', to: '/admin', label: '管理パネル', note: '※管理者専用' },
-      { type: 'link', to: '/user-admin', label: 'ユーザー管理', note: '※管理者専用' },
-      { type: 'link', to: '/otanoshimi-admin', label: 'お楽しみ会管理', note: '※管理者専用' },
-      { type: 'link', to: '/teacher-admin', label: '先生管理', note: '※管理者専用' },
-      { type: 'link', to: '/admin/schedules', label: 'スケジュール管理', note: '※管理者専用' },
+      { type: 'link', to: '/admin', label: '管理パネル', only_admin: true },
+      { type: 'link', to: '/user-admin', label: 'ユーザー管理', only_admin: true },
+      { type: 'link', to: '/otanoshimi-admin', label: 'お楽しみ会管理', only_admin: true },
+      { type: 'link', to: '/teacher-admin', label: '先生管理', only_admin: true },
+      { type: 'link', to: '/admin/schedules', label: 'スケジュール管理', only_admin: true }
     ],
     [user]
   );
@@ -169,34 +169,38 @@ const Header = () => {
                   }
                 }}>
                 {menuItems.map((item, i) =>
-                  item.type === 'link' ? (
-                    item.prefetchKey && item.fetcher ? (
-                      <PrefetchLink
-                        key={i}
-                        to={item.to}
-                        prefetchKey={item.prefetchKey}
-                        fetcher={item.fetcher}
-                        className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
-                        onClick={closeMenu}>
-                        <p>{item.label}</p>
-                        {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
-                      </PrefetchLink>
+                  user.is_admin || user.is_teacher || !item.only_admin ? (
+                    item.type === 'link' ? (
+                      item.prefetchKey && item.fetcher ? (
+                        <PrefetchLink
+                          key={i}
+                          to={item.to}
+                          prefetchKey={item.prefetchKey}
+                          fetcher={item.fetcher}
+                          className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
+                          onClick={closeMenu}>
+                          <p>{item.label}</p>
+                          {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
+                        </PrefetchLink>
+                      ) : (
+                        <Link key={i} to={item.to} className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer" onClick={closeMenu}>
+                          <p>{item.label}</p>
+                          {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
+                        </Link>
+                      )
                     ) : (
-                      <Link key={i} to={item.to} className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer" onClick={closeMenu}>
-                        <p>{item.label}</p>
-                        {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
-                      </Link>
+                      <button
+                        key={i}
+                        className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => {
+                          item.onClick?.();
+                          closeMenu();
+                        }}>
+                        {item.label}
+                      </button>
                     )
                   ) : (
-                    <button
-                      key={i}
-                      className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => {
-                        item.onClick?.();
-                        closeMenu();
-                      }}>
-                      {item.label}
-                    </button>
+                    <></>
                   )
                 )}
                 <button
