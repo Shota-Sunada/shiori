@@ -19,6 +19,7 @@ const Header = () => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuClosing, setMenuClosing] = useState(false);
   const closeTimerRef = useRef<number | null>(null);
+  const [isMobile, setIsMobile] = useState<boolean>(() => (typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false));
 
   // 開: 表示即マウント + オープンアニメ, 閉: クローズアニメ後にアンマウント
   useEffect(() => {
@@ -50,6 +51,48 @@ const Header = () => {
       };
     }
   }, [isMenuOpen, menuVisible, menuClosing]);
+
+  // 画面幅の監視（モバイル判定）
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('matchMedia' in window)) return;
+    const mq = window.matchMedia('(max-width: 767px)');
+    const onChange = () => setIsMobile(mq.matches);
+    const mql = mq as unknown as {
+      addEventListener?: (type: 'change', listener: EventListener) => void;
+      removeEventListener?: (type: 'change', listener: EventListener) => void;
+      addListener?: (listener: (ev: MediaQueryListEvent) => void) => void;
+      removeListener?: (listener: (ev: MediaQueryListEvent) => void) => void;
+      matches: boolean;
+    };
+    if (typeof mql.addEventListener === 'function') {
+      mql.addEventListener('change', onChange as unknown as EventListener);
+    } else if (typeof mql.addListener === 'function') {
+      mql.addListener(onChange as unknown as (ev: MediaQueryListEvent) => void);
+    }
+    onChange();
+    return () => {
+      if (typeof mql.removeEventListener === 'function') {
+        mql.removeEventListener('change', onChange as unknown as EventListener);
+      } else if (typeof mql.removeListener === 'function') {
+        mql.removeListener(onChange as unknown as (ev: MediaQueryListEvent) => void);
+      }
+    };
+  }, []);
+
+  // モバイルでメニューオープン中は背景スクロールをロック
+  useEffect(() => {
+    if (!isMobile) return;
+    const el = document.documentElement as HTMLElement;
+    const prev = el.style.overflow;
+    if (isMenuOpen && menuVisible && !menuClosing) {
+      el.style.overflow = 'hidden';
+    } else {
+      el.style.overflow = prev || '';
+    }
+    return () => {
+      el.style.overflow = '';
+    };
+  }, [isMobile, isMenuOpen, menuVisible, menuClosing]);
 
   const menuRef = useRef<HTMLDivElement>(null);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
@@ -145,74 +188,147 @@ const Header = () => {
               className="hamburger-btn flex items-center justify-center">
               <HamburgerIcon open={isMenuOpen} />
             </button>
-            {menuVisible && (
-              <div
-                ref={menuRef}
-                data-state={menuClosing ? 'closing' : 'open'}
-                role="menu"
-                id="header-menu"
-                aria-hidden={menuClosing ? 'true' : undefined}
-                // inert: 閉じアニメ中はフォーカス/操作不可 (対応ブラウザのみ)
-                {...(menuClosing ? { inert: true } : {})}
-                className={`absolute right-0 top-full mt-2 bg-white text-black rounded shadow-lg w-52 z-50 flex flex-col border divide-y header-menu-anim-container overflow-hidden ${
-                  menuClosing ? 'header-menu-anim-out' : 'header-menu-anim-in'
-                }`}
-                style={{ transformOrigin: '100% 0%' }}
-                onAnimationEnd={(e) => {
-                  if (menuClosing && typeof e.animationName === 'string' && e.animationName.includes('headerMenuOut')) {
-                    setMenuVisible(false);
-                    setMenuClosing(false);
-                    if (closeTimerRef.current) {
-                      window.clearTimeout(closeTimerRef.current);
-                      closeTimerRef.current = null;
+            {menuVisible &&
+              (isMobile ? (
+                // モバイル: 全画面オーバーレイ + スクロール
+                <div
+                  ref={menuRef}
+                  data-state={menuClosing ? 'closing' : 'open'}
+                  role="dialog"
+                  aria-modal="true"
+                  id="header-menu"
+                  aria-hidden={menuClosing ? 'true' : undefined}
+                  {...(menuClosing ? { inert: true } : {})}
+                  className={`fixed inset-0 bg-white text-black z-50 flex flex-col header-menu-anim-container ${menuClosing ? 'header-menu-anim-out' : 'header-menu-anim-in'}`}
+                  onAnimationEnd={(e) => {
+                    if (menuClosing && typeof e.animationName === 'string' && e.animationName.includes('headerMenuOut')) {
+                      setMenuVisible(false);
+                      setMenuClosing(false);
+                      if (closeTimerRef.current) {
+                        window.clearTimeout(closeTimerRef.current);
+                        closeTimerRef.current = null;
+                      }
                     }
-                  }
-                }}>
-                {menuItems.map((item, i) =>
-                  user.is_admin || user.is_teacher || !item.only_admin ? (
-                    item.type === 'link' ? (
-                      item.prefetchKey && item.fetcher ? (
-                        <PrefetchLink
-                          key={i}
-                          to={item.to}
-                          prefetchKey={item.prefetchKey}
-                          fetcher={item.fetcher}
-                          className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
-                          onClick={closeMenu}>
-                          <p>{item.label}</p>
-                          {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
-                        </PrefetchLink>
+                  }}>
+                  <div className="flex items-center justify-between px-4 py-3 border-b">
+                    <div className="flex items-center gap-2">
+                      <img className="w-8 h-8" src="/icon.png" alt="" />
+                      <span className="font-semibold">メニュー</span>
+                    </div>
+                    <button className="px-3 py-1 rounded bg-gray-100" onClick={closeMenu} aria-label="閉じる">
+                      閉じる
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto">
+                    <div className="flex flex-col divide-y">
+                      {menuItems.map((item, i) =>
+                        user.is_admin || user.is_teacher || !item.only_admin ? (
+                          item.type === 'link' ? (
+                            item.prefetchKey && item.fetcher ? (
+                              <PrefetchLink key={i} to={item.to} prefetchKey={item.prefetchKey} fetcher={item.fetcher} className="px-4 py-4 text-lg hover:bg-gray-50" onClick={closeMenu}>
+                                <p>{item.label}</p>
+                                {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
+                              </PrefetchLink>
+                            ) : (
+                              <Link key={i} to={item.to} className="px-4 py-4 text-lg hover:bg-gray-50" onClick={closeMenu}>
+                                <p>{item.label}</p>
+                                {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
+                              </Link>
+                            )
+                          ) : (
+                            <button
+                              key={i}
+                              className="px-4 py-4 text-left text-lg hover:bg-gray-50"
+                              onClick={() => {
+                                item.onClick?.();
+                                closeMenu();
+                              }}>
+                              {item.label}
+                            </button>
+                          )
+                        ) : (
+                          <></>
+                        )
+                      )}
+                      <button
+                        className="px-4 py-4 text-left text-lg hover:bg-red-50 text-red-600"
+                        onClick={() => {
+                          closeMenu();
+                          handleLogout();
+                        }}>
+                        {'ログアウト'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                // デスクトップ: これまで通りのドロップダウン
+                <div
+                  ref={menuRef}
+                  data-state={menuClosing ? 'closing' : 'open'}
+                  role="menu"
+                  id="header-menu"
+                  aria-hidden={menuClosing ? 'true' : undefined}
+                  {...(menuClosing ? { inert: true } : {})}
+                  className={`absolute right-0 top-full mt-2 bg-white text-black rounded shadow-lg w-52 z-50 flex flex-col border divide-y header-menu-anim-container overflow-hidden ${
+                    menuClosing ? 'header-menu-anim-out' : 'header-menu-anim-in'
+                  }`}
+                  style={{ transformOrigin: '100% 0%' }}
+                  onAnimationEnd={(e) => {
+                    if (menuClosing && typeof e.animationName === 'string' && e.animationName.includes('headerMenuOut')) {
+                      setMenuVisible(false);
+                      setMenuClosing(false);
+                      if (closeTimerRef.current) {
+                        window.clearTimeout(closeTimerRef.current);
+                        closeTimerRef.current = null;
+                      }
+                    }
+                  }}>
+                  {menuItems.map((item, i) =>
+                    user.is_admin || user.is_teacher || !item.only_admin ? (
+                      item.type === 'link' ? (
+                        item.prefetchKey && item.fetcher ? (
+                          <PrefetchLink
+                            key={i}
+                            to={item.to}
+                            prefetchKey={item.prefetchKey}
+                            fetcher={item.fetcher}
+                            className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
+                            onClick={closeMenu}>
+                            <p>{item.label}</p>
+                            {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
+                          </PrefetchLink>
+                        ) : (
+                          <Link key={i} to={item.to} className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer" onClick={closeMenu}>
+                            <p>{item.label}</p>
+                            {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
+                          </Link>
+                        )
                       ) : (
-                        <Link key={i} to={item.to} className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer" onClick={closeMenu}>
-                          <p>{item.label}</p>
-                          {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
-                        </Link>
+                        <button
+                          key={i}
+                          className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => {
+                            item.onClick?.();
+                            closeMenu();
+                          }}>
+                          {item.label}
+                        </button>
                       )
                     ) : (
-                      <button
-                        key={i}
-                        className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => {
-                          item.onClick?.();
-                          closeMenu();
-                        }}>
-                        {item.label}
-                      </button>
+                      <></>
                     )
-                  ) : (
-                    <></>
-                  )
-                )}
-                <button
-                  className="header-menu-item text-left px-4 py-3 hover:bg-red-50 text-red-600 cursor-pointer"
-                  onClick={() => {
-                    closeMenu();
-                    handleLogout();
-                  }}>
-                  {'ログアウト'}
-                </button>
-              </div>
-            )}
+                  )}
+                  <button
+                    className="header-menu-item text-left px-4 py-3 hover:bg-red-50 text-red-600 cursor-pointer"
+                    onClick={() => {
+                      closeMenu();
+                      handleLogout();
+                    }}>
+                    {'ログアウト'}
+                  </button>
+                </div>
+              ))}
           </div>
         )}
       </div>
