@@ -1,6 +1,6 @@
 {
   "name": "shiori-server",
-  "version": "6.1.6",
+  "version": "7.0.0",
   "description": "Firebase Messaging server for Shiori",
   "main": "index.js",
   "scripts": {

@@ -1,9 +1,16 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, type ReactElement } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { PrefetchLink } from '../prefetch/PrefetchLink';
 import { otanoshimiApi } from '../helpers/domainApi';
+import { IoHome, IoReload } from 'react-icons/io5';
+import { FaTable } from 'react-icons/fa';
+import { LuPartyPopper } from 'react-icons/lu';
+import { VscDebugAlt } from 'react-icons/vsc';
+import { FaUserGraduate } from 'react-icons/fa6';
+import { IoSettingsSharp } from 'react-icons/io5';
+import { IoLogOut } from 'react-icons/io5';
 
 const HamburgerIcon = ({ open }: { open: boolean }) => (
   <div className="flex flex-col justify-center items-center w-8 h-8 cursor-pointer">
@@ -76,30 +83,38 @@ const Header = () => {
   const closeMenu = useCallback(() => setIsMenuOpen(false), []);
 
   type MenuItem =
-    | { type: 'link'; to: string; label: string; note?: string; prefetchKey?: import('../prefetch/cache').PrefetchKey; fetcher?: () => Promise<unknown>; only_admin?: boolean }
-    | { type: 'action'; label: string; onClick: () => void; only_admin?: boolean };
+    | { type: 'link'; icon?: ReactElement; to: string; label: string; note?: string; prefetchKey?: import('../prefetch/cache').PrefetchKey; fetcher?: () => Promise<unknown>; only_admin?: boolean }
+    | { type: 'action'; icon?: ReactElement; label: string; onClick: () => void; only_admin?: boolean };
   const menuItems: MenuItem[] = useMemo(
     () => [
       {
         type: 'link',
+        icon: <IoHome />,
         to: user?.is_teacher ? '/teacher' : '/',
         label: 'ホーム'
       },
       {
         type: 'link',
+        icon: <FaTable />,
+        to: '/yotei',
+        label: '全工程表'
+      },
+      {
+        type: 'link',
+        icon: <LuPartyPopper />,
         to: '/otanoshimi',
         label: 'お楽しみ会ページ',
         prefetchKey: 'otanoshimiTeams',
         fetcher: async () => otanoshimiApi.list()
       },
-      { type: 'action', label: 'しおりを再読み込み', onClick: () => window.location.reload() },
-      { type: 'link', to: '/env-debug', label: 'デバッグ用環境表示' },
-      { type: 'link', to: '/credits', label: 'クレジット' },
-      { type: 'link', to: '/admin', label: '生徒管理画面', note: '管理者&先生専用', only_admin: true },
-      { type: 'link', to: '/teacher-admin', label: '先生管理画面', note: '管理者&先生専用', only_admin: true },
-      { type: 'link', to: '/user-admin', label: 'ユーザー管理画面', note: '管理者&先生専用', only_admin: true },
-      { type: 'link', to: '/otanoshimi-admin', label: 'お楽しみ会管理画面', note: '管理者&先生専用', only_admin: true },
-      { type: 'link', to: '/admin/schedules', label: 'スケジュール管理画面', note: '管理者&先生専用', only_admin: true }
+      { type: 'action', icon: <IoReload />, label: 'しおりを再読み込み', onClick: () => window.location.reload() },
+      { type: 'link', icon: <VscDebugAlt />, to: '/env-debug', label: 'デバッグ用環境表示' },
+      { type: 'link', icon: <FaUserGraduate />, to: '/credits', label: 'クレジット' },
+      { type: 'link', icon: <IoSettingsSharp />, to: '/admin', label: '生徒管理画面', note: '管理者&先生専用', only_admin: true },
+      { type: 'link', icon: <IoSettingsSharp />, to: '/teacher-admin', label: '先生管理画面', note: '管理者&先生専用', only_admin: true },
+      { type: 'link', icon: <IoSettingsSharp />, to: '/user-admin', label: 'ユーザー管理画面', note: '管理者&先生専用', only_admin: true },
+      { type: 'link', icon: <IoSettingsSharp />, to: '/otanoshimi-admin', label: 'お楽しみ会管理画面', note: '管理者&先生専用', only_admin: true },
+      { type: 'link', icon: <IoSettingsSharp />, to: '/admin/schedules', label: 'スケジュール管理画面', note: '管理者&先生専用', only_admin: true }
     ],
     [user]
   );
@@ -158,15 +173,19 @@ const Header = () => {
                               to={item.to}
                               prefetchKey={item.prefetchKey}
                               fetcher={item.fetcher}
-                              className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
+                              className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer flex flex-row items-center justify-start"
                               onClick={closeMenu}>
-                              <p>{item.label}</p>
+                              {item.icon}
+                              <p className="ml-2">{item.label}</p>
                               {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
                             </PrefetchLink>
                           ) : (
                             <Link key={i} to={item.to} className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer" onClick={closeMenu}>
-                              <p>{item.label}</p>
-                              {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
+                              <div className="flex flex-row items-center justify-start">
+                                {item.icon}
+                                <p className="ml-2">{item.label}</p>
+                              </div>
+                              {item.note && <p className="ml-3 text-xs text-gray-500">{item.note}</p>}
                             </Link>
                           )
                         ) : (
@@ -177,7 +196,10 @@ const Header = () => {
                               item.onClick?.();
                               closeMenu();
                             }}>
-                            {item.label}
+                            <div className="flex flex-row items-center justify-start">
+                              {item.icon}
+                              <p className="ml-2">{item.label}</p>
+                            </div>
                           </button>
                         )
                       ) : (
@@ -190,7 +212,10 @@ const Header = () => {
                         closeMenu();
                         handleLogout();
                       }}>
-                      {'ログアウト'}
+                      <div className='flex flex-row items-center justify-start'>
+                        <IoLogOut />
+                        <p className="ml-2">{'ログアウト'}</p>
+                      </div>
                     </button>
                   </nav>
                 </div>
