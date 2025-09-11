@@ -3,6 +3,8 @@ import { useAuth } from '../auth-context';
 import TimeTable from '../components/TimeTable';
 import { studentApi, teacherApi, type StudentDTO, type TeacherDTO } from '../helpers/domainApi';
 import { DAY4_DATA, type COURSES_DAY1_KEY, type COURSES_DAY3_KEY, type COURSES_DAY4_KEY } from '../data/courses';
+import ModernTable from '../components/ModernTable';
+import "../styles/index-table.css"
 
 const Yotei = () => {
   const { user } = useAuth();
@@ -67,9 +69,23 @@ const Yotei = () => {
 
   return (
     <div className="p-2">
-      <TimeTable courseKey={day1CourseKey} />
-      <TimeTable courseKey={day3CourseKey} />
-      <TimeTable courseKey={day4CourseKey} />
+      <div className="flex flex-col items-center justify-start text-left p-2">
+        <h2 className='font-bold text-3xl'>全体の流れ</h2>
+        <div className="w-full max-w-4xl my-3 index-table-wrapper">
+          <ModernTable>
+            <TimeTable courseKey={'day1_common1'} />
+            <TimeTable courseKey={day1CourseKey} />
+            <TimeTable courseKey={'day1_common2'} />
+            <TimeTable courseKey={'day2_common'} />
+            <TimeTable courseKey={'day3_common1'} />
+            <TimeTable courseKey={day3CourseKey} />
+            <TimeTable courseKey={'day3_common2'} />
+            <TimeTable courseKey={'day4_common1'} />
+            <TimeTable courseKey={day4CourseKey} />
+            <TimeTable courseKey={'day4_common2'} />
+          </ModernTable>
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import ModernTable from './ModernTable';
 import { appFetch } from '../helpers/apiClient';
 import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import type { COURSES_DAY1_KEY, COURSES_DAY3_KEY, COURSES_DAY4_KEY } from '../data/courses';
@@ -38,8 +37,10 @@ type Course = {
   schedules: Schedule[];
 };
 
+export type COURSES_COMMON_KEY = 'day1_common1' | 'day1_common2' | 'day2_common' | 'day3_common1' | 'day3_common2' | 'day4_common1' | 'day4_common2';
+
 export type TimeTableProps = {
-  courseKey: COURSES_DAY1_KEY | COURSES_DAY3_KEY | COURSES_DAY4_KEY | null;
+  courseKey: COURSES_DAY1_KEY | COURSES_DAY3_KEY | COURSES_DAY4_KEY | COURSES_COMMON_KEY | null;
 };
 
 const pad2 = (n?: number) => (typeof n === 'number' ? String(n).padStart(2, '0') : '');
@@ -105,51 +106,49 @@ const TimeTable = ({ courseKey }: TimeTableProps) => {
   if (!course) return <div className="p-4 text-center">該当コースが見つかりません</div>;
 
   return (
-    <div className="flex flex-col items-center justify-start text-left p-2">
-      {course.name && <h2 className="text-xl font-bold my-2">{course.name}</h2>}
-      <div className="w-full max-w-4xl my-3 index-table-wrapper">
-        <ModernTable>
-          <thead>
-            <tr>
-              <th className="w-1/5">時間</th>
-              <th className="w-4/5">内容</th>
+    <>
+      <thead>
+        <tr>
+          <th colSpan={2}>{course.name}</th>
+        </tr>
+        <tr>
+          <th className="w-1/5">時間</th>
+          <th className="w-4/5">内容</th>
+        </tr>
+      </thead>
+      <tbody>
+        {(() => {
+          const toMinutes = (h?: number, m?: number) => (typeof h === 'number' && typeof m === 'number' ? h * 60 + m : Number.POSITIVE_INFINITY);
+          const rows = (course.schedules || []).flatMap((sch) => (sch.events || []).map((ev) => ({ schTitle: sch.title, ev })));
+          rows.sort((a, b) => toMinutes(a.ev.time1Hour, a.ev.time1Minute) - toMinutes(b.ev.time1Hour, b.ev.time1Minute));
+          return rows.map(({ schTitle, ev }) => (
+            <tr key={ev.id}>
+              <td>{fmtEventTime(ev)}</td>
+              <td>
+                <div className="text-xs text-gray-500">{schTitle}</div>
+                <div>{ev.memo}</div>
+                {ev.details.length > 0 && (
+                  <ul className="list-disc ml-4 text-sm text-gray-700">
+                    {ev.details
+                      .slice()
+                      .sort((d1, d2) => toMinutes(d1.time1Hour, d1.time1Minute) - toMinutes(d2.time1Hour, d2.time1Minute))
+                      .map((d) => {
+                        const time = fmtDetailTime(d);
+                        return (
+                          <li key={d.id}>
+                            {time ? <span className="inline-block pr-2 text-gray-500">{time}</span> : null}
+                            <span>{d.memo}</span>
+                          </li>
+                        );
+                      })}
+                  </ul>
+                )}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {(() => {
-              const toMinutes = (h?: number, m?: number) => (typeof h === 'number' && typeof m === 'number' ? h * 60 + m : Number.POSITIVE_INFINITY);
-              const rows = (course.schedules || []).flatMap((sch) => (sch.events || []).map((ev) => ({ schTitle: sch.title, ev })));
-              rows.sort((a, b) => toMinutes(a.ev.time1Hour, a.ev.time1Minute) - toMinutes(b.ev.time1Hour, b.ev.time1Minute));
-              return rows.map(({ schTitle, ev }) => (
-                <tr key={ev.id}>
-                  <td>{fmtEventTime(ev)}</td>
-                  <td>
-                    <div className="text-xs text-gray-500">{schTitle}</div>
-                    <div>{ev.memo}</div>
-                    {ev.details.length > 0 && (
-                      <ul className="list-disc ml-4 text-sm text-gray-700">
-                        {ev.details
-                          .slice()
-                          .sort((d1, d2) => toMinutes(d1.time1Hour, d1.time1Minute) - toMinutes(d2.time1Hour, d2.time1Minute))
-                          .map((d) => {
-                            const time = fmtDetailTime(d);
-                            return (
-                              <li key={d.id}>
-                                {time ? <span className="inline-block pr-2 text-gray-500">{time}</span> : null}
-                                <span>{d.memo}</span>
-                              </li>
-                            );
-                          })}
-                      </ul>
-                    )}
-                  </td>
-                </tr>
-              ));
-            })()}
-          </tbody>
-        </ModernTable>
-      </div>
-    </div>
+          ));
+        })()}
+      </tbody>
+    </>
   );
 };
 

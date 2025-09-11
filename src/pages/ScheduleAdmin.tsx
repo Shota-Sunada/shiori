@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { appFetch } from '../helpers/apiClient';
 import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4 } from '../data/courses';
+import type { COURSES_COMMON_KEY } from '../components/TimeTable';
 
 type EventDetail = {
   id: number;
@@ -117,11 +118,22 @@ const ScheduleAdmin = () => {
     }
   };
 
+  const COURSES_COMMON: { key: COURSES_COMMON_KEY; name: string }[] = [
+    { key: 'day1_common1', name: '[1日目] 共通(昼)' },
+    { key: 'day1_common2', name: '[1日目] 共通(夜)' },
+    { key: 'day2_common', name: '[2日目] 共通' },
+    { key: 'day3_common1', name: '[3日目] 共通(朝)' },
+    { key: 'day3_common2', name: '[3日目] 共通(夜)' },
+    { key: 'day4_common1', name: '[4日目] 共通(昼)' },
+    { key: 'day4_common2', name: '[4日目] 共通(夜)' }
+  ];
+
   const existingKeys = new Set((data || []).map((c) => c.course_key));
   const ALL_COURSES: Array<{ key: string; name: string }> = [
-    ...COURSES_DAY1.map((c) => ({ key: c.key, name: c.name })),
-    ...COURSES_DAY3.map((c) => ({ key: c.key, name: c.name })),
-    ...COURSES_DAY4.map((c) => ({ key: c.key, name: c.name }))
+    ...COURSES_DAY1.map((c) => ({ key: c.key, name: `[1日目] ${c.name}` })),
+    ...COURSES_DAY3.map((c) => ({ key: c.key, name: `[3日目] ${c.name}` })),
+    ...COURSES_DAY4.map((c) => ({ key: c.key, name: `[4日目] ${c.name}` })),
+    ...COURSES_COMMON.map((c) => ({ key: c.key, name: c.name }))
   ];
   const selectableCourses = ALL_COURSES.filter((c) => !existingKeys.has(c.key));
 
@@ -147,6 +159,7 @@ const ScheduleAdmin = () => {
                 <button
                   className="text-xs px-2 py-1 mx-1 bg-red-400 rounded"
                   onClick={() => {
+                    if (!window.confirm('削除してもよろしいですか?')) return;
                     appFetch(`${SERVER_ENDPOINT}/api/schedules/courses/${course.id}`, { method: 'DELETE', requiresAuth: true })
                       .then(() => refresh())
                       .catch((e) => console.error(e));
@@ -230,6 +243,7 @@ const ScheduleAdmin = () => {
                       <button
                         className="text-xs px-2 py-1 mx-1 bg-red-400 rounded"
                         onClick={() => {
+                          if (!window.confirm('削除してもよろしいですか?')) return;
                           appFetch(`${SERVER_ENDPOINT}/api/schedules/${schedule.id}`, { method: 'DELETE', requiresAuth: true })
                             .then(() => refresh())
                             .catch((e) => console.error(e));
@@ -255,8 +269,16 @@ const ScheduleAdmin = () => {
                             <div className="m-1 p-1 border bg-gray-50">
                               <input name="memo" value={input.memo || ''} onChange={handleInput} placeholder="メモ" className="border p-1 mr-2" />
                               <div className="flex flex-row">
-                                <input name="time1Hour" value={input.time1Hour || ''} onChange={handleInput} placeholder="開始時" className="border p-1 mr-2" inputMode="numeric" pattern="\\d*" />
-                                <input name="time1Minute" value={input.time1Minute || ''} onChange={handleInput} placeholder="開始分" className="border p-1 mr-2" inputMode="numeric" pattern="\\d*" />
+                                <input name="time1Hour" value={input.time1Hour || ''} onChange={handleInput} placeholder="開始時" className="border p-1 mr-2 w-20" inputMode="numeric" pattern="\\d*" />
+                                <input
+                                  name="time1Minute"
+                                  value={input.time1Minute || ''}
+                                  onChange={handleInput}
+                                  placeholder="開始分"
+                                  className="border p-1 mr-2 w-20"
+                                  inputMode="numeric"
+                                  pattern="\\d*"
+                                />
                                 <select name="time1Postfix" value={input.time1Postfix || ''} onChange={handleInput} className="border p-1 mr-2">
                                   <option value="">(なし)</option>
                                   <option value="発">発</option>
@@ -264,8 +286,16 @@ const ScheduleAdmin = () => {
                                 </select>
                               </div>
                               <div className="flex flex-row">
-                                <input name="time2Hour" value={input.time2Hour || ''} onChange={handleInput} placeholder="終了時" className="border p-1 mr-2" inputMode="numeric" pattern="\\d*" />
-                                <input name="time2Minute" value={input.time2Minute || ''} onChange={handleInput} placeholder="終了分" className="border p-1 mr-2" inputMode="numeric" pattern="\\d*" />
+                                <input name="time2Hour" value={input.time2Hour || ''} onChange={handleInput} placeholder="終了時" className="border p-1 mr-2 w-20" inputMode="numeric" pattern="\\d*" />
+                                <input
+                                  name="time2Minute"
+                                  value={input.time2Minute || ''}
+                                  onChange={handleInput}
+                                  placeholder="終了分"
+                                  className="border p-1 mr-2 w-20"
+                                  inputMode="numeric"
+                                  pattern="\\d*"
+                                />
                                 <select name="time2Postfix" value={input.time2Postfix || ''} onChange={handleInput} className="border p-1 mr-2">
                                   <option value="">(なし)</option>
                                   <option value="発">発</option>
@@ -346,6 +376,7 @@ const ScheduleAdmin = () => {
                             <button
                               className="text-xs px-2 py-1 mx-1 bg-red-400 rounded"
                               onClick={() => {
+                                if (!window.confirm('削除してもよろしいですか?')) return;
                                 appFetch(`${SERVER_ENDPOINT}/api/schedules/events/${event.id}`, { method: 'DELETE', requiresAuth: true })
                                   .then(() => refresh())
                                   .catch((e) => console.error(e));
@@ -377,7 +408,7 @@ const ScheduleAdmin = () => {
                                         value={input.time1Hour || ''}
                                         onChange={handleInput}
                                         placeholder="開始時"
-                                        className="border p-1 mr-2"
+                                        className="border p-1 mr-2 w-20"
                                         inputMode="numeric"
                                         pattern="\\d*"
                                       />
@@ -386,7 +417,7 @@ const ScheduleAdmin = () => {
                                         value={input.time1Minute || ''}
                                         onChange={handleInput}
                                         placeholder="開始分"
-                                        className="border p-1 mr-2"
+                                        className="border p-1 mr-2 w-20"
                                         inputMode="numeric"
                                         pattern="\\d*"
                                       />
@@ -397,7 +428,7 @@ const ScheduleAdmin = () => {
                                         value={input.time2Hour || ''}
                                         onChange={handleInput}
                                         placeholder="終了時"
-                                        className="border p-1 mr-2"
+                                        className="border p-1 mr-2 w-20"
                                         inputMode="numeric"
                                         pattern="\\d*"
                                       />
@@ -406,7 +437,7 @@ const ScheduleAdmin = () => {
                                         value={input.time2Minute || ''}
                                         onChange={handleInput}
                                         placeholder="終了分"
-                                        className="border p-1 mr-2"
+                                        className="border p-1 mr-2 w-20"
                                         inputMode="numeric"
                                         pattern="\\d*"
                                       />
@@ -481,6 +512,7 @@ const ScheduleAdmin = () => {
                                   <button
                                     className="text-xs px-2 py-1 mx-1 bg-red-400 rounded"
                                     onClick={() => {
+                                      if (!window.confirm('削除してもよろしいですか?')) return;
                                       appFetch(`${SERVER_ENDPOINT}/api/schedules/event-details/${detail.id}`, { method: 'DELETE', requiresAuth: true })
                                         .then(() => refresh())
                                         .catch((e) => console.error(e));
@@ -495,12 +527,12 @@ const ScheduleAdmin = () => {
                             <li className="m-1 p-1 border bg-gray-50">
                               <input name="memo" value={input.memo || ''} onChange={handleInput} placeholder="メモ" className="border p-1 mr-2" />
                               <div className="flex flex-row">
-                                <input name="time1Hour" value={input.time1Hour || ''} onChange={handleInput} placeholder="開始時" className="border p-1 mr-2" />
-                                <input name="time1Minute" value={input.time1Minute || ''} onChange={handleInput} placeholder="開始分" className="border p-1 mr-2" />
+                                <input name="time1Hour" value={input.time1Hour || ''} onChange={handleInput} placeholder="開始時" className="border p-1 mr-2 w-20" />
+                                <input name="time1Minute" value={input.time1Minute || ''} onChange={handleInput} placeholder="開始分" className="border p-1 mr-2 w-20" />
                               </div>
                               <div className="flex flex-row">
-                                <input name="time2Hour" value={input.time2Hour || ''} onChange={handleInput} placeholder="終了時" className="border p-1 mr-2" />
-                                <input name="time2Minute" value={input.time2Minute || ''} onChange={handleInput} placeholder="終了分" className="border p-1 mr-2" />
+                                <input name="time2Hour" value={input.time2Hour || ''} onChange={handleInput} placeholder="終了時" className="border p-1 mr-2 w-20" />
+                                <input name="time2Minute" value={input.time2Minute || ''} onChange={handleInput} placeholder="終了分" className="border p-1 mr-2 w-20" />
                               </div>
                               <button
                                 className="px-2 py-1 bg-green-500 text-white rounded"
@@ -555,8 +587,8 @@ const ScheduleAdmin = () => {
                       <li className="m-1 p-1 border bg-gray-50 flex flex-col">
                         <input name="memo" value={input.memo || ''} onChange={handleInput} placeholder="メモ" className="border p-1 mr-2" />
                         <div className="flex flex-row">
-                          <input name="time1Hour" value={input.time1Hour || ''} onChange={handleInput} placeholder="開始時" className="border p-1 mr-2" inputMode="numeric" pattern="\\d*" />
-                          <input name="time1Minute" value={input.time1Minute || ''} onChange={handleInput} placeholder="開始分" className="border p-1 mr-2" inputMode="numeric" pattern="\\d*" />
+                          <input name="time1Hour" value={input.time1Hour || ''} onChange={handleInput} placeholder="開始時" className="border p-1 mr-2 w-20" inputMode="numeric" pattern="\\d*" />
+                          <input name="time1Minute" value={input.time1Minute || ''} onChange={handleInput} placeholder="開始分" className="border p-1 mr-2 w-20" inputMode="numeric" pattern="\\d*" />
                           <select name="time1Postfix" value={input.time1Postfix || ''} onChange={handleInput} className="border p-1 mr-2">
                             <option value="">(なし)</option>
                             <option value="発">発</option>
@@ -564,8 +596,8 @@ const ScheduleAdmin = () => {
                           </select>
                         </div>
                         <div className="flex flex-row">
-                          <input name="time2Hour" value={input.time2Hour || ''} onChange={handleInput} placeholder="終了時" className="border p-1 mr-2" inputMode="numeric" pattern="\\d*" />
-                          <input name="time2Minute" value={input.time2Minute || ''} onChange={handleInput} placeholder="終了分" className="border p-1 mr-2" inputMode="numeric" pattern="\\d*" />
+                          <input name="time2Hour" value={input.time2Hour || ''} onChange={handleInput} placeholder="終了時" className="border p-1 mr-2 w-20" inputMode="numeric" pattern="\\d*" />
+                          <input name="time2Minute" value={input.time2Minute || ''} onChange={handleInput} placeholder="終了分" className="border p-1 mr-2 w-20" inputMode="numeric" pattern="\\d*" />
                           <select name="time2Postfix" value={input.time2Postfix || ''} onChange={handleInput} className="border p-1 mr-2">
                             <option value="">(なし)</option>
                             <option value="発">発</option>
