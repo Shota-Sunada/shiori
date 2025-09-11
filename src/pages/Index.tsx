@@ -110,6 +110,7 @@ const Index = () => {
 
       {!user.is_teacher && (
         <div className="mt-4">
+          <MDButton text="持ち物チェッカー" arrowRight link="/goods-check" />
           <MDButton text="点呼履歴" arrowRight link="/roll-call-history" />
         </div>
       )}

@@ -32,6 +32,7 @@ import ScheduleAdmin from './pages/ScheduleAdmin';
 import { appFetch } from './helpers/apiClient';
 import Yotei from './pages/Yotei';
 import Maps from './pages/Maps';
+import GoodsCheck from './pages/GoodsCheck';
 
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: unknown }> {
   constructor(props: { children: React.ReactNode }) {
@@ -468,6 +469,14 @@ function App() {
                     element={
                         <FadeContainer>
                           <Yotei />
+                        </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/goods-check"
+                    element={
+                        <FadeContainer>
+                          <GoodsCheck />
                         </FadeContainer>
                     }
                   />
