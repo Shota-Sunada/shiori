@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { PrefetchLink } from '../prefetch/PrefetchLink';
@@ -16,83 +17,36 @@ const Header = () => {
   const { user, logout } = useAuth();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [menuClosing, setMenuClosing] = useState(false);
-  const closeTimerRef = useRef<number | null>(null);
-  const [isMobile, setIsMobile] = useState<boolean>(() => (typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false));
-
-  // 開: 表示即マウント + オープンアニメ, 閉: クローズアニメ後にアンマウント
+  // bodyスクロールロック用
   useEffect(() => {
     if (isMenuOpen) {
-      // 開く: 可視化して closing 状態解除
-      setMenuVisible(true);
-      requestAnimationFrame(() => setMenuClosing(false));
-    } else if (menuVisible && !menuClosing) {
-      // 閉じ開始: closing フラグを立ててアニメ終了後にアンマウント
-      setMenuClosing(true);
-      // 閉じアニメ中に内部へフォーカスが残ると aria-hidden 警告になるので先にハンバーガーへフォーカスを戻す
-      if (menuRef.current && menuRef.current.contains(document.activeElement)) {
-        (hamburgerRef.current as HTMLButtonElement | null)?.focus();
-      }
-      // 既存タイマーがあればクリア
-      if (closeTimerRef.current) {
-        window.clearTimeout(closeTimerRef.current);
-        closeTimerRef.current = null;
-      }
-      // セーフティ: onAnimationEnd が拾えない環境向けのアンマウント保険
-      const t = window.setTimeout(() => {
-        setMenuVisible(false);
-        setMenuClosing(false);
-        closeTimerRef.current = null;
-      }, 220);
-      closeTimerRef.current = t;
-      return () => {
-        if (t) window.clearTimeout(t);
-      };
-    }
-  }, [isMenuOpen, menuVisible, menuClosing]);
-
-  // 画面幅の監視（モバイル判定）
-  useEffect(() => {
-    if (typeof window === 'undefined' || !('matchMedia' in window)) return;
-    const mq = window.matchMedia('(max-width: 767px)');
-    const onChange = () => setIsMobile(mq.matches);
-    const mql = mq as unknown as {
-      addEventListener?: (type: 'change', listener: EventListener) => void;
-      removeEventListener?: (type: 'change', listener: EventListener) => void;
-      addListener?: (listener: (ev: MediaQueryListEvent) => void) => void;
-      removeListener?: (listener: (ev: MediaQueryListEvent) => void) => void;
-      matches: boolean;
-    };
-    if (typeof mql.addEventListener === 'function') {
-      mql.addEventListener('change', onChange as unknown as EventListener);
-    } else if (typeof mql.addListener === 'function') {
-      mql.addListener(onChange as unknown as (ev: MediaQueryListEvent) => void);
-    }
-    onChange();
-    return () => {
-      if (typeof mql.removeEventListener === 'function') {
-        mql.removeEventListener('change', onChange as unknown as EventListener);
-      } else if (typeof mql.removeListener === 'function') {
-        mql.removeListener(onChange as unknown as (ev: MediaQueryListEvent) => void);
-      }
-    };
-  }, []);
-
-  // モバイルでメニューオープン中は背景スクロールをロック
-  useEffect(() => {
-    if (!isMobile) return;
-    const el = document.documentElement as HTMLElement;
-    const prev = el.style.overflow;
-    if (isMenuOpen && menuVisible && !menuClosing) {
-      el.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${window.scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.width = '100%';
     } else {
-      el.style.overflow = prev || '';
+      const scrollY = -parseInt(document.body.style.top || '0', 10);
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollY);
     }
     return () => {
-      el.style.overflow = '';
+      // クリーンアップ
+      const scrollY = -parseInt(document.body.style.top || '0', 10);
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollY);
     };
-  }, [isMobile, isMenuOpen, menuVisible, menuClosing]);
+  }, [isMenuOpen]);
+
+  // 不要な状態・副作用を削除し、isMenuOpenのみで制御
 
   const menuRef = useRef<HTMLDivElement>(null);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
@@ -106,39 +60,24 @@ const Header = () => {
     navigate('/login');
   }, [logout, navigate]);
 
+  // オーバーレイクリックで閉じる
   useEffect(() => {
-    const handleClickOutside = (event: Event) => {
-      if (!isMenuOpen) return;
-      const target = event.target as Node | null;
-      if (!menuRef.current) return;
-      const clickedInsideMenu = target && menuRef.current.contains(target);
-      const clickedOnHamburger = hamburgerRef.current && target && hamburgerRef.current.contains(target);
-      if (!clickedInsideMenu && !clickedOnHamburger) {
+    if (!isMenuOpen) return;
+    const handle = (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (target && target.classList.contains('header-menu-overlay')) {
         setIsMenuOpen(false);
       }
     };
-
-    // Use capture phase listeners so we detect taps before other handlers stop propagation (helps Safari)
-    document.addEventListener('pointerdown', handleClickOutside, true);
-    document.addEventListener('touchstart', handleClickOutside, true);
-    document.addEventListener('mousedown', handleClickOutside, true);
-    // Also close on scroll to avoid stuck-open state when the page moves
-    const scrollHandler = handleClickOutside as EventListener;
-    window.addEventListener('scroll', scrollHandler, { capture: true, passive: true });
-
-    return () => {
-      document.removeEventListener('pointerdown', handleClickOutside, true);
-      document.removeEventListener('touchstart', handleClickOutside, true);
-      document.removeEventListener('mousedown', handleClickOutside, true);
-      window.removeEventListener('scroll', scrollHandler, { capture: true } as AddEventListenerOptions);
-    };
+    document.addEventListener('click', handle);
+    return () => document.removeEventListener('click', handle);
   }, [isMenuOpen]);
 
   const closeMenu = useCallback(() => setIsMenuOpen(false), []);
 
   type MenuItem =
-    | { type: 'link'; to: string; label: string; note?: string; prefetchKey?: import('../prefetch/cache').PrefetchKey; fetcher?: () => Promise<unknown>; only_admin?: boolean }
-    | { type: 'action'; label: string; onClick: () => void; only_admin?: boolean };
+    | { type: 'link'; to: string; label: string; note?: string; prefetchKey?: import('../prefetch/cache').PrefetchKey; fetcher?: () => Promise<unknown> }
+    | { type: 'action'; label: string; onClick: () => void };
   const menuItems: MenuItem[] = useMemo(
     () => [
       {
@@ -156,11 +95,11 @@ const Header = () => {
       { type: 'action', label: 'リロード', onClick: () => window.location.reload() },
       { type: 'link', to: '/env-debug', label: '動作環境表示' },
       { type: 'link', to: '/credits', label: 'クレジット' },
-      { type: 'link', to: '/admin', label: '管理パネル', only_admin: true },
-      { type: 'link', to: '/user-admin', label: 'ユーザー管理', only_admin: true },
-      { type: 'link', to: '/otanoshimi-admin', label: 'お楽しみ会管理', only_admin: true },
-      { type: 'link', to: '/teacher-admin', label: '先生管理', only_admin: true },
-      { type: 'link', to: '/admin/schedules', label: 'スケジュール管理', only_admin: true }
+      { type: 'link', to: '/admin', label: '管理パネル', note: '※管理者専用' },
+      { type: 'link', to: '/user-admin', label: 'ユーザー管理', note: '※管理者専用' },
+      { type: 'link', to: '/otanoshimi-admin', label: 'お楽しみ会管理', note: '※管理者専用' },
+      { type: 'link', to: '/teacher-admin', label: '先生管理', note: '※管理者専用' },
+      { type: 'link', to: '/admin/schedules', label: 'スケジュール管理', note: '※管理者専用' }
     ],
     [user]
   );
@@ -188,104 +127,29 @@ const Header = () => {
               className="hamburger-btn flex items-center justify-center">
               <HamburgerIcon open={isMenuOpen} />
             </button>
-            {menuVisible &&
-              (isMobile ? (
-                // モバイル: 全画面オーバーレイ + スクロール
+            {createPortal(
+              <>
+                {/* オーバーレイ */}
+                <div
+                  className={`header-menu-overlay fixed inset-0 bg-black/40 z-[1000] transition-opacity duration-200 ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                  aria-hidden="true"
+                  tabIndex={-1}
+                />
+                {/* メニュー本体 */}
                 <div
                   ref={menuRef}
-                  data-state={menuClosing ? 'closing' : 'open'}
-                  role="dialog"
-                  aria-modal="true"
-                  id="header-menu"
-                  aria-hidden={menuClosing ? 'true' : undefined}
-                  {...(menuClosing ? { inert: true } : {})}
-                  className={`fixed inset-0 bg-white text-black z-50 flex flex-col header-menu-anim-container ${menuClosing ? 'header-menu-anim-out' : 'header-menu-anim-in'}`}
-                  onAnimationEnd={(e) => {
-                    if (menuClosing && typeof e.animationName === 'string' && e.animationName.includes('headerMenuOut')) {
-                      setMenuVisible(false);
-                      setMenuClosing(false);
-                      if (closeTimerRef.current) {
-                        window.clearTimeout(closeTimerRef.current);
-                        closeTimerRef.current = null;
-                      }
-                    }
-                  }}>
-                  <div className="flex items-center justify-between px-4 py-3 border-b">
-                    <div className="flex items-center gap-2">
-                      <img className="w-8 h-8" src="/icon.png" alt="" />
-                      <span className="font-semibold">メニュー</span>
-                    </div>
-                    <button className="px-3 py-1 rounded bg-gray-100" onClick={closeMenu} aria-label="閉じる">
-                      閉じる
-                    </button>
-                  </div>
-                  <div className="flex-1 overflow-y-auto">
-                    <div className="flex flex-col divide-y">
-                      {menuItems.map((item, i) =>
-                        user.is_admin || user.is_teacher || !item.only_admin ? (
-                          item.type === 'link' ? (
-                            item.prefetchKey && item.fetcher ? (
-                              <PrefetchLink key={i} to={item.to} prefetchKey={item.prefetchKey} fetcher={item.fetcher} className="px-4 py-4 text-lg hover:bg-gray-50" onClick={closeMenu}>
-                                <p>{item.label}</p>
-                                {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
-                              </PrefetchLink>
-                            ) : (
-                              <Link key={i} to={item.to} className="px-4 py-4 text-lg hover:bg-gray-50" onClick={closeMenu}>
-                                <p>{item.label}</p>
-                                {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
-                              </Link>
-                            )
-                          ) : (
-                            <button
-                              key={i}
-                              className="px-4 py-4 text-left text-lg hover:bg-gray-50"
-                              onClick={() => {
-                                item.onClick?.();
-                                closeMenu();
-                              }}>
-                              {item.label}
-                            </button>
-                          )
-                        ) : (
-                          <></>
-                        )
-                      )}
-                      <button
-                        className="px-4 py-4 text-left text-lg hover:bg-red-50 text-red-600"
-                        onClick={() => {
-                          closeMenu();
-                          handleLogout();
-                        }}>
-                        {'ログアウト'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                // デスクトップ: これまで通りのドロップダウン
-                <div
-                  ref={menuRef}
-                  data-state={menuClosing ? 'closing' : 'open'}
                   role="menu"
                   id="header-menu"
-                  aria-hidden={menuClosing ? 'true' : undefined}
-                  {...(menuClosing ? { inert: true } : {})}
-                  className={`absolute right-0 top-full mt-2 bg-white text-black rounded shadow-lg w-52 z-50 flex flex-col border divide-y header-menu-anim-container overflow-hidden ${
-                    menuClosing ? 'header-menu-anim-out' : 'header-menu-anim-in'
-                  }`}
-                  style={{ transformOrigin: '100% 0%' }}
-                  onAnimationEnd={(e) => {
-                    if (menuClosing && typeof e.animationName === 'string' && e.animationName.includes('headerMenuOut')) {
-                      setMenuVisible(false);
-                      setMenuClosing(false);
-                      if (closeTimerRef.current) {
-                        window.clearTimeout(closeTimerRef.current);
-                        closeTimerRef.current = null;
-                      }
-                    }
-                  }}>
-                  {menuItems.map((item, i) =>
-                    user.is_admin || user.is_teacher || !item.only_admin ? (
+                  aria-hidden={!isMenuOpen ? 'true' : undefined}
+                  className={`fixed top-0 right-0 h-full w-72 max-w-full bg-white text-black z-[1100] flex flex-col border-l shadow-xl transition-transform duration-300 ease-in-out overflow-y-auto max-h-screen
+                    ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}
+                  `}
+                  style={{ willChange: 'transform' }}>
+                  <button className="self-end m-4 px-4 py-2 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold" onClick={closeMenu} aria-label="閉じる">
+                    × 閉じる
+                  </button>
+                  <nav className="flex-1 flex flex-col divide-y">
+                    {menuItems.map((item, i) =>
                       item.type === 'link' ? (
                         item.prefetchKey && item.fetcher ? (
                           <PrefetchLink
@@ -315,20 +179,20 @@ const Header = () => {
                           {item.label}
                         </button>
                       )
-                    ) : (
-                      <></>
-                    )
-                  )}
-                  <button
-                    className="header-menu-item text-left px-4 py-3 hover:bg-red-50 text-red-600 cursor-pointer"
-                    onClick={() => {
-                      closeMenu();
-                      handleLogout();
-                    }}>
-                    {'ログアウト'}
-                  </button>
+                    )}
+                    <button
+                      className="header-menu-item text-left px-4 py-3 hover:bg-red-50 text-red-600 cursor-pointer"
+                      onClick={() => {
+                        closeMenu();
+                        handleLogout();
+                      }}>
+                      {'ログアウト'}
+                    </button>
+                  </nav>
                 </div>
-              ))}
+              </>,
+              document.body
+            )}
           </div>
         )}
       </div>
