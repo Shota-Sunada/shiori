@@ -129,11 +129,11 @@ const ScheduleAdmin = () => {
 
   return (
     <div className="p-2">
-      <h1 className="text-2xl font-bold mb-4">スケジュール管理</h1>
-      <div className="grid grid-cols-2 gap-2">
+      <h1 className="text-2xl font-bold mb-1">スケジュール管理</h1>
+      <div className="grid md:grid-cols-2 gap-1 sm:grid-cols-1">
         {data.map((course: Course) => (
-          <div key={course.id} className="mb-6 border rounded p-3 bg-white">
-            <div className="flex flex-col m-1 p-1 border-1">
+          <div key={course.id} className="m-0.5 border rounded p-1 bg-white">
+            <div className="flex flex-col m-0.5 p-1 border-1">
               <h2 className="text-xl font-semibold">{course.name || course.course_key}</h2>
               <div className="flex flex-row">
                 <button
@@ -163,7 +163,7 @@ const ScheduleAdmin = () => {
                 </button>
               </div>
               {editingCourse && editingCourse.id === course.id && (
-                <div className="m-1 p-2 border bg-gray-50">
+                <div className="m-0.5 p-1 border bg-gray-50">
                   <div className="text-sm mb-2">コースマスタに基づくため、既存コースのキーは変更できません。</div>
                   <div className="mb-2">
                     <span className="font-semibold">コースキー:</span> {course.course_key}
@@ -184,8 +184,8 @@ const ScheduleAdmin = () => {
                 </div>
               )}
               {course.schedules.map((schedule: Schedule) => (
-                <div key={schedule.id} className="m-1 p-1 border-1">
-                  <div className="flex flex-col m-1 p-1">
+                <div key={schedule.id} className="m-0.5 p-1 border-1">
+                  <div className="flex flex-col m-0.5 p-1">
                     <div className="mb-1">
                       {editingSchedule && editingSchedule.schedule && editingSchedule.schedule.id === schedule.id ? (
                         <div className="flex flex-row">
@@ -250,9 +250,9 @@ const ScheduleAdmin = () => {
                   <ul className="ml-4 list-disc border-1">
                     {schedule.events.map((event: Event) => (
                       <li key={event.id}>
-                        <div className="flex flex-col m-1 p-1">
+                        <div className="flex flex-col m-0.5 p-1">
                           {editingEvent && editingEvent.event && editingEvent.event.id === event.id ? (
-                            <div className="m-2 p-2 border bg-gray-50">
+                            <div className="m-1 p-1 border bg-gray-50">
                               <input name="memo" value={input.memo || ''} onChange={handleInput} placeholder="メモ" className="border p-1 mr-2" />
                               <div className="flex flex-row">
                                 <input name="time1Hour" value={input.time1Hour || ''} onChange={handleInput} placeholder="開始時" className="border p-1 mr-2" inputMode="numeric" pattern="\\d*" />
@@ -367,9 +367,9 @@ const ScheduleAdmin = () => {
                         <ul className="ml-2 list-circle text-sm">
                           {event.details.map((detail: EventDetail) => (
                             <li key={detail.id}>
-                              <div className="flex flex-col m-1 p-1 border-1">
+                              <div className="flex flex-col m-0.5 p-1 border-1">
                                 {editingDetail && editingDetail.detail && editingDetail.detail.id === detail.id ? (
-                                  <div className="my-2 p-2 border bg-gray-50">
+                                  <div className="m-1 p-1 border bg-gray-50">
                                     <input name="memo" value={input.memo || ''} onChange={handleInput} placeholder="メモ" className="border p-1 mr-2" />
                                     <div className="flex flex-row">
                                       <input
@@ -492,7 +492,7 @@ const ScheduleAdmin = () => {
                             </li>
                           ))}
                           {editingDetail && editingDetail.eventId === event.id && !editingDetail.detail && (
-                            <li className="my-2 p-2 border bg-gray-50">
+                            <li className="m-1 p-1 border bg-gray-50">
                               <input name="memo" value={input.memo || ''} onChange={handleInput} placeholder="メモ" className="border p-1 mr-2" />
                               <div className="flex flex-row">
                                 <input name="time1Hour" value={input.time1Hour || ''} onChange={handleInput} placeholder="開始時" className="border p-1 mr-2" />
@@ -552,7 +552,7 @@ const ScheduleAdmin = () => {
                       </li>
                     ))}
                     {editingEvent && editingEvent.scheduleId === schedule.id && !editingEvent.event && (
-                      <li className="my-2 p-2 border bg-gray-50 flex flex-col">
+                      <li className="m-1 p-1 border bg-gray-50 flex flex-col">
                         <input name="memo" value={input.memo || ''} onChange={handleInput} placeholder="メモ" className="border p-1 mr-2" />
                         <div className="flex flex-row">
                           <input name="time1Hour" value={input.time1Hour || ''} onChange={handleInput} placeholder="開始時" className="border p-1 mr-2" inputMode="numeric" pattern="\\d*" />
@@ -626,7 +626,7 @@ const ScheduleAdmin = () => {
               ))}
             </div>
             {editingSchedule && editingSchedule.courseId === course.id && !editingSchedule.schedule && (
-              <div className="my-2 p-2 border bg-gray-50">
+              <div className="m-1 p-1 border bg-gray-50">
                 <input name="title" value={input.title || ''} onChange={handleInput} placeholder="タイトル" className="border p-1 mr-2" />
                 <button
                   className="px-2 py-1 bg-green-500 text-white rounded"
@@ -656,7 +656,7 @@ const ScheduleAdmin = () => {
         ))}
       </div>
       {editingCourse && editingCourse.id === 0 && (
-        <div className="my-2 p-2 border bg-gray-50">
+        <div className="m-1 p-1 border bg-gray-50">
           <label className="mr-2 font-semibold">コース:</label>
           <select
             name="course_key"
