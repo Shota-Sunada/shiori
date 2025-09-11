@@ -36,6 +36,8 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
 
   // スクロールは Modal 側でロック・復元を一元管理する（ここでは触らない）
 
+  const tokyoDay1 = ['astro', 'arda', 'urth_jip', 'micro', 'air'];
+
   const fetchTeachers = useCallback(async () => {
     if (!token) return;
     try {
@@ -337,7 +339,7 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
             </td>
             <td className="label-cell">
               <p>{'1日目'}</p>
-              <p className="text-xs">{'新横浜駅で下車'}</p>
+              <p className="text-sm">{tokyoDay1.includes(studentData!.day1id) ? '東京駅で下車' : "新横浜駅で下車"}</p>
             </td>
             <td
               className="cell-interactive"
@@ -378,7 +380,7 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
           <tr>
             <td className="label-cell">
               <p>{'4日目'}</p>
-              <p className="text-xs">{'新横浜駅で乗車'}</p>
+              <p className="text-sm">{'新横浜駅で乗車'}</p>
             </td>
             <td
               className={'cell-interactive'}
