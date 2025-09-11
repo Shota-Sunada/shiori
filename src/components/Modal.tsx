@@ -29,7 +29,7 @@ interface ModalProps {
   zIndexClassName?: string; // 例: z-[1100]
 }
 
-const defaultOverlayBase = 'fixed inset-0 flex items-center justify-center bg-black/40 modal-overlay p-4';
+const defaultOverlayBase = 'fixed inset-0 flex items-center justify-center bg-black/40 modal-overlay';
 const defaultDialogBase = 'bg-white rounded-lg shadow-lg outline-none';
 
 // 同時に複数モーダルが開いた場合のスクロールロック管理

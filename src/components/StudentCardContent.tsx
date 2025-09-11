@@ -6,12 +6,15 @@ interface StudentCardContentProps {
 }
 
 const StudentCardContent: FC<StudentCardContentProps> = ({ student }) => {
+  const pad2 = (n?: number) => (typeof n === 'number' ? String(n).padStart(2, '0') : '');
   return (
     <div className="flex items-center justify-center w-full">
-      <div className="basis-[10%]">{`${student.class}組`}</div>
-      <div className="basis-[10%]">{`${student.number}番`}</div>
-      <div className="basis-[35%] font-bold pl-3">{`${student.surname} ${student.forename}`}</div>
-      <div className="basis-[45%] text-[#555] text-sm">{`${student.surname_kana} ${student.forename_kana}`}</div>
+      <div className="basis-[10%]">{`5${student.class}${pad2(student.number)}`}</div>
+      <div className="basis-[50%] font-bold ml-2">{`${student.surname} ${student.forename}`}</div>
+      <div className="basis-[40%] text-[#555] text-sm flex flex-col">
+        <p>{student.surname_kana}</p>
+        <p>{student.forename_kana}</p>
+      </div>
     </div>
   );
 };
