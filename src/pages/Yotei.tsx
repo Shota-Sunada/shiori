@@ -4,6 +4,7 @@ import TimeTable from '../components/TimeTable';
 import { studentApi, teacherApi, type StudentDTO, type TeacherDTO } from '../helpers/domainApi';
 import { DAY4_DATA, type COURSES_DAY1_KEY, type COURSES_DAY3_KEY, type COURSES_DAY4_KEY } from '../data/courses';
 import ModernTable from '../components/ModernTable';
+import ScrollToTopButton from '../components/ScrollToTopButton';
 import '../styles/index-table.css';
 
 const Yotei = () => {
@@ -15,12 +16,12 @@ const Yotei = () => {
   const [error, setError] = useState<string | null>(null);
 
   // 各日付のref
-  const day1Ref = useRef<HTMLDivElement | null>(null);
-  const day2Ref = useRef<HTMLDivElement | null>(null);
-  const day3Ref = useRef<HTMLDivElement | null>(null);
-  const day4Ref = useRef<HTMLDivElement | null>(null);
+  const day1Ref = useRef<HTMLTableRowElement | null>(null);
+  const day2Ref = useRef<HTMLTableRowElement | null>(null);
+  const day3Ref = useRef<HTMLTableRowElement | null>(null);
+  const day4Ref = useRef<HTMLTableRowElement | null>(null);
 
-  const handleScroll = (ref: React.RefObject<HTMLDivElement | null>) => {
+  const handleScroll = (ref: React.RefObject<HTMLTableRowElement | null>) => {
     if (ref.current) {
       const y = ref.current.getBoundingClientRect().top + window.scrollY - 100; // 100px上に余裕
       window.scrollTo({ top: y, behavior: 'smooth' });
@@ -101,27 +102,20 @@ const Yotei = () => {
         </div>
         <div className="w-full max-w-4xl my-3 index-table-wrapper">
           <ModernTable>
-            {/* 1日目 */}
-            <div ref={day1Ref} />
-            <TimeTable courseKey={'day1_common1'} />
+            <TimeTable ref={day1Ref}courseKey={'day1_common1'} />
             <TimeTable courseKey={day1CourseKey} />
             <TimeTable courseKey={'day1_common2'} />
-            {/* 2日目 */}
-            <div ref={day2Ref} />
-            <TimeTable courseKey={'day2_common'} />
-            {/* 3日目 */}
-            <div ref={day3Ref} />
-            <TimeTable courseKey={'day3_common1'} />
+            <TimeTable ref={day2Ref}courseKey={'day2_common'} />
+            <TimeTable ref={day3Ref} courseKey={'day3_common1'} />
             <TimeTable courseKey={day3CourseKey} />
             <TimeTable courseKey={'day3_common2'} />
-            {/* 4日目 */}
-            <div ref={day4Ref} />
-            <TimeTable courseKey={'day4_common1'} />
+            <TimeTable ref={day4Ref} courseKey={'day4_common1'} />
             <TimeTable courseKey={day4CourseKey} />
             <TimeTable courseKey={'day4_common2'} />
           </ModernTable>
         </div>
       </div>
+      <ScrollToTopButton />
     </div>
   );
 };

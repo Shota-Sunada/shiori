@@ -41,6 +41,7 @@ export type COURSES_COMMON_KEY = 'day1_common1' | 'day1_common2' | 'day2_common'
 
 export type TimeTableProps = {
   courseKey: COURSES_DAY1_KEY | COURSES_DAY3_KEY | COURSES_DAY4_KEY | COURSES_COMMON_KEY | null;
+  ref?: React.RefObject<HTMLTableRowElement | null>;
 };
 
 const pad2 = (n?: number) => (typeof n === 'number' ? String(n).padStart(2, '0') : '');
@@ -80,7 +81,7 @@ const fmtDetailTime = (d: EventDetail) => {
   return '';
 };
 
-const TimeTable = ({ courseKey }: TimeTableProps) => {
+const TimeTable = ({ courseKey, ref }: TimeTableProps) => {
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -108,7 +109,7 @@ const TimeTable = ({ courseKey }: TimeTableProps) => {
   return (
     <>
       <thead>
-        <tr>
+        <tr ref={ref}>
           <th colSpan={2}>{course.name}</th>
         </tr>
         <tr>
