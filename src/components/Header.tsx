@@ -95,11 +95,11 @@ const Header = () => {
       { type: 'action', label: 'しおりを再読み込み', onClick: () => window.location.reload() },
       { type: 'link', to: '/env-debug', label: 'デバッグ用環境表示' },
       { type: 'link', to: '/credits', label: 'クレジット' },
-      { type: 'link', to: '/admin', label: '管理パネル', note: '※管理者専用', only_admin: true },
-      { type: 'link', to: '/user-admin', label: 'ユーザー管理', note: '※管理者専用', only_admin: true },
-      { type: 'link', to: '/otanoshimi-admin', label: 'お楽しみ会管理', note: '※管理者専用', only_admin: true },
-      { type: 'link', to: '/teacher-admin', label: '先生管理', note: '※管理者専用', only_admin: true },
-      { type: 'link', to: '/admin/schedules', label: 'スケジュール管理', note: '※管理者専用', only_admin: true }
+      { type: 'link', to: '/admin', label: '生徒管理画面', note: '管理者&先生専用', only_admin: true },
+      { type: 'link', to: '/teacher-admin', label: '先生管理画面', note: '管理者&先生専用', only_admin: true },
+      { type: 'link', to: '/user-admin', label: 'ユーザー管理画面', note: '管理者&先生専用', only_admin: true },
+      { type: 'link', to: '/otanoshimi-admin', label: 'お楽しみ会管理画面', note: '管理者&先生専用', only_admin: true },
+      { type: 'link', to: '/admin/schedules', label: 'スケジュール管理画面', note: '管理者&先生専用', only_admin: true }
     ],
     [user]
   );
