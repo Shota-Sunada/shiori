@@ -82,7 +82,7 @@ const Yotei = () => {
   if (!day1CourseKey) return <div className="p-4 text-center">コースが設定されていません</div>;
 
   return (
-    <div className="p-2">
+    <>
       <div className="flex flex-col items-center justify-start text-left p-2">
         <h2 className="font-bold text-3xl">全体の流れ</h2>
         {/* スクロールボタン */}
@@ -102,10 +102,10 @@ const Yotei = () => {
         </div>
         <div className="w-full max-w-4xl my-3 index-table-wrapper">
           <ModernTable>
-            <TimeTable ref={day1Ref}courseKey={'day1_common1'} />
+            <TimeTable ref={day1Ref} courseKey={'day1_common1'} />
             <TimeTable courseKey={day1CourseKey} />
             <TimeTable courseKey={'day1_common2'} />
-            <TimeTable ref={day2Ref}courseKey={'day2_common'} />
+            <TimeTable ref={day2Ref} courseKey={'day2_common'} />
             <TimeTable ref={day3Ref} courseKey={'day3_common1'} />
             <TimeTable courseKey={day3CourseKey} />
             <TimeTable courseKey={'day3_common2'} />
@@ -116,7 +116,7 @@ const Yotei = () => {
         </div>
       </div>
       <ScrollToTopButton />
-    </div>
+    </>
   );
 };
 
