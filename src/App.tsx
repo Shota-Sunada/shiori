@@ -31,6 +31,7 @@ import { SERVER_ENDPOINT } from './config/serverEndpoint';
 import ScheduleAdmin from './pages/ScheduleAdmin';
 import { appFetch } from './helpers/apiClient';
 import Yotei from './pages/Yotei';
+import Maps from './pages/Maps';
 
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: unknown }> {
   constructor(props: { children: React.ReactNode }) {
@@ -465,11 +466,17 @@ function App() {
                   <Route
                     path="/yotei"
                     element={
-                      <AdminOrTeacherRoute>
                         <FadeContainer>
                           <Yotei />
                         </FadeContainer>
-                      </AdminOrTeacherRoute>
+                    }
+                  />
+                  <Route
+                    path="/maps"
+                    element={
+                        <FadeContainer>
+                          <Maps />
+                        </FadeContainer>
                     }
                   />
                   <Route

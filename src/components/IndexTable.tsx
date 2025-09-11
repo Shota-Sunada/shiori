@@ -144,6 +144,26 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
             </td>
           </tr>
           {/* yotei END */}
+          {/* map START */}
+          <tr>
+            <td id="day1-rowspan" rowSpan={2} className="vcell day-col">
+              <VerticalLabel text="マップ" />
+            </td>
+            <td className="label-cell" colSpan={2}>
+              {'修学旅行 関連マップ'}
+            </td>
+          </tr>
+          <tr>
+            <td className="label-cell">{''}</td>
+            <td
+              className="cell-interactive"
+              onClick={() => {
+                navigate('/maps');
+              }}>
+              {'マップをチェック！'}
+            </td>
+          </tr>
+          {/* map END */}
           {/* day1 START */}
           <tr>
             <td id="day1-rowspan" rowSpan={2} className="vcell day-col">
