@@ -31,12 +31,12 @@ const OtanoshimiCard = (props: Props) => {
                  hover:shadow-xl hover:scale-[1.015]
                  active:scale-[0.99]
                  focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-400/40">
-      <span
+      {/* <span
         className="absolute left-2 top-2 select-none text-xs font-semibold
                    bg-white/90 text-slate-800 rounded-full px-2 py-0.5 shadow-sm"
         aria-hidden="true">
         {props.index}
-      </span>
+      </span> */}
 
       <span className="text-[120%] font-semibold drop-shadow-sm px-2" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>
         {props.name}
