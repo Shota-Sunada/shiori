@@ -130,7 +130,7 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
               <VerticalLabel text="予定表" />
             </td>
             <td className="label-cell" colSpan={2}>
-              {'修学旅行 全工程表'}
+              {'修学旅行 全行程表'}
             </td>
           </tr>
           <tr>
@@ -140,7 +140,7 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
               onClick={() => {
                 navigate('/yotei');
               }}>
-              {'工程表をチェック！'}
+              {'行程表をチェック！'}
             </td>
           </tr>
           {/* yotei END */}
