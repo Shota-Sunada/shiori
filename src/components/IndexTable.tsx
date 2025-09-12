@@ -359,7 +359,7 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
             </td>
             <td className="label-cell">
               <p>{'1日目'}</p>
-              <p className="text-sm">{tokyoDay1.includes(studentData!.day1id) ? '東京駅で下車' : "新横浜駅で下車"}</p>
+              <p className="text-sm">{(studentData && tokyoDay1.includes(studentData.day1id)) || (teacherData && tokyoDay1.includes(teacherData.day1id)) ? '東京駅で下車' : '新横浜駅で下車'}</p>
             </td>
             <td
               className="cell-interactive"
