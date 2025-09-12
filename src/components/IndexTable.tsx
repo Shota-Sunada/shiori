@@ -31,8 +31,6 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
   const [currentHotelName, setCurrentHotelName] = useState('');
   const [currentRoomNumber, setCurrentRoomNumber] = useState('');
   const [teachers, setTeachers] = useState<IndexTeacher[]>([]);
-  const hasStudent = !!studentData;
-  const isTeacher = !!teacherData;
 
   // スクロールは Modal 側でロック・復元を一元管理する（ここでは触らない）
 
@@ -81,16 +79,16 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
   }, []);
 
   const day4CourseName = useMemo(() => {
-    if (hasStudent) {
-      return COURSES_DAY4.find((x) => x.key === DAY4_DATA[Number(studentData!.class) - 1])?.name || null;
+    if (studentData) {
+      return COURSES_DAY4.find((x) => x.key === DAY4_DATA[Number(studentData.class) - 1])?.name || null;
     }
-    if (isTeacher) {
-      const cls = Number(teacherData!.day4class || 0);
+    if (teacherData) {
+      const cls = Number(teacherData.day4class || 0);
       if (!cls) return null;
       return COURSES_DAY4.find((x) => x.key === DAY4_DATA[cls - 1])?.name || null;
     }
     return null;
-  }, [hasStudent, isTeacher, studentData, teacherData]);
+  }, [studentData, teacherData]);
 
   return (
     <section id="table" className="index-table-wrapper m-2">
@@ -103,23 +101,23 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
         <thead>
           <tr>
             <th colSpan={3}>
-              {hasStudent ? (
+              {(studentData && (
                 <>
                   {'5年'}
-                  {studentData!.class}
+                  {studentData.class}
                   {'組'}
-                  {studentData!.number}
+                  {studentData.number}
                   {'番 '}
-                  {studentData!.surname}
-                  {studentData!.forename}
+                  {studentData.surname}
+                  {studentData.forename}
                 </>
-              ) : isTeacher && teacherData ? (
-                <>
-                  {teacherData.surname} {teacherData.forename}
-                </>
-              ) : (
-                '5年◯組◯番 ◯◯◯◯'
-              )}
+              )) ||
+                (teacherData && (
+                  <>
+                    {teacherData.surname} {teacherData.forename}
+                  </>
+                )) ||
+                '5年◯組◯番 ◯◯◯◯'}
             </th>
           </tr>
         </thead>
@@ -140,7 +138,7 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
               onClick={() => {
                 navigate('/yotei');
               }}>
-              {'行程表をチェック！'}
+              {'あなたの行程表をチェック！'}
             </td>
           </tr>
           {/* yotei END */}
@@ -170,11 +168,11 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
               <VerticalLabel text="１日目" />
             </td>
             <td className="label-cell">{'研修先'}</td>
-            <td>{hasStudent ? COURSES_DAY1.find((x) => x.key === studentData!.day1id)?.name : isTeacher ? COURSES_DAY1.find((x) => x.key === teacherData?.day1id)?.name || '◯◯◯◯◯◯◯◯' : '◯◯◯◯◯◯◯◯'}</td>
+            <td>{(studentData && COURSES_DAY1.find((x) => x.key === studentData.day1id)?.name) || (teacherData && COURSES_DAY1.find((x) => x.key === teacherData.day1id)?.name) || '◯◯◯◯◯◯◯◯'}</td>
           </tr>
           <tr>
             <td className="label-cell">{'バス'}</td>
-            <td>{hasStudent ? `${studentData!.day1bus}号車` : isTeacher ? `${teacherData?.day1bus ?? '◯◯'}号車` : '◯◯号車'}</td>
+            <td>{(studentData && `${studentData.day1bus}号車`) || (teacherData && `${teacherData.day1bus ?? '◯◯'}号車`) || '◯◯号車'}</td>
           </tr>
           {/* day1 END */}
           {/* day2 START */}
@@ -192,11 +190,11 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
               <VerticalLabel text="３日目" />
             </td>
             <td className="label-cell">{'研修先'}</td>
-            <td>{hasStudent ? COURSES_DAY3.find((x) => x.key === studentData!.day3id)?.name : isTeacher ? COURSES_DAY3.find((x) => x.key === teacherData?.day3id)?.name || '◯◯◯◯◯◯◯◯' : '◯◯◯◯◯◯◯◯'}</td>
+            <td>{(studentData && COURSES_DAY3.find((x) => x.key === studentData.day3id)?.name) || (teacherData && COURSES_DAY3.find((x) => x.key === teacherData.day3id)?.name) || '◯◯◯◯◯◯◯◯'}</td>
           </tr>
           <tr>
             <td className="label-cell">{'バス'}</td>
-            <td>{hasStudent ? `${studentData!.day3bus}号車` : isTeacher ? `${teacherData?.day3bus ?? '◯◯'}号車` : '◯◯号車'}</td>
+            <td>{(studentData && `${studentData!.day3bus}号車`) || (teacherData && `${teacherData?.day3bus ?? '◯◯'}号車`) || '◯◯号車'}</td>
           </tr>
           <tr>
             <td className="label-cell">{'お楽しみ会'}</td>
@@ -223,42 +221,43 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
             </td>
             <td className="label-cell">{'研修先'}</td>
             <td>
-              {hasStudent ? (
+              {(studentData && (
                 <>
                   <p>
-                    {studentData!.class}
+                    {studentData.class}
                     {'組 '}
                     {day4CourseName}
                   </p>
                   <p className="text-gray-600 text-xs">
                     {'引率: '}
                     {teachers
-                      .filter((teacher) => teacher.day4class === studentData!.class)
+                      .filter((teacher) => teacher.day4class === studentData.class)
                       .map((teacher) => `${teacher.surname}${teacher.forename}先生`)
                       .join(' ')}
                   </p>
                 </>
-              ) : isTeacher ? (
-                <>
-                  <p>
-                    {teacherData?.day4class}
-                    {'組 '}
-                    {day4CourseName}
-                  </p>
-                  <p className="text-gray-600 text-xs">
-                    {'引率: '}
-                    {teachers
-                      .filter((t) => t.day4class === teacherData?.day4class)
-                      .map((t) => `${t.surname}${t.forename}先生`)
-                      .join(' ')}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p>{'◯組 ◯◯◯◯◯◯◯◯'}</p>
-                  <p className="text-gray-600 text-xs">{'引率: ◯◯先生 ◯◯先生 ◯◯先生'}</p>
-                </>
-              )}
+              )) ||
+                (teacherData && (
+                  <>
+                    <p>
+                      {teacherData.day4class}
+                      {'組 '}
+                      {day4CourseName}
+                    </p>
+                    <p className="text-gray-600 text-xs">
+                      {'引率: '}
+                      {teachers
+                        .filter((t) => t.day4class === teacherData.day4class)
+                        .map((t) => `${t.surname}${t.forename}先生`)
+                        .join(' ')}
+                    </p>
+                  </>
+                )) || (
+                  <>
+                    <p>{'◯組 ◯◯◯◯◯◯◯◯'}</p>
+                    <p className="text-gray-600 text-xs">{'引率: ◯◯先生 ◯◯先生 ◯◯先生'}</p>
+                  </>
+                )}
             </td>
           </tr>
           {/* day4 END */}
@@ -274,37 +273,37 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
             <td
               className="cell-interactive"
               onClick={() => {
-                if (studentData?.room_tdh) {
+                if (studentData) {
                   fetchRoommates('tdh', studentData.room_tdh.toString(), '東京ドームホテル');
-                } else if (teacherData?.room_tdh) {
+                } else if (teacherData) {
                   fetchRoommates('tdh', teacherData.room_tdh.toString(), '東京ドームホテル');
                 }
               }}>
               <p>{'東京ドームホテル'}</p>
               <p>
-                {hasStudent ? (
+                {(studentData && (
                   <>
-                    {studentData!.room_tdh.toString().substring(0, 2)}
+                    {studentData.room_tdh.toString().substring(0, 2)}
                     {'階 '}
-                    {studentData!.room_tdh}
+                    {studentData.room_tdh}
                     {'号室'}
                   </>
-                ) : isTeacher ? (
-                  <>
-                    {teacherData?.room_tdh ? (
-                      <>
-                        {teacherData.room_tdh.toString().substring(0, 2)}
-                        {'階 '}
-                        {teacherData.room_tdh}
-                        {'号室'}
-                      </>
-                    ) : (
-                      '◯階 ◯◯◯号室'
-                    )}
-                  </>
-                ) : (
-                  '◯階 ◯◯◯号室'
-                )}
+                )) ||
+                  (teacherData && (
+                    <>
+                      {teacherData.room_tdh ? (
+                        <>
+                          {teacherData.room_tdh.toString().substring(0, 2)}
+                          {'階 '}
+                          {teacherData.room_tdh}
+                          {'号室'}
+                        </>
+                      ) : (
+                        '◯階 ◯◯◯号室'
+                      )}
+                    </>
+                  )) ||
+                  '◯階 ◯◯◯号室'}
               </p>
             </td>
           </tr>
@@ -323,31 +322,31 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
               }}>
               <p>{'フジプレミアムリゾート'}</p>
               <p>
-                {hasStudent ? (
+                {(studentData && (
                   <>
                     {'Hotel Spor:Sion '}
-                    {studentData!.room_fpr.toString().substring(1, 2)}
+                    {studentData.room_fpr.toString().substring(1, 2)}
                     {'階 '}
-                    {studentData!.room_fpr}
+                    {studentData.room_fpr}
                     {'号室'}
                   </>
-                ) : isTeacher ? (
-                  <>
-                    {teacherData?.room_fpr ? (
-                      <>
-                        {'Hotel Spor:Sion '}
-                        {teacherData.room_fpr.toString().substring(1, 2)}
-                        {'階 '}
-                        {teacherData.room_fpr}
-                        {'号室'}
-                      </>
-                    ) : (
-                      '◯◯◯号室'
-                    )}
-                  </>
-                ) : (
-                  '◯◯◯号室'
-                )}
+                )) ||
+                  (teacherData && (
+                    <>
+                      {teacherData.room_fpr ? (
+                        <>
+                          {'Hotel Spor:Sion '}
+                          {teacherData.room_fpr.toString().substring(1, 2)}
+                          {'階 '}
+                          {teacherData.room_fpr}
+                          {'号室'}
+                        </>
+                      ) : (
+                        '◯◯◯号室'
+                      )}
+                    </>
+                  )) ||
+                  '◯◯◯号室'}
               </p>
             </td>
           </tr>
@@ -359,83 +358,88 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
             </td>
             <td className="label-cell">
               <p>{'1日目'}</p>
-              <p className="text-sm">{(studentData && tokyoDay1.includes(studentData.day1id)) || (teacherData && tokyoDay1.includes(teacherData.day1id)) ? '東京駅で下車' : '新横浜駅で下車'}</p>
+              <p className="text-sm">
+                {(studentData && tokyoDay1.includes(studentData.day1id)) || (teacherData && tokyoDay1.includes(teacherData.day1id)) ? '東京駅で下車' : '新横浜駅で下車'}
+                {(studentData && (
+                  <>
+                    {studentData.shinkansen_day1_car_number}
+                    {'号車 '}
+                    {studentData.shinkansen_day1_seat}
+                  </>
+                )) ||
+                  (teacherData && (
+                    <>
+                      {teacherData?.shinkansen_day1_car_number}
+                      {'号車 '}
+                      {teacherData?.shinkansen_day1_seat}
+                    </>
+                  ))}
+              </p>
             </td>
             <td
               className="cell-interactive"
               onClick={() => {
                 window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=84', '_blank', 'noreferrer');
               }}>
-              {hasStudent ? (
+              {(studentData && (
                 <>
-                  <p>
-                    {'東京駅行 のぞみ84号 - '}
-                    {studentData!.shinkansen_day1_car_number}
-                    {'号車 '}
-                    {studentData!.shinkansen_day1_seat}
+                  <p>{'広島駅発 東京駅行 のぞみ84号'}</p>
+                  <p className="text-gray-600 text-sm">
+                    {'広島駅7:57発 - '}
+                    {tokyoDay1.includes(studentData.day1id) ? '東京駅11:54着' : '新横浜駅11:34着'}
                   </p>
-                  <p className="text-gray-600 text-sm">{'広島駅7:57発 - 新横浜駅11:34着'}</p>
                   <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
                 </>
-              ) : isTeacher ? (
-                <>
-                  <p>
-                    {'東京駅行 のぞみ84号 - '}
-                    {teacherData?.shinkansen_day1_car_number}
-                    {'号車 '}
-                    {teacherData?.shinkansen_day1_seat}
-                  </p>
-                  <p className="text-gray-600 text-sm">{'広島駅7:57発 - 新横浜駅11:34着'}</p>
-                  <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
-                </>
-              ) : (
-                <>
-                  <p>{'広島駅行 のぞみ84号 - ◯号車 ◯◯'}</p>
-                  <p className="text-gray-600 text-sm">{'新横浜駅15:48発 - 広島駅19:46着'}</p>
-                  <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
-                </>
-              )}
+              )) ||
+                (teacherData && (
+                  <>
+                    <p>{'広島駅発 東京駅行 のぞみ84号'}</p>
+                    <p className="text-gray-600 text-sm">
+                      {'広島駅7:57発 - '}
+                      {tokyoDay1.includes(teacherData.day1id) ? '東京駅11:54着' : '新横浜駅11:34着'}
+                    </p>
+                    <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
+                  </>
+                )) || (
+                  <>
+                    <p>{'広島駅発 東京駅行 のぞみ84号'}</p>
+                    <p className="text-gray-600 text-sm">{'広島駅7:57発 - 新横浜駅11:34着 - 東京駅11:54着'}</p>
+                    <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
+                  </>
+                )}
             </td>
           </tr>
           <tr>
             <td className="label-cell">
               <p>{'4日目'}</p>
-              <p className="text-sm">{'新横浜駅で乗車'}</p>
+              <p className="text-sm">
+                {'新横浜駅で乗車'}
+                {(studentData && (
+                  <>
+                    {studentData.shinkansen_day4_car_number}
+                    {'号車 '}
+                    {studentData.shinkansen_day4_seat}
+                  </>
+                )) ||
+                  (teacherData && (
+                    <>
+                      {teacherData?.shinkansen_day4_car_number}
+                      {'号車 '}
+                      {teacherData?.shinkansen_day4_seat}
+                    </>
+                  ))}
+              </p>
             </td>
             <td
               className={'cell-interactive'}
               onClick={() => {
                 window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=77', '_blank', 'noreferrer');
               }}>
-              {hasStudent ? (
-                <>
-                  <p>
-                    {'広島駅行 のぞみ77号 - '}
-                    {studentData!.shinkansen_day4_car_number}
-                    {'号車 '}
-                    {studentData!.shinkansen_day4_seat}
-                  </p>
-                  <p className="text-gray-600 text-sm">{'新横浜駅15:48発 - 広島駅19:46着'}</p>
-                  <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
-                </>
-              ) : isTeacher ? (
-                <>
-                  <p>
-                    {'広島駅行 のぞみ77号 - '}
-                    {teacherData?.shinkansen_day4_car_number}
-                    {'号車 '}
-                    {teacherData?.shinkansen_day4_seat}
-                  </p>
-                  <p className="text-gray-600 text-sm">{'新横浜駅15:48発 - 広島駅19:46着'}</p>
-                  <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
-                </>
-              ) : (
-                <>
-                  <p>{'広島駅行 のぞみ77号 - ◯号車 ◯◯'}</p>
-                  <p className="text-gray-600 text-sm">{'新横浜駅15:48発 - 広島駅19:46着'}</p>
-                  <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
-                </>
-              )}
+              <>
+                <p>{'東京駅発 広島駅行 のぞみ77号'}</p>
+                <p className="text-gray-600 text-sm">{'新横浜駅15:48発 - 広島駅19:46着'}</p>
+                <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
+              </>
             </td>
           </tr>
           {/* shinkansen END */}
