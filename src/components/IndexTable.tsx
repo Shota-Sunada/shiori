@@ -50,15 +50,21 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
     fetchTeachers();
   }, [fetchTeachers]);
 
-  const fetchRoommates = useCallback(
-    async (hotel: 'tdh' | 'fpr', room: string, hotelName: string) => {
+  const showRoomDetail = useCallback(
+    async (hotel: 'tdh' | 'fpr', room: string, hotelName: string, forTeacher: boolean = false) => {
       if (!token) return;
       try {
-        const data = await appFetch<Roommate[]>(`${SERVER_ENDPOINT}/api/students/roommates/${hotel}/${room}`, { requiresAuth: true, alwaysFetch: true });
-        setCurrentRoommates(data);
-        setCurrentHotelName(hotelName);
-        setCurrentRoomNumber(room);
-        setShowRoommateModal(true);
+        if (forTeacher) {
+          setCurrentHotelName(hotelName);
+          setCurrentRoomNumber(room);
+          setShowRoommateModal(true);
+        } else {
+          const data = await appFetch<Roommate[]>(`${SERVER_ENDPOINT}/api/students/roommates/${hotel}/${room}`, { requiresAuth: true, alwaysFetch: true });
+          setCurrentRoommates(data);
+          setCurrentHotelName(hotelName);
+          setCurrentRoomNumber(room);
+          setShowRoommateModal(true);
+        }
       } catch (error) {
         console.error('Error fetching roommates:', error);
       }
@@ -274,9 +280,9 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
               className="cell-interactive"
               onClick={() => {
                 if (studentData) {
-                  fetchRoommates('tdh', studentData.room_tdh.toString(), '東京ドームホテル');
+                  showRoomDetail('tdh', studentData.room_tdh.toString(), '東京ドームホテル');
                 } else if (teacherData) {
-                  fetchRoommates('tdh', teacherData.room_tdh.toString(), '東京ドームホテル');
+                  showRoomDetail('tdh', teacherData.room_tdh.toString(), '東京ドームホテル', true);
                 }
               }}>
               <p>{'東京ドームホテル'}</p>
@@ -314,10 +320,10 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
             <td
               className="cell-interactive"
               onClick={() => {
-                if (studentData?.room_fpr) {
-                  fetchRoommates('fpr', studentData.room_fpr.toString(), 'フジプレミアムリゾート');
-                } else if (teacherData?.room_fpr) {
-                  fetchRoommates('fpr', teacherData.room_fpr.toString(), 'フジプレミアムリゾート');
+                if (studentData) {
+                  showRoomDetail('fpr', studentData.room_fpr.toString(), 'フジプレミアムリゾート');
+                } else if (teacherData) {
+                  showRoomDetail('fpr', teacherData.room_fpr.toString(), 'フジプレミアムリゾート', true);
                 }
               }}>
               <p>{'フジプレミアムリゾート'}</p>
@@ -359,7 +365,6 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
             <td className="label-cell">
               <p>{'1日目'}</p>
               <p className="text-sm">
-                {(studentData && tokyoDay1.includes(studentData.day1id)) || (teacherData && tokyoDay1.includes(teacherData.day1id)) ? '東京駅で下車' : '新横浜駅で下車'}
                 {(studentData && (
                   <>
                     {studentData.shinkansen_day1_car_number}
@@ -375,6 +380,7 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
                     </>
                   ))}
               </p>
+              <p className="text-sm">{(studentData && tokyoDay1.includes(studentData.day1id)) || (teacherData && tokyoDay1.includes(teacherData.day1id)) ? '東京駅で下車' : '新横浜駅で下車'}</p>
             </td>
             <td
               className="cell-interactive"
@@ -413,7 +419,6 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
             <td className="label-cell">
               <p>{'4日目'}</p>
               <p className="text-sm">
-                {'新横浜駅で乗車'}
                 {(studentData && (
                   <>
                     {studentData.shinkansen_day4_car_number}
@@ -429,6 +434,7 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
                     </>
                   ))}
               </p>
+              <p className="text-sm">{'新横浜駅で乗車'}</p>
             </td>
             <td
               className={'cell-interactive'}
