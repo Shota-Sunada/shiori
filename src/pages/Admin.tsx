@@ -290,11 +290,11 @@ const Admin = () => {
   // 現在の表示順・可視列に沿ってCSVを出力
   const handleExportCSV = useCallback(() => {
     const columnsToExport = allColumns.filter((c) => visibleColumns.includes(c.key));
-    const headers = columnsToExport.map((c) => c.label);
+    // ヘッダーはid（key）で出力
+    const headers = columnsToExport.map((c) => c.key);
 
-    const getDisplayValue = (s: StudentDTO, key: keyof StudentDTO): string => {
-      if (key === 'day1id') return String(COURSES_DAY1.find((x) => x.key === s.day1id)?.short_name ?? '');
-      if (key === 'day3id') return String(COURSES_DAY3.find((x) => x.key === s.day3id)?.short_name ?? '');
+    // 値もid/コード値で出力（day1id, day3idもkeyそのまま）
+    const getIdValue = (s: StudentDTO, key: keyof StudentDTO): string => {
       const v = s[key] as unknown;
       return v == null ? '' : String(v);
     };
@@ -309,7 +309,7 @@ const Admin = () => {
     const lines: string[] = [];
     lines.push(headers.map(escapeCSV).join(','));
     for (const s of sortedAndFilteredStudents) {
-      const row = columnsToExport.map((c) => escapeCSV(getDisplayValue(s, c.key)));
+      const row = columnsToExport.map((c) => escapeCSV(getIdValue(s, c.key)));
       lines.push(row.join(','));
     }
 
