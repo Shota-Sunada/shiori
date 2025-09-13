@@ -126,10 +126,10 @@ const Index = () => {
             <p>スーツケースに鍵をかけて搬送する場合は、鍵を忘れずに持ってくるようにしてください！</p>
           </Message>
         </div>
-        <div className='m-1'>
+        <div className="m-1">
           <p>10月3日の宿舎(フジプレミアムリゾート)から、自宅に荷物が搬送されます。</p>
           <p>自宅への到着は10月5日または10月6日の予定。</p>
-          <Message type='notice'>
+          <Message type="notice">
             <p>貴重品、4日目に必要なものは搬送荷物に含めないでください！</p>
           </Message>
         </div>
