@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import MDButton from '../components/MDButton';
+import { useAuth } from '../auth-context';
 
 const Maps = () => {
   type MapId = 'tdh' | 'fpr' | 'hiroshima_sta' | undefined;
 
+  const { user } = useAuth();
   const [id, setId] = useState<MapId>(undefined);
 
   const Image = (title: string, src: string, alt?: string) => {
@@ -64,7 +66,7 @@ const Maps = () => {
             }}>
             {'フジプレミアムリゾート'}
           </p>
-          <MDButton text="戻る" arrowLeft link="/" />
+          <MDButton text="戻る" arrowLeft link={user?.is_teacher ? '/teacher' : '/'} />
         </div>
       );
   }

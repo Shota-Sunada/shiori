@@ -19,9 +19,10 @@ import type { Roommate, IndexTeacher } from '../interface/models';
 interface IndexTableProps {
   studentData?: StudentDTO | null;
   teacherData?: Teacher | null;
+  isStudentSearch?: boolean;
 }
 
-const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps) => {
+const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = false }: IndexTableProps) => {
   // useNavigateは他セルで今後使う可能性があるが現状未使用のため削除
   const { navigateWithPrefetch } = usePrefetchNavigate();
   const navigate = useNavigate();
@@ -126,7 +127,7 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
         <tbody>
           {/* info START */}
           <tr>
-            <td rowSpan={4} className="vcell day-col">
+            <td rowSpan={isStudentSearch ? 2 : 4} className="vcell vcell--min day-col">
               <VerticalLabel text="各種資料" />
             </td>
           </tr>
@@ -135,31 +136,38 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
             <td
               className="cell-interactive"
               onClick={() => {
-                navigate('/yotei');
+                if (studentData || teacherData) {
+                  navigate('/yotei');
+                }
               }}>
-              {'あなたの行程表をcheck！'}
+              {isStudentSearch ? (studentData ? `${studentData.surname} ${studentData.forename} ` : '◯◯◯◯') : 'あなた'}
+              {'の行程表をcheck！'}
             </td>
           </tr>
-          <tr>
-            <td className="label-cell">{'マップ'}</td>
-            <td
-              className="cell-interactive"
-              onClick={() => {
-                navigate('/maps');
-              }}>
-              {'マップをチェック！'}
-            </td>
-          </tr>
-          <tr>
-            <td className="label-cell">{'持ち物'}</td>
-            <td
-              className="cell-interactive"
-              onClick={() => {
-                navigate('/goods');
-              }}>
-              {'持ち物を確認しましょう！'}
-            </td>
-          </tr>
+          {!isStudentSearch && (
+            <>
+              <tr>
+                <td className="label-cell">{'マップ'}</td>
+                <td
+                  className="cell-interactive"
+                  onClick={() => {
+                    navigate('/maps');
+                  }}>
+                  {'マップをチェック！'}
+                </td>
+              </tr>
+              <tr>
+                <td className="label-cell">{'持ち物'}</td>
+                <td
+                  className="cell-interactive"
+                  onClick={() => {
+                    navigate('/goods');
+                  }}>
+                  {'持ち物を確認しましょう！'}
+                </td>
+              </tr>
+            </>
+          )}
           {/* info END */}
           {/* day1 START */}
           <tr>
@@ -185,7 +193,7 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
           {/* day2 END */}
           {/* day3 START */}
           <tr>
-            <td rowSpan={(studentData && studentData.day3id === 'okutama') || teacherData ? 4 : 3} className="vcell day-col">
+            <td rowSpan={(studentData && studentData.day3id === 'okutama') || teacherData ? (isStudentSearch ? 3 : 4) : isStudentSearch ? 2 : 3} className="vcell day-col">
               <VerticalLabel text="３日目" />
             </td>
             <td className="label-cell">{'研修先'}</td>
@@ -203,23 +211,25 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
               </td>
             </tr>
           )}
-          <tr>
-            <td className="label-cell">{'お楽しみ会'}</td>
-            <td
-              className="cell-interactive"
-              onClick={() => {
-                navigateWithPrefetch({
-                  to: '/otanoshimi',
-                  key: 'otanoshimiTeams',
-                  fetcher: async () => {
-                    return appFetch(`${SERVER_ENDPOINT}/api/otanoshimi`, { requiresAuth: true, alwaysFetch: true });
-                  },
-                  awaitFetch: true
-                });
-              }}>
-              {'詳細はここをクリック！'}
-            </td>
-          </tr>
+          {!isStudentSearch && (
+            <tr>
+              <td className="label-cell">{'お楽しみ会'}</td>
+              <td
+                className="cell-interactive"
+                onClick={() => {
+                  navigateWithPrefetch({
+                    to: '/otanoshimi',
+                    key: 'otanoshimiTeams',
+                    fetcher: async () => {
+                      return appFetch(`${SERVER_ENDPOINT}/api/otanoshimi`, { requiresAuth: true, alwaysFetch: true });
+                    },
+                    awaitFetch: true
+                  });
+                }}>
+                {'詳細はここをクリック！'}
+              </td>
+            </tr>
+          )}
           {/* day3 END */}
           {/* day4 START */}
           <tr>
@@ -254,13 +264,16 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
                       {'組 '}
                       {day4CourseName}
                     </p>
-                    <p className="text-gray-600 text-xs">
-                      {'引率: '}
-                      {teachers
-                        .filter((t) => t.day4class === teacherData.day4class)
-                        .map((t) => `${t.surname}${t.forename}先生`)
-                        .join(' ')}
-                    </p>
+                    <div className="flex flex-row">
+                      <p className="text-gray-600 text-xs">{'引率: '}</p>
+                      <div className="flex flex-row">
+                        {teachers
+                          .filter((teacher) => teacher.day4class === teacherData.day4class)
+                          .map((teacher) => (
+                            <p key={teacher.id} className="text-gray-600 text-xs px-1 items-center justify-center">{`${teacher.surname} ${teacher.forename} 先生`}</p>
+                          ))}
+                      </div>
+                    </div>
                   </>
                 )) || (
                   <>
@@ -372,7 +385,9 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
             <td
               className="cell-interactive"
               onClick={() => {
-                navigate('/shinkansen?tab=day1');
+                if (!isStudentSearch) {
+                  navigate('/shinkansen?tab=day1');
+                }
               }}>
               {(studentData && (
                 <>
@@ -403,7 +418,9 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
             <td
               className="cell-interactive"
               onClick={() => {
-                navigate('/shinkansen?tab=day4');
+                if (!isStudentSearch) {
+                  navigate('/shinkansen?tab=day4');
+                }
               }}>
               {(studentData && (
                 <>

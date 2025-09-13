@@ -66,7 +66,7 @@ const TeacherIndexTable = () => {
       </section>
 
       {loading && <p>読み込み中...</p>}
-      <IndexTable studentData={studentData} />
+      <IndexTable studentData={studentData} isStudentSearch />
 
       <MDButton text="ホームに戻る" arrowLeft link="/teacher" />
 

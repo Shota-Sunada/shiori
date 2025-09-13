@@ -309,7 +309,7 @@ const GoodsCheck = () => {
             }
           </div>
         )}
-        <MDButton text="戻る" arrowLeft link="/" />
+        <MDButton text="戻る" arrowLeft link={user?.is_teacher ? '/teacher' : '/'} />
       </div>
     );
   }
@@ -381,7 +381,7 @@ const GoodsCheck = () => {
             )}
           </div>
         )}
-        <MDButton text="戻る" arrowLeft link="/" />
+        <MDButton text="戻る" arrowLeft link={user?.is_teacher ? '/teacher' : '/'} />
       </div>
     );
   }

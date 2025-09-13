@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import TimeTable from '../components/TimeTable';
 import { studentApi, teacherApi, type StudentDTO, type TeacherDTO } from '../helpers/domainApi';
@@ -9,11 +10,14 @@ import '../styles/index-table.css';
 
 const Yotei = () => {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [day1CourseKey, setDay1CourseKey] = useState<COURSES_DAY1_KEY | null>(null);
   const [day3CourseKey, setDay3CourseKey] = useState<COURSES_DAY3_KEY | null>(null);
   const [day4CourseKey, setDay4CourseKey] = useState<COURSES_DAY4_KEY | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // 表示中ユーザーの名前
+  const [displayName, setDisplayName] = useState<string | null>(null);
 
   // 各日付のref
   const day1Ref = useRef<HTMLTableRowElement | null>(null);
@@ -30,7 +34,10 @@ const Yotei = () => {
 
   useEffect(() => {
     const run = async () => {
-      if (!user) {
+      // クエリでuser=xxxがあればそちらを優先
+      const queryUserId = searchParams.get('user');
+      const targetUserId = queryUserId || user?.userId;
+      if (!targetUserId) {
         setError('ユーザー情報がありません');
         setLoading(false);
         return;
@@ -39,17 +46,34 @@ const Yotei = () => {
         let day1: string | undefined;
         let day3: string | undefined;
         let day4: string | undefined;
-        if (user.is_teacher) {
-          const t: TeacherDTO = await teacherApi.self(user.userId);
-          day1 = t.day1id;
-          day3 = t.day3id;
-          day4 = DAY4_DATA[t.day4class - 1];
-        } else {
-          const s: StudentDTO = await studentApi.getById(user.userId);
+        let name: string | null = null;
+        try {
+          const s: StudentDTO = await studentApi.getById(targetUserId);
           day1 = s.day1id;
           day3 = s.day3id;
           day4 = DAY4_DATA[s.class - 1];
+          name = `${s.surname} ${s.forename}`;
+        } catch {
+          // 生徒でなければ先生として取得
+          try {
+            const t: TeacherDTO = await teacherApi.self(targetUserId);
+            // 先生データが存在しない場合はエラー
+            if (!t || !t.day1id || !t.day3id || !t.day4class) {
+              setError('指定されたユーザーIDの先生データが存在しません');
+              setLoading(false);
+              return;
+            }
+            day1 = t.day1id;
+            day3 = t.day3id;
+            day4 = DAY4_DATA[t.day4class - 1];
+            name = `${t.surname} ${t.forename}`;
+          } catch {
+            setError('指定されたユーザーIDのデータが存在しません');
+            setLoading(false);
+            return;
+          }
         }
+        setDisplayName(name);
         if (!day1) {
           setError('day1idが見つかりません');
           setLoading(false);
@@ -75,7 +99,7 @@ const Yotei = () => {
       }
     };
     run();
-  }, [user]);
+  }, [user, searchParams]);
 
   if (loading) return <div className="p-4 text-center">読み込み中…</div>;
   if (error) return <div className="p-4 text-center text-red-600">エラー: {error}</div>;
@@ -101,6 +125,8 @@ const Yotei = () => {
           </button>
         </div>
         <div className="w-full max-w-4xl my-3 index-table-wrapper">
+          {/* 表示中のユーザー名を上部に表示 */}
+          {displayName && <div className="mb-2 text-lg font-semibold text-center text-blue-700">{displayName} さんの行程表</div>}
           <ModernTable>
             <TimeTable ref={day1Ref} courseKey={'day1_common1'} />
             <TimeTable courseKey={day1CourseKey} />
