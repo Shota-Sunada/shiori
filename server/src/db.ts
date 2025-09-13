@@ -220,6 +220,16 @@ async function initializeDatabase() {
     logger.log('テーブル「roll_call_groups」の存在を確認。');
 
     await connection.execute(`
+      CREATE TABLE IF NOT EXISTS boat_assignments (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        boat_index INT NOT NULL,
+        student_ids JSON NOT NULL,
+        teacher_ids JSON NOT NULL
+      );
+    `);
+    logger.log('テーブル「boat_assignments」の存在を確認。');
+
+    await connection.execute(`
       CREATE TABLE IF NOT EXISTS credits (
         id INT AUTO_INCREMENT PRIMARY KEY,
         category VARCHAR(255) NOT NULL,

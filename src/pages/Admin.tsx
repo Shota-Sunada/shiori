@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef, type ChangeEvent, type KeyboardEvent, useMemo, useCallback, memo, type FC } from 'react';
 import type { StudentDTO } from '../helpers/domainApi';
 import { studentApi } from '../helpers/domainApi';
-import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
+import { COURSES_DAY1, COURSES_DAY3, type COURSES_DAY1_KEY, type COURSES_DAY3_KEY } from '../data/courses';
 import '../styles/admin-table.css';
 import '../styles/table.css';
 import StudentModal from '../components/StudentModal';
 import { useAuth } from '../auth-context';
 import CenterMessage from '../components/CenterMessage';
 import { clearAppFetchCache } from '../helpers/apiClient';
+import type { IntRange } from 'type-fest';
 
 type SortKey = keyof StudentDTO;
 type SortDirection = 'asc' | 'desc';
@@ -695,15 +696,15 @@ const Admin = () => {
           onSave={(formData) => {
             const data: StudentDTO = {
               ...formData,
-              day1id: formData.day1id,
-              day3id: formData.day3id,
-              class: Number(formData.class),
-              number: Number(formData.number),
+              day1id: formData.day1id as COURSES_DAY1_KEY,
+              day3id: formData.day3id as COURSES_DAY3_KEY,
+              class: Number(formData.class) as IntRange<1, 8>,
+              number: Number(formData.number) as IntRange<1, 8>,
               gakuseki: Number(formData.gakuseki),
               room_fpr: Number(formData.room_fpr),
               room_tdh: Number(formData.room_tdh),
-              shinkansen_day1_car_number: Number(formData.shinkansen_day1_car_number),
-              shinkansen_day4_car_number: Number(formData.shinkansen_day4_car_number)
+              shinkansen_day1_car_number: Number(formData.shinkansen_day1_car_number) as IntRange<1, 17>,
+              shinkansen_day4_car_number: Number(formData.shinkansen_day4_car_number) as IntRange<1, 17>
             };
             handleSave(data);
           }}

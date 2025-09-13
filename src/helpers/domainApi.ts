@@ -1,9 +1,43 @@
+// ---- Boat Assignments ----
+export interface BoatAssignmentDTO {
+  id: number;
+  boat_index: number;
+  student_ids: number[];
+  teacher_ids: number[];
+}
+
+export const boatAssignmentsApi = {
+  list: () =>
+    appFetch<BoatAssignmentDTO[]>(`${SERVER_ENDPOINT}/api/boats`, {
+      requiresAuth: true,
+      alwaysFetch: true
+    }),
+  create: (payload: { boat_index: number; student_ids: number[]; teacher_ids: number[] }) =>
+    mutate({
+      url: `${SERVER_ENDPOINT}/api/boats`,
+      method: 'POST',
+      jsonBody: payload
+    }),
+  update: (id: number, payload: { boat_index: number; student_ids: number[]; teacher_ids: number[] }) =>
+    mutate({
+      url: `${SERVER_ENDPOINT}/api/boats/${id}`,
+      method: 'PUT',
+      jsonBody: payload
+    }),
+  remove: (id: number) =>
+    mutate({
+      url: `${SERVER_ENDPOINT}/api/boats/${id}`,
+      method: 'DELETE'
+    })
+};
 // ドメイン毎の型安全 API ラッパ (最小セット)
 // 目的: 呼び出し側で URL 文字列を散在させない / キャッシュキーと併用しやすくする
 
 import { appFetch, mutate } from './apiClient';
 import { CacheKeys, CachePrefixes } from './cacheKeys';
 import { SERVER_ENDPOINT } from '../config/serverEndpoint';
+import type { COURSES_DAY1_KEY, COURSES_DAY3_KEY } from '../data/courses';
+import type { IntRange } from 'type-fest';
 
 // ---- Students ----
 // サーバが返す student レコードをアプリ全体で統一利用するための DTO
@@ -13,18 +47,18 @@ export interface StudentDTO {
   forename: string;
   surname_kana: string;
   forename_kana: string;
-  class: number;
-  number: number;
-  gakuseki: number; // 一意 (主キー)
-  day1id: string;
-  day3id: string;
+  class: IntRange<1, 8>;
+  number: IntRange<1, 42>;
+  gakuseki: number;
+  day1id: COURSES_DAY1_KEY;
+  day3id: COURSES_DAY3_KEY;
   day1bus: string;
   day3bus: string;
   room_fpr: number;
   room_tdh: number;
-  shinkansen_day1_car_number: number;
+  shinkansen_day1_car_number: IntRange<1, 17>;
   shinkansen_day1_seat: string;
-  shinkansen_day4_car_number: number;
+  shinkansen_day4_car_number: IntRange<1, 17>;
   shinkansen_day4_seat: string;
 }
 
@@ -141,15 +175,15 @@ export interface TeacherDTO {
   forename: string;
   room_fpr: number;
   room_tdh: number;
-  shinkansen_day1_car_number: number;
+  shinkansen_day1_car_number: IntRange<1, 17>;
   shinkansen_day1_seat: string;
-  shinkansen_day4_car_number: number;
+  shinkansen_day4_car_number: IntRange<1, 17>;
   shinkansen_day4_seat: string;
-  day1id: string;
+  day1id: COURSES_DAY1_KEY;
   day1bus: number;
-  day3id: string;
+  day3id: COURSES_DAY3_KEY;
   day3bus: number;
-  day4class: number;
+  day4class: IntRange<1, 8>;
 }
 
 export const teacherApi = {

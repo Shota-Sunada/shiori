@@ -185,7 +185,7 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
           {/* day2 END */}
           {/* day3 START */}
           <tr>
-            <td rowSpan={3} className="vcell day-col">
+            <td rowSpan={(studentData && studentData.day3id === 'okutama') || teacherData ? 4 : 3} className="vcell day-col">
               <VerticalLabel text="３日目" />
             </td>
             <td className="label-cell">{'研修先'}</td>
@@ -193,8 +193,16 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
           </tr>
           <tr>
             <td className="label-cell">{'バス'}</td>
-            <td>{(studentData && `${studentData!.day3bus}号車`) || (teacherData && `${teacherData?.day3bus ?? '◯◯'}号車`) || '◯◯号車'}</td>
+            <td>{(studentData && `${studentData.day3bus}号車`) || (teacherData && `${teacherData.day3bus ?? '◯◯'}号車`) || '◯◯号車'}</td>
           </tr>
+          {((studentData && studentData.day3id === 'okutama') || teacherData) && (
+            <tr>
+              <td className="label-cell">{'ボート割'}</td>
+              <td className="cell-interactive" onClick={() => navigate('/boats')}>
+                ﾗﾌﾃｨﾝｸﾞのボート割をチェック！
+              </td>
+            </tr>
+          )}
           <tr>
             <td className="label-cell">{'お楽しみ会'}</td>
             <td

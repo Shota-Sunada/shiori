@@ -4,11 +4,12 @@ import '../styles/admin-table.css';
 import ModernTable from '../components/ModernTable';
 // SERVER_ENDPOINT 依存除去 (domainApi 経由で隠蔽)
 import CenterMessage from '../components/CenterMessage';
-import { COURSES_DAY1, COURSES_DAY3 } from '../data/courses';
+import { COURSES_DAY1, COURSES_DAY3, type COURSES_DAY1_KEY, type COURSES_DAY3_KEY } from '../data/courses';
 import { clearAppFetchCache } from '../helpers/apiClient';
-import { teacherApi } from '../helpers/domainApi';
+import { teacherApi, type TeacherDTO } from '../helpers/domainApi';
 import { CacheKeys } from '../helpers/cacheKeys';
 import type { Teacher } from '../interface/models';
+import type { IntRange } from 'type-fest';
 
 interface MemoizedTeacherRowProps {
   t: Teacher;
@@ -86,9 +87,9 @@ const initialForm = {
   forename: '',
   room_fpr: 0,
   room_tdh: 0,
-  shinkansen_day1_car_number: 0,
+  shinkansen_day1_car_number: 1,
   shinkansen_day1_seat: '',
-  shinkansen_day4_car_number: 0,
+  shinkansen_day4_car_number: 1,
   shinkansen_day4_seat: '',
   day1id: '',
   day1bus: 0,
@@ -504,15 +505,15 @@ const TeacherAdmin = () => {
           forename: formData.forename,
           room_fpr: formData.room_fpr,
           room_tdh: formData.room_tdh,
-          shinkansen_day1_car_number: formData.shinkansen_day1_car_number,
+          shinkansen_day1_car_number: formData.shinkansen_day1_car_number as IntRange<1, 17>,
           shinkansen_day1_seat: formData.shinkansen_day1_seat,
-          shinkansen_day4_car_number: formData.shinkansen_day4_car_number,
+          shinkansen_day4_car_number: formData.shinkansen_day4_car_number as IntRange<1, 17>,
           shinkansen_day4_seat: formData.shinkansen_day4_seat,
-          day1id: formData.day1id,
+          day1id: formData.day1id as COURSES_DAY1_KEY,
           day1bus: formData.day1bus,
-          day3id: formData.day3id,
+          day3id: formData.day3id as COURSES_DAY3_KEY,
           day3bus: formData.day3bus,
-          day4class: formData.day4class
+          day4class: formData.day4class as IntRange<1, 8>
         });
         clearAppFetchCache(CacheKeys.teachers.list);
         setStatus('先生を追加しました。');
@@ -530,15 +531,15 @@ const TeacherAdmin = () => {
           forename: formData.forename,
           room_fpr: formData.room_fpr,
           room_tdh: formData.room_tdh,
-          shinkansen_day1_car_number: formData.shinkansen_day1_car_number,
+          shinkansen_day1_car_number: formData.shinkansen_day1_car_number as IntRange<1, 17>,
           shinkansen_day1_seat: formData.shinkansen_day1_seat,
-          shinkansen_day4_car_number: formData.shinkansen_day4_car_number,
+          shinkansen_day4_car_number: formData.shinkansen_day4_car_number as IntRange<1, 17>,
           shinkansen_day4_seat: formData.shinkansen_day4_seat,
-          day1id: formData.day1id,
+          day1id: formData.day1id as COURSES_DAY1_KEY,
           day1bus: formData.day1bus,
-          day3id: formData.day3id,
+          day3id: formData.day3id as COURSES_DAY3_KEY,
           day3bus: formData.day3bus,
-          day4class: formData.day4class
+          day4class: formData.day4class as IntRange<1, 8>
         });
         clearAppFetchCache(CacheKeys.teachers.list);
         setStatus('先生を更新しました。');
@@ -588,7 +589,7 @@ const TeacherAdmin = () => {
 
     setStatus('更新中...');
     try {
-      await teacherApi.update(teacherId, { [field]: valueToSave } as Partial<Omit<Teacher, 'id'>>);
+      await teacherApi.update(teacherId, { [field]: valueToSave } as Partial<Omit<TeacherDTO, 'id'>>);
       clearAppFetchCache(CacheKeys.teachers.list);
 
       setTeachersList((prevList) => {

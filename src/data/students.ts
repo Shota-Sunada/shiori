@@ -1,4 +1,5 @@
 import type { IntRange } from 'type-fest';
+import type { COURSES_DAY1_KEY, COURSES_DAY3_KEY } from './courses';
 
 export type student = {
   surname: string;
@@ -8,8 +9,8 @@ export type student = {
   class: IntRange<1, 8>;
   number: IntRange<1, 42>;
   gakuseki: number;
-  day1id: 'yrp_nifco' | 'yrp_yamashin' | 'yrp_air' | 'yrp_vtech' | 'ntt_labo_i' | 'ntt_labo_b' | 'kayakku' | 'jaxa' | 'astro' | 'arda' | 'urth_jip' | 'micro' | 'air';
-  day3id: 'okutama' | 'yokosuka' | 'hakone' | 'kamakura' | 'hakkeijima' | 'yokohama';
+  day1id: COURSES_DAY1_KEY;
+  day3id: COURSES_DAY3_KEY;
   day1bus: string;
   day3bus: string;
   room_fpr: number;

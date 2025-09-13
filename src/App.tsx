@@ -35,6 +35,8 @@ import Maps from './pages/Maps';
 import GoodsCheck from './pages/GoodsCheck';
 import Goods from './pages/Goods';
 import Shinkansen from './pages/Shinkansen';
+import Boats from './pages/Boats';
+import BoatsAdmin from './pages/BoatsAdmin';
 
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: unknown }> {
   constructor(props: { children: React.ReactNode }) {
@@ -514,6 +516,24 @@ function App() {
                           <ScheduleAdmin />
                         </FadeContainer>
                       </AdminOrTeacherRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/boats"
+                    element={
+                      <AdminOrTeacherRoute>
+                        <FadeContainer>
+                          <BoatsAdmin />
+                        </FadeContainer>
+                      </AdminOrTeacherRoute>
+                    }
+                  />
+                  <Route
+                    path="/boats"
+                    element={
+                      <FadeContainer>
+                        <Boats />
+                      </FadeContainer>
                     }
                   />
                 </Route>

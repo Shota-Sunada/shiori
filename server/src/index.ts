@@ -42,6 +42,7 @@ import rollCallGroupsRouter from './routes/roll-call-groups';
 import teachersRouter from './routes/teachers';
 import creditsRouter from './routes/credits';
 import scheduleRouter from './routes/schedule';
+import boatsRouter from './routes/boats';
 // バージョン取得用 (package.json から) - PWA クライアントのバージョン不一致検出に利用
 import serverPkg from '../package.json';
 
@@ -60,7 +61,8 @@ const routeConfigs: RouteConfig[] = [
   { path: '/api/roll-call', router: rollCallRouter, middlewares: [authenticateToken] },
   { path: '/api/roll-call-groups', router: rollCallGroupsRouter, middlewares: [authenticateToken] },
   { path: '/api/teachers', router: teachersRouter, middlewares: [authenticateToken] },
-  { path: '/api/credits', router: creditsRouter, middlewares: [authenticateToken] }
+  { path: '/api/credits', router: creditsRouter, middlewares: [authenticateToken] },
+  { path: '/api/boats', router: boatsRouter, middlewares: [authenticateToken] }
 ];
 
 routeConfigs.forEach(({ path, router, middlewares }) => {
@@ -168,7 +170,8 @@ const routers: Array<[string, express.Router, boolean?]> = [
   ['/api/roll-call-groups', rollCallGroupsRouter, true],
   ['/api/teachers', teachersRouter, true],
   ['/api/credits', creditsRouter, true],
-  ['/api/schedules', scheduleRouter, true]
+  ['/api/schedules', scheduleRouter, true],
+  ['/api/boats', boatsRouter, true]
 ];
 
 routers.forEach(([path, r, needAuth]) => {
