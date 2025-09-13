@@ -110,10 +110,10 @@ const Header = () => {
       { type: 'action', icon: <IoReload />, label: 'しおりを再読み込み', onClick: () => window.location.reload() },
       { type: 'link', icon: <VscDebugAlt />, to: '/env-debug', label: 'デバッグ用環境表示' },
       { type: 'link', icon: <FaUserGraduate />, to: '/credits', label: 'クレジット' },
-      { type: 'link', icon: <IoSettingsSharp />, to: '/admin', label: '生徒管理画面', note: '管理者&先生専用', only_admin: true },
-      { type: 'link', icon: <IoSettingsSharp />, to: '/teacher-admin', label: '先生管理画面', note: '管理者&先生専用', only_admin: true },
-      { type: 'link', icon: <IoSettingsSharp />, to: '/user-admin', label: 'ユーザー管理画面', note: '管理者&先生専用', only_admin: true },
-      { type: 'link', icon: <IoSettingsSharp />, to: '/otanoshimi-admin', label: 'お楽しみ会管理画面', note: '管理者&先生専用', only_admin: true },
+      { type: 'link', icon: <IoSettingsSharp />, to: '/admin/students', label: '生徒管理画面', note: '管理者&先生専用', only_admin: true },
+      { type: 'link', icon: <IoSettingsSharp />, to: '/admin/teachers', label: '先生管理画面', note: '管理者&先生専用', only_admin: true },
+      { type: 'link', icon: <IoSettingsSharp />, to: '/admin/users', label: 'ユーザー管理画面', note: '管理者&先生専用', only_admin: true },
+      { type: 'link', icon: <IoSettingsSharp />, to: '/admin/otanoshimi', label: 'お楽しみ会管理画面', note: '管理者&先生専用', only_admin: true },
       { type: 'link', icon: <IoSettingsSharp />, to: '/admin/schedules', label: 'スケジュール管理画面', note: '管理者&先生専用', only_admin: true }
     ],
     [user]

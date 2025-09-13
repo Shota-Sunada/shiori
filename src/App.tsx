@@ -300,6 +300,35 @@ function App() {
     return () => unsubscribe();
   }, [navigate]);
 
+  // ルート定義を配列で管理
+  const mainRoutes = [
+    { path: '/', element: <Index /> },
+    { path: '/otanoshimi', element: <Otanoshimi /> },
+    { path: '/call', element: <Call /> },
+    { path: '/credits', element: <Credits /> },
+    { path: '/env-debug', element: <EnvDebug /> },
+    { path: '/roll-call-history', element: <RollCallHistory /> },
+    { path: '/yotei', element: <Yotei /> },
+    { path: '/goods-check', element: <GoodsCheck /> },
+    { path: '/maps', element: <Maps /> },
+    { path: '/goods', element: <Goods /> },
+    { path: '/shinkansen', element: <Shinkansen /> },
+    { path: '/boats', element: <Boats /> },
+    { path: '/teacher', element: <TeacherIndex /> },
+    { path: '/teacher/search', element: <TeacherIndexTable /> },
+    { path: '/teacher/roll-call-list', element: <TeacherRollCallList /> },
+    { path: '/teacher/call', element: <TeacherRollCall /> },
+    { path: '/teacher/call-viewer', element: <TeacherRollCallViewer /> }
+  ];
+  const adminRoutes = [
+    { path: '/admin/students', element: <Admin /> },
+    { path: '/admin/users', element: <UserAdmin /> },
+    { path: '/admin/otanoshimi', element: <OtanoshimiAdmin /> },
+    { path: '/admin/teachers', element: <TeacherAdmin /> },
+    { path: '/admin/schedules', element: <ScheduleAdmin /> },
+    { path: '/admin/boats', element: <BoatsAdmin /> }
+  ];
+
   return (
     <div className="grid grid-rows-[auto_1fr_auto] bg-[#f7f4e5] min-h-dvh">
       <Header />
@@ -342,202 +371,22 @@ function App() {
               {/* ログイン後領域 */}
               <Route element={<ProtectedRoute />}>
                 <Route element={<NotificationGuard />}>
-                  <Route
-                    path="/"
-                    element={
-                      <FadeContainer>
-                        <Index />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/otanoshimi"
-                    element={
-                      <FadeContainer>
-                        <Otanoshimi />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/call"
-                    element={
-                      <FadeContainer>
-                        <Call />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/credits"
-                    element={
-                      <FadeContainer>
-                        <Credits />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/teacher"
-                    element={
-                      <FadeContainer>
-                        <TeacherIndex />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/env-debug"
-                    element={
-                      <FadeContainer>
-                        <EnvDebug />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/teacher/search"
-                    element={
-                      <FadeContainer>
-                        <TeacherIndexTable />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/teacher/roll-call-list"
-                    element={
-                      <FadeContainer>
-                        <TeacherRollCallList />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/teacher/call"
-                    element={
-                      <FadeContainer>
-                        <TeacherRollCall />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/teacher/call-viewer"
-                    element={
-                      <FadeContainer>
-                        <TeacherRollCallViewer />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/roll-call-history"
-                    element={
-                      <FadeContainer>
-                        <RollCallHistory />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/admin"
-                    element={
-                      <AdminOrTeacherRoute>
-                        <FadeContainer>
-                          <Admin />
-                        </FadeContainer>
-                      </AdminOrTeacherRoute>
-                    }
-                  />
-                  <Route
-                    path="/user-admin"
-                    element={
-                      <AdminOrTeacherRoute>
-                        <FadeContainer>
-                          <UserAdmin />
-                        </FadeContainer>
-                      </AdminOrTeacherRoute>
-                    }
-                  />
-                  <Route
-                    path="/otanoshimi-admin"
-                    element={
-                      <AdminOrTeacherRoute>
-                        <FadeContainer>
-                          <OtanoshimiAdmin />
-                        </FadeContainer>
-                      </AdminOrTeacherRoute>
-                    }
-                  />
-                  <Route
-                    path="/teacher-admin"
-                    element={
-                      <AdminOrTeacherRoute>
-                        <FadeContainer>
-                          <TeacherAdmin />
-                        </FadeContainer>
-                      </AdminOrTeacherRoute>
-                    }
-                  />
-                  <Route
-                    path="/yotei"
-                    element={
-                      <FadeContainer>
-                        <Yotei />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/goods-check"
-                    element={
-                      <FadeContainer>
-                        <GoodsCheck />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/maps"
-                    element={
-                      <FadeContainer>
-                        <Maps />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/goods"
-                    element={
-                      <FadeContainer>
-                        <Goods />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/shinkansen"
-                    element={
-                      <FadeContainer>
-                        <Shinkansen />
-                      </FadeContainer>
-                    }
-                  />
-                  <Route
-                    path="/admin/schedules"
-                    element={
-                      <AdminOrTeacherRoute>
-                        <FadeContainer>
-                          <ScheduleAdmin />
-                        </FadeContainer>
-                      </AdminOrTeacherRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/boats"
-                    element={
-                      <AdminOrTeacherRoute>
-                        <FadeContainer>
-                          <BoatsAdmin />
-                        </FadeContainer>
-                      </AdminOrTeacherRoute>
-                    }
-                  />
-                  <Route
-                    path="/boats"
-                    element={
-                      <FadeContainer>
-                        <Boats />
-                      </FadeContainer>
-                    }
-                  />
+                  {/* メインルート */}
+                  {mainRoutes.map(({ path, element }) => (
+                    <Route key={path} path={path} element={<FadeContainer>{element}</FadeContainer>} />
+                  ))}
+                  {/* 管理者・教員専用ルート */}
+                  {adminRoutes.map(({ path, element }) => (
+                    <Route
+                      key={path}
+                      path={path}
+                      element={
+                        <AdminOrTeacherRoute>
+                          <FadeContainer>{element}</FadeContainer>
+                        </AdminOrTeacherRoute>
+                      }
+                    />
+                  ))}
                 </Route>
                 {/* NotificationGuard 終了 */}
               </Route>
