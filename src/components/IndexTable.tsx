@@ -241,7 +241,7 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
                       {teachers
                         .filter((teacher) => teacher.day4class === studentData.class)
                         .map((teacher) => (
-                          <p className="text-gray-600 text-xs px-1 items-center justify-center">{`${teacher.surname} ${teacher.forename} 先生`}</p>
+                          <p key={teacher.id} className="text-gray-600 text-xs px-1 items-center justify-center">{`${teacher.surname} ${teacher.forename} 先生`}</p>
                         ))}
                     </div>
                   </div>
