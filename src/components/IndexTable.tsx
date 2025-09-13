@@ -136,7 +136,13 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
             <td
               className="cell-interactive"
               onClick={() => {
-                if (studentData || teacherData) {
+                if (studentData) {
+                  if (isStudentSearch) {
+                    navigate(`/yotei?user=${studentData.gakuseki}`);
+                  } else {
+                    navigate('/yotei');
+                  }
+                } else if (teacherData) {
                   navigate('/yotei');
                 }
               }}>
