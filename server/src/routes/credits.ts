@@ -8,7 +8,7 @@ router.get('/', async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT category, items FROM credits ORDER BY id ASC');
     res.json(rows);
-    logger.debug('クレジットデータ取得成功');
+    logger.info('クレジットデータ取得成功');
   } catch (error) {
     logger.error('クレジットデータの取得中にエラーが発生しました:', error as Error);
     res.status(500).json({ message: 'サーバーエラー' });

@@ -18,6 +18,7 @@ interface OtanoshimiData {
 }
 
 router.get('/', async (req: Request, res: Response) => {
+  logger.info('[otanoshimi] GET / リクエスト', { ip: req.ip });
   try {
     const [rows] = await pool.execute<RowDataPacket[]>('SELECT * FROM otanoshimi_teams ORDER BY appearance_order ASC');
     const teams = rows.map((row) => ({
@@ -27,21 +28,21 @@ router.get('/', async (req: Request, res: Response) => {
       comment: row.comment || '',
       supervisor: JSON.parse(row.supervisor || '[]')
     }));
+    logger.info('[otanoshimi] チーム一覧取得', { count: teams.length });
     res.status(200).json(teams);
   } catch (error) {
-    logger.error('Error fetching otanoshimi teams:', error as Error);
+    logger.error('Error fetching otanoshimi teams:', { error: String(error) });
     res.status(500).json({ message: 'Internal server error' });
   }
 });
 
 router.post('/', async (req: Request, res: Response) => {
   const teams: OtanoshimiData[] = req.body;
+  logger.info('[otanoshimi] POST / リクエスト', { ip: req.ip, body: req.body });
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
-
     await connection.execute('TRUNCATE TABLE otanoshimi_teams');
-
     for (const t of teams) {
       const membersJson = JSON.stringify(t.members);
       const customPerformersJson = JSON.stringify(t.custom_performers);
@@ -58,12 +59,12 @@ router.post('/', async (req: Request, res: Response) => {
         supervisorJson
       ]);
     }
-
     await connection.commit();
+    logger.info('[otanoshimi] チームデータ更新', { count: teams.length });
     res.status(200).json({ message: 'お楽しみ会チームの更新に成功' });
   } catch (error) {
     await connection.rollback();
-    logger.error('お楽しみ会チームの更新に失敗:', error as Error);
+    logger.error('お楽しみ会チームの更新に失敗:', { error: String(error) });
     res.status(500).json({ message: '内部サーバーエラー' });
   } finally {
     connection.release();

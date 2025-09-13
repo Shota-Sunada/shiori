@@ -75,53 +75,61 @@ import { initializeDatabase, pool } from './db';
 // Initialize the database and tables
 initializeDatabase()
   .then(() => {
-    logger.log('データベースの初期化が完了。');
+    logger.info('[index] データベースの初期化が完了。');
   })
   .catch((error) => {
-    logger.error('データベースの初期化に失敗:', error);
+    logger.error('[index] データベースの初期化に失敗', { error: String(error) });
     process.exit(1);
   });
 
 app.get('/', (req: Request, res: Response) => {
+  logger.info('[index] GET / リクエスト', { ip: req.ip });
   res.send('Hello from Shiori Firebase Messaging Server!');
 });
 
 // クライアントが自身の組み込みバージョンと比較するための公開エンドポイント
-app.get('/api/version', (_req: Request, res: Response) => {
+app.get('/api/version', (req: Request, res: Response) => {
+  logger.info('[index] GET /api/version リクエスト', { ip: req.ip });
   res.json({ version: serverPkg.version });
 });
 
 app.post('/register-token', authenticateToken, async (req: Request, res: Response) => {
   const { userId, token } = req.body;
-  logger.log(`ユーザー「${userId}」からのトークン登録リクエストを受信。`);
+  logger.info('[index] POST /register-token リクエスト', { userId, ip: req.ip });
 
   if (!userId || !token) {
-    logger.log(`登録リクエストにuserIdまたはtokenが含まれていません。`);
-    return res.status(400).send({ error: '「userId」と「token」の両方が必要です。' });
+    logger.info('[index] register-token: userIdまたはtokenが未指定', { userId, token });
+    res.status(400).send({ error: '「userId」と「token」の両方が必要です。' });
+    return;
   }
 
   try {
     await pool.execute('INSERT INTO fcm_tokens (user_id, token) VALUES (?, ?) ON DUPLICATE KEY UPDATE token = VALUES(token)', [userId, token]);
-    logger.log(`ユーザー「${userId}」へのトークンの登録に成功。`);
+    logger.info('[index] register-token: トークン登録成功', { userId });
     res.status(200).send({ message: 'データベースにトークンを登録しました。' });
   } catch (error) {
-    logger.error(`ユーザー「${userId}」へのトークンの登録に失敗:`, error as Error);
+    logger.error('[index] register-token: トークン登録失敗', { userId, error: String(error) });
     res.status(500).send({ error: 'トークンの登録に失敗しました。' });
   }
 });
 
 app.post('/send-notification', authenticateToken, async (req: Request, res: Response) => {
   const { userId, title, body, link } = req.body;
+  logger.info('[index] POST /send-notification リクエスト', { userId, title, ip: req.ip });
 
   if (!userId || !title || !body) {
-    return res.status(400).send({ error: '「userId」、「title」と「body」のすべてが必要です。' });
+    logger.info('[index] send-notification: 必須パラメータ不足', { userId, title, body });
+    res.status(400).send({ error: '「userId」、「title」と「body」のすべてが必要です。' });
+    return;
   }
 
   const success = await sendNotification(userId, title, body, link);
 
   if (success) {
+    logger.info('[index] send-notification: 通知送信成功', { userId });
     res.status(200).send({ message: '通知の送信に成功しました。' });
   } else {
+    logger.info('[index] send-notification: 通知送信失敗', { userId });
     res.status(404).send({ error: `通知の送信に失敗しました。ユーザー「${userId}」のトークンが無効か、存在しません。` });
   }
 });
@@ -135,12 +143,20 @@ function getUserId(req: Request): string | undefined {
 // 自分のFCMトークン確認用（デバッグ）
 app.get('/api/me/fcm-token', authenticateToken, async (req: Request, res: Response) => {
   const userId = getUserId(req);
-  if (!userId) return res.status(401).json({ error: 'unauthorized' });
+  logger.info('[index] GET /api/me/fcm-token リクエスト', { userId, ip: req.ip });
+  if (!userId) {
+    res.status(401).json({ error: 'unauthorized' });
+    return;
+  }
   try {
     const token = await getUserFcmToken(userId);
-    if (!token) return res.status(404).json({ token: null });
+    if (!token) {
+      res.status(404).json({ token: null });
+      return;
+    }
     res.json({ token });
   } catch (e) {
+    logger.error('[index] /api/me/fcm-token 取得失敗', { userId, error: String(e) });
     res.status(500).json({ error: String(e) });
   }
 });
@@ -148,12 +164,18 @@ app.get('/api/me/fcm-token', authenticateToken, async (req: Request, res: Respon
 // 自分宛テスト通知送信（デバッグ）
 app.post('/api/me/test-notification', authenticateToken, async (req: Request, res: Response) => {
   const userId = getUserId(req);
-  if (!userId) return res.status(401).json({ error: 'unauthorized' });
+  logger.info('[index] POST /api/me/test-notification リクエスト', { userId, ip: req.ip });
+  if (!userId) {
+    res.status(401).json({ error: 'unauthorized' });
+    return;
+  }
   const { title = 'テスト通知', body = '通知の到達性テスト', link = '/' } = req.body || {};
   try {
     const ok = await sendNotificationSingle(userId, title, body, link);
+    logger.info('[index] /api/me/test-notification 通知送信', { userId, ok });
     res.json({ success: ok });
   } catch (e) {
+    logger.error('[index] /api/me/test-notification 送信失敗', { userId, error: String(e) });
     res.status(500).json({ error: String(e) });
   }
 });
@@ -180,9 +202,9 @@ routers.forEach(([path, r, needAuth]) => {
 });
 
 function initCli() {
-  logger.log('コンソールコマンド入力可能');
-  logger.log('createuser <id> <password> [--admin] [--teacher]');
-  logger.log('deleteuser <id>');
+  logger.info('[index] コンソールコマンド入力可能');
+  logger.info('[index] createuser <id> <password> [--admin] [--teacher]');
+  logger.info('[index] deleteuser <id>');
 
   const rl = readline.createInterface({
     input: process.stdin,
@@ -201,33 +223,33 @@ function initCli() {
       const isTeacher = parts.includes('--teacher');
 
       if (!idArg || !passwordArg) {
-        logger.log('使用方法: createuser <id> <password> [--admin] [--teacher]');
+        logger.info('[index] 使用方法: createuser <id> <password> [--admin] [--teacher]');
         return;
       }
 
       const id = Number(idArg);
       if (isNaN(id)) {
-        logger.log('エラー: IDは数字である必要があります。');
+        logger.info('[index] エラー: IDは数字である必要があります。');
         return;
       }
 
       try {
         const passwordHash = await bcrypt.hash(passwordArg, 10);
         await pool.execute('INSERT INTO users (id, passwordHash, is_admin, is_teacher) VALUES (?, ?, ?, ?)', [id, passwordHash, isAdmin, isTeacher]);
-        logger.log(`ユーザー '${id}' が正常に作成されました。 管理者: ${isAdmin}, 教員: ${isTeacher}`);
+        logger.info('[index] ユーザー作成', { id, isAdmin, isTeacher });
       } catch (error) {
-        logger.error('ユーザー作成中にエラーが発生しました:', error as Error);
+        logger.error('[index] ユーザー作成中にエラーが発生しました:', { error: String(error) });
       }
     } else if (command === 'deleteuser') {
       const idArg = parts[1];
       if (!idArg) {
-        logger.log('使用方法: deleteuser <id>');
+        logger.info('[index] 使用方法: deleteuser <id>');
         return;
       }
 
       const id = Number(idArg);
       if (isNaN(id)) {
-        logger.log('エラー: IDは数字である必要があります。');
+        logger.info('[index] エラー: IDは数字である必要があります。');
         return;
       }
 
@@ -235,23 +257,23 @@ function initCli() {
         const [result] = await pool.execute<ResultSetHeader>('DELETE FROM users WHERE id = ?', [id]);
 
         if (result.affectedRows === 0) {
-          logger.log(`ID '${id}' のユーザーが見つかりませんでした。`);
+          logger.info('[index] ユーザー削除: 見つかりません', { id });
         } else {
-          logger.log(`ID '${id}' のユーザーが正常に削除されました。`);
+          logger.info('[index] ユーザー削除: 成功', { id });
         }
       } catch (error) {
-        logger.error('ユーザー削除中にエラーが発生しました:', error as Error);
+        logger.error('[index] ユーザー削除中にエラーが発生しました:', { error: String(error) });
       }
     } else if (command === 'exit') {
-      logger.log('サーバーを終了します...');
+      logger.info('[index] サーバーを終了します...');
       process.exit(0);
     } else {
-      logger.log(`不明なコマンド: ${command}`);
+      logger.info('[index] 不明なコマンド', { command });
     }
   });
 }
 
 app.listen(port, () => {
-  logger.log(`「http://localhost:${port}」でサーバー起動。`);
+  logger.info(`[index] サーバー起動: http://localhost:${port}`);
   initCli();
 });
