@@ -49,19 +49,19 @@ export default function VersionMismatch() {
 
   return (
     <div className="flex flex-col items-center justify-center p-6 text-center">
-      <h1 className="text-2xl font-bold mb-4">バージョン不一致を検出</h1>
+      <h1 className="text-2xl font-bold mb-4">バージョンの不一致を検出しました</h1>
       <div className="mb-4 text-sm leading-relaxed max-w-md space-y-3">
-        <p>この端末にキャッシュされているフロントエンドとサーバーのバージョンが一致しません。最新のデータを取得するため再読み込みを行ってください。</p>
+        <p>しおりのバージョンと、サーバーのバージョンが異なります。しおりが更新された可能性があります。最新のデータを取得するため再読み込みを行ってください。</p>
         <div className="rounded bg-white/70 px-4 py-3 text-left text-xs font-mono space-y-1 border border-gray-300">
           <p>
-            <span className="font-semibold">Client:</span> v{clientVersion || 'unknown'}
+            <span className="font-semibold">しおり:</span> v{clientVersion || 'unknown'}
           </p>
           <p>
-            <span className="font-semibold">Server:</span> {loading ? '取得中...' : serverVersion ? 'v' + serverVersion : error ? '取得失敗 (' + error + ')' : 'not-found'}
+            <span className="font-semibold">サーバー:</span> {loading ? '取得中...' : serverVersion ? 'v' + serverVersion : error ? '取得失敗 (' + error + ')' : 'not-found'}
           </p>
           {serverVersion && clientVersion && (
             <p>
-              <span className="font-semibold">Status:</span> {mismatch ? <span className="text-red-600">Mismatch</span> : <span className="text-green-600">Match (ページ遷移で復帰可)</span>}
+              <span className="font-semibold">状況:</span> {mismatch ? <span className="text-red-600">不一致</span> : <span className="text-green-600">一致 (ページ遷移で復帰可)</span>}
             </p>
           )}
         </div>
@@ -69,13 +69,10 @@ export default function VersionMismatch() {
       </div>
       <div className="flex gap-4">
         <button onClick={handleReload} className="px-6 py-3 rounded bg-[#50141c] text-white text-sm font-semibold shadow hover:opacity-90 active:scale-[0.98]">
-          完全再読み込み
-        </button>
-        <button onClick={() => window.location.assign('/')} className="px-5 py-3 rounded bg-gray-300 text-gray-800 text-sm font-semibold shadow hover:bg-gray-200 active:scale-[0.98]">
-          トップへ戻る
+          しおりを再読み込み
         </button>
       </div>
-      <p className="mt-6 text-xs text-gray-500 max-w-sm leading-relaxed">それでも解消しない場合: 端末の「アプリ(ホーム画面追加PWA)を閉じて再起動」またはブラウザのキャッシュ削除を試してください。</p>
+      <p className="mt-6 text-xs text-gray-500 max-w-sm leading-relaxed">それでも解消しない場合、アプリを再インストールしてください。詳しくは5-1砂田まで</p>
     </div>
   );
 }
