@@ -4,13 +4,8 @@ import { pool } from './db';
 import { logger } from './logger';
 
 export async function getUserFcmToken(userId: string): Promise<string | null> {
-  logger.info('[notifications] getUserFcmToken リクエスト', { userId });
   const [rows] = await pool.execute<RowDataPacket[]>('SELECT token FROM fcm_tokens WHERE user_id = ?', [userId]);
-  if (rows.length === 0) {
-    logger.info('[notifications] getUserFcmToken: トークンなし', { userId });
-    return null;
-  }
-  logger.info('[notifications] getUserFcmToken: トークン取得', { userId });
+  if (rows.length === 0) return null;
   return rows[0].token || null;
 }
 
@@ -18,11 +13,10 @@ export async function getUserFcmToken(userId: string): Promise<string | null> {
  * 指定したユーザーに通知を送信
  */
 export async function sendNotification(userId: string, title: string, body: string, link?: string): Promise<boolean> {
-  logger.info('[notifications] sendNotification リクエスト', { userId, title });
   try {
     const token = await getUserFcmToken(userId);
     if (!token) {
-      logger.warn('[notifications] 有効なトークンなし', { userId });
+      logger.warn(`ユーザー「${userId}」の有効なトークンなし。`);
       return false;
     }
 
@@ -42,13 +36,13 @@ export async function sendNotification(userId: string, title: string, body: stri
     };
 
     await admin.messaging().send(message);
-    logger.info('[notifications] 通知送信成功', { userId });
+    logger.info(`通知送信成功 user=${userId}`);
     return true;
   } catch (error) {
-    logger.error('[notifications] 通知送信失敗', { userId, error: String(error) });
+    logger.error(`通知送信失敗 user=${userId}`, error as Error);
     if ((error as admin.FirebaseError).code === 'messaging/registration-token-not-registered') {
       await pool.execute('DELETE FROM fcm_tokens WHERE user_id = ?', [userId]);
-      logger.warn('[notifications] 無効トークン削除', { userId });
+      logger.warn(`無効トークン削除 user=${userId}`);
     }
     return false;
   }
