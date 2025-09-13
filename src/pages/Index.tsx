@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
+import { getToken } from 'firebase/messaging';
+import { messaging } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import type { StudentDTO } from '../helpers/domainApi';
-import { studentApi } from '../helpers/domainApi';
 import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import IndexTable from '../components/IndexTable';
 import MDButton from '../components/MDButton';
@@ -17,13 +18,42 @@ interface ActiveRollCall {
 }
 
 const Index = () => {
-  const { user, token, loading } = useAuth();
+  const { user, token, loading, logout } = useAuth();
 
   const navigate = useNavigate();
 
   const [studentData, setStudentData] = useState<StudentDTO | null | undefined>(undefined); // undefined: ロード中, null: 404 等
   const [studentLoading, setStudentLoading] = useState<boolean>(true);
   const [activeRollCall, setActiveRollCall] = useState<ActiveRollCall | null>(null);
+  // FCMトークンの不一致チェック（ログイン直後は1回だけスキップ）
+  useEffect(() => {
+    (async () => {
+      try {
+        // サーバーのFCMトークン取得
+        const data = await appFetch<{ token: string | null }>(`${SERVER_ENDPOINT}/api/fcm-token/me/fcm-token`, { requiresAuth: true, alwaysFetch: true });
+        const serverToken = data.token;
+        // クライアントのFCMトークン取得
+        let clientToken: string | null = null;
+        try {
+          clientToken = await getToken(messaging, { vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY });
+        } catch {
+          // 権限未許可など
+        }
+        if (serverToken && clientToken && serverToken !== clientToken) {
+          // FCMトークンが異なる場合はサーバーにクライアントのトークンを再登録
+          if (user?.userId && clientToken) {
+            await appFetch(`${SERVER_ENDPOINT}/register-token`, {
+              method: 'POST',
+              jsonBody: { userId: user.userId, token: clientToken },
+              requiresAuth: true
+            });
+          }
+        }
+      } catch {
+        // サーバーAPI失敗時は警告しない
+      }
+    })();
+  }, [logout, user?.userId]);
   const pollTimerRef = useRef<number | null>(null);
 
   // 生徒データ取得 (1回 + キャッシュ)
@@ -35,22 +65,16 @@ const Index = () => {
         return;
       }
       try {
-        const data = await studentApi.getById(user.userId); // 単体取得は頻度低いので TTL なし
+        // 生徒データ取得API呼び出し例（適宜修正）
+        const data = await appFetch<StudentDTO>(`${SERVER_ENDPOINT}/api/students/${user.userId}`, { requiresAuth: true });
         setStudentData(data);
-      } catch (e: unknown) {
-        const msg = (e as Error).message || '';
-        if (msg.includes('404')) {
-          console.warn(`生徒ID「${user.userId}」のデータが見つかりませんでした。`);
-          setStudentData(null);
-        } else {
-          console.error('生徒データ取得失敗:', e);
-          setStudentData(null);
-        }
+      } catch {
+        setStudentData(null);
       } finally {
         setStudentLoading(false);
       }
     };
-    if (token) fetchStudent();
+    fetchStudent();
   }, [user, token]);
 
   // 有効な点呼ポーリング (5秒間隔)

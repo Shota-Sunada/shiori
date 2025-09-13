@@ -22,7 +22,12 @@ app.set('trust proxy', 1);
 const port = 8080;
 
 // CORSを有効化
-app.use(cors({ origin: ['http://localhost:5173', 'https://shiori.shudo-physics.com'] })); // クライアントのオリジンに合わせて変更してください
+app.use(
+  cors({
+    origin: ['http://localhost:5173', 'https://shiori.shudo-physics.com'],
+    credentials: true
+  })
+); // クライアントのオリジンに合わせて変更してください
 app.use(express.json());
 
 // Rate limiter for auth routes
@@ -43,6 +48,7 @@ import teachersRouter from './routes/teachers';
 import creditsRouter from './routes/credits';
 import scheduleRouter from './routes/schedule';
 import boatsRouter from './routes/boats';
+import fcmTokenRouter from './routes/fcm-token';
 // バージョン取得用 (package.json から) - PWA クライアントのバージョン不一致検出に利用
 import serverPkg from '../package.json';
 
@@ -62,7 +68,8 @@ const routeConfigs: RouteConfig[] = [
   { path: '/api/roll-call-groups', router: rollCallGroupsRouter, middlewares: [authenticateToken] },
   { path: '/api/teachers', router: teachersRouter, middlewares: [authenticateToken] },
   { path: '/api/credits', router: creditsRouter, middlewares: [authenticateToken] },
-  { path: '/api/boats', router: boatsRouter, middlewares: [authenticateToken] }
+  { path: '/api/boats', router: boatsRouter, middlewares: [authenticateToken] },
+  { path: '/api/fcm-token', router: fcmTokenRouter, middlewares: [authenticateToken] }
 ];
 
 routeConfigs.forEach(({ path, router, middlewares }) => {
