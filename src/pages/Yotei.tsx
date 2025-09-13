@@ -47,17 +47,10 @@ const Yotei = () => {
         let day3: string | undefined;
         let day4: string | undefined;
         let name: string | null = null;
-        try {
-          const s: StudentDTO = await studentApi.getById(targetUserId);
-          day1 = s.day1id;
-          day3 = s.day3id;
-          day4 = DAY4_DATA[s.class - 1];
-          name = `${s.surname} ${s.forename}`;
-        } catch {
-          // 生徒でなければ先生として取得
+
+        if (user?.is_teacher) {
           try {
             const t: TeacherDTO = await teacherApi.self(targetUserId);
-            // 先生データが存在しない場合はエラー
             if (!t || !t.day1id || !t.day3id || !t.day4class) {
               setError('指定されたユーザーIDの先生データが存在しません');
               setLoading(false);
@@ -68,11 +61,24 @@ const Yotei = () => {
             day4 = DAY4_DATA[t.day4class - 1];
             name = `${t.surname} ${t.forename}`;
           } catch {
-            setError('指定されたユーザーIDのデータが存在しません');
+            setError('指定されたユーザーIDの先生データが存在しません');
+            setLoading(false);
+            return;
+          }
+        } else {
+          try {
+            const s: StudentDTO = await studentApi.getById(targetUserId);
+            day1 = s.day1id;
+            day3 = s.day3id;
+            day4 = DAY4_DATA[s.class - 1];
+            name = `${s.surname} ${s.forename}`;
+          } catch {
+            setError('指定されたユーザーIDの生徒データが存在しません');
             setLoading(false);
             return;
           }
         }
+
         setDisplayName(name);
         if (!day1) {
           setError('day1idが見つかりません');

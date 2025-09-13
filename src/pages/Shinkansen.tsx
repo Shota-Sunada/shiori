@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../auth-context';
-import { studentApi, type StudentDTO } from '../helpers/domainApi';
+import { studentApi, teacherApi, type StudentDTO, type TeacherDTO } from '../helpers/domainApi';
 import Message from '../components/Message';
 import MDButton from '../components/MDButton';
 
@@ -9,6 +9,7 @@ const Shinkansen = () => {
   const { user } = useAuth();
   const location = useLocation();
   const [student, setStudent] = useState<StudentDTO | null>(null);
+  const [teacher, setTeacher] = useState<TeacherDTO | null>(null);
   const [loading, setLoading] = useState(true);
   // クエリから初期タブを決定
   const getInitialTab = () => {
@@ -27,13 +28,28 @@ const Shinkansen = () => {
     else setTab('day1');
   }, [location.search]);
 
-  const tokyoDay1 = ['astro', 'arda', 'urth_jip', 'micro', 'air'];
+  const day1TokyoGetOff = ['astro', 'arda', 'urth_jip', 'micro', 'air'];
 
   useEffect(() => {
     const fetch = async () => {
-      if (user && !user.is_teacher) {
-        const s = await studentApi.getById(user.userId);
-        setStudent(s);
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      if (user.is_teacher) {
+        try {
+          const t = await teacherApi.self(user.userId);
+          setTeacher(t);
+        } catch {
+          setTeacher(null);
+        }
+      } else {
+        try {
+          const s = await studentApi.getById(user.userId);
+          setStudent(s);
+        } catch {
+          setStudent(null);
+        }
       }
       setLoading(false);
     };
@@ -44,8 +60,8 @@ const Shinkansen = () => {
     return <div className="p-6">読み込み中...</div>;
   }
 
-  if (!student) {
-    return <Message type="alert">生徒データが取得できませんでした。</Message>;
+  if (!student && !teacher) {
+    return <Message type="alert">データが取得できませんでした。</Message>;
   }
 
   return (
@@ -66,15 +82,18 @@ const Shinkansen = () => {
           <div className="bg-white rounded shadow p-4 flex flex-col gap-2">
             <div>
               <span className="font-semibold">号車：</span>
-              {student.shinkansen_day1_car_number ? <span>{student.shinkansen_day1_car_number}号車</span> : <span className="text-gray-400">未割当</span>}
+              {(student && <span>{student.shinkansen_day1_car_number}号車</span>) || (teacher && <span>{teacher.shinkansen_day1_car_number}号車</span>) || (
+                <span className="text-gray-400">未割当</span>
+              )}
             </div>
             <div>
               <span className="font-semibold">座席：</span>
-              {student.shinkansen_day1_seat ? <span>{student.shinkansen_day1_seat}</span> : <span className="text-gray-400">未割当</span>}
+              {(student && <span>{student.shinkansen_day1_seat}</span>) || (teacher && <span>{teacher.shinkansen_day1_seat}</span>) || <span className="text-gray-400">未割当</span>}
             </div>
             <div>
               <span className="font-semibold">下車駅：</span>
-              {tokyoDay1.includes(student.day1id) || tokyoDay1.includes(student.day1id) ? <span>東京駅で下車</span> : <span>新横浜駅で下車</span>}
+              {(student && (day1TokyoGetOff.includes(student.day1id) ? <span>東京駅で下車</span> : <span>新横浜駅で下車</span>)) ||
+                (teacher && (day1TokyoGetOff.includes(teacher.day1id) ? <span>東京駅で下車</span> : <span>新横浜駅で下車</span>)) || <span className="text-gray-400">未割当</span>}
             </div>
           </div>
         </div>
@@ -85,11 +104,13 @@ const Shinkansen = () => {
           <div className="bg-white rounded shadow p-4 flex flex-col gap-2">
             <div>
               <span className="font-semibold">号車：</span>
-              {student.shinkansen_day4_car_number ? <span>{student.shinkansen_day4_car_number}号車</span> : <span className="text-gray-400">未割当</span>}
+              {(student && <span>{student.shinkansen_day4_car_number}号車</span>) || (teacher && <span>{teacher.shinkansen_day4_car_number}号車</span>) || (
+                <span className="text-gray-400">未割当</span>
+              )}
             </div>
             <div>
               <span className="font-semibold">座席：</span>
-              {student.shinkansen_day4_seat ? <span>{student.shinkansen_day4_seat}</span> : <span className="text-gray-400">未割当</span>}
+              {(student && <span>{student.shinkansen_day4_seat}</span>) || (teacher && <span>{teacher.shinkansen_day4_seat}</span>) || <span className="text-gray-400">未割当</span>}
             </div>
             <div>
               <span className="font-semibold">下車駅：</span>

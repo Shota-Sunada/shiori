@@ -212,7 +212,7 @@ const Header = () => {
                         closeMenu();
                         handleLogout();
                       }}>
-                      <div className='flex flex-row items-center justify-start'>
+                      <div className="flex flex-row items-center justify-start">
                         <IoLogOut />
                         <p className="ml-2">{'ログアウト'}</p>
                       </div>
