@@ -6,6 +6,6 @@ interface CenterMessageProps {
 }
 
 // 汎用的な中央配置メッセージコンポーネント
-const CenterMessage = ({ children, className = '' }: CenterMessageProps) => <div className={`flex flex-col items-center justify-center h-[80dvh] text-center ${className}`}>{children}</div>;
+const CenterMessage = ({ children, className = '' }: CenterMessageProps) => <div className={`flex flex-col items-center justify-center text-center ${className}`}>{children}</div>;
 
 export default CenterMessage;
