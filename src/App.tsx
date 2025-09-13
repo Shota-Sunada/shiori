@@ -61,7 +61,7 @@ class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { 
         <div className="p-6 text-sm text-red-700 bg-red-50 min-h-dvh">
           <p className="font-bold mb-2">アプリでエラーが発生しました。</p>
           <p className="mb-2 break-all">{String(this.state.error)}</p>
-          <p className="text-xs text-gray-500">Safari で白画面になる問題の暫定デバッグ表示です。再読み込みを試してください。</p>
+          <p className="text-xs text-gray-500">エラー時に白画面になる問題の暫定デバッグ表示です。この画面が表示される場合は、アプリケーション自体が壊れている可能性があります。恐れ入りますが、修正までしばらくお待ち下さい。</p>
         </div>
       );
     }
