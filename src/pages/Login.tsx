@@ -85,12 +85,12 @@ const Login = () => {
           <p>{'修道高校79回生'}</p>
           <p>{'修学旅行のしおり'}</p>
         </div>
-        <p className="text-2xl pt-2">{'ログイン'}</p>
-        <div className="flex flex-col mt-4">
+        <p className="text-2xl pt-1">{'ログイン'}</p>
+        <div className="flex flex-col mt-2">
           <label htmlFor={'student_id'}>{'生徒ID (数字8桁)'}</label>
           <input type="number" name="student_id" id="student_id" placeholder={'生徒ID (202*****) を入力'} required ref={student_id_ref} />
         </div>
-        <div className="flex flex-col mb-4">
+        <div className="flex flex-col mb-2">
           <label htmlFor={'password'}>{'パスワード'}</label>
           <div className="relative">
             <input type={showPassword ? 'text' : 'password'} name="password" id="password" placeholder={'パスワードを入力'} required ref={password_ref} />
@@ -99,6 +99,8 @@ const Login = () => {
             </span>
           </div>
         </div>
+        <p>{'Classiで町先生が配信されたものを参考に入力してください。'}</p>
+        <p>{'5648は関係ありません。'}</p>
         <MDButton text={'ログイン'} arrowRight type="submit" />
         {error && <p className="text-red-500 mt-4">{error}</p>}
       </form>
