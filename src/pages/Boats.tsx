@@ -3,6 +3,7 @@ import { boatAssignmentsApi, studentApi, teacherApi } from '../helpers/domainApi
 import type { BoatAssignmentDTO, StudentDTO, TeacherDTO } from '../helpers/domainApi';
 import MDButton from '../components/MDButton';
 import { useAuth } from '../auth-context';
+import { pad2 } from '../helpers/pad2';
 
 const Boats = () => {
   const { user } = useAuth();
@@ -25,7 +26,6 @@ const Boats = () => {
     })();
   }, []);
 
-  const pad2 = (n?: number) => (typeof n === 'number' ? String(n).padStart(2, '0') : '');
   const getStudentName = (gakuseki: number) => {
     const s = students.find((st) => st.gakuseki === gakuseki);
     return s ? `5${s.class}${pad2(s.number)} ${s.surname} ${s.forename}` : `ID:${gakuseki}`;

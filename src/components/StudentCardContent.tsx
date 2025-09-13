@@ -1,12 +1,12 @@
 import { type FC } from 'react';
 import type { StudentDTO } from '../helpers/domainApi';
+import { pad2 } from '../helpers/pad2';
 
 interface StudentCardContentProps {
   student: Pick<StudentDTO, 'class' | 'number' | 'surname' | 'forename' | 'surname_kana' | 'forename_kana'>;
 }
 
 const StudentCardContent: FC<StudentCardContentProps> = ({ student }) => {
-  const pad2 = (n?: number) => (typeof n === 'number' ? String(n).padStart(2, '0') : '');
   return (
     <div className="flex items-center justify-center w-full">
       <div className="basis-[10%]">{`5${student.class}${pad2(student.number)}`}</div>

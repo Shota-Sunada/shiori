@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { appFetch } from '../helpers/apiClient';
 import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import type { COURSES_DAY1_KEY, COURSES_DAY3_KEY, COURSES_DAY4_KEY } from '../data/courses';
+import { pad2 } from '../helpers/pad2';
 
 type EventDetail = {
   id: number;
@@ -44,7 +45,6 @@ export type TimeTableProps = {
   ref?: React.RefObject<HTMLTableRowElement | null>;
 };
 
-const pad2 = (n?: number) => (typeof n === 'number' ? String(n).padStart(2, '0') : '');
 const hasHM = (h?: number, m?: number) => typeof h === 'number' && typeof m === 'number';
 const fmtEventTime = (e: Event) => {
   const hasStart = hasHM(e.time1Hour, e.time1Minute);

@@ -52,7 +52,7 @@ const Message: React.FC<MessageProps> = ({ children, className = '', type = 'inf
         <p>{style.icon}</p>
         <p className={`ml-2 ${style.text}`}>{style.label}</p>
       </span>
-      <div className="m-2 mt-5 flex flex-col items-start">{children}</div>
+      <div className="m-2 mt-6 flex flex-col items-start">{children}</div>
     </div>
   );
 };

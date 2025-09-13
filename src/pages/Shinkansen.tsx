@@ -99,25 +99,30 @@ const Shinkansen = () => {
         </div>
       )}
       {tab === 'day4' && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-2">4日目（帰り）のぞみ77号 広島行</h2>
-          <div className="bg-white rounded shadow p-4 flex flex-col gap-2">
-            <div>
-              <span className="font-semibold">号車：</span>
-              {(student && <span>{student.shinkansen_day4_car_number}号車</span>) || (teacher && <span>{teacher.shinkansen_day4_car_number}号車</span>) || (
-                <span className="text-gray-400">未割当</span>
-              )}
-            </div>
-            <div>
-              <span className="font-semibold">座席：</span>
-              {(student && <span>{student.shinkansen_day4_seat}</span>) || (teacher && <span>{teacher.shinkansen_day4_seat}</span>) || <span className="text-gray-400">未割当</span>}
-            </div>
-            <div>
-              <span className="font-semibold">下車駅：</span>
-              <span>広島駅で下車</span>
+        <>
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-2">4日目（帰り）のぞみ77号 広島行</h2>
+            <div className="bg-white rounded shadow p-4 flex flex-col gap-2">
+              <div>
+                <span className="font-semibold">号車：</span>
+                {(student && <span>{student.shinkansen_day4_car_number}号車</span>) || (teacher && <span>{teacher.shinkansen_day4_car_number}号車</span>) || (
+                  <span className="text-gray-400">未割当</span>
+                )}
+              </div>
+              <div>
+                <span className="font-semibold">座席：</span>
+                {(student && <span>{student.shinkansen_day4_seat}</span>) || (teacher && <span>{teacher.shinkansen_day4_seat}</span>) || <span className="text-gray-400">未割当</span>}
+              </div>
+              <div>
+                <span className="font-semibold">下車駅：</span>
+                <span>広島駅で下車</span>
+              </div>
             </div>
           </div>
-        </div>
+          <Message type="important">
+            <p>同じ班内であれば、座席の入れ替えが可能です。</p>
+          </Message>
+        </>
       )}
       <div className="flex flex-col items-center justify-center">
         <p>新幹線 個別列車案内</p>
@@ -136,7 +141,6 @@ const Shinkansen = () => {
         />
         <p>↑JR東海のページが開きます。</p>
       </div>
-      <Message type="info">新幹線の座席情報は変更になる場合があります。最新情報は担任または引率教員からの案内もご確認ください。</Message>
     </div>
   );
 };
