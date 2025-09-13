@@ -33,6 +33,8 @@ import { appFetch } from './helpers/apiClient';
 import Yotei from './pages/Yotei';
 import Maps from './pages/Maps';
 import GoodsCheck from './pages/GoodsCheck';
+import Goods from './pages/Goods';
+import Shinkansen from './pages/Shinkansen';
 
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: unknown }> {
   constructor(props: { children: React.ReactNode }) {
@@ -467,25 +469,41 @@ function App() {
                   <Route
                     path="/yotei"
                     element={
-                        <FadeContainer>
-                          <Yotei />
-                        </FadeContainer>
+                      <FadeContainer>
+                        <Yotei />
+                      </FadeContainer>
                     }
                   />
                   <Route
                     path="/goods-check"
                     element={
-                        <FadeContainer>
-                          <GoodsCheck />
-                        </FadeContainer>
+                      <FadeContainer>
+                        <GoodsCheck />
+                      </FadeContainer>
                     }
                   />
                   <Route
                     path="/maps"
                     element={
-                        <FadeContainer>
-                          <Maps />
-                        </FadeContainer>
+                      <FadeContainer>
+                        <Maps />
+                      </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/goods"
+                    element={
+                      <FadeContainer>
+                        <Goods />
+                      </FadeContainer>
+                    }
+                  />
+                  <Route
+                    path="/shinkansen"
+                    element={
+                      <FadeContainer>
+                        <Shinkansen />
+                      </FadeContainer>
                     }
                   />
                   <Route

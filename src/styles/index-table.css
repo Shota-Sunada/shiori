@@ -139,10 +139,6 @@ th.vcell.vcell--min::after {
   border-right: 1px solid #e5e7eb;
   border-bottom: 1px solid #e5e7eb;
 }
-.index-table.table-base th:last-child,
-.index-table.table-base td:last-child {
-  border-right: none;
-}
 .index-table.table-base tbody tr:last-child td {
   border-bottom: none;
 }

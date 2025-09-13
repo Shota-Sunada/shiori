@@ -10,3 +10,4 @@ tools: ['edit', 'search', 'runCommands', 'usages', 'problems', 'changes', 'fetch
 - 日本語で会話してください。
 - 追加されたコンテクスト以外のファイルを参照しても大丈夫です
 - eslintのプロジェクトファイルが存在する場合は、その指示に従ってください。
+- なるべくtailwindcssを使用するようにしてください。

@@ -35,10 +35,17 @@ const loadPersisted = (length: number): PersistedState | null => {
   }
 };
 
+type Mode = 'main' | 'jaxa' | 'okutama' | 'doukutsu' | 'kanuu';
+
 const GoodsCheck = () => {
   const [started, setStarted] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [mode, setMode] = useState<Mode>('main');
   const [goods, setGoods] = useState<GOODS[]>(() => GOODS_DATA);
+  const [courseGoods, setCourseGoods] = useState<{ [key in Mode]?: GOODS[] }>({});
+  // 各コース該当フラグ
+  const [hasJaxa, setHasJaxa] = useState(false);
+  const [hasOkutama, setHasOkutama] = useState(false);
   const total = goods.length;
   const [statuses, setStatuses] = useState<ItemStatus[]>(() => Array(total).fill('pending'));
   const [activeTab, setActiveTab] = useState<'flow' | 'list'>('flow');
@@ -52,6 +59,9 @@ const GoodsCheck = () => {
   });
   const { user } = useAuth();
 
+  // コース判定用
+  const [day4key, setDay4key] = useState<string | null>(null);
+
   const findNextPendingIndex = (arr: ItemStatus[], from: number) => {
     const n = arr.length;
     for (let offset = 1; offset <= n; offset++) {
@@ -61,28 +71,51 @@ const GoodsCheck = () => {
     return -1;
   };
 
-  // ユーザーのコースに応じて持ち物を追加
+  // ユーザーのコースに応じて持ち物を分離
   useEffect(() => {
     let isMounted = true;
     const setupGoods = async () => {
       try {
         if (user && !user.is_teacher) {
           const s: StudentDTO = await studentApi.getById(user.userId);
-          let list: GOODS[] = [...GOODS_DATA];
+          let mainList: GOODS[] = [...GOODS_DATA];
           // 1日目: JAXA
-          if (s.day1id === 'jaxa') list = [...list, ...GOODS_JAXA];
+          const isJaxa = s.day1id === 'jaxa';
+          if (isJaxa) mainList = [...mainList, ...GOODS_JAXA];
           // 3日目: 奥多摩ラフティング
-          if (s.day3id === 'okutama') list = [...list, ...GOODS_OKUTAMA];
+          const isOkutama = s.day3id === 'okutama';
+          if (isOkutama) mainList = [...mainList, ...GOODS_OKUTAMA];
           // 4日目: クラス -> コースキーに変換
-          const day4key = DAY4_DATA[(s.class ?? 0) - 1];
-          if (day4key === 'doukutsu') list = [...list, ...GOODS_DOKUTSU];
-          if (day4key === 'kanuu') list = [...list, ...GOODS_KANU];
-          if (isMounted) setGoods(list);
+          const d4key = DAY4_DATA[(s.class ?? 0) - 1];
+          setDay4key(d4key);
+          const course: { [key in Mode]?: GOODS[] } = {};
+          if (isJaxa) course['jaxa'] = GOODS_JAXA;
+          if (isOkutama) course['okutama'] = GOODS_OKUTAMA;
+          if (d4key === 'doukutsu') course['doukutsu'] = GOODS_DOKUTSU;
+          if (d4key === 'kanuu') course['kanuu'] = GOODS_KANU;
+          if (isMounted) {
+            setGoods(mainList);
+            setCourseGoods(course);
+            setHasJaxa(isJaxa);
+            setHasOkutama(isOkutama);
+          }
         } else {
-          if (isMounted) setGoods(GOODS_DATA);
+          if (isMounted) {
+            setGoods(GOODS_DATA);
+            setCourseGoods({});
+            setDay4key(null);
+            setHasJaxa(false);
+            setHasOkutama(false);
+          }
         }
       } catch {
-        if (isMounted) setGoods(GOODS_DATA);
+        if (isMounted) {
+          setGoods(GOODS_DATA);
+          setCourseGoods({});
+          setDay4key(null);
+          setHasJaxa(false);
+          setHasOkutama(false);
+        }
       }
     };
     setupGoods();
@@ -93,18 +126,18 @@ const GoodsCheck = () => {
 
   // goodsの長さに合わせて保存済み進捗を復元
   useEffect(() => {
-    const persisted = loadPersisted(goods.length);
+    const targetGoods = mode === 'main' ? goods : courseGoods[mode] || [];
+    const persisted = loadPersisted(targetGoods.length);
     if (persisted) {
       setStatuses(persisted.statuses);
       const idx = findNextPendingIndex(persisted.statuses, -1);
       setCurrentIndex(idx === -1 ? 0 : idx);
       setStarted(true);
     } else {
-      // 長さが変わった場合はステータス配列を作り直す
-      setStatuses(Array(goods.length).fill('pending'));
+      setStatuses(Array(targetGoods.length).fill('pending'));
       setCurrentIndex(0);
     }
-  }, [goods.length]);
+  }, [goods.length, mode, courseGoods, goods]);
 
   // 変更があれば保存
   useEffect(() => {
@@ -115,6 +148,8 @@ const GoodsCheck = () => {
 
   // 完了時に前回の記録として保存（isFinished 定義後に配置）
 
+  const targetGoods = mode === 'main' ? goods : courseGoods[mode] || [];
+  const totalTarget = targetGoods.length;
   const doneCount = useMemo(() => statuses.filter((s) => s === 'checked').length, [statuses]);
   const pendingCount = useMemo(() => statuses.filter((s) => s === 'pending').length, [statuses]);
   const isFinished = useMemo(() => statuses.every((s) => s !== 'pending'), [statuses]);
@@ -129,6 +164,10 @@ const GoodsCheck = () => {
   }, [started, isFinished, statuses]);
 
   const handleStart = () => setStarted(true);
+  const handleCourseStart = (m: Mode) => {
+    setMode(m);
+    setStarted(false); // 状態リセット
+  };
 
   const handleConfirm = () => {
     setStatuses((prev) => {
@@ -154,22 +193,77 @@ const GoodsCheck = () => {
   const handleReset = () => {
     setStarted(false);
     setCurrentIndex(0);
-    setStatuses(Array(total).fill('pending'));
+    setStatuses(Array(targetGoods.length).fill('pending'));
     localStorage.removeItem(STORAGE_KEY);
   };
 
-  if (total === 0) {
+  if (totalTarget === 0) {
     return <div className="p-4 text-center">持ち物データがありません</div>;
   }
 
   if (!started) {
+    // コースボタンリスト生成
+    const courseButtons = [];
+    if (mode !== 'jaxa' && hasJaxa && courseGoods['jaxa']) {
+      courseButtons.push(
+        <button key="jaxa" className="px-4 py-2 bg-indigo-600 text-white rounded" onClick={() => handleCourseStart('jaxa')}>
+          JAXA持ち物確認へ
+        </button>
+      );
+    }
+    if (mode !== 'okutama' && hasOkutama && courseGoods['okutama']) {
+      courseButtons.push(
+        <button key="okutama" className="px-4 py-2 bg-indigo-600 text-white rounded" onClick={() => handleCourseStart('okutama')}>
+          奥多摩ラフティング持ち物確認へ
+        </button>
+      );
+    }
+    if (mode !== 'doukutsu' && day4key === 'doukutsu' && courseGoods['doukutsu']) {
+      courseButtons.push(
+        <button key="doukutsu" className="px-4 py-2 bg-indigo-600 text-white rounded" onClick={() => handleCourseStart('doukutsu')}>
+          洞窟コース持ち物確認へ
+        </button>
+      );
+    }
+    if (mode !== 'kanuu' && day4key === 'kanuu' && courseGoods['kanuu']) {
+      courseButtons.push(
+        <button key="kanuu" className="px-4 py-2 bg-indigo-600 text-white rounded" onClick={() => handleCourseStart('kanuu')}>
+          カヌーコース持ち物確認へ
+        </button>
+      );
+    }
     return (
       <div className="p-6 flex flex-col items-center gap-4">
-        <h1 className="text-2xl font-bold">持ち物確認</h1>
+        <h1 className="text-2xl font-bold">
+          {mode === 'main'
+            ? '持ち物確認'
+            : mode === 'jaxa'
+              ? 'JAXA持ち物確認'
+              : mode === 'okutama'
+                ? '奥多摩ラフティング持ち物確認'
+                : mode === 'doukutsu'
+                  ? '洞窟コース持ち物確認'
+                  : mode === 'kanuu'
+                    ? 'カヌーコース持ち物確認'
+                    : '持ち物確認'}
+        </h1>
         <p className="text-gray-600">スタートすると順番に持ち物を確認できます。</p>
         <button className="px-4 py-2 bg-blue-600 text-white rounded" onClick={handleStart}>
           スタート
         </button>
+        {/* コース専用ボタン（main以外でも他コースに遷移可能） */}
+        {courseButtons.length > 0 && <div className="flex flex-col gap-2 w-full items-center">{courseButtons}</div>}
+        {/* コースからmainへ戻るボタン */}
+        {mode !== 'main' && (
+          <button
+            className="px-4 py-2 bg-gray-400 text-white rounded"
+            onClick={() => {
+              setMode('main');
+              setStarted(false);
+            }}>
+            共通持ち物確認へ戻る
+          </button>
+        )}
         {lastResult && (
           <div className="w-full max-w-md mt-4 p-3 border rounded bg-white">
             <div className="flex items-center justify-between">
@@ -187,8 +281,8 @@ const GoodsCheck = () => {
             </div>
             {
               <div className="mt-2 divide-y">
-                {lastResult.statuses.length === total ? (
-                  goods.map((g, idx) => {
+                {lastResult.statuses.length === totalTarget ? (
+                  targetGoods.map((g, idx) => {
                     const s = lastResult.statuses[idx];
                     const badge =
                       s === 'checked'
@@ -225,32 +319,44 @@ const GoodsCheck = () => {
       <div className="p-6 flex flex-col items-center gap-4">
         <h1 className="text-2xl font-bold">確認完了</h1>
         <p>
-          {doneCount} / {total} を確認しました。
+          {doneCount} / {totalTarget} を確認しました。
         </p>
         <div className="flex gap-3">
           <button className="px-4 py-2 bg-blue-600 text-white rounded" onClick={handleReset}>
             もう一度やる
           </button>
-          <button
-            className="px-4 py-2 bg-green-600 text-white rounded"
-            onClick={() => {
-              // スキップ分だけ未確認に戻す
-              setStatuses((prev) => {
-                const next = prev.map((s) => (s === 'skipped' ? 'pending' : 'checked')) as ItemStatus[];
-                const idx = findNextPendingIndex(next, -1);
-                setCurrentIndex(idx === -1 ? 0 : idx);
-                setStarted(true);
-                return next;
-              });
-            }}>
-            スキップ分を再チェック
-          </button>
+          {statuses.some((s) => s === 'skipped') && (
+            <button
+              className="px-4 py-2 bg-green-600 text-white rounded"
+              onClick={() => {
+                setStatuses((prev) => {
+                  const next = prev.map((s) => (s === 'skipped' ? 'pending' : 'checked')) as ItemStatus[];
+                  const idx = findNextPendingIndex(next, -1);
+                  setCurrentIndex(idx === -1 ? 0 : idx);
+                  setStarted(true);
+                  return next;
+                });
+              }}>
+              スキップ分を再チェック
+            </button>
+          )}
         </div>
+        {/* コースから戻るボタン */}
+        {mode !== 'main' && (
+          <button
+            className="px-4 py-2 bg-gray-400 text-white rounded"
+            onClick={() => {
+              setMode('main');
+              setStarted(false);
+            }}>
+            共通持ち物確認へ戻る
+          </button>
+        )}
         {lastResult && (
           <div className="w-full max-w-md mt-2 p-3 border rounded bg-white divide-y">
             <div className="text-sm text-gray-700 mb-2">前回の記録（{new Date(lastResult.savedAt).toLocaleString()}）</div>
-            {lastResult.statuses.length === total ? (
-              goods.map((g, idx) => {
+            {lastResult.statuses.length === totalTarget ? (
+              targetGoods.map((g, idx) => {
                 const s = lastResult.statuses[idx];
                 const badge =
                   s === 'checked'
@@ -280,13 +386,25 @@ const GoodsCheck = () => {
     );
   }
 
-  const item = goods[currentIndex];
-  const completedCount = total - pendingCount;
-  const progressText = `${completedCount} / ${total}`;
+  const item = targetGoods[currentIndex];
+  const completedCount = totalTarget - pendingCount;
+  const progressText = `${completedCount} / ${totalTarget}`;
 
   return (
     <div className="p-6 flex flex-col items-center gap-6">
-      <h1 className="text-2xl font-bold">持ち物確認</h1>
+      <h1 className="text-2xl font-bold">
+        {mode === 'main'
+          ? '持ち物確認'
+          : mode === 'jaxa'
+            ? 'JAXA持ち物確認'
+            : mode === 'okutama'
+              ? '奥多摩ラフティング持ち物確認'
+              : mode === 'doukutsu'
+                ? '洞窟コース持ち物確認'
+                : mode === 'kanuu'
+                  ? 'カヌーコース持ち物確認'
+                  : '持ち物確認'}
+      </h1>
 
       {/* タブ（チェック / 一覧） */}
       <div className="w-full max-w-md">
@@ -307,7 +425,7 @@ const GoodsCheck = () => {
           <span>{progressText}</span>
         </div>
         <div className="w-full h-2 bg-gray-200 rounded">
-          <div className="h-2 bg-blue-500 rounded" style={{ width: `${(completedCount / total) * 100}%` }} />
+          <div className="h-2 bg-blue-500 rounded" style={{ width: `${(completedCount / totalTarget) * 100}%` }} />
         </div>
       </div>
 
@@ -333,7 +451,7 @@ const GoodsCheck = () => {
         </>
       ) : (
         <div className="w-full max-w-md bg-white rounded shadow-sm divide-y">
-          {goods.map((g, idx) => {
+          {targetGoods.map((g, idx) => {
             const s = statuses[idx];
             const badge =
               s === 'checked'
@@ -366,6 +484,17 @@ const GoodsCheck = () => {
         </div>
       )}
 
+      {/* コースから戻るボタン */}
+      {mode !== 'main' && (
+        <button
+          className="text-sm text-gray-500 underline"
+          onClick={() => {
+            setMode('main');
+            setStarted(false);
+          }}>
+          共通持ち物確認へ戻る
+        </button>
+      )}
       {/* リセット */}
       <button className="text-sm text-gray-500 underline" onClick={handleReset}>
         やり直す/終了

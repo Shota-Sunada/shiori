@@ -32,10 +32,6 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
   const [currentRoomNumber, setCurrentRoomNumber] = useState('');
   const [teachers, setTeachers] = useState<IndexTeacher[]>([]);
 
-  // スクロールは Modal 側でロック・復元を一元管理する（ここでは触らない）
-
-  const tokyoDay1 = ['astro', 'arda', 'urth_jip', 'micro', 'air'];
-
   const fetchTeachers = useCallback(async () => {
     if (!token) return;
     try {
@@ -128,37 +124,24 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
           </tr>
         </thead>
         <tbody>
-          {/* yotei START */}
+          {/* info START */}
           <tr>
-            <td id="day1-rowspan" rowSpan={2} className="vcell day-col">
-              <VerticalLabel text="予定表" />
-            </td>
-            <td className="label-cell" colSpan={2}>
-              {'修学旅行 全行程表'}
+            <td rowSpan={4} className="vcell day-col">
+              <VerticalLabel text="各種資料" />
             </td>
           </tr>
           <tr>
-            <td className="label-cell">{''}</td>
+            <td className="label-cell">{'行程表'}</td>
             <td
               className="cell-interactive"
               onClick={() => {
                 navigate('/yotei');
               }}>
-              {'あなたの行程表をチェック！'}
-            </td>
-          </tr>
-          {/* yotei END */}
-          {/* map START */}
-          <tr>
-            <td id="day1-rowspan" rowSpan={2} className="vcell day-col">
-              <VerticalLabel text="マップ" />
-            </td>
-            <td className="label-cell" colSpan={2}>
-              {'修学旅行 関連マップ'}
+              {'あなたの行程表をcheck！'}
             </td>
           </tr>
           <tr>
-            <td className="label-cell">{''}</td>
+            <td className="label-cell">{'マップ'}</td>
             <td
               className="cell-interactive"
               onClick={() => {
@@ -167,7 +150,17 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
               {'マップをチェック！'}
             </td>
           </tr>
-          {/* map END */}
+          <tr>
+            <td className="label-cell">{'持ち物'}</td>
+            <td
+              className="cell-interactive"
+              onClick={() => {
+                navigate('/goods');
+              }}>
+              {'持ち物を確認しましょう！'}
+            </td>
+          </tr>
+          {/* info END */}
           {/* day1 START */}
           <tr>
             <td id="day1-rowspan" rowSpan={2} className="vcell day-col">
@@ -234,13 +227,16 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
                     {'組 '}
                     {day4CourseName}
                   </p>
-                  <p className="text-gray-600 text-xs">
-                    {'引率: '}
-                    {teachers
-                      .filter((teacher) => teacher.day4class === studentData.class)
-                      .map((teacher) => `${teacher.surname}${teacher.forename}先生`)
-                      .join(' ')}
-                  </p>
+                  <div className="flex flex-row">
+                    <p className="text-gray-600 text-xs">{'引率: '}</p>
+                    <div className="flex flex-row">
+                      {teachers
+                        .filter((teacher) => teacher.day4class === studentData.class)
+                        .map((teacher) => (
+                          <p className="text-gray-600 text-xs px-1 items-center justify-center">{`${teacher.surname} ${teacher.forename} 先生`}</p>
+                        ))}
+                    </div>
+                  </div>
                 </>
               )) ||
                 (teacherData && (
@@ -363,89 +359,64 @@ const IndexTable = ({ studentData = null, teacherData = null }: IndexTableProps)
               <VerticalLabel text="新幹線" />
             </td>
             <td className="label-cell">
-              <p>{'1日目'}</p>
-              <p className="text-sm">
-                {(studentData && (
-                  <>
-                    {studentData.shinkansen_day1_car_number}
-                    {'号車 '}
-                    {studentData.shinkansen_day1_seat}
-                  </>
-                )) ||
-                  (teacherData && (
-                    <>
-                      {teacherData?.shinkansen_day1_car_number}
-                      {'号車 '}
-                      {teacherData?.shinkansen_day1_seat}
-                    </>
-                  ))}
-              </p>
-              <p className="text-sm">{(studentData && tokyoDay1.includes(studentData.day1id)) || (teacherData && tokyoDay1.includes(teacherData.day1id)) ? '東京駅で下車' : '新横浜駅で下車'}</p>
+              <p>{'１日目'}</p>
             </td>
             <td
               className="cell-interactive"
               onClick={() => {
-                window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=84', '_blank', 'noreferrer');
+                navigate('/shinkansen?tab=day1');
               }}>
               {(studentData && (
                 <>
-                  <p>{'広島駅発 東京駅行 のぞみ84号'}</p>
-                  <p className="text-gray-600 text-sm">
-                    {'広島駅7:57発 - '}
-                    {tokyoDay1.includes(studentData.day1id) ? '東京駅11:54着' : '新横浜駅11:34着'}
+                  <p>
+                    {studentData.shinkansen_day1_car_number}
+                    {'号車 '}
+                    {studentData.shinkansen_day1_seat}
                   </p>
-                  <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
+                  <p>クリックして詳細をチェック！</p>
                 </>
               )) ||
                 (teacherData && (
                   <>
-                    <p>{'広島駅発 東京駅行 のぞみ84号'}</p>
-                    <p className="text-gray-600 text-sm">
-                      {'広島駅7:57発 - '}
-                      {tokyoDay1.includes(teacherData.day1id) ? '東京駅11:54着' : '新横浜駅11:34着'}
+                    <p>
+                      {teacherData.shinkansen_day1_car_number}
+                      {'号車 '}
+                      {teacherData.shinkansen_day1_seat}
                     </p>
-                    <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
+                    <p>クリックして詳細をチェック！</p>
                   </>
-                )) || (
-                  <>
-                    <p>{'広島駅発 東京駅行 のぞみ84号'}</p>
-                    <p className="text-gray-600 text-sm">{'広島駅7:57発 - 新横浜駅11:34着 - 東京駅11:54着'}</p>
-                    <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
-                  </>
-                )}
+                ))}
             </td>
           </tr>
           <tr>
             <td className="label-cell">
-              <p>{'4日目'}</p>
-              <p className="text-sm">
-                {(studentData && (
-                  <>
+              <p>{'４日目'}</p>
+            </td>
+            <td
+              className="cell-interactive"
+              onClick={() => {
+                navigate('/shinkansen?tab=day4');
+              }}>
+              {(studentData && (
+                <>
+                  <p>
                     {studentData.shinkansen_day4_car_number}
                     {'号車 '}
                     {studentData.shinkansen_day4_seat}
-                  </>
-                )) ||
-                  (teacherData && (
-                    <>
-                      {teacherData?.shinkansen_day4_car_number}
+                  </p>
+                  <p>クリックして詳細をチェック！</p>
+                </>
+              )) ||
+                (teacherData && (
+                  <>
+                    <p>
+                      {teacherData.shinkansen_day4_car_number}
                       {'号車 '}
-                      {teacherData?.shinkansen_day4_seat}
-                    </>
-                  ))}
-              </p>
-              <p className="text-sm">{'新横浜駅で乗車'}</p>
-            </td>
-            <td
-              className={'cell-interactive'}
-              onClick={() => {
-                window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=77', '_blank', 'noreferrer');
-              }}>
-              <>
-                <p>{'東京駅発 広島駅行 のぞみ77号'}</p>
-                <p className="text-gray-600 text-sm">{'新横浜駅15:48発 - 広島駅19:46着'}</p>
-                <p className="text-gray-600 text-xs">{'クリックすると、JR東海のページが開きます'}</p>
-              </>
+                      {teacherData.shinkansen_day4_seat}
+                    </p>
+                    <p>クリックして詳細をチェック！</p>
+                  </>
+                ))}
             </td>
           </tr>
           {/* shinkansen END */}

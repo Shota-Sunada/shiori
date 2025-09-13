@@ -22,10 +22,6 @@
 .table-base tbody tr:last-child {
   border-bottom: none;
 }
-.table-base th:last-child,
-.table-base td:last-child {
-  border-right: none;
-}
 .table-base tbody tr:hover {
   background: #f9fafb;
 }
@@ -188,13 +184,6 @@ table.modern-table td,
 table.modern-table th {
   border-right: 1px solid #e5e7eb; /* 縦線 */
   border-bottom: 1px solid #f1f5f9; /* 横線 */
-}
-table.modern-table tbody tr:last-child td {
-  border-bottom: none;
-}
-table.modern-table td:last-child,
-table.modern-table th:last-child {
-  border-right: none;
 }
 table.modern-table td {
   background: #ffffff;

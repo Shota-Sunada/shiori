@@ -8,6 +8,7 @@ import IndexTable from '../components/IndexTable';
 import MDButton from '../components/MDButton';
 import CenterMessage from '../components/CenterMessage';
 import { appFetch } from '../helpers/apiClient';
+import Message from '../components/Message';
 
 interface ActiveRollCall {
   id: string;
@@ -107,6 +108,32 @@ const Index = () => {
       )}
 
       <IndexTable studentData={studentData} />
+
+      <Message>
+        <div className="m-1">
+          <p>大きな荷物(スーツケース等)は旅行出発前に学校からホテルへトラックで搬送されます。</p>
+          <p>また、最終日は、宿舎から自宅へ搬送されます。</p>
+        </div>
+        <div className="m-1">
+          <p>【事前荷物送りのご案内】</p>
+          <p>理系クラス: 9月29日 10:00~11:00</p>
+          <p>文系クラス: 9月29日 11:00~12:00</p>
+          <p>上記の時間に、搬送する荷物を学校に持参してください。</p>
+        </div>
+        <div className="m-1">
+          <Message type="notice">
+            <p>貴重品、1日目に必要なものは搬送荷物に含めないでください！</p>
+            <p>スーツケースに鍵をかけて搬送する場合は、鍵を忘れずに持ってくるようにしてください！</p>
+          </Message>
+        </div>
+        <div className='m-1'>
+          <p>10月3日の宿舎(フジプレミアムリゾート)から、自宅に荷物が搬送されます。</p>
+          <p>自宅への到着は10月5日または10月6日の予定。</p>
+          <Message type='notice'>
+            <p>貴重品、4日目に必要なものは搬送荷物に含めないでください！</p>
+          </Message>
+        </div>
+      </Message>
 
       {!user.is_teacher && (
         <div className="mt-4">
