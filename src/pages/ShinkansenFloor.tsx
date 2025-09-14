@@ -27,8 +27,7 @@ const FacilityRow: React.FC<FacilityRowProps> = ({ facilities, isTopHiroshima })
       <div className="flex w-full my-1 flex-row gap-0">
         <div
           className={`w-full flex flex-col items-center px-3 py-1 rounded-lg border shadow-sm text-xs font-semibold ${getFacilityColorClass(f.label)} m-0.5`}
-          style={{ minWidth: 'calc(5*4rem + 1.5rem)' }}
-          title={f.label}>
+          style={{ minWidth: 'calc(5*4rem + 1.5rem)' }}>
           <span className="text-base leading-none mb-0.5">{f.label}</span>
         </div>
       </div>
@@ -47,7 +46,7 @@ const FacilityRow: React.FC<FacilityRowProps> = ({ facilities, isTopHiroshima })
     <div className="flex w-full my-1 flex-row gap-0">
       {/* 左側（進行方向でABCまたはDE） */}
       <div className="flex items-center justify-center m-0.5" style={{ width: leftWidth }}>
-        <div className={`w-full flex flex-col items-center px-3 py-1 rounded-lg border shadow-sm text-xs font-semibold ${getFacilityColorClass(leftFacility.label)}`} title={leftFacility.label}>
+        <div className={`w-full flex flex-col items-center px-3 py-1 rounded-lg border shadow-sm text-xs font-semibold ${getFacilityColorClass(leftFacility.label)}`}>
           <span className="text-base leading-none mb-0.5">{leftFacility.label}</span>
         </div>
       </div>
@@ -55,7 +54,7 @@ const FacilityRow: React.FC<FacilityRowProps> = ({ facilities, isTopHiroshima })
       <div className="w-6" />
       {/* 右側（進行方向でDEまたはABC） */}
       <div className="flex items-center justify-center m-0.5" style={{ width: rightWidth }}>
-        <div className={`w-full flex flex-col items-center px-3 py-1 rounded-lg border shadow-sm text-xs font-semibold ${getFacilityColorClass(rightFacility.label)}`} title={rightFacility.label}>
+        <div className={`w-full flex flex-col items-center px-3 py-1 rounded-lg border shadow-sm text-xs font-semibold ${getFacilityColorClass(leftFacility.label)}`}>
           <span className="text-base leading-none mb-0.5">{rightFacility.label}</span>
         </div>
       </div>
@@ -76,22 +75,15 @@ const CAR_FACILITIES: Record<number, CarFacilities> = {
     back: [{ both: { label: 'ドア' } }]
   },
   15: {
-    front: [
-      { abc: { label: 'WC' }, de: { label: 'WC' } },
-      { abc: { label: '洗面' }, de: { label: 'WC' } },
-      { abc: { label: '洗面' }, de: { label: '電話' } }
-    ],
-    back: [{ abc: { label: '喫煙室' }, de: { label: '喫煙室' } }]
+    front: [{ abc: { label: 'WC' }, de: { label: 'WC' } }, { abc: { label: '洗面' }, de: { label: 'WC' } }, { abc: { label: '洗面' }, de: { label: '電話' } }, { both: { label: 'ドア' } }],
+    back: [{ both: { label: 'ドア' } }, { abc: { label: '喫煙室' }, de: { label: '喫煙室' } }]
   },
   14: {
     front: [{ both: { label: 'ドア' } }],
     back: [{ both: { label: 'ドア' } }]
   },
   13: {
-    front: [
-      { abc: { label: '洗面' }, de: { label: 'WC' } },
-      { abc: { label: 'WC' }, de: { label: 'WC' } }
-    ],
+    front: [{ abc: { label: 'WC' }, de: { label: 'WC' } }, { abc: { label: '洗面' }, de: { label: 'WC' } }, { both: { label: 'ドア' } }],
     back: [{ both: { label: 'ドア' } }]
   }
 };
@@ -167,30 +159,36 @@ const ShinkansenFloor = () => {
     return map;
   }, [students, teachers, isTopHiroshima]);
 
+  const SwitchButton = () => {
+    return (
+      <div className="w-full flex flex-col items-center my-2 select-none bg-white">
+        <button
+          type="button"
+          onClick={handleToggleDirection}
+          className="flex flex-row items-center justify-center w-full py-2 border border-blue-300 rounded-lg shadow-sm bg-blue-50 hover:bg-blue-100 active:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400 transition group"
+          aria-label="進行方向を切り替え">
+          <span className="text-3xl text-blue-600 group-hover:text-blue-800 group-active:text-blue-900 transition ml-2">↑</span>
+          <div className="flex flex-col items-center mr-auto">
+            <span className="text-sm text-blue-600">進行方向</span>
+            <span className="text-sm text-blue-600">{isTopHiroshima ? '広島方面' : '東京方面'}</span>
+          </div>
+          <div className="flex flex-col items-center mx-auto">
+            <span className="text-xl text-blue-600">{isTopHiroshima ? '4日目' : '1日目'}</span>
+          </div>
+          <div className="flex flex-col items-center justify-center mx-2">
+            <span className="text-sm text-blue-600">クリックして</span>
+            <span className="text-sm text-blue-600">日付を切り替え</span>
+          </div>
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col items-center w-full my-1">
-      <h2 className="text-xl font-bold mb-2">
-        {'N700系 座席表 '}
-        {isTopHiroshima ? '(4日目)' : '(1日目)'}
-      </h2>
+      <h2 className="text-xl font-bold mb-2">{'N700系 座席表 '}</h2>
       <div className="flex flex-col gap-2 items-start">
-        <div className="w-full flex flex-col items-center mb-2 select-none bg-white">
-          <button
-            type="button"
-            onClick={handleToggleDirection}
-            className="flex flex-row items-center justify-center w-full py-2 border border-blue-300 rounded-lg shadow-sm bg-blue-50 hover:bg-blue-100 active:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400 transition group"
-            aria-label="進行方向を切り替え">
-            <span className="text-3xl text-blue-600 group-hover:text-blue-800 group-active:text-blue-900 transition ml-2">↑</span>
-            <div className="flex flex-col items-center mr-auto">
-              <span className="text-sm text-blue-600">進行方向</span>
-              <span className="text-sm text-blue-600">{isTopHiroshima ? '広島方面' : '東京方面'}</span>
-            </div>
-            <div className="flex flex-col items-center justify-center mr-2">
-              <span className="text-sm text-blue-600">クリックして</span>
-              <span className="text-sm text-blue-600">切り替え</span>
-            </div>
-          </button>
-        </div>
+        <SwitchButton />
         {/* 座席表本体 */}
         <div className="flex flex-col gap-2">
           {cars.map((car) => {
@@ -212,7 +210,10 @@ const ShinkansenFloor = () => {
             }
             return (
               <div key={car} className="bg-white rounded-lg shadow p-2 flex flex-col items-center">
-                <div className="font-semibold text-lg mb-4">{car}号車</div>
+                <div className="flex flex-row items-center justify-center font-semibold text-lg my-2">
+                  <p className="mx-1">{car}号車</p>
+                  <img className="mx-1" src="https://railway.jr-central.co.jp/train/_common/_img/uni_bod_ico_07_02.gif" alt="禁煙" />
+                </div>
                 {/* 上部設備（reverse対応） */}
                 {topFacilitiesArr.map((fg, idx) => (
                   <FacilityRow key={'top-' + idx} facilities={fg} isTopHiroshima={isTopHiroshima} />
@@ -275,10 +276,15 @@ const ShinkansenFloor = () => {
                 {bottomFacilitiesArr.map((fg, idx) => (
                   <FacilityRow key={'bottom-' + idx} facilities={fg} isTopHiroshima={isTopHiroshima} />
                 ))}
+                <div className="flex flex-row items-center justify-center font-semibold text-lg my-2">
+                  <p className="mx-1">{car}号車</p>
+                  <img className="mx-1" src="https://railway.jr-central.co.jp/train/_common/_img/uni_bod_ico_07_02.gif" alt="禁煙" />
+                </div>
               </div>
             );
           })}
         </div>
+        <SwitchButton />
       </div>
     </div>
   );
