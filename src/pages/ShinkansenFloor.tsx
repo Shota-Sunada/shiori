@@ -79,7 +79,7 @@ const CAR_FACILITIES: Record<number, CarFacilities> = {
   },
   15: {
     front: [{ abc: 'wc', de: 'wc' }, { abc: 'wash', de: 'wc' }, { abc: 'wash', de: 'phone' }, { both: 'deck' }],
-    back: [{ both: 'deck' }, { abc: 'smoking', de: 'smoking' }]
+    back: [{ both: 'deck' }]
   },
   14: {
     front: [{ both: 'deck' }],
