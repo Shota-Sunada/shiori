@@ -1,16 +1,16 @@
 import { useCallback, useMemo } from 'react';
-import { usePolling } from '../hooks/usePolling';
-import { POLL_INTERVALS } from '../config/constants';
-import { useAuth } from '../auth-context';
+import { usePolling } from '../../hooks/usePolling';
+import { POLL_INTERVALS } from '../../config/constants';
+import { useAuth } from '../../auth-context';
 // SERVER_ENDPOINT / appFetch は domainApi で隠蔽
-import { rollCallApi } from '../helpers/domainApi';
-import MDButton from '../components/MDButton';
-import { PrefetchLink } from '../prefetch/PrefetchLink';
-import CenterMessage from '../components/CenterMessage';
+import { rollCallApi } from '../../helpers/domainApi';
+import MDButton from '../../components/MDButton';
+import { PrefetchLink } from '../../prefetch/PrefetchLink';
+import CenterMessage from '../../components/CenterMessage';
 import '../styles/table.css';
-import MDRightArrow from '../components/MDRightArrow';
-import { usePrefetchedData } from '../prefetch/usePrefetchedData';
-import type { RollCall } from '../interface/models';
+import MDRightArrow from '../../components/MDRightArrow';
+import { usePrefetchedData } from '../../prefetch/usePrefetchedData';
+import type { RollCall } from '../../interface/models';
 
 interface RollCallTableProps {
   rollCalls: RollCall[];

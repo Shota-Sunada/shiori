@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { appFetch } from '../helpers/apiClient';
-import { SERVER_ENDPOINT } from '../config/serverEndpoint';
-import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4 } from '../data/courses';
-import type { COURSES_COMMON_KEY } from '../components/TimeTable';
+import { appFetch } from '../../helpers/apiClient';
+import { SERVER_ENDPOINT } from '../../config/serverEndpoint';
+import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4 } from '../../data/courses';
+import type { COURSES_COMMON_KEY } from '../../components/TimeTable';
 
 type EventDetail = {
   id: number;

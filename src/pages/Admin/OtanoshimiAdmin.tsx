@@ -1,14 +1,14 @@
 import { useState, useEffect, type ChangeEvent, type DragEvent, useCallback, type FC, useRef, memo } from 'react';
-import { SERVER_ENDPOINT } from '../config/serverEndpoint';
+import { SERVER_ENDPOINT } from '../../config/serverEndpoint';
 import '../styles/admin-table.css';
-import KanaSearchModal from '../components/KanaSearchModal';
-import type { StudentDTO } from '../helpers/domainApi';
-import { studentApi } from '../helpers/domainApi';
-import type { OtanoshimiData } from '../data/otanoshimi';
-import { useAuth } from '../auth-context';
-import { appFetch, clearAppFetchCache } from '../helpers/apiClient';
-import { CacheKeys } from '../helpers/cacheKeys';
-import CenterMessage from '../components/CenterMessage';
+import KanaSearchModal from '../../components/KanaSearchModal';
+import type { StudentDTO } from '../../helpers/domainApi';
+import { studentApi } from '../../helpers/domainApi';
+import type { OtanoshimiData } from '../../data/otanoshimi';
+import { useAuth } from '../../auth-context';
+import { appFetch, clearAppFetchCache } from '../../helpers/apiClient';
+import { CacheKeys } from '../../helpers/cacheKeys';
+import CenterMessage from '../../components/CenterMessage';
 
 interface StudentChipProps {
   studentId: number;

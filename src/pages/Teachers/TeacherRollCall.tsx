@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState, type FormEvent, useMemo } from 'react';
-import type { StudentDTO } from '../helpers/domainApi';
-import MDButton from '../components/MDButton';
-import GroupEditorModal from '../components/GroupEditorModal';
-import { useAuth } from '../auth-context';
-import { rollCallApi, studentApi } from '../helpers/domainApi';
+import type { StudentDTO } from '../../helpers/domainApi';
+import MDButton from '../../components/MDButton';
+import GroupEditorModal from '../../components/GroupEditorModal';
+import { useAuth } from '../../auth-context';
+import { rollCallApi, studentApi } from '../../helpers/domainApi';
 import { useNavigate } from 'react-router-dom';
-import CenterMessage from '../components/CenterMessage';
+import CenterMessage from '../../components/CenterMessage';
 interface RollCallGroup {
   id: number;
   name: string;

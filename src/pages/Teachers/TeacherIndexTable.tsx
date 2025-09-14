@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { useAuth } from '../auth-context';
-import type { StudentDTO } from '../helpers/domainApi';
-import { studentApi } from '../helpers/domainApi';
-import KanaSearchModal from '../components/KanaSearchModal';
-import IndexTable from '../components/IndexTable';
-import MDButton from '../components/MDButton';
+import { useAuth } from '../../auth-context';
+import type { StudentDTO } from '../../helpers/domainApi';
+import { studentApi } from '../../helpers/domainApi';
+import KanaSearchModal from '../../components/KanaSearchModal';
+import IndexTable from '../../components/IndexTable';
+import MDButton from '../../components/MDButton';
 
 const TeacherIndexTable = () => {
   const { token } = useAuth();

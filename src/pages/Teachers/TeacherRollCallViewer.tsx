@@ -1,13 +1,13 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { usePolling } from '../hooks/usePolling';
+import { usePolling } from '../../hooks/usePolling';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { rollCallApi } from '../helpers/domainApi';
-import { POLL_INTERVALS } from '../config/constants';
-import MDButton from '../components/MDButton';
-import { useAuth } from '../auth-context';
-import type { RollCall, RollCallStudent } from '../interface/models';
+import { rollCallApi } from '../../helpers/domainApi';
+import { POLL_INTERVALS } from '../../config/constants';
+import MDButton from '../../components/MDButton';
+import { useAuth } from '../../auth-context';
+import type { RollCall, RollCallStudent } from '../../interface/models';
 import { FaArrowRight } from 'react-icons/fa';
-import CenterMessage from '../components/CenterMessage';
+import CenterMessage from '../../components/CenterMessage';
 import '../styles/table.css';
 
 type Student = RollCallStudent;

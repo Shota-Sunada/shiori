@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef, type ChangeEvent, type KeyboardEvent, useMemo, useCallback, memo, type FC } from 'react';
-import type { StudentDTO } from '../helpers/domainApi';
-import { studentApi } from '../helpers/domainApi';
-import { COURSES_DAY1, COURSES_DAY3, type COURSES_DAY1_KEY, type COURSES_DAY3_KEY } from '../data/courses';
+import type { StudentDTO } from '../../helpers/domainApi';
+import { studentApi } from '../../helpers/domainApi';
+import { COURSES_DAY1, COURSES_DAY3, type COURSES_DAY1_KEY, type COURSES_DAY3_KEY } from '../../data/courses';
 import '../styles/admin-table.css';
 import '../styles/table.css';
-import StudentModal from '../components/StudentModal';
-import { useAuth } from '../auth-context';
-import CenterMessage from '../components/CenterMessage';
-import { clearAppFetchCache } from '../helpers/apiClient';
+import StudentModal from '../../components/StudentModal';
+import { useAuth } from '../../auth-context';
+import CenterMessage from '../../components/CenterMessage';
+import { clearAppFetchCache } from '../../helpers/apiClient';
 import type { IntRange } from 'type-fest';
 
 type SortKey = keyof StudentDTO;

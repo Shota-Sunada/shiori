@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { studentApi, teacherApi, boatAssignmentsApi } from '../helpers/domainApi';
-import type { StudentDTO, TeacherDTO } from '../helpers/domainApi';
-import KanaSearchModal from '../components/KanaSearchModal';
-import StudentCardContent from '../components/StudentCardContent';
+import { studentApi, teacherApi, boatAssignmentsApi } from '../../helpers/domainApi';
+import type { StudentDTO, TeacherDTO } from '../../helpers/domainApi';
+import KanaSearchModal from '../../components/KanaSearchModal';
+import StudentCardContent from '../../components/StudentCardContent';
 
 const BOAT_CAPACITY = 7;
 

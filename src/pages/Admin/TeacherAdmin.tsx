@@ -1,14 +1,14 @@
 import { useState, useEffect, useMemo, useCallback, memo, type ChangeEvent, type KeyboardEvent, type FC } from 'react';
-import { useRequireAuth } from '../auth-context';
+import { useRequireAuth } from '../../auth-context';
 import '../styles/admin-table.css';
-import ModernTable from '../components/ModernTable';
+import ModernTable from '../../components/ModernTable';
 // SERVER_ENDPOINT 依存除去 (domainApi 経由で隠蔽)
-import CenterMessage from '../components/CenterMessage';
-import { COURSES_DAY1, COURSES_DAY3, type COURSES_DAY1_KEY, type COURSES_DAY3_KEY } from '../data/courses';
-import { clearAppFetchCache } from '../helpers/apiClient';
-import { teacherApi, type TeacherDTO } from '../helpers/domainApi';
-import { CacheKeys } from '../helpers/cacheKeys';
-import type { Teacher } from '../interface/models';
+import CenterMessage from '../../components/CenterMessage';
+import { COURSES_DAY1, COURSES_DAY3, type COURSES_DAY1_KEY, type COURSES_DAY3_KEY } from '../../data/courses';
+import { clearAppFetchCache } from '../../helpers/apiClient';
+import { teacherApi, type TeacherDTO } from '../../helpers/domainApi';
+import { CacheKeys } from '../../helpers/cacheKeys';
+import type { Teacher } from '../../interface/models';
 import type { IntRange } from 'type-fest';
 
 interface MemoizedTeacherRowProps {
