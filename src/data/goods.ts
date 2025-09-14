@@ -13,7 +13,7 @@ export const GOODS_DATA: GOODS[] = [
   { name: '交通系ICカード', icon: ['💳️'], note: ['モバイルSuicaなどでもOK', 'MOBIRY DAYS は使用できません。'] },
   { name: '緊急連絡先', icon: ['📝'], note: ['担任、添乗員携帯番号'] },
   { name: '保険証 (コピー可)', icon: ['🪪'], note: ['保険証が紐づいたマイナンバーカードも可'] },
-  { name: 'タオル', icon: ['🧻'], note: ['ホテル備品は持ち出し現金'] },
+  { name: 'タオル', icon: ['🧻'], note: ['ホテル備品は持ち出し厳禁'] },
   { name: '着替え', icon: ['👕', '👖', '🧦'], note: ['下着、靴下など'] },
   { name: 'お小遣い', icon: ['💰'] },
   { name: '常備薬', icon: ['💊'], note: ['酔い止めなど'] },
