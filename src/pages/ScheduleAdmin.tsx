@@ -471,7 +471,7 @@ const ScheduleAdmin = () => {
                           </div>
 
                           {/* Always render details list so the add form can appear even when there are 0 details */}
-                          <ul className="ml-2 list-none text-sm space-y-1">
+                          <ul className="ml-2 list-none text-sm space-y-1 border-l-4 border-blue-200 pl-4">
                             {event.details.map((detail: EventDetail) => (
                               <li key={detail.id}>
                                 <div className="flex flex-col gap-1 p-1 border border-blue-100">
