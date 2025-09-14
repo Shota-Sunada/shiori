@@ -32,7 +32,7 @@ const FacilityRow: React.FC<FacilityRowProps> = ({ facilities, isTopHiroshima })
         <div
           className={`w-full flex flex-col items-center px-3 py-1 rounded-lg border shadow-sm text-xs font-semibold ${getFacilityColorClass(f)} m-0.5`}
           style={{ minWidth: 'calc(5*4rem + 1.5rem)' }}>
-          <span className="text-base leading-none mb-0.5">{f}</span>
+          <span className="text-base leading-none mb-0.5">{getFacilityLabel(f)}</span>
         </div>
       </div>
     );
