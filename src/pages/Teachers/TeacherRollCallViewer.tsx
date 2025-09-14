@@ -8,7 +8,7 @@ import { useAuth } from '../../auth-context';
 import type { RollCall, RollCallStudent } from '../../interface/models';
 import { FaArrowRight } from 'react-icons/fa';
 import CenterMessage from '../../components/CenterMessage';
-import '../styles/table.css';
+import '../../styles/table.css';
 
 type Student = RollCallStudent;
 

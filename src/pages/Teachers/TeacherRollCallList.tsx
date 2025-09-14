@@ -7,7 +7,7 @@ import { rollCallApi } from '../../helpers/domainApi';
 import MDButton from '../../components/MDButton';
 import { PrefetchLink } from '../../prefetch/PrefetchLink';
 import CenterMessage from '../../components/CenterMessage';
-import '../styles/table.css';
+import '../../styles/table.css';
 import MDRightArrow from '../../components/MDRightArrow';
 import { usePrefetchedData } from '../../prefetch/usePrefetchedData';
 import type { RollCall } from '../../interface/models';

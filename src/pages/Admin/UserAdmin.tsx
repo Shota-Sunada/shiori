@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useRef, useCallback, memo, type ChangeEvent, type KeyboardEvent, type FC } from 'react';
 import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 import { useRequireAuth } from '../../auth-context';
-import '../styles/admin-table.css';
-import '../styles/table.css';
+import '../../styles/admin-table.css';
+import '../../styles/table.css';
 import { userApi } from '../../helpers/domainApi';
 import CenterMessage from '../../components/CenterMessage';
 import type { User } from '../../interface/models';

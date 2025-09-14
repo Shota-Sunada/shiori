@@ -2,8 +2,8 @@ import { useState, useEffect, useRef, type ChangeEvent, type KeyboardEvent, useM
 import type { StudentDTO } from '../../helpers/domainApi';
 import { studentApi } from '../../helpers/domainApi';
 import { COURSES_DAY1, COURSES_DAY3, type COURSES_DAY1_KEY, type COURSES_DAY3_KEY } from '../../data/courses';
-import '../styles/admin-table.css';
-import '../styles/table.css';
+import '../../styles/admin-table.css';
+import '../../styles/table.css';
 import StudentModal from '../../components/StudentModal';
 import { useAuth } from '../../auth-context';
 import CenterMessage from '../../components/CenterMessage';

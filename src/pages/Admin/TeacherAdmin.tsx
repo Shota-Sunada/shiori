@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, memo, type ChangeEvent, type KeyboardEvent, type FC } from 'react';
 import { useRequireAuth } from '../../auth-context';
-import '../styles/admin-table.css';
+import '../../styles/admin-table.css';
 import ModernTable from '../../components/ModernTable';
 // SERVER_ENDPOINT 依存除去 (domainApi 経由で隠蔽)
 import CenterMessage from '../../components/CenterMessage';
