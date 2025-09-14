@@ -138,8 +138,8 @@ const Shinkansen = () => {
           }}
         />
         <p>↑JR東海のページが開きます。</p>
-        <MDButton text="新幹線座席表一覧" arrowRight link="/shinkansen/floor" />
-        <MDButton text="ホームに戻る" color='white' arrowLeft link="/" />
+        <MDButton text="新幹線座席表一覧" arrowRight link={tab === 'day4' ? '/shinkansen/floor?direction=hiroshima' : '/shinkansen/floor'} />
+        <MDButton text="ホームに戻る" color="white" arrowLeft link="/" />
       </div>
     </div>
   );
