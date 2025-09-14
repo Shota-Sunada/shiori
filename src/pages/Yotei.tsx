@@ -7,6 +7,7 @@ import { DAY4_DATA, type COURSES_DAY1_KEY, type COURSES_DAY3_KEY, type COURSES_D
 import ModernTable from '../components/ModernTable';
 import ScrollToTopButton from '../components/ScrollToTopButton';
 import '../styles/index-table.css';
+import MDButton from '../components/MDButton';
 
 const Yotei = () => {
   const { user } = useAuth();
@@ -48,7 +49,7 @@ const Yotei = () => {
         let day4: string | undefined;
         let name: string | null = null;
 
-        if (user?.is_teacher) {
+        if (!queryUserId && user?.is_teacher) {
           try {
             const t: TeacherDTO = await teacherApi.self(targetUserId);
             if (!t || !t.day1id || !t.day3id || !t.day4class) {
@@ -130,6 +131,7 @@ const Yotei = () => {
             4日目へ
           </button>
         </div>
+        <MDButton text="ホームへ" arrowLeft color="white" link={user?.is_teacher ? '/teacher' : '/'} />
         <div className="w-full max-w-4xl my-3 index-table-wrapper">
           {/* 表示中のユーザー名を上部に表示 */}
           {displayName && <div className="mb-2 text-lg font-semibold text-center text-blue-700">{displayName} さんの行程表</div>}
@@ -146,6 +148,7 @@ const Yotei = () => {
             <TimeTable courseKey={'day4_common2'} />
           </ModernTable>
         </div>
+        <MDButton text="ホームへ" arrowLeft color="white" link={user?.is_teacher ? '/teacher' : '/'} />
       </div>
       <ScrollToTopButton />
     </>

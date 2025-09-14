@@ -10,7 +10,7 @@ const Page404 = () => {
         <p>{'誤ったページへ侵入してしまったようです。'}</p>
       </Message>
       <div className="flex gap-2 flex-wrap items-center justify-center">
-        <MDButton text="ホームへ" arrowLeft link="/" />
+        <MDButton text="ホームへ" arrowLeft color='white' link="/" />
       </div>
     </div>
   );
