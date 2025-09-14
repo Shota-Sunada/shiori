@@ -54,7 +54,7 @@ const FacilityRow: React.FC<FacilityRowProps> = ({ facilities, isTopHiroshima })
       <div className="w-6" />
       {/* 右側（進行方向でDEまたはABC） */}
       <div className="flex items-center justify-center m-0.5" style={{ width: rightWidth }}>
-        <div className={`w-full flex flex-col items-center px-3 py-1 rounded-lg border shadow-sm text-xs font-semibold ${getFacilityColorClass(leftFacility.label)}`}>
+        <div className={`w-full flex flex-col items-center px-3 py-1 rounded-lg border shadow-sm text-xs font-semibold ${getFacilityColorClass(rightFacility.label)}`}>
           <span className="text-base leading-none mb-0.5">{rightFacility.label}</span>
         </div>
       </div>
@@ -185,6 +185,22 @@ const ShinkansenFloor = () => {
     );
   };
 
+  const Header = ({ seats }: { seats: string[] }) => {
+    return (
+      <div className="flex flex-row">
+        {seats.map((seat, seatIdx) =>
+          seat === '' ? (
+            <div key={'aisle-header-' + seatIdx} className="w-6" />
+          ) : (
+            <div key={'header-' + seat} className="flex items-center justify-center w-16 text-base font-bold text-center text-gray-500 py-1 m-0.5">
+              {seat}
+            </div>
+          )
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col items-center w-full my-1">
       <MDButton text="戻る" arrowLeft color="white" link="/shinkansen" />
@@ -223,17 +239,7 @@ const ShinkansenFloor = () => {
                 {/* 横方向で1行ずつdivでラップ */}
                 <div className="flex flex-col">
                   {/* ヘッダー行 */}
-                  <div className="flex flex-row">
-                    {SEATS.map((seat, seatIdx) =>
-                      seat === '' ? (
-                        <div key={'aisle-header-' + seatIdx} className="w-6" />
-                      ) : (
-                        <div key={'header-' + seat} className="flex items-center justify-center w-16 text-base font-bold text-center text-gray-500 py-1 m-0.5">
-                          {seat}
-                        </div>
-                      )
-                    )}
-                  </div>
+                  <Header seats={SEATS} />
                   {/* 各行 */}
                   {ROWS.map((row) => (
                     <div key={'row-' + row} className="flex flex-row">
@@ -277,6 +283,7 @@ const ShinkansenFloor = () => {
                       })}
                     </div>
                   ))}
+                  <Header seats={SEATS} />
                 </div>
                 {/* 下部設備（reverse対応） */}
                 {bottomFacilitiesArr.map((fg, idx) => (
