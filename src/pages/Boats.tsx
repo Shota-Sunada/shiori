@@ -38,7 +38,7 @@ const Boats = () => {
   return (
     <div className="flex flex-col items-center justify-center m-2">
       <h1 className="text-2xl font-bold m-2">ラフティング ボート割 一覧</h1>
-      <MDButton text="戻る" arrowLeft link={user?.is_teacher ? '/teacher' : '/'} />
+      <MDButton text="戻る" arrowLeft color="white" link={user?.is_teacher ? '/teacher' : '/'} />
       {loading ? (
         <div>データ読込中...</div>
       ) : (
@@ -77,7 +77,7 @@ const Boats = () => {
             ))}
         </div>
       )}
-      <MDButton text="戻る" arrowLeft link={user?.is_teacher ? '/teacher' : '/'} />
+      <MDButton text="戻る" arrowLeft color="white" link={user?.is_teacher ? '/teacher' : '/'} />
     </div>
   );
 };

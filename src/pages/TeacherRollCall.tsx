@@ -122,7 +122,7 @@ const TeacherRollCall = () => {
 
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">
-      <MDButton text="ホームに戻る" arrowLeft link="/teacher" />
+      <MDButton text="ホームに戻る" color="white" arrowLeft link="/teacher" />
       <section id="call" className="m-2 w-full max-w-md mx-auto">
         <div className="flex flex-col items-center bg-gray-100 p-6 rounded-lg shadow-md">
           <div className="flex flex-col justify-between items-center w-full">

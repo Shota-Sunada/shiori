@@ -56,7 +56,7 @@ const TeacherRollCallList = () => {
     return (
       <CenterMessage>
         <p className="text-red-500 mb-4">{String(error)}</p>
-        <MDButton text="戻る" arrowLeft link="/teacher/call" />
+        <MDButton text="戻る" arrowLeft color="white" link="/teacher/call" />
       </CenterMessage>
     );
 
@@ -146,7 +146,7 @@ const TeacherRollCallList = () => {
       </section>
 
       <div className="flex items-center justify-center m-2">
-        <MDButton text="戻る" arrowLeft link="/teacher/call" />
+        <MDButton text="戻る" arrowLeft color="white" link="/teacher/call" />
       </div>
     </div>
   );

@@ -128,7 +128,7 @@ const RollCallHistory = () => {
     <div className="flex flex-col items-center m-4">
       <h1 className="text-xl font-bold">点呼履歴</h1>
       <div className="flex w-full max-w-2xl justify-between items-center mb-4">
-        <MDButton text="戻る" arrowLeft link={user?.is_teacher ? '/teacher' : '/'} width="mobiry-button-150" />
+        <MDButton text="戻る" color="white" arrowLeft link={user?.is_teacher ? '/teacher' : '/'} width="mobiry-button-150" />
         <MDButton text="更新" onClick={fetchHistory} width="mobiry-button-150" />
       </div>
       {content}

@@ -152,6 +152,18 @@ body {
   background-color: #edf7fb;
 }
 
+.mobiry-button-orange {
+  background-color: #ee6d00;
+}
+
+.mobiry-button-arrow-orange {
+  color: #ee6d00;
+}
+
+.mobiry-button-orange:hover {
+  background-color: #ce5d00;
+}
+
 .mobiry-button-transparent {
   background-color: transparent;
   color: #219bce;

@@ -92,6 +92,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { studentApi, teacherApi } from '../helpers/domainApi';
 import type { StudentDTO, TeacherDTO } from '../helpers/domainApi';
 import { pad2 } from '../helpers/pad2';
+import MDButton from '../components/MDButton';
 const CAR_NUMBERS = [13, 14, 15, 16];
 const CAR_ROWS: Record<number, number> = {
   16: 15,
@@ -186,6 +187,7 @@ const ShinkansenFloor = () => {
 
   return (
     <div className="flex flex-col items-center w-full my-1">
+      <MDButton text="戻る" arrowLeft color="white" link="/shinkansen" />
       <h2 className="text-xl font-bold mb-2">{'N700系 座席表 '}</h2>
       <div className="flex flex-col gap-2 items-start">
         <SwitchButton />
@@ -280,12 +282,14 @@ const ShinkansenFloor = () => {
                   <p className="mx-1">{car}号車</p>
                   <img className="mx-1" src="https://railway.jr-central.co.jp/train/_common/_img/uni_bod_ico_07_02.gif" alt="禁煙" />
                 </div>
+                <MDButton text="戻る" arrowLeft color="white" link="/shinkansen" />
               </div>
             );
           })}
         </div>
         <SwitchButton />
       </div>
+      <MDButton text="戻る" arrowLeft color="white" link="/shinkansen" />
     </div>
   );
 };

@@ -12,7 +12,7 @@ interface MDButtonProps {
   link?: string;
   prefetchKey?: PrefetchKey; // プレフェッチ対象キー
   prefetchFetcher?: () => Promise<unknown>; // プレフェッチ用 fetcher
-  color?: 'blue' | 'red' | 'green' | 'purple' | 'gray' | 'white' | 'transparent';
+  color?: 'blue' | 'red' | 'green' | 'purple' | 'gray' | 'white' | 'transparent' | 'orange';
   width?: 'mobiry-button-200' | 'mobiry-button-150';
   disabled?: boolean;
   className?: string;

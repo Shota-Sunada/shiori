@@ -4,13 +4,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { PrefetchLink } from '../prefetch/PrefetchLink';
 import { otanoshimiApi } from '../helpers/domainApi';
-import { IoHome, IoReload } from 'react-icons/io5';
+import { IoHome, IoReload, IoLogOut, IoSettingsSharp } from 'react-icons/io5';
 import { FaTable } from 'react-icons/fa';
 import { LuPartyPopper } from 'react-icons/lu';
 import { VscDebugAlt } from 'react-icons/vsc';
 import { FaUserGraduate } from 'react-icons/fa6';
-import { IoSettingsSharp } from 'react-icons/io5';
-import { IoLogOut } from 'react-icons/io5';
+import { TbTrain } from 'react-icons/tb';
+import { MdAirlineSeatReclineNormal } from 'react-icons/md';
 
 const HamburgerIcon = ({ open }: { open: boolean }) => (
   <div className="flex flex-col justify-center items-center w-8 h-8 cursor-pointer">
@@ -98,6 +98,18 @@ const Header = () => {
         icon: <FaTable />,
         to: '/yotei',
         label: '全工程表'
+      },
+      {
+        type: 'link',
+        icon: <TbTrain />,
+        to: '/shinkansen',
+        label: '新幹線'
+      },
+      {
+        type: 'link',
+        icon: <MdAirlineSeatReclineNormal />,
+        to: '/shinkansen/floor',
+        label: '新幹線座席一覧'
       },
       {
         type: 'link',

@@ -22,23 +22,23 @@ const Maps = () => {
       return (
         <div className="flex flex-col items-center justify-center text-center">
           {Image('広島駅集合場所', 'hiroshima_sta.png')}
-          <MDButton text="戻る" arrowLeft onClick={() => setId(undefined)} />
+          <MDButton text="戻る" color="white" arrowLeft onClick={() => setId(undefined)} />
         </div>
       );
     case 'tdh':
       return (
         <div className="flex flex-col items-center justify-center text-center">
           {Image('TDH 食事会場 B1F「天空」席', 'tenku.png')}
-          <MDButton text="戻る" arrowLeft onClick={() => setId(undefined)} />
+          <MDButton text="戻る" color="white" arrowLeft onClick={() => setId(undefined)} />
           {Image('TDH 食事会場 3F「スーパーダイニングリラッサ」席', 'rirassa.png')}
-          <MDButton text="戻る" arrowLeft onClick={() => setId(undefined)} />
+          <MDButton text="戻る" color="white" arrowLeft onClick={() => setId(undefined)} />
         </div>
       );
     case 'fpr':
       return (
         <div className="flex flex-col items-center justify-center text-center">
           {Image('フジプレミアムリゾート 全体図', 'fpr.png')}
-          <MDButton text="戻る" arrowLeft onClick={() => setId(undefined)} />
+          <MDButton text="戻る" color="white" arrowLeft onClick={() => setId(undefined)} />
         </div>
       );
     case undefined:
@@ -66,7 +66,7 @@ const Maps = () => {
             }}>
             {'フジプレミアムリゾート'}
           </p>
-          <MDButton text="戻る" arrowLeft link={user?.is_teacher ? '/teacher' : '/'} />
+          <MDButton text="戻る" color="white" arrowLeft link={user?.is_teacher ? '/teacher' : '/'} />
         </div>
       );
   }

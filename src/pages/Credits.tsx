@@ -46,7 +46,7 @@ const Credits = () => {
     return (
       <CenterMessage>
         <p>{'クレジット情報がありません。'}</p>
-        <MDButton text="ホームに戻る" arrowLeft link="/" />
+        <MDButton text="ホームに戻る" color="white" arrowLeft link="/" />
       </CenterMessage>
     );
 
@@ -63,7 +63,7 @@ const Credits = () => {
           </div>
         ))}
       </div>
-      <MDButton text="ホームに戻る" arrowLeft link="/" />
+      <MDButton text="ホームに戻る" color="white" arrowLeft link="/" />
     </div>
   );
 };

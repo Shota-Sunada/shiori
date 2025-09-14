@@ -128,9 +128,7 @@ const Shinkansen = () => {
         <p>新幹線 個別列車案内</p>
         <MDButton
           text={tab === 'day1' ? 'のぞみ84号 (行き)' : tab === 'day4' ? 'のぞみ77号 (帰り)' : '不明'}
-          arrowLeft={tab === 'day4'}
-          arrowRight={tab === 'day1'}
-          color="white"
+          color="orange"
           onClick={() => {
             if (tab === 'day1') {
               window.open('https://traininfo.jr-central.co.jp/shinkansen/sp/ja/ti07.html?traintype=6&train=84', '_blank', 'noreferrer');
@@ -140,6 +138,8 @@ const Shinkansen = () => {
           }}
         />
         <p>↑JR東海のページが開きます。</p>
+        <MDButton text="新幹線座席表一覧" arrowRight link="/shinkansen/floor" />
+        <MDButton text="ホームに戻る" color='white' arrowLeft link="/" />
       </div>
     </div>
   );

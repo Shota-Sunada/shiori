@@ -57,7 +57,7 @@ const TeacherIndexTable = () => {
   }, []);
   return (
     <div className="flex flex-col items-center justify-center m-2">
-      <MDButton text="ホームに戻る" arrowLeft link="/teacher" />
+      <MDButton text="ホームに戻る" color="white" arrowLeft link="/teacher" />
       <section id="search" className="m-2 flex flex-col items-center">
         <div className="flex flex-col items-center">
           <p className="text-2xl">{'生徒情報検索'}</p>
@@ -68,7 +68,7 @@ const TeacherIndexTable = () => {
       {loading && <p>読み込み中...</p>}
       <IndexTable studentData={studentData} isStudentSearch />
 
-      <MDButton text="ホームに戻る" arrowLeft link="/teacher" />
+      <MDButton text="ホームに戻る" color="white" arrowLeft link="/teacher" />
 
       <KanaSearchModal isOpen={isKanaSearchVisible} onClose={() => setKanaSearchVisible(false)} allStudents={allStudents} onStudentSelect={handleStudentSelect} />
     </div>
