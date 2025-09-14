@@ -3,6 +3,7 @@ import type { Course, Event, EventDetail } from './Types';
 import { refresh, toMinutesIfPresent, validateTimeOptionalPairLabeled } from './helpers';
 import { appFetch } from '../../../helpers/apiClient';
 import { SERVER_ENDPOINT } from '../../../config/serverEndpoint';
+import { pad2 } from '../../../helpers/pad2';
 
 export const EditingDetail = ({
   isNew,
@@ -132,6 +133,10 @@ export const EditingDetail = ({
 };
 
 export const DetailCard = ({ detail }: { detail: EventDetail }) => {
+  // 時刻表示用
+  const hasStart = detail.time1Hour !== undefined && detail.time1Minute !== undefined && detail.time1Hour !== null && detail.time1Minute !== null;
+  const hasEnd = detail.time2Hour !== undefined && detail.time2Minute !== undefined && detail.time2Hour !== null && detail.time2Minute !== null;
+  const noTime = !hasStart && !hasEnd;
   return (
     <div className="flex items-center gap-2 text-gray-700 bg-blue-100/40 rounded px-2 py-1">
       <svg className="w-3 h-3 text-blue-200" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -139,8 +144,10 @@ export const DetailCard = ({ detail }: { detail: EventDetail }) => {
       </svg>
       <span className="font-semibold">{detail.memo}</span>
       <span className="text-xs text-gray-500">
-        （{detail.time1Hour}:{detail.time1Minute}
-        {detail.time2Hour !== undefined ? ` - ${detail.time2Hour}:${detail.time2Minute}` : ''}）
+        {noTime
+          ? ''
+          : `（${hasStart ? `${detail.time1Hour}:${pad2(detail.time1Minute)}` : ''}
+        ${hasEnd ? ` - ${detail.time2Hour}:${pad2(detail.time2Minute)}` : ''}）`}
       </span>
     </div>
   );

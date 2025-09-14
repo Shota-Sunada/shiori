@@ -1,4 +1,5 @@
 import type { ChangeEventHandler, Dispatch, SetStateAction } from 'react';
+import { pad2 } from '../../../helpers/pad2';
 import type { Course, Event, EventDetail, Schedule } from './Types';
 import { refresh, toMinutesIfPresent, validateTimeOptionalPairLabeled, validateTimeRequired, validateTimeOptionalPair } from './helpers';
 import { SERVER_ENDPOINT } from '../../../config/serverEndpoint';
@@ -205,6 +206,9 @@ export const EditingEvent = ({
 };
 
 export const EventCard = ({ event }: { event: Event }) => {
+  // 時刻表示用
+  const hasStart = event.time1Hour !== undefined && event.time1Minute !== undefined && event.time1Hour !== null && event.time1Minute !== null;
+  const hasEnd = event.time2Hour !== undefined && event.time2Minute !== undefined && event.time2Hour !== null && event.time2Minute !== null;
   return (
     <div className="flex items-center gap-2 text-gray-700 bg-blue-50 rounded px-2 py-1">
       <svg className="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -212,9 +216,8 @@ export const EventCard = ({ event }: { event: Event }) => {
       </svg>
       <span className="font-semibold">{event.memo}</span>
       <span className="text-xs text-gray-500">
-        （{event.time1Hour}:{event.time1Minute}
-        {event.time1Postfix ? ` ${event.time1Postfix}` : ''}
-        {event.time2Hour !== undefined ? ` - ${event.time2Hour}:${event.time2Minute}${event.time2Postfix ? ` ${event.time2Postfix}` : ''}` : ''}）
+        （{hasStart ? `${event.time1Hour}:${pad2(event.time1Minute)}${event.time1Postfix ? ` ${event.time1Postfix}` : ''}` : ''}
+        {hasEnd ? ` - ${event.time2Hour}:${pad2(event.time2Minute)}${event.time2Postfix ? ` ${event.time2Postfix}` : ''}` : ''}）
       </span>
     </div>
   );
