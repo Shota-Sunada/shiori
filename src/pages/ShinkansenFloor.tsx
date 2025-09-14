@@ -99,6 +99,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import React, { useEffect, useState, useMemo } from 'react';
 import { studentApi, teacherApi } from '../helpers/domainApi';
 import type { StudentDTO, TeacherDTO } from '../helpers/domainApi';
+import { pad2 } from '../helpers/pad2';
 const CAR_NUMBERS = [13, 14, 15, 16];
 const CAR_ROWS: Record<number, number> = {
   16: 15,
@@ -224,7 +225,7 @@ const ShinkansenFloor = () => {
                       seat === '' ? (
                         <div key={'aisle-header-' + seatIdx} className="w-6" />
                       ) : (
-                        <div key={'header-' + seat} className="w-16 text-base font-bold text-center text-gray-500 pb-2 m-0.5">
+                        <div key={'header-' + seat} className="flex items-center justify-center w-16 text-base font-bold text-center text-gray-500 py-1 m-0.5">
                           {seat}
                         </div>
                       )
@@ -256,7 +257,7 @@ const ShinkansenFloor = () => {
                                 <>
                                   <span className="text-xs leading-none">
                                     5{(seatData.data as StudentDTO).class}
-                                    {(seatData.data as StudentDTO).number}
+                                    {pad2((seatData.data as StudentDTO).number)}
                                   </span>
                                   <span>{(seatData.data as StudentDTO).surname}</span>
                                 </>

@@ -314,7 +314,7 @@ function App() {
     { path: '/maps', element: <Maps /> },
     { path: '/goods', element: <Goods /> },
     { path: '/shinkansen', element: <Shinkansen /> },
-    { path: '/shinkansen-floor', element: <ShinkansenFloor /> },
+    { path: '/shinkansen/floor', element: <ShinkansenFloor /> },
     { path: '/boats', element: <Boats /> },
     { path: '/teacher', element: <TeacherIndex /> },
     { path: '/teacher/search', element: <TeacherIndexTable /> },
