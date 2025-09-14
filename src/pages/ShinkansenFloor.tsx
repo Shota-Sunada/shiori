@@ -1,14 +1,18 @@
-const FACILITY_COLOR_CLASS: Record<string, string> = {
-  ドア: 'bg-blue-200 border-blue-400 text-blue-900',
-  運転台: 'bg-gray-300 border-gray-400 text-gray-800',
-  WC: 'bg-green-100 border-green-300 text-green-800',
-  洗面: 'bg-cyan-100 border-cyan-300 text-cyan-800',
-  電話: 'bg-yellow-100 border-yellow-300 text-yellow-800',
-  喫煙室: 'bg-red-100 border-red-300 text-red-800'
+const FACILITY_COLOR_CLASS: Record<string, [string, string]> = {
+  deck: ['デッキ (ドア&ゴミ箱)', 'bg-blue-200 border-blue-400 text-blue-900'],
+  driver: ['運転台', 'bg-gray-300 border-gray-400 text-gray-800'],
+  wc: ['WC', 'bg-green-100 border-green-300 text-green-800'],
+  wash: ['洗面', 'bg-cyan-100 border-cyan-300 text-cyan-800'],
+  phone: ['電話', 'bg-yellow-100 border-yellow-300 text-yellow-800'],
+  smoking: ['喫煙室', 'bg-red-100 border-red-300 text-red-800']
 };
 
-function getFacilityColorClass(label: string): string {
-  return FACILITY_COLOR_CLASS[label] || 'bg-gray-100 border-gray-300 text-gray-700';
+function getFacilityLabel(id: string): string {
+  return FACILITY_COLOR_CLASS[id][0];
+}
+
+function getFacilityColorClass(id: string): string {
+  return FACILITY_COLOR_CLASS[id][1] || 'bg-gray-100 border-gray-300 text-gray-700';
 }
 
 interface FacilityRowProps {
@@ -26,9 +30,9 @@ const FacilityRow: React.FC<FacilityRowProps> = ({ facilities, isTopHiroshima })
     return (
       <div className="flex w-full my-1 flex-row gap-0">
         <div
-          className={`w-full flex flex-col items-center px-3 py-1 rounded-lg border shadow-sm text-xs font-semibold ${getFacilityColorClass(f.label)} m-0.5`}
+          className={`w-full flex flex-col items-center px-3 py-1 rounded-lg border shadow-sm text-xs font-semibold ${getFacilityColorClass(f)} m-0.5`}
           style={{ minWidth: 'calc(5*4rem + 1.5rem)' }}>
-          <span className="text-base leading-none mb-0.5">{f.label}</span>
+          <span className="text-base leading-none mb-0.5">{f}</span>
         </div>
       </div>
     );
@@ -46,24 +50,23 @@ const FacilityRow: React.FC<FacilityRowProps> = ({ facilities, isTopHiroshima })
     <div className="flex w-full my-1 flex-row gap-0">
       {/* 左側（進行方向でABCまたはDE） */}
       <div className="flex items-center justify-center m-0.5" style={{ width: leftWidth }}>
-        <div className={`w-full flex flex-col items-center px-3 py-1 rounded-lg border shadow-sm text-xs font-semibold ${getFacilityColorClass(leftFacility.label)}`}>
-          <span className="text-base leading-none mb-0.5">{leftFacility.label}</span>
+        <div className={`w-full flex flex-col items-center px-3 py-1 rounded-lg border shadow-sm text-xs font-semibold ${getFacilityColorClass(leftFacility)}`}>
+          <span className="text-base leading-none mb-0.5">{getFacilityLabel(leftFacility)}</span>
         </div>
       </div>
       {/* 通路 */}
       <div className="w-6" />
       {/* 右側（進行方向でDEまたはABC） */}
       <div className="flex items-center justify-center m-0.5" style={{ width: rightWidth }}>
-        <div className={`w-full flex flex-col items-center px-3 py-1 rounded-lg border shadow-sm text-xs font-semibold ${getFacilityColorClass(rightFacility.label)}`}>
-          <span className="text-base leading-none mb-0.5">{rightFacility.label}</span>
+        <div className={`w-full flex flex-col items-center px-3 py-1 rounded-lg border shadow-sm text-xs font-semibold ${getFacilityColorClass(rightFacility)}`}>
+          <span className="text-base leading-none mb-0.5">{getFacilityLabel(rightFacility)}</span>
         </div>
       </div>
     </div>
   );
 };
 
-type FacilityGroup = { abc: Facility; de: Facility } | { both: Facility };
-type Facility = { label: string; icon?: string };
+type FacilityGroup = { abc: string; de: string } | { both: string };
 type CarFacilities = {
   front: FacilityGroup[];
   back: FacilityGroup[];
@@ -71,20 +74,20 @@ type CarFacilities = {
 
 const CAR_FACILITIES: Record<number, CarFacilities> = {
   16: {
-    front: [{ both: { label: '運転台' } }, { both: { label: 'ドア' } }],
-    back: [{ both: { label: 'ドア' } }]
+    front: [{ both: 'driver' }, { both: 'deck' }],
+    back: [{ both: 'deck' }]
   },
   15: {
-    front: [{ abc: { label: 'WC' }, de: { label: 'WC' } }, { abc: { label: '洗面' }, de: { label: 'WC' } }, { abc: { label: '洗面' }, de: { label: '電話' } }, { both: { label: 'ドア' } }],
-    back: [{ both: { label: 'ドア' } }, { abc: { label: '喫煙室' }, de: { label: '喫煙室' } }]
+    front: [{ abc: 'wc', de: 'wc' }, { abc: 'wash', de: 'wc' }, { abc: 'wash', de: 'phone' }, { both: 'deck' }],
+    back: [{ both: 'deck' }, { abc: 'smoking', de: 'smoking' }]
   },
   14: {
-    front: [{ both: { label: 'ドア' } }],
-    back: [{ both: { label: 'ドア' } }]
+    front: [{ both: 'deck' }],
+    back: [{ both: 'deck' }]
   },
   13: {
-    front: [{ abc: { label: 'WC' }, de: { label: 'WC' } }, { abc: { label: '洗面' }, de: { label: 'WC' } }, { both: { label: 'ドア' } }],
-    back: [{ both: { label: 'ドア' } }]
+    front: [{ abc: 'wc', de: 'wc' }, { abc: 'wash', de: 'wc' }, { both: 'deck' }],
+    back: [{ both: 'deck' }]
   }
 };
 import { useLocation, useNavigate } from 'react-router-dom';
