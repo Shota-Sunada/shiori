@@ -206,7 +206,7 @@ const ScheduleAdmin = () => {
                   </div>
                 )}
                 {course.schedules.map((schedule: Schedule) => (
-                  <div key={schedule.id} className="rounded-lg border border-blue-50 bg-blue-50/40 p-3 mb-2">
+                  <div key={schedule.id} className="rounded-lg border border-blue-100 bg-blue-50/40 p-3 mb-2">
                     <div className="flex flex-col gap-1">
                       <div className="mb-1">
                         {editingSchedule && editingSchedule.schedule && editingSchedule.schedule.id === schedule.id ? (
@@ -474,7 +474,7 @@ const ScheduleAdmin = () => {
                           <ul className="ml-2 list-none text-sm space-y-1">
                             {event.details.map((detail: EventDetail) => (
                               <li key={detail.id}>
-                                <div className="flex flex-col gap-1 p-1 border-1">
+                                <div className="flex flex-col gap-1 p-1 border border-blue-100">
                                   {editingDetail && editingDetail.detail && editingDetail.detail.id === detail.id ? (
                                     <div className="bg-white rounded-lg shadow-md p-4 flex flex-col gap-4 border border-blue-100 my-2">
                                       <div>
