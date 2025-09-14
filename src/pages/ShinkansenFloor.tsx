@@ -1,3 +1,100 @@
+const FACILITY_COLOR_CLASS: Record<string, string> = {
+  ドア: 'bg-blue-200 border-blue-400 text-blue-900',
+  運転台: 'bg-gray-300 border-gray-400 text-gray-800',
+  WC: 'bg-green-100 border-green-300 text-green-800',
+  洗面: 'bg-cyan-100 border-cyan-300 text-cyan-800',
+  電話: 'bg-yellow-100 border-yellow-300 text-yellow-800',
+  喫煙室: 'bg-red-100 border-red-300 text-red-800'
+};
+
+function getFacilityColorClass(label: string): string {
+  return FACILITY_COLOR_CLASS[label] || 'bg-gray-100 border-gray-300 text-gray-700';
+}
+
+interface FacilityRowProps {
+  facilities: FacilityGroup;
+  isTopHiroshima: boolean;
+}
+
+const FacilityRow: React.FC<FacilityRowProps> = ({ facilities, isTopHiroshima }) => {
+  if (!facilities) return null;
+
+  // 座席表の幅に合わせて6列（A,B,C,通路,D,E）分で調整
+  // bothのみ
+  if ('both' in facilities) {
+    const f = facilities.both;
+    return (
+      <div className="flex w-full my-1 flex-row gap-0">
+        <div
+          className={`w-full flex flex-col items-center px-3 py-1 rounded-lg border shadow-sm text-xs font-semibold ${getFacilityColorClass(f.label)} m-0.5`}
+          style={{ minWidth: 'calc(5*4rem + 1.5rem)' }}
+          title={f.label}>
+          <span className="text-base leading-none mb-0.5">{f.label}</span>
+        </div>
+      </div>
+    );
+  }
+
+  // abc/deセット
+  const abc = facilities.abc;
+  const de = facilities.de;
+  // 進行方向で左右を切り替え
+  const leftFacility = isTopHiroshima ? abc : de;
+  const rightFacility = isTopHiroshima ? de : abc;
+  const leftWidth = isTopHiroshima ? '12.25rem' : '8.25rem';
+  const rightWidth = isTopHiroshima ? '8.5rem' : '12.5rem';
+  return (
+    <div className="flex w-full my-1 flex-row gap-0">
+      {/* 左側（進行方向でABCまたはDE） */}
+      <div className="flex items-center justify-center m-0.5" style={{ width: leftWidth }}>
+        <div className={`w-full flex flex-col items-center px-3 py-1 rounded-lg border shadow-sm text-xs font-semibold ${getFacilityColorClass(leftFacility.label)}`} title={leftFacility.label}>
+          <span className="text-base leading-none mb-0.5">{leftFacility.label}</span>
+        </div>
+      </div>
+      {/* 通路 */}
+      <div className="w-6" />
+      {/* 右側（進行方向でDEまたはABC） */}
+      <div className="flex items-center justify-center m-0.5" style={{ width: rightWidth }}>
+        <div className={`w-full flex flex-col items-center px-3 py-1 rounded-lg border shadow-sm text-xs font-semibold ${getFacilityColorClass(rightFacility.label)}`} title={rightFacility.label}>
+          <span className="text-base leading-none mb-0.5">{rightFacility.label}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+type FacilityGroup = { abc: Facility; de: Facility } | { both: Facility };
+type Facility = { label: string; icon?: string };
+type CarFacilities = {
+  front: FacilityGroup[];
+  back: FacilityGroup[];
+};
+
+const CAR_FACILITIES: Record<number, CarFacilities> = {
+  16: {
+    front: [{ both: { label: '運転台' } }, { both: { label: 'ドア' } }],
+    back: [{ both: { label: 'ドア' } }]
+  },
+  15: {
+    front: [
+      { abc: { label: 'WC' }, de: { label: 'WC' } },
+      { abc: { label: '洗面' }, de: { label: 'WC' } },
+      { abc: { label: '洗面' }, de: { label: '電話' } }
+    ],
+    back: [{ abc: { label: '喫煙室' }, de: { label: '喫煙室' } }]
+  },
+  14: {
+    front: [{ both: { label: 'ドア' } }],
+    back: [{ both: { label: 'ドア' } }]
+  },
+  13: {
+    front: [
+      { abc: { label: '洗面' }, de: { label: 'WC' } },
+      { abc: { label: 'WC' }, de: { label: 'WC' } }
+    ],
+    back: [{ both: { label: 'ドア' } }]
+  }
+};
 import { useLocation, useNavigate } from 'react-router-dom';
 import React, { useEffect, useState, useMemo } from 'react';
 import { studentApi, teacherApi } from '../helpers/domainApi';
@@ -94,42 +191,59 @@ const ShinkansenFloor = () => {
           </button>
         </div>
         {/* 座席表本体 */}
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-2">
           {cars.map((car) => {
             const rowCount = CAR_ROWS[car] || 12;
             const ROWS = isTopHiroshima ? Array.from({ length: rowCount }, (_, i) => i + 1) : Array.from({ length: rowCount }, (_, i) => rowCount - i);
             // 進行方向で座席配列を切り替え
             const SEATS = isTopHiroshima ? BASE_SEATS : [...BASE_SEATS].reverse();
+            // 設備情報取得
+            const facilities = CAR_FACILITIES[car];
+            // 上下の並びも進行方向で切り替え
+            const topFacilities = isTopHiroshima ? facilities.back : facilities.front;
+            const bottomFacilities = isTopHiroshima ? facilities.front : facilities.back;
+            // 上下の設備行をreverseで入れ替え
+            const topFacilitiesArr = topFacilities ? [...topFacilities] : [];
+            const bottomFacilitiesArr = bottomFacilities ? [...bottomFacilities] : [];
+            if (isTopHiroshima) {
+              topFacilitiesArr.reverse();
+              bottomFacilitiesArr.reverse();
+            }
             return (
               <div key={car} className="bg-white rounded-lg shadow p-2 flex flex-col items-center">
                 <div className="font-semibold text-lg mb-4">{car}号車</div>
-                <div className="grid gap-1" style={{ gridTemplateColumns: 'min-content repeat(6, auto)' }}>
-                  {/* ヘッダー */}
-                  <div className="" />
-                  {SEATS.map((seat, idx) =>
-                    seat === '' ? (
-                      <div key={idx} className="" />
-                    ) : (
-                      <div key={seat} className="text-base font-bold text-center text-gray-500 pb-2">
-                        {seat}
-                      </div>
-                    )
-                  )}
-                  {/* 座席 */}
+                {/* 上部設備（reverse対応） */}
+                {topFacilitiesArr.map((fg, idx) => (
+                  <FacilityRow key={'top-' + idx} facilities={fg} isTopHiroshima={isTopHiroshima} />
+                ))}
+                {/* 横方向で1行ずつdivでラップ */}
+                <div className="flex flex-col">
+                  {/* ヘッダー行 */}
+                  <div className="flex flex-row">
+                    {SEATS.map((seat, seatIdx) =>
+                      seat === '' ? (
+                        <div key={'aisle-header-' + seatIdx} className="w-6" />
+                      ) : (
+                        <div key={'header-' + seat} className="w-16 text-base font-bold text-center text-gray-500 pb-2 m-0.5">
+                          {seat}
+                        </div>
+                      )
+                    )}
+                  </div>
+                  {/* 各行 */}
                   {ROWS.map((row) => (
-                    <React.Fragment key={row}>
-                      {/* 行番号セル */}
-                      <div className="w-6 h-12 flex items-center justify-center text-xs font-bold text-gray-500">{row}</div>
-                      {SEATS.map((seat, idx) => {
+                    <div key={'row-' + row} className="flex flex-row">
+                      {SEATS.map((seat, seatIdx) => {
                         if (seat === '') {
-                          return <div key={row + 'aisle' + idx} className="w-4" />;
+                          // 通路
+                          return <div key={row + 'aisle' + seatIdx} className="w-6 h-12" />;
                         }
                         const seatKey = `${car}-${row}${seat}`;
                         const seatData = seatMap.get(seatKey);
                         return (
                           <div
                             key={row + seat}
-                            className={`w-16 h-12 flex flex-col items-center justify-center border-2 rounded text-base cursor-pointer font-semibold
+                            className={`w-16 h-12 flex flex-col items-center justify-center border-2 rounded text-base cursor-pointer font-semibold m-0.5
                               ${seatData ? (seatData.type === 'teacher' ? 'bg-yellow-100 text-yellow-900 border-yellow-400' : 'bg-green-100 text-gray-700 border-green-300') : 'bg-blue-50 text-gray-700 hover:bg-blue-200'}`}
                             title={`${car}号車${row}${seat}`}>
                             {seatData ? (
@@ -153,9 +267,13 @@ const ShinkansenFloor = () => {
                           </div>
                         );
                       })}
-                    </React.Fragment>
+                    </div>
                   ))}
                 </div>
+                {/* 下部設備（reverse対応） */}
+                {bottomFacilitiesArr.map((fg, idx) => (
+                  <FacilityRow key={'bottom-' + idx} facilities={fg} isTopHiroshima={isTopHiroshima} />
+                ))}
               </div>
             );
           })}
