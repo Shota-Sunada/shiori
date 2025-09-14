@@ -239,8 +239,12 @@ const ShinkansenFloor = () => {
                     <div key={'row-' + row} className="flex flex-row">
                       {SEATS.map((seat, seatIdx) => {
                         if (seat === '') {
-                          // 通路
-                          return <div key={row + 'aisle' + seatIdx} className="w-6 h-12" />;
+                          // 通路（CとDの間）に行番号を表示
+                          return (
+                            <div key={row + 'aisle' + seatIdx} className="w-6 flex items-center justify-center">
+                              <span className="text-xs text-gray-500 font-bold select-none">{row}</span>
+                            </div>
+                          );
                         }
                         const seatKey = `${car}-${row}${seat}`;
                         const seatData = seatMap.get(seatKey);
