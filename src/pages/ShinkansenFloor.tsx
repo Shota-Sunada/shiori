@@ -7,6 +7,15 @@ const FACILITY_COLOR_CLASS: Record<string, [string, string]> = {
   smoking: ['喫煙室', 'bg-red-100 border-red-300 text-red-800']
 };
 
+const STAFF_SEAT: { name: string; day1: { car: number; seat: string }; day4: { car: number; seat: string } }[] = [
+  { name: 'CAM', day1: { car: 14, seat: '20A' }, day4: { car: 15, seat: '14D' } },
+  { name: '添乗員', day1: { car: 13, seat: '9B' }, day4: { car: 13, seat: '9B' } },
+  { name: '添乗員', day1: { car: 13, seat: '9C' }, day4: { car: 13, seat: '9C' } },
+  { name: '添乗員', day1: { car: 14, seat: '20C' }, day4: { car: 13, seat: '9D' } },
+  { name: '添乗員', day1: { car: 15, seat: '16E' }, day4: { car: 13, seat: '9E' } },
+  { name: '看護師', day1: { car: 14, seat: '20B' }, day4: { car: 15, seat: '14E' } }
+];
+
 function getFacilityLabel(id: string): string {
   return FACILITY_COLOR_CLASS[id][0];
 }
@@ -145,7 +154,7 @@ const ShinkansenFloor = () => {
 
   // 座席マッピング（car, row, seat で高速検索）
   const seatMap = useMemo(() => {
-    const map = new Map<string, { type: 'student' | 'teacher'; data: StudentDTO | TeacherDTO }>();
+    const map = new Map<string, { type: 'student' | 'teacher' | 'staff'; data: StudentDTO | TeacherDTO | { name: string } }>();
     for (const s of students) {
       const carNum = isTopHiroshima ? s.shinkansen_day4_car_number : s.shinkansen_day1_car_number;
       const seat = isTopHiroshima ? s.shinkansen_day4_seat : s.shinkansen_day1_seat;
@@ -160,8 +169,32 @@ const ShinkansenFloor = () => {
         map.set(`${carNum}-${seat}`, { type: 'teacher', data: t });
       }
     }
+    // STAFF_SEATを追加（directionで切り替え）
+    for (const staff of STAFF_SEAT) {
+      const staffSeat = isTopHiroshima ? staff.day4 : staff.day1;
+      const carNum = staffSeat.car;
+      const seat = staffSeat.seat;
+      if (carNum && seat) {
+        const key = `${carNum}-${seat}`;
+        if (!map.has(key)) {
+          map.set(key, { type: 'staff', data: { name: staff.name } });
+        }
+      }
+    }
     return map;
   }, [students, teachers, isTopHiroshima]);
+
+  const setGoodName = (student: StudentDTO) => {
+    const name = student.surname;
+    return name.length > 4 ? student.surname_kana : name;
+  };
+
+  const getRandomFace = () => {
+    const FACES = ['(･。･)?', '(･へ･)', '(-_-)zzz', 'Σ(-｡-)', '(^o^)', '(LOL)', 'θwθ', '(T_T)', '(*_*)', '・ω・', '(*´∀｀)'];
+
+    const random = Math.round(Math.random() * (FACES.length - 1));
+    return FACES[random];
+  };
 
   const SwitchButton = () => {
     return (
@@ -261,13 +294,18 @@ const ShinkansenFloor = () => {
                           <div
                             key={row + seat}
                             className={`w-16 h-12 flex flex-col items-center justify-center border-2 rounded text-base cursor-pointer font-semibold m-0.5
-                              ${seatData ? (seatData.type === 'teacher' ? 'bg-yellow-100 text-yellow-900 border-yellow-400' : 'bg-green-100 text-gray-700 border-green-300') : 'bg-blue-50 text-gray-700 hover:bg-blue-200'}`}
+                              ${seatData ? (seatData.type === 'teacher' ? 'bg-yellow-100 text-yellow-900 border-yellow-400' : seatData.type === 'staff' ? 'bg-purple-100 text-purple-900 border-purple-400' : 'bg-green-100 text-gray-700 border-green-300') : 'bg-blue-50 text-gray-700 hover:bg-blue-200'}`}
                             title={`${car}号車${row}${seat}`}>
                             {seatData ? (
                               seatData.type === 'teacher' ? (
                                 <>
-                                  <span className="text-xs font-bold text-yellow-700 leading-none mb-0.5">先生</span>
+                                  <span className="text-xs font-bold text-yellow-700 leading-none">先生</span>
                                   <span>{(seatData.data as TeacherDTO).surname}</span>
+                                </>
+                              ) : seatData.type === 'staff' ? (
+                                <>
+                                  <span className="text-xs font-bold text-purple-700 leading-none">STAFF</span>
+                                  <span>{(seatData.data as { name: string }).name}</span>
                                 </>
                               ) : (
                                 <>
@@ -275,11 +313,11 @@ const ShinkansenFloor = () => {
                                     5{(seatData.data as StudentDTO).class}
                                     {pad2((seatData.data as StudentDTO).number)}
                                   </span>
-                                  <span>{(seatData.data as StudentDTO).surname}</span>
+                                  <span>{setGoodName(seatData.data as StudentDTO)}</span>
                                 </>
                               )
                             ) : (
-                              ''
+                              <p className="text-sm">{getRandomFace()}</p>
                             )}
                           </div>
                         );
