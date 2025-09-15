@@ -4,10 +4,10 @@ import type { StudentDTO } from '../../helpers/domainApi';
 import { studentApi } from '../../helpers/domainApi';
 import KanaSearchModal from '../../components/KanaSearchModal';
 import IndexTable from '../../components/IndexTable';
-import MDButton from '../../components/MDButton';
+import MDButton, { BackToHome } from '../../components/MDButton';
 
 const TeacherIndexTable = () => {
-  const { token } = useAuth();
+  const { user, token } = useAuth();
 
   const [allStudents, setAllStudents] = useState<StudentDTO[]>([]);
   const [studentData, setStudentData] = useState<StudentDTO | null>(null);
@@ -21,7 +21,7 @@ const TeacherIndexTable = () => {
       if (!token) return;
       setLoading(true);
       try {
-        const students = await studentApi.list({ alwaysFetch: force, ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true });
+        const students = await studentApi.list({ alwaysFetch: force, staleWhileRevalidate: true });
         students.sort((a, b) => a.gakuseki - b.gakuseki);
         setAllStudents(students);
       } catch (e) {
@@ -57,7 +57,7 @@ const TeacherIndexTable = () => {
   }, []);
   return (
     <div className="flex flex-col items-center justify-center m-2">
-      <MDButton text="ホームに戻る" color="white" arrowLeft link="/teacher" />
+      <BackToHome user={user} />
       <section id="search" className="m-2 flex flex-col items-center">
         <div className="flex flex-col items-center">
           <p className="text-2xl">{'生徒情報検索'}</p>
@@ -67,9 +67,7 @@ const TeacherIndexTable = () => {
 
       {loading && <p>読み込み中...</p>}
       <IndexTable studentData={studentData} isStudentSearch />
-
-      <MDButton text="ホームに戻る" color="white" arrowLeft link="/teacher" />
-
+      <BackToHome user={user} />
       <KanaSearchModal isOpen={isKanaSearchVisible} onClose={() => setKanaSearchVisible(false)} allStudents={allStudents} onStudentSelect={handleStudentSelect} />
     </div>
   );

@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { SERVER_ENDPOINT } from '../config/serverEndpoint';
-import MDButton from '../components/MDButton';
+import MDButton, { BackToHome } from '../components/MDButton';
 import CenterMessage from '../components/CenterMessage';
 import { appFetch } from '../helpers/apiClient';
 
@@ -181,7 +181,7 @@ const Call = () => {
     return (
       <CenterMessage>
         <p className="text-xl text-red-500 mb-4">{error}</p>
-        <MDButton text="戻る" arrowLeft color="white" link={user?.is_teacher ? '/teacher' : '/'} />
+        <BackToHome user={user} />
       </CenterMessage>
     );
 
@@ -248,7 +248,7 @@ const Call = () => {
           <p className="whitespace-pre-line">{renderDate(rollCall.expires_at)}</p>
         </div>
       ) : null}
-      {isDone || !rollCall?.is_active || remainingTime < 0 ? <MDButton text="戻る" color="white" arrowLeft link={user?.is_teacher ? '/teacher' : '/'} /> : <></>}
+      {isDone || !rollCall?.is_active || remainingTime < 0 ? <BackToHome user={user} /> : <></>}
 
       {!isDone && rollCall?.is_active && remainingTime > 0 ? (
         <div className="mt-5">

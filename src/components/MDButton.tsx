@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { PrefetchLink } from '../prefetch/PrefetchLink';
 import type { PrefetchKey } from '../prefetch/cache';
 import type { MouseEventHandler } from 'react';
+import type { AuthUser } from '../auth-context';
 
 interface MDButtonProps {
   text: string;
@@ -18,6 +19,10 @@ interface MDButtonProps {
   className?: string;
   type?: 'button' | 'submit' | 'reset';
 }
+
+export const BackToHome = ({ user }: { user: AuthUser | null }) => {
+  return <MDButton text="ホームに戻る" arrowLeft color="white" link={user?.is_teacher ? '/teacher' : '/'} />;
+};
 
 const MDButton = ({
   text,

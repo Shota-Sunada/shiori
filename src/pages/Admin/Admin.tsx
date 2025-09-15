@@ -221,7 +221,7 @@ const Admin = () => {
   const STUDENTS_CACHE_KEY = 'admin:students';
   const fetchStudents = useCallback(async (force = false) => {
     try {
-      const data = await studentApi.list({ alwaysFetch: force, ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true });
+      const data = await studentApi.list({ alwaysFetch: force, staleWhileRevalidate: true });
       setStudentsList(data);
       setStatus('');
     } catch (error) {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import MDButton from '../components/MDButton';
+import MDButton, { BackToHome } from '../components/MDButton';
 import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import { useAuth } from '../auth-context';
 import CenterMessage from '../components/CenterMessage';
@@ -11,7 +11,7 @@ interface Credit {
 }
 
 const Credits = () => {
-  const { token } = useAuth();
+  const { user,token } = useAuth();
   const [credits, setCredits] = useState<Credit[] | null>(null);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +46,7 @@ const Credits = () => {
     return (
       <CenterMessage>
         <p>{'クレジット情報がありません。'}</p>
-        <MDButton text="ホームに戻る" color="white" arrowLeft link="/" />
+        <BackToHome user={user} />
       </CenterMessage>
     );
 
@@ -63,7 +63,7 @@ const Credits = () => {
           </div>
         ))}
       </div>
-      <MDButton text="ホームに戻る" color="white" arrowLeft link="/" />
+      <BackToHome user={user} />
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { GOODS_DATA, GOODS_JAXA, GOODS_OKUTAMA, GOODS_DOKUTSU, GOODS_KANU, type GOODS } from '../data/goods';
-import MDButton from '../components/MDButton';
+import  { BackToHome } from '../components/MDButton';
 import { useAuth } from '../auth-context';
 import { studentApi, type StudentDTO } from '../helpers/domainApi';
 import { DAY4_DATA } from '../data/courses';
@@ -309,7 +309,7 @@ const GoodsCheck = () => {
             }
           </div>
         )}
-        <MDButton text="戻る" arrowLeft color="white" link={user?.is_teacher ? '/teacher' : '/'} />
+        <BackToHome user={user} />
       </div>
     );
   }
@@ -381,7 +381,7 @@ const GoodsCheck = () => {
             )}
           </div>
         )}
-        <MDButton text="戻る" arrowLeft color="white" link={user?.is_teacher ? '/teacher' : '/'} />
+        <BackToHome user={user} />
       </div>
     );
   }

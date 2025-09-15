@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import MDButton from '../components/MDButton';
+import MDButton, { BackToHome } from '../components/MDButton';
 import { useAuth } from '../auth-context';
 
 const Maps = () => {
@@ -66,7 +66,7 @@ const Maps = () => {
             }}>
             {'フジプレミアムリゾート'}
           </p>
-          <MDButton text="戻る" color="white" arrowLeft link={user?.is_teacher ? '/teacher' : '/'} />
+          <BackToHome user={user} />
         </div>
       );
   }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { boatAssignmentsApi, studentApi, teacherApi } from '../helpers/domainApi';
 import type { BoatAssignmentDTO, StudentDTO, TeacherDTO } from '../helpers/domainApi';
-import MDButton from '../components/MDButton';
+import { BackToHome } from '../components/MDButton';
 import { useAuth } from '../auth-context';
 import { pad2 } from '../helpers/pad2';
 
@@ -38,7 +38,7 @@ const Boats = () => {
   return (
     <div className="flex flex-col items-center justify-center m-2">
       <h1 className="text-2xl font-bold m-2">ラフティング ボート割 一覧</h1>
-      <MDButton text="戻る" arrowLeft color="white" link={user?.is_teacher ? '/teacher' : '/'} />
+      <BackToHome user={user} />
       {loading ? (
         <div>データ読込中...</div>
       ) : (
@@ -76,8 +76,8 @@ const Boats = () => {
               </div>
             ))}
         </div>
-      )}
-      <MDButton text="戻る" arrowLeft color="white" link={user?.is_teacher ? '/teacher' : '/'} />
+      )}{' '}
+      <BackToHome user={user} />
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent, useMemo } from 'react';
 import type { StudentDTO } from '../../helpers/domainApi';
-import MDButton from '../../components/MDButton';
+import MDButton, { BackToHome } from '../../components/MDButton';
 import GroupEditorModal from '../../components/GroupEditorModal';
 import { useAuth } from '../../auth-context';
 import { rollCallApi, studentApi } from '../../helpers/domainApi';
@@ -35,7 +35,7 @@ const TeacherRollCall = () => {
   const fetchAllStudents = useCallback(async () => {
     if (!token) return;
     try {
-      const students = await studentApi.list({ ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true });
+      const students = await studentApi.list({ staleWhileRevalidate: true });
       students.sort((a, b) => (a.gakuseki < b.gakuseki ? -1 : a.gakuseki > b.gakuseki ? 1 : 0));
       setAllStudents(students);
     } catch (e) {
@@ -122,7 +122,7 @@ const TeacherRollCall = () => {
 
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">
-      <MDButton text="ホームに戻る" color="white" arrowLeft link="/teacher" />
+      <BackToHome user={user} />
       <section id="call" className="m-2 w-full max-w-md mx-auto">
         <div className="flex flex-col items-center bg-gray-100 p-6 rounded-lg shadow-md">
           <div className="flex flex-col justify-between items-center w-full">

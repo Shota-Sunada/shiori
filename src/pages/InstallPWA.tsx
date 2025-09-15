@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import MDButton from '../components/MDButton';
+import MDButton, { BackToHome } from '../components/MDButton';
 import { usePWAInstallPrompt } from '../hooks/usePWAInstallPrompt';
 import { detectPWAPushSupport, parseClientEnvironment } from '../helpers/pwaSupport';
 import { getDetailedInstallBlock } from '../config/pwaInstallSteps';
@@ -20,6 +20,7 @@ import linIcon from '@egoistdeveloper/operating-system-logos/src/32x32/LIN.png';
 
 // ===================== 定数 / 設定 =====================
 import type { PlatformRow, SupportStatus } from '../interface/models';
+import { useAuth } from '../auth-context';
 
 const BROWSER_ICONS: Record<string, string> = {
   Safari: safariIcon,
@@ -157,14 +158,15 @@ const InstallPWA = () => {
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
   const { browserStatus, supportedBrowserNames } = getSupportContext(env.os, env.browser);
   const isSupportedEnv = browserStatus === 'supported';
+  const { user} = useAuth();
 
   if (isStandalone) {
     return (
       <PageContainer>
         <div className="space-y-5 w-full max-w-md mx-auto text-center text-[17px] leading-relaxed">
-          <p className="text-3xl font-bold">PWA 版で開いています</p>
-          <p>この画面は既にホーム画面インストール済みまたはスタンドアロン表示です。</p>
-          <MDButton text="ホームへ戻る" arrowRight link="/" />
+          <p className="text-3xl font-bold">PWA版で開いています</p>
+          <p>このアプリは既にインストール済みです。</p>
+          <BackToHome user={user} />
         </div>
       </PageContainer>
     );
@@ -176,7 +178,7 @@ const InstallPWA = () => {
   return (
     <PageContainer>
       <div className="space-y-7 w-full max-w-md mx-auto text-center px-4 text-[17px] leading-relaxed">
-        <p className="text-3xl font-bold">PWA インストール案内</p>
+        <p className="text-3xl font-bold">インストール案内</p>
         <EnvBox osIcon={currentOsIcon} browserIcon={currentBrowserIcon} env={env} />
 
         {!isSupportedEnv && (
@@ -184,7 +186,7 @@ const InstallPWA = () => {
             <div>
               <p className="font-semibold">このブラウザではインストール機能が保証されません</p>
               <p>
-                現在: <strong>{env.browser}</strong> / OS: {env.os}. 下記のサポートブラウザで開くと PWA インストールと通知が安定して動作します。
+                現在: <strong>{env.browser}</strong> / OS: {env.os}. 下記のサポートブラウザで開くと、インストールと通知が安定して動作します。
               </p>
             </div>
             {supportedBrowserNames.length > 0 && (

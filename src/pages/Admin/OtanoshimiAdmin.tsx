@@ -62,7 +62,7 @@ const OtanoshimiAdmin = () => {
   const fetchAllStudents = useCallback(async () => {
     if (!token) return;
     try {
-      const studentsData = await studentApi.list({ ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true });
+      const studentsData = await studentApi.list({ staleWhileRevalidate: true });
       setAllStudents(studentsData);
       const newStudentMap = new Map<number, string>();
       for (const student of studentsData) {

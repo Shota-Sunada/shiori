@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { studentApi, type StudentDTO } from '../helpers/domainApi';
-import MDButton from '../components/MDButton';
+import  { BackToHome } from '../components/MDButton';
 import { useAuth } from '../auth-context';
 
 const Day2: React.FC = () => {
@@ -127,7 +127,7 @@ const Day2: React.FC = () => {
                 </tbody>
               </table>
             </div>
-            <MDButton text="戻る" color="white" arrowLeft link={user?.is_teacher ? '/teacher' : '/'} />
+            <BackToHome user={user} />
           </div>
         );
       })}

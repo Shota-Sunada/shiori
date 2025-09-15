@@ -8,7 +8,7 @@ import { appFetch } from '../helpers/apiClient';
 import { CacheKeys } from '../helpers/cacheKeys';
 import type { StudentDTO } from '../helpers/domainApi';
 import { studentApi } from '../helpers/domainApi';
-import MDButton from '../components/MDButton';
+import MDButton, { BackToHome } from '../components/MDButton';
 import { consumePrefetchData } from '../prefetch/cache';
 
 interface OtanoshimiDataWithSchedule extends OtanoshimiData {
@@ -89,7 +89,7 @@ const OtanoshimiPreviewModal = ({ isOpen, order, max, onClose, onNavigate, teams
 };
 
 const Otanoshimi = () => {
-  const { token } = useAuth();
+  const { user, token } = useAuth();
   const [teams, setTeams] = useState<OtanoshimiDataWithSchedule[] | null>(null);
   const [allStudents, setAllStudents] = useState<StudentDTO[] | null>(null);
   const [loadingStudents, setLoadingStudents] = useState(false);
@@ -101,7 +101,7 @@ const Otanoshimi = () => {
     const fetchStudents = async () => {
       setLoadingStudents(true);
       try {
-        const data = await studentApi.list({ ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true });
+        const data = await studentApi.list({ staleWhileRevalidate: true });
         setAllStudents(data);
       } catch (e) {
         console.error('学生データ取得失敗:', e);
@@ -243,7 +243,7 @@ const Otanoshimi = () => {
           )}
         </div>
       </div>
-      <MDButton text="ホームに戻る" color="white" arrowLeft link="/" />
+      <BackToHome user={user} />
 
       <div className="flex flex-col items-center justify-center m-1">
         <h2 className="text-xl text-center font-bold">{'当日のスケジュール'}</h2>
@@ -328,7 +328,7 @@ const Otanoshimi = () => {
         </div>
       </div>
 
-      <MDButton text="ホームに戻る" color="white" arrowLeft link="/" />
+      <BackToHome user={user} />
 
       <div className="flex flex-col items-center justify-center mt-8">
         <p className="text-xl font-bold">{'STAFF'}</p>

@@ -2,12 +2,21 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import TimeTable from '../components/TimeTable';
+import { appFetch } from '../helpers/apiClient';
+import { SERVER_ENDPOINT } from '../config/serverEndpoint';
+type Course = {
+  id: number;
+  course_key: string;
+  name?: string;
+  schedules: Schedule[];
+};
 import { studentApi, teacherApi, type StudentDTO, type TeacherDTO } from '../helpers/domainApi';
 import { DAY4_DATA, type COURSES_DAY1_KEY, type COURSES_DAY3_KEY, type COURSES_DAY4_KEY } from '../data/courses';
 import ModernTable from '../components/ModernTable';
 import ScrollToTopButton from '../components/ScrollToTopButton';
 import '../styles/index-table.css';
-import MDButton from '../components/MDButton';
+import MDButton, { BackToHome } from '../components/MDButton';
+import type { Schedule } from './Admin/ScheduleAdmin/Types';
 
 const Yotei = () => {
   const { user } = useAuth();
@@ -19,6 +28,8 @@ const Yotei = () => {
   const [error, setError] = useState<string | null>(null);
   // 表示中ユーザーの名前
   const [displayName, setDisplayName] = useState<string | null>(null);
+  // 全コースデータ
+  const [courses, setCourses] = useState<Course[] | null>(null);
 
   // 各日付のref
   const day1Ref = useRef<HTMLTableRowElement | null>(null);
@@ -101,6 +112,15 @@ const Yotei = () => {
         setDay4CourseKey(day4 as COURSES_DAY4_KEY);
       } catch (e) {
         setError((e as Error).message);
+        setLoading(false);
+        return;
+      }
+      // コースデータ取得
+      try {
+        const courseList = await appFetch<Course[]>(`${SERVER_ENDPOINT}/api/schedules`, { parse: 'json', cacheKey: 'schedules', requiresAuth: true });
+        setCourses(courseList);
+      } catch {
+        setError('コースデータの取得に失敗しました');
       } finally {
         setLoading(false);
       }
@@ -111,6 +131,7 @@ const Yotei = () => {
   if (loading) return <div className="p-4 text-center">読み込み中…</div>;
   if (error) return <div className="p-4 text-center text-red-600">エラー: {error}</div>;
   if (!day1CourseKey) return <div className="p-4 text-center">コースが設定されていません</div>;
+  if (!courses) return <div className="p-4 text-center">コースデータを取得できませんでした</div>;
 
   return (
     <>
@@ -131,24 +152,24 @@ const Yotei = () => {
             4日目へ
           </button>
         </div>
-        <MDButton text="ホームへ" arrowLeft color="white" link={user?.is_teacher ? '/teacher' : '/'} />
+        <BackToHome user={user} />
         <div className="w-full max-w-4xl my-3 index-table-wrapper">
           {/* 表示中のユーザー名を上部に表示 */}
           {displayName && <div className="mb-2 text-lg font-semibold text-center text-blue-700">{displayName} さんの行程表</div>}
           <ModernTable>
-            <TimeTable ref={day1Ref} courseKey={'day1_common1'} />
-            <TimeTable courseKey={day1CourseKey} />
-            <TimeTable courseKey={'day1_common2'} />
-            <TimeTable ref={day2Ref} courseKey={'day2_common'} />
-            <TimeTable ref={day3Ref} courseKey={'day3_common1'} />
-            <TimeTable courseKey={day3CourseKey} />
-            <TimeTable courseKey={'day3_common2'} />
-            <TimeTable ref={day4Ref} courseKey={'day4_common1'} />
-            <TimeTable courseKey={day4CourseKey} />
-            <TimeTable courseKey={'day4_common2'} />
+            <TimeTable ref={day1Ref} courseKey={'day1_common1'} courses={courses} />
+            <TimeTable courseKey={day1CourseKey} courses={courses} />
+            <TimeTable courseKey={'day1_common2'} courses={courses} />
+            <TimeTable ref={day2Ref} courseKey={'day2_common'} courses={courses} />
+            <TimeTable ref={day3Ref} courseKey={'day3_common1'} courses={courses} />
+            <TimeTable courseKey={day3CourseKey} courses={courses} />
+            <TimeTable courseKey={'day3_common2'} courses={courses} />
+            <TimeTable ref={day4Ref} courseKey={'day4_common1'} courses={courses} />
+            <TimeTable courseKey={day4CourseKey} courses={courses} />
+            <TimeTable courseKey={'day4_common2'} courses={courses} />
           </ModernTable>
         </div>
-        <MDButton text="ホームへ" arrowLeft color="white" link={user?.is_teacher ? '/teacher' : '/'} />
+        <BackToHome user={user} />
       </div>
       <ScrollToTopButton />
     </>

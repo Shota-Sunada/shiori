@@ -7,7 +7,7 @@ type NavigatorWithPermissions = Navigator & {
   };
 };
 import { useAuth } from '../auth-context';
-import MDButton from '../components/MDButton';
+import MDButton, { BackToHome } from '../components/MDButton';
 import { handleEnableNotifications, requestPermissionWithTimeout, ensureRegistrationIfGranted, attemptSilentRegistration } from '../helpers/notifications';
 import CenterMessage from '../components/CenterMessage';
 
@@ -127,7 +127,7 @@ const NonNotification = () => {
       <>
         <p className="font-bold text-2xl mb-2">{'ありがとうございます！'}</p>
         <p className="mb-4">{'通知が有効になりました。'}</p>
-        <MDButton text="ホームへ" arrowRight link="/" />
+        <BackToHome user={user} />
       </>
     );
   } else if (permission === 'denied') {

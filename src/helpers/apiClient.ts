@@ -44,40 +44,100 @@ interface AppFetchOptions extends Omit<BaseRequestOptions, 'authToken' | 'json'>
   staleWhileRevalidate?: boolean; // 期限切れ時: キャッシュを即返し裏で更新
 }
 
-const responseCache: Record<string, { data: unknown; at: number }> = {};
+// localStorageキーのprefix
+const LS_PREFIX = 'appFetchCache_';
+
+// ttlMsも含めて返す
+function loadCacheFromLocalStorage<T = unknown>(key: string): { data: T; at: number; ttlMs?: number } | undefined {
+  try {
+    const raw = localStorage.getItem(LS_PREFIX + key);
+    if (!raw) return undefined;
+    return JSON.parse(raw);
+  } catch {
+    return undefined;
+  }
+}
+
+// ttlMsも保存
+function saveCacheToLocalStorage<T = unknown>(key: string, value: { data: T; at: number; ttlMs?: number }) {
+  try {
+    localStorage.setItem(LS_PREFIX + key, JSON.stringify(value));
+  } catch {
+    // quota超過やprivate mode等は無視
+  }
+}
+
+function removeCacheFromLocalStorage(key: string) {
+  try {
+    localStorage.removeItem(LS_PREFIX + key);
+  } catch {
+    //
+  }
+}
+
+function removeCacheByPrefixFromLocalStorage(prefix: string) {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(LS_PREFIX + prefix)) {
+        localStorage.removeItem(k);
+      }
+    }
+  } catch {
+    //
+  }
+}
 
 export const DEFAULT_TTL_MS = 1000 * 60 * 60 * 3; // 明示未指定の場合は3時間
 
 export async function appFetch<T = unknown>(url: string, opts: AppFetchOptions = {}): Promise<T> {
   const { requiresAuth, jsonBody, cacheKey, alwaysFetch, ttlMs = DEFAULT_TTL_MS, staleWhileRevalidate, ...rest } = opts;
-  if (cacheKey && !alwaysFetch && responseCache[cacheKey]) {
-    const entry = responseCache[cacheKey];
-    const age = Date.now() - entry.at;
-    const expired = ttlMs > 0 && age > ttlMs;
-    if (!expired) {
-      // 新鮮 or TTL無し
-      return entry.data as T;
-    }
-    if (expired && staleWhileRevalidate) {
-      // 期限切れだが即時返却 + 裏で更新
-      // Fire & forget refresh
-      (async () => {
-        try {
-          const fresh = await apiRequest<T>(url, {
-            ...rest,
-            method: rest.method || (jsonBody ? 'POST' : 'GET'),
-            requiresAuth,
-            authToken: getAuthToken() || undefined,
-            json: jsonBody
-          });
-          responseCache[cacheKey] = { data: fresh, at: Date.now() };
-        } catch {
-          /* 静かに失敗 */
+  let entry: { data: unknown; at: number; ttlMs?: number } | undefined;
+  if (cacheKey && !alwaysFetch) {
+    entry = loadCacheFromLocalStorage<T>(cacheKey);
+    if (entry) {
+      const age = Date.now() - entry.at;
+      const expired = ttlMs > 0 && age > ttlMs;
+      if (!expired) {
+        let remainStr = '無期限';
+        if (ttlMs > 0) {
+          const remainMs = Math.max(ttlMs - age, 0);
+          const h = Math.floor(remainMs / (1000 * 60 * 60));
+          const m = Math.floor((remainMs % (1000 * 60 * 60)) / (1000 * 60));
+          const s = Math.floor((remainMs % (1000 * 60)) / 1000);
+          remainStr = `${h}時間${m}分${s}秒`;
         }
-      })();
-      return entry.data as T;
+        console.log(`====================================\n[AppFetch] ｷｬｯｼｭ読み込み key「${cacheKey}」\n[AppFetch] (有効期限: ${remainStr})\n====================================`);
+        return entry.data as T;
+      }
+      if (expired && staleWhileRevalidate) {
+        (async () => {
+          try {
+            const fresh = await apiRequest<T>(url, {
+              ...rest,
+              method: rest.method || (jsonBody ? 'POST' : 'GET'),
+              requiresAuth,
+              authToken: getAuthToken() || undefined,
+              json: jsonBody
+            });
+            const newEntry = { data: fresh, at: Date.now(), ttlMs };
+            saveCacheToLocalStorage(cacheKey!, newEntry);
+            let ttlStr = '無期限';
+            if (ttlMs > 0) {
+              const h = Math.floor(ttlMs / (1000 * 60 * 60));
+              const m = Math.floor((ttlMs % (1000 * 60 * 60)) / (1000 * 60));
+              const s = Math.floor((ttlMs % (1000 * 60)) / 1000);
+              ttlStr = `${h}時間${m}分${s}秒`;
+            }
+            console.log(`====================================\n[AppFetch] ｷｬｯｼｭを作成・更新 key「${cacheKey}」\n[AppFetch] (有効期限: ${ttlStr})\n====================================`);
+          } catch {
+            /* 静かに失敗 */
+          }
+        })();
+        return entry.data as T;
+      }
+      // expired & no staleWhileRevalidate -> fallthrough to network fetch
     }
-    // expired & no staleWhileRevalidate -> fallthrough to network fetch
   }
   const token = getAuthToken();
   const data = await apiRequest<T>(url, {
@@ -88,21 +148,31 @@ export async function appFetch<T = unknown>(url: string, opts: AppFetchOptions =
     json: jsonBody
   });
   if (cacheKey) {
-    responseCache[cacheKey] = { data, at: Date.now() };
+    const newEntry = { data, at: Date.now(), ttlMs };
+    saveCacheToLocalStorage(cacheKey, newEntry);
+    let ttlStr = '無期限';
+    if (ttlMs > 0) {
+      const h = Math.floor(ttlMs / (1000 * 60 * 60));
+      const m = Math.floor((ttlMs % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((ttlMs % (1000 * 60)) / 1000);
+      ttlStr = `${h}時間${m}分${s}秒`;
+    }
+    console.log(`====================================\n[AppFetch] ｷｬｯｼｭを作成・更新 key「${cacheKey}」\n[AppFetch] (有効期限: ${ttlStr})\n====================================`);
   }
   return data;
 }
 
 export function clearAppFetchCache(key?: string) {
-  if (key) delete responseCache[key];
-  else Object.keys(responseCache).forEach((k) => delete responseCache[k]);
+  if (key) {
+    removeCacheFromLocalStorage(key);
+  } else {
+    removeCacheByPrefixFromLocalStorage('');
+  }
 }
 
 // 指定 prefix に一致するキャッシュを削除
 export function clearAppFetchCacheByPrefix(prefix: string) {
-  Object.keys(responseCache)
-    .filter((k) => k.startsWith(prefix))
-    .forEach((k) => delete responseCache[k]);
+  removeCacheByPrefixFromLocalStorage(prefix);
 }
 
 // Mutation 用ヘルパ (API 呼び出し + キャッシュ無効化)
@@ -127,16 +197,17 @@ interface MutateOptions<TResp> {
 
 export async function mutate<TResp = unknown>(opts: MutateOptions<TResp>): Promise<TResp> {
   const { url, method, jsonBody, requiresAuth = true, invalidateKeys = [], invalidatePrefixes = [], mapResponse, optimistic, rollbackOnError = true } = opts;
-  const optimisticSnapshots: Record<string, { data: unknown; at: number }> = {};
+  const optimisticSnapshots: Record<string, { data: unknown; at: number; ttlMs?: number }> = {};
   const optimisticKeys = new Set<string>(optimistic?.map((o) => o.key) || []);
-  // Apply optimistic updates
+  // Apply optimistic updates (localStorageのみ)
   if (optimistic) {
     for (const o of optimistic) {
-      if (responseCache[o.key]) {
-        optimisticSnapshots[o.key] = { ...responseCache[o.key] };
+      const entry = loadCacheFromLocalStorage(o.key);
+      if (entry) {
+        optimisticSnapshots[o.key] = { ...entry };
         try {
-          const next = o.apply(responseCache[o.key].data);
-          responseCache[o.key] = { data: next, at: Date.now() };
+          const next = o.apply(entry.data);
+          saveCacheToLocalStorage(o.key, { data: next, at: Date.now(), ttlMs: entry.ttlMs });
         } catch {
           // ignore faulty optimistic transformation
         }
@@ -151,9 +222,9 @@ export async function mutate<TResp = unknown>(opts: MutateOptions<TResp>): Promi
     return mapResponse ? mapResponse(data) : data;
   } catch (e) {
     if (rollbackOnError && optimistic) {
-      // rollback
+      // rollback (localStorageのみ)
       for (const key of Object.keys(optimisticSnapshots)) {
-        responseCache[key] = optimisticSnapshots[key];
+        saveCacheToLocalStorage(key, optimisticSnapshots[key]);
       }
     }
     throw e;

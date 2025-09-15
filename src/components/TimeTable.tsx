@@ -1,6 +1,4 @@
-import { useEffect, useState } from 'react';
-import { appFetch } from '../helpers/apiClient';
-import { SERVER_ENDPOINT } from '../config/serverEndpoint';
+// import { useEffect, useState } from 'react';
 import type { COURSES_DAY1_KEY, COURSES_DAY3_KEY, COURSES_DAY4_KEY } from '../data/courses';
 import { pad2 } from '../helpers/pad2';
 
@@ -43,6 +41,7 @@ export type COURSES_COMMON_KEY = 'day1_common1' | 'day1_common2' | 'day2_common'
 export type TimeTableProps = {
   courseKey: COURSES_DAY1_KEY | COURSES_DAY3_KEY | COURSES_DAY4_KEY | COURSES_COMMON_KEY | null;
   ref?: React.RefObject<HTMLTableRowElement | null>;
+  courses: Course[];
 };
 
 const hasHM = (h?: number, m?: number) => typeof h === 'number' && typeof m === 'number';
@@ -81,31 +80,9 @@ const fmtDetailTime = (d: EventDetail) => {
   return '';
 };
 
-const TimeTable = ({ courseKey, ref }: TimeTableProps) => {
-  const [course, setCourse] = useState<Course | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-    setLoading(true);
-    appFetch<Course[]>(`${SERVER_ENDPOINT}/api/schedules`, { parse: 'json', alwaysFetch: true, requiresAuth: true })
-      .then((list) => {
-        if (!mounted) return;
-        const c = (list || []).find((c) => c.course_key === courseKey);
-        setCourse(c ?? null);
-      })
-      .catch((e) => setError((e as Error).message))
-      .finally(() => mounted && setLoading(false));
-    return () => {
-      mounted = false;
-    };
-  }, [courseKey]);
-
-  if (loading) return <div className="p-4 text-center">読み込み中…</div>;
-  if (error) return <div className="p-4 text-center text-red-600">エラー: {error}</div>;
+const TimeTable = ({ courseKey, ref, courses }: TimeTableProps) => {
+  const course = courses.find((c) => c.course_key === courseKey) || null;
   if (!course) return <div className="p-4 text-center">該当コースが見つかりません</div>;
-
   return (
     <>
       <thead>

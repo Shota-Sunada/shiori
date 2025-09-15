@@ -232,6 +232,7 @@ function CenterMessage({ children }: { children: ReactNode }) {
 }
 
 function App() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const FadeContainer = ({ children }: { children: ReactNode }) => <div className="page-fade">{children}</div>;
@@ -352,7 +353,7 @@ function App() {
                 }
               />
             ) : (
-              <Route path="/version-mismatch" element={<Navigate to="/" replace />} />
+              <Route path="/version-mismatch" element={<Navigate to={user?.is_teacher ? '/teacher' : '/'} replace />} />
             )}
             {/* PWA 未インストール時は常に /install へ誘導 (ただし version-mismatch には干渉しない) */}
             <Route element={<PWAInstallGuard />}>

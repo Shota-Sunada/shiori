@@ -1,3 +1,39 @@
+// appFetchCache_のキャッシュ一覧を取得
+// ttlMs: キャッシュ有効期間（ミリ秒）。0または未定義なら無期限。
+function getAppFetchCacheList() {
+  const prefix = 'appFetchCache_';
+  const now = Date.now();
+  const result: Array<{
+    key: string;
+    remainMs: number | null;
+    at: number;
+    ttlMs: number | null;
+    expireAt: number | null;
+  }> = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith(prefix)) {
+      try {
+        const raw = localStorage.getItem(k);
+        if (!raw) continue;
+        const parsed = JSON.parse(raw);
+        if (typeof parsed.at === 'number') {
+          const ttlMs = typeof parsed.ttlMs === 'number' ? parsed.ttlMs : 0;
+          let remainMs: number | null = null;
+          let expireAt: number | null = null;
+          if (ttlMs > 0) {
+            remainMs = Math.max(ttlMs - (now - parsed.at), 0);
+            expireAt = parsed.at + ttlMs;
+          }
+          result.push({ key: k.slice(prefix.length), remainMs, at: parsed.at, ttlMs: ttlMs > 0 ? ttlMs : null, expireAt });
+        }
+      } catch {
+        //
+      }
+    }
+  }
+  return result;
+}
 import React, { useEffect, useState } from 'react';
 import { getToken } from 'firebase/messaging';
 import { messaging } from '../firebase';
@@ -118,14 +154,90 @@ const EnvDebug: React.FC = () => {
   const osIcon = OS_ICONS[env.os] || genericIcon;
   const browserIcon = BROWSER_ICONS[env.browser] || genericIcon;
 
+  // キャッシュ一覧取得
+  const [cacheList, setCacheList] = useState<
+    Array<{
+      key: string;
+      remainMs: number | null;
+      at: number;
+      ttlMs: number | null;
+      expireAt: number | null;
+    }>
+  >([]);
+
+  useEffect(() => {
+    setCacheList(getAppFetchCacheList());
+    // localStorage変更時にも反映したい場合はstorageイベントを利用
+    const onStorage = (e: StorageEvent) => {
+      if (e.key && e.key.startsWith('appFetchCache_')) {
+        setCacheList(getAppFetchCacheList());
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
   return (
     <div className="w-full max-w-3xl mx-auto py-10 px-4">
-      <h1 className="text-2xl font-bold mb-4">動作環境表示</h1>
+      <div className='mb-4'>
+        <h1 className="text-2xl font-bold">動作環境表示</h1>
+        <p>この画面は、問題が発生したときなどに使用します。</p>
+      </div>
 
       <div className="grid grid-cols-1 gap-4">
         <InfoCard icon={osIcon} title="Operating System" label={`${env.os} ${env.osVersion}`} />
         <InfoCard icon={browserIcon} title="Browser" label={`${env.browser} ${env.browserVersion}`} />
         <FcmTokenStatus />
+      </div>
+
+      <div className="mt-4">
+        <div className="bg-white/90 p-4 rounded shadow-sm">
+          <h2 className="text-lg font-semibold mb-2">キャッシュ一覧</h2>
+          {cacheList.length === 0 ? (
+            <div className="text-gray-500 text-sm">キャッシュはありません</div>
+          ) : (
+            <table className="w-full text-xs border border-gray-200 rounded overflow-hidden">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-2 py-1 text-left">キー</th>
+                  <th className="px-2 py-1 text-left">有効期限</th>
+                  <th className="px-2 py-1 text-left">保存時刻</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cacheList.map((c) => {
+                  let expireStr = '';
+                  if (c.ttlMs === null) {
+                    expireStr = '無期限';
+                  } else if (c.remainMs !== null && c.remainMs === 0) {
+                    expireStr = '期限切れ';
+                  } else if (c.expireAt !== null) {
+                    // TTLをHH:MM:SS表記に
+                    let ttlStr = '';
+                    if (c.ttlMs) {
+                      const totalSec = Math.floor(c.ttlMs / 1000);
+                      const h = Math.floor(totalSec / 3600);
+                      const m = Math.floor((totalSec % 3600) / 60);
+                      const s = totalSec % 60;
+                      ttlStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                    }
+                    expireStr = new Date(c.expireAt).toLocaleString() + `（TTL: ${ttlStr}）`;
+                  } else {
+                    expireStr = '-';
+                  }
+                  const atStr = new Date(c.at).toLocaleString();
+                  return (
+                    <tr key={c.key} className="border-t border-gray-100">
+                      <td className="px-2 py-1 font-mono break-all">{c.key}</td>
+                      <td className="px-2 py-1">{expireStr}</td>
+                      <td className="px-2 py-1">{atStr}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
     </div>
   );

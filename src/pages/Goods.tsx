@@ -3,7 +3,7 @@ import { useAuth } from '../auth-context';
 import { studentApi, type StudentDTO } from '../helpers/domainApi';
 import { DAY4_DATA } from '../data/courses';
 import { useEffect, useState } from 'react';
-import MDButton from '../components/MDButton';
+import  { BackToHome } from '../components/MDButton';
 
 const Goods = () => {
   const { user } = useAuth();
@@ -42,7 +42,7 @@ const Goods = () => {
   return (
     <div className="flex flex-col items-center justify-center">
       <h1 className="text-2xl font-bold m-2">持ち物一覧</h1>
-      <MDButton text="戻る" arrowLeft color="white" link={user?.is_teacher ? '/teacher' : '/'} />
+      <BackToHome user={user} />
 
       <Section title="共通の持ち物" items={GOODS_DATA} />
       {(user?.is_teacher || jaxa) && <Section title="JAXA用持ち物" items={GOODS_JAXA} />}
@@ -50,7 +50,7 @@ const Goods = () => {
       {(user?.is_teacher || doukutsu) && <Section title="洞窟コース用持ち物" items={GOODS_DOKUTSU} />}
       {(user?.is_teacher || kanuu) && <Section title="カヌーコース用持ち物" items={GOODS_KANU} />}
 
-      <MDButton text="戻る" arrowLeft color="white" link={user?.is_teacher ? '/teacher' : '/'} />
+      <BackToHome user={user} />
     </div>
   );
 };
