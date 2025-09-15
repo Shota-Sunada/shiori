@@ -242,7 +242,6 @@ const ShinkansenFloor = () => {
       <MDButton text="戻る" arrowLeft color="white" link="/shinkansen" />
       <h2 className="text-xl font-bold mb-2">{'N700系 座席表 '}</h2>
       <div className="flex flex-col gap-2 items-start">
-        <SwitchButton />
         {/* 座席表本体 */}
         <div className="flex flex-col gap-2">
           {cars.map((car) => {
@@ -263,79 +262,82 @@ const ShinkansenFloor = () => {
               bottomFacilitiesArr.reverse();
             }
             return (
-              <div key={car} className="bg-white rounded-lg shadow p-2 flex flex-col items-center">
-                <div className="flex flex-row items-center justify-center font-semibold text-lg my-2">
-                  <p className="mx-1">{car}号車</p>
-                  <img className="mx-1" src="https://railway.jr-central.co.jp/train/_common/_img/uni_bod_ico_07_02.gif" alt="禁煙" />
-                </div>
-                {/* 上部設備（reverse対応） */}
-                {topFacilitiesArr.map((fg, idx) => (
-                  <FacilityRow key={'top-' + idx} facilities={fg} isTopHiroshima={isTopHiroshima} />
-                ))}
-                {/* 横方向で1行ずつdivでラップ */}
-                <div className="flex flex-col">
-                  {/* ヘッダー行 */}
-                  <Header seats={SEATS} />
-                  {/* 各行 */}
-                  {ROWS.map((row) => (
-                    <div key={'row-' + row} className="flex flex-row">
-                      {SEATS.map((seat, seatIdx) => {
-                        if (seat === '') {
-                          // 通路（CとDの間）に行番号を表示
+              <>
+                <SwitchButton />
+                <div key={car} className="bg-white rounded-lg shadow p-2 flex flex-col items-center">
+                  <div className="flex flex-row items-center justify-center font-semibold text-lg my-2">
+                    <p className="mx-1">{car}号車</p>
+                    <img className="mx-1" src="https://railway.jr-central.co.jp/train/_common/_img/uni_bod_ico_07_02.gif" alt="禁煙" />
+                  </div>
+                  {/* 上部設備（reverse対応） */}
+                  {topFacilitiesArr.map((fg, idx) => (
+                    <FacilityRow key={'top-' + idx} facilities={fg} isTopHiroshima={isTopHiroshima} />
+                  ))}
+                  {/* 横方向で1行ずつdivでラップ */}
+                  <div className="flex flex-col">
+                    {/* ヘッダー行 */}
+                    <Header seats={SEATS} />
+                    {/* 各行 */}
+                    {ROWS.map((row) => (
+                      <div key={'row-' + row} className="flex flex-row">
+                        {SEATS.map((seat, seatIdx) => {
+                          if (seat === '') {
+                            // 通路（CとDの間）に行番号を表示
+                            return (
+                              <div key={row + 'aisle' + seatIdx} className="w-6 flex items-center justify-center">
+                                <span className="text-xs text-gray-500 font-bold select-none">{row}</span>
+                              </div>
+                            );
+                          }
+                          const seatKey = `${car}-${row}${seat}`;
+                          const seatData = seatMap.get(seatKey);
                           return (
-                            <div key={row + 'aisle' + seatIdx} className="w-6 flex items-center justify-center">
-                              <span className="text-xs text-gray-500 font-bold select-none">{row}</span>
+                            <div
+                              key={row + seat}
+                              className={`w-16 h-12 flex flex-col items-center justify-center border-2 rounded text-base cursor-pointer font-semibold m-0.5
+                              ${seatData ? (seatData.type === 'teacher' ? 'bg-yellow-100 text-yellow-900 border-yellow-400' : seatData.type === 'staff' ? 'bg-purple-100 text-purple-900 border-purple-400' : 'bg-green-100 text-gray-700 border-green-300') : 'bg-blue-50 text-gray-700 hover:bg-blue-200'}`}
+                              title={`${car}号車${row}${seat}`}>
+                              {seatData ? (
+                                seatData.type === 'teacher' ? (
+                                  <>
+                                    <span className="text-xs font-bold text-yellow-700 leading-none">先生</span>
+                                    <span>{(seatData.data as TeacherDTO).surname}</span>
+                                  </>
+                                ) : seatData.type === 'staff' ? (
+                                  <>
+                                    <span className="text-xs font-bold text-purple-700 leading-none">STAFF</span>
+                                    <span>{(seatData.data as { name: string }).name}</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="text-xs leading-none">
+                                      5{(seatData.data as StudentDTO).class}
+                                      {pad2((seatData.data as StudentDTO).number)}
+                                    </span>
+                                    <span>{setGoodName(seatData.data as StudentDTO)}</span>
+                                  </>
+                                )
+                              ) : (
+                                <p className="text-sm">{getRandomFace()}</p>
+                              )}
                             </div>
                           );
-                        }
-                        const seatKey = `${car}-${row}${seat}`;
-                        const seatData = seatMap.get(seatKey);
-                        return (
-                          <div
-                            key={row + seat}
-                            className={`w-16 h-12 flex flex-col items-center justify-center border-2 rounded text-base cursor-pointer font-semibold m-0.5
-                              ${seatData ? (seatData.type === 'teacher' ? 'bg-yellow-100 text-yellow-900 border-yellow-400' : seatData.type === 'staff' ? 'bg-purple-100 text-purple-900 border-purple-400' : 'bg-green-100 text-gray-700 border-green-300') : 'bg-blue-50 text-gray-700 hover:bg-blue-200'}`}
-                            title={`${car}号車${row}${seat}`}>
-                            {seatData ? (
-                              seatData.type === 'teacher' ? (
-                                <>
-                                  <span className="text-xs font-bold text-yellow-700 leading-none">先生</span>
-                                  <span>{(seatData.data as TeacherDTO).surname}</span>
-                                </>
-                              ) : seatData.type === 'staff' ? (
-                                <>
-                                  <span className="text-xs font-bold text-purple-700 leading-none">STAFF</span>
-                                  <span>{(seatData.data as { name: string }).name}</span>
-                                </>
-                              ) : (
-                                <>
-                                  <span className="text-xs leading-none">
-                                    5{(seatData.data as StudentDTO).class}
-                                    {pad2((seatData.data as StudentDTO).number)}
-                                  </span>
-                                  <span>{setGoodName(seatData.data as StudentDTO)}</span>
-                                </>
-                              )
-                            ) : (
-                              <p className="text-sm">{getRandomFace()}</p>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+                        })}
+                      </div>
+                    ))}
+                    <Header seats={SEATS} />
+                  </div>
+                  {/* 下部設備（reverse対応） */}
+                  {bottomFacilitiesArr.map((fg, idx) => (
+                    <FacilityRow key={'bottom-' + idx} facilities={fg} isTopHiroshima={isTopHiroshima} />
                   ))}
-                  <Header seats={SEATS} />
+                  <div className="flex flex-row items-center justify-center font-semibold text-lg my-2">
+                    <p className="mx-1">{car}号車</p>
+                    <img className="mx-1" src="https://railway.jr-central.co.jp/train/_common/_img/uni_bod_ico_07_02.gif" alt="禁煙" />
+                  </div>
+                  <MDButton text="戻る" arrowLeft color="white" link="/shinkansen" />
                 </div>
-                {/* 下部設備（reverse対応） */}
-                {bottomFacilitiesArr.map((fg, idx) => (
-                  <FacilityRow key={'bottom-' + idx} facilities={fg} isTopHiroshima={isTopHiroshima} />
-                ))}
-                <div className="flex flex-row items-center justify-center font-semibold text-lg my-2">
-                  <p className="mx-1">{car}号車</p>
-                  <img className="mx-1" src="https://railway.jr-central.co.jp/train/_common/_img/uni_bod_ico_07_02.gif" alt="禁煙" />
-                </div>
-                <MDButton text="戻る" arrowLeft color="white" link="/shinkansen" />
-              </div>
+              </>
             );
           })}
         </div>
