@@ -81,19 +81,52 @@ const Shinkansen = () => {
           <h2 className="text-lg font-semibold mb-2">1日目（ゆき）のぞみ84号 東京行</h2>
           <div className="bg-white rounded shadow p-4 flex flex-col gap-2">
             <div>
-              <span className="font-semibold">号車：</span>
-              {(student && <span>{student.shinkansen_day1_car_number}号車</span>) || (teacher && <span>{teacher.shinkansen_day1_car_number}号車</span>) || (
-                <span className="text-gray-400">未割当</span>
-              )}
+              <span className="font-semibold">乗車位置：</span>
+              <span>広島駅新幹線ホーム13番線</span>
             </div>
-            <div>
-              <span className="font-semibold">座席：</span>
-              {(student && <span>{student.shinkansen_day1_seat}</span>) || (teacher && <span>{teacher.shinkansen_day1_seat}</span>) || <span className="text-gray-400">未割当</span>}
+            <div className="grid grid-cols-2">
+              <div>
+                <span className="font-semibold">号車：</span>
+                {(student && <span>{student.shinkansen_day1_car_number}号車</span>) || (teacher && <span>{teacher.shinkansen_day1_car_number}号車</span>) || (
+                  <span className="text-gray-400">未割当</span>
+                )}
+              </div>
+              <div>
+                <span className="font-semibold">座席：</span>
+                {(student && <span>{student.shinkansen_day1_seat}</span>) || (teacher && <span>{teacher.shinkansen_day1_seat}</span>) || <span className="text-gray-400">未割当</span>}
+              </div>
             </div>
-            <div>
-              <span className="font-semibold">下車駅：</span>
-              {(student && (day1TokyoGetOff.includes(student.day1id) ? <span>東京駅で下車</span> : <span>新横浜駅で下車</span>)) ||
-                (teacher && (day1TokyoGetOff.includes(teacher.day1id) ? <span>東京駅で下車</span> : <span>新横浜駅で下車</span>)) || <span className="text-gray-400">未割当</span>}
+            {(student && day1TokyoGetOff.includes(student.day1id)) || (teacher && day1TokyoGetOff.includes(teacher.day1id)) ? (
+              <>
+                <div>
+                  <span className="font-semibold">降車駅：</span>
+                  <span>東京駅で降車</span>
+                </div>
+                <div className="flex items-center justify-center">
+                  <span className="font-semibold">東京駅では、進行方向右側の扉が開きます。</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <span className="font-semibold">降車駅：</span>
+                  <span>新横浜駅で降車</span>
+                </div>
+                <div className="flex items-center justify-center">
+                  <span className="font-semibold">新横浜駅では、進行方向左側の扉が開きます。</span>
+                </div>
+              </>
+            )}
+            <div className="grid grid-cols-3 text-center">
+              <span>広島駅</span>
+              <span></span>
+              <span>7:57発</span>
+              <span>新横浜駅</span>
+              <span>11:34着</span>
+              <span>11:35発</span>
+              <span>東京駅</span>
+              <span>11:57着</span>
+              <span></span>
             </div>
           </div>
         </div>
@@ -104,18 +137,38 @@ const Shinkansen = () => {
             <h2 className="text-lg font-semibold mb-2">4日目（かえり）のぞみ77号 広島行</h2>
             <div className="bg-white rounded shadow p-4 flex flex-col gap-2">
               <div>
-                <span className="font-semibold">号車：</span>
-                {(student && <span>{student.shinkansen_day4_car_number}号車</span>) || (teacher && <span>{teacher.shinkansen_day4_car_number}号車</span>) || (
-                  <span className="text-gray-400">未割当</span>
-                )}
+                <span className="font-semibold">乗車位置：</span>
+                <span>新横浜駅新幹線ホーム4番線</span>
+              </div>
+              <div className="grid grid-cols-2">
+                <div>
+                  <span className="font-semibold">号車：</span>
+                  {(student && <span>{student.shinkansen_day4_car_number}号車</span>) || (teacher && <span>{teacher.shinkansen_day4_car_number}号車</span>) || (
+                    <span className="text-gray-400">未割当</span>
+                  )}
+                </div>
+                <div>
+                  <span className="font-semibold">座席：</span>
+                  {(student && <span>{student.shinkansen_day4_seat}</span>) || (teacher && <span>{teacher.shinkansen_day4_seat}</span>) || <span className="text-gray-400">未割当</span>}
+                </div>
               </div>
               <div>
-                <span className="font-semibold">座席：</span>
-                {(student && <span>{student.shinkansen_day4_seat}</span>) || (teacher && <span>{teacher.shinkansen_day4_seat}</span>) || <span className="text-gray-400">未割当</span>}
+                <span className="font-semibold">降車駅：</span>
+                <span>広島駅または福山駅で降車</span>
               </div>
-              <div>
-                <span className="font-semibold">下車駅：</span>
-                <span>広島駅で下車</span>
+              <div className="flex flex-col items-center justify-center">
+                <span className="font-semibold">広島駅･福山駅では、進行方向左側の扉が開きます。</span>
+              </div>
+              <div className="grid grid-cols-3 text-center">
+                <span>新横浜駅</span>
+                <span>16:06着</span>
+                <span>16:07発</span>
+                <span>福山駅</span>
+                <span>19:22着</span>
+                <span>19:23発</span>
+                <span>広島駅</span>
+                <span>19:46着</span>
+                <span></span>
               </div>
             </div>
           </div>
