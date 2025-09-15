@@ -1,4 +1,5 @@
 import { useState, useEffect, type FC, useRef } from 'react';
+import { List } from 'react-window';
 import type { StudentDTO } from '../helpers/domainApi';
 import StudentCardContent from './StudentCardContent';
 import Modal from './Modal';
@@ -170,11 +171,17 @@ const KanaSearchModal: FC<KanaSearchModalProps> = ({ isOpen, onClose, allStudent
                 <p>{'姓'}</p>
                 <div className="">
                   {filteredBySurnameKana.length > 0 ? (
-                    filteredBySurnameKana.map((s) => (
-                      <div key={s.gakuseki} className="p-1 border-b-2 border-solid border-[#eee] cursor-pointer hover:bg-[#f0f0f0]" onClick={() => handleStudentClick(s)}>
-                        <StudentCardContent student={s} />
-                      </div>
-                    ))
+                    <List height={Math.min(240, filteredBySurnameKana.length * 56)} itemCount={filteredBySurnameKana.length} itemSize={56} width={'100%'} itemData={filteredBySurnameKana}>
+                      {/* @ts-expect-error react-window型エラー抑制 */}
+                      {({ index, style, data }) => {
+                        const s = data[index];
+                        return (
+                          <div key={s.gakuseki} style={style} className="p-1 border-b-2 border-solid border-[#eee] cursor-pointer hover:bg-[#f0f0f0]" onClick={() => handleStudentClick(s)}>
+                            <StudentCardContent student={s} />
+                          </div>
+                        );
+                      }}
+                    </List>
                   ) : (
                     <p>{'該当する生徒は見つかりませんでした。'}</p>
                   )}
@@ -182,11 +189,17 @@ const KanaSearchModal: FC<KanaSearchModalProps> = ({ isOpen, onClose, allStudent
                 <p className="mt-4">{'名'}</p>
                 <div className="">
                   {filteredByForenameKana.length > 0 ? (
-                    filteredByForenameKana.map((s) => (
-                      <div key={s.gakuseki} className="p-1 border-b-2 border-solid border-[#eee] cursor-pointer hover:bg-[#f0f0f0]" onClick={() => handleStudentClick(s)}>
-                        <StudentCardContent student={s} />
-                      </div>
-                    ))
+                    <List height={Math.min(240, filteredByForenameKana.length * 56)} itemCount={filteredByForenameKana.length} itemSize={56} width={'100%'} itemData={filteredByForenameKana}>
+                      {/* @ts-expect-error react-window型エラー抑制 */}
+                      {({ index, style, data }) => {
+                        const s = data[index];
+                        return (
+                          <div key={s.gakuseki} style={style} className="p-1 border-b-2 border-solid border-[#eee] cursor-pointer hover:bg-[#f0f0f0]" onClick={() => handleStudentClick(s)}>
+                            <StudentCardContent student={s} />
+                          </div>
+                        );
+                      }}
+                    </List>
                   ) : (
                     <p>{'該当する生徒は見つかりませんでした。'}</p>
                   )}

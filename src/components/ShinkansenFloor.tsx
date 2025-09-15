@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import React, { useEffect, useState, useMemo } from 'react';
+import { Grid } from 'react-window';
 import { studentApi, teacherApi } from '../helpers/domainApi';
 import type { StudentDTO, TeacherDTO } from '../helpers/domainApi';
 const CAR_NUMBERS = [13, 14, 15, 16];
@@ -69,6 +70,53 @@ const ShinkansenFloor = () => {
     return map;
   }, [students, teachers, isTopHiroshima]);
 
+  // 座席セルをメモ化コンポーネント化
+  type SeatCellProps = {
+    car: number;
+    row: number;
+    seat: string;
+    seatData: { type: 'student' | 'teacher'; data: StudentDTO | TeacherDTO } | undefined;
+  };
+
+  const SeatCell: React.FC<SeatCellProps> = React.memo(({ car, row, seat, seatData }) => {
+    if (seat === '') return <div className="w-4" />;
+    return (
+      <div
+        className={`w-16 h-12 flex flex-col items-center justify-center border-2 rounded text-base cursor-pointer font-semibold
+          ${seatData ? (seatData.type === 'teacher' ? 'bg-yellow-100 text-yellow-900 border-yellow-400' : 'bg-green-100 text-gray-700 border-green-300') : 'bg-blue-50 text-gray-700 hover:bg-blue-200'}`}
+        title={`${car}号車${row}${seat}`}>
+        {seatData ? (
+          seatData.type === 'teacher' ? (
+            <>
+              <span className="text-xs font-bold text-yellow-700 leading-none mb-0.5">先生</span>
+              <span>{(seatData.data as TeacherDTO).surname}</span>
+            </>
+          ) : (
+            <>
+              <span className="text-xs leading-none">
+                5{(seatData.data as StudentDTO).class}
+                {(seatData.data as StudentDTO).number}
+              </span>
+              <span>{(seatData.data as StudentDTO).surname}</span>
+            </>
+          )
+        ) : (
+          ''
+        )}
+      </div>
+    );
+  });
+
+  // ROWS, SEATS生成もuseMemoで最適化
+  const carRowsSeats = useMemo(() => {
+    return cars.map((car) => {
+      const rowCount = CAR_ROWS[car] || 12;
+      const ROWS = isTopHiroshima ? Array.from({ length: rowCount }, (_, i) => i + 1) : Array.from({ length: rowCount }, (_, i) => rowCount - i);
+      const SEATS = isTopHiroshima ? BASE_SEATS : [...BASE_SEATS].reverse();
+      return { car, rowCount, ROWS, SEATS };
+    });
+  }, [cars, isTopHiroshima]);
+
   return (
     <div className="flex flex-col items-center w-full my-1">
       <h2 className="text-xl font-bold mb-2">
@@ -95,70 +143,58 @@ const ShinkansenFloor = () => {
         </div>
         {/* 座席表本体 */}
         <div className="flex flex-col gap-8">
-          {cars.map((car) => {
-            const rowCount = CAR_ROWS[car] || 12;
-            const ROWS = isTopHiroshima ? Array.from({ length: rowCount }, (_, i) => i + 1) : Array.from({ length: rowCount }, (_, i) => rowCount - i);
-            // 進行方向で座席配列を切り替え
-            const SEATS = isTopHiroshima ? BASE_SEATS : [...BASE_SEATS].reverse();
-            return (
-              <div key={car} className="bg-white rounded-lg shadow p-2 flex flex-col items-center">
-                <div className="font-semibold text-lg mb-4">{car}号車</div>
-                <div className="grid gap-1" style={{ gridTemplateColumns: 'min-content repeat(6, auto)' }}>
-                  {/* ヘッダー */}
+          {carRowsSeats.map(({ car, rowCount, ROWS, SEATS }) => (
+            <div key={car} className="bg-white rounded-lg shadow p-2 flex flex-col items-center">
+              <div className="font-semibold text-lg mb-4">{car}号車</div>
+              {/* react-windowグリッド本体 */}
+              <div className="overflow-x-auto">
+                {/* ヘッダー */}
+                <div className="grid gap-1 mb-1" style={{ gridTemplateColumns: 'min-content repeat(6, auto)' }}>
                   <div className="" />
-                  {SEATS.map((seat, idx) =>
+                  {SEATS.map((seat) =>
                     seat === '' ? (
-                      <div key={idx} className="" />
+                      <div key={seat} className="" />
                     ) : (
                       <div key={seat} className="text-base font-bold text-center text-gray-500 pb-2">
                         {seat}
                       </div>
                     )
                   )}
-                  {/* 座席 */}
-                  {ROWS.map((row) => (
-                    <React.Fragment key={row}>
-                      {/* 行番号セル */}
-                      <div className="w-6 h-12 flex items-center justify-center text-xs font-bold text-gray-500">{row}</div>
-                      {SEATS.map((seat, idx) => {
-                        if (seat === '') {
-                          return <div key={row + 'aisle' + idx} className="w-4" />;
-                        }
-                        const seatKey = `${car}-${row}${seat}`;
-                        const seatData = seatMap.get(seatKey);
-                        return (
-                          <div
-                            key={row + seat}
-                            className={`w-16 h-12 flex flex-col items-center justify-center border-2 rounded text-base cursor-pointer font-semibold
-                              ${seatData ? (seatData.type === 'teacher' ? 'bg-yellow-100 text-yellow-900 border-yellow-400' : 'bg-green-100 text-gray-700 border-green-300') : 'bg-blue-50 text-gray-700 hover:bg-blue-200'}`}
-                            title={`${car}号車${row}${seat}`}>
-                            {seatData ? (
-                              seatData.type === 'teacher' ? (
-                                <>
-                                  <span className="text-xs font-bold text-yellow-700 leading-none mb-0.5">先生</span>
-                                  <span>{(seatData.data as TeacherDTO).surname}</span>
-                                </>
-                              ) : (
-                                <>
-                                  <span className="text-xs leading-none">
-                                    5{(seatData.data as StudentDTO).class}
-                                    {(seatData.data as StudentDTO).number}
-                                  </span>
-                                  <span>{(seatData.data as StudentDTO).surname}</span>
-                                </>
-                              )
-                            ) : (
-                              ''
-                            )}
-                          </div>
-                        );
-                      })}
-                    </React.Fragment>
-                  ))}
                 </div>
+                <Grid
+                  columnCount={SEATS.length + 1}
+                  rowCount={rowCount}
+                  columnWidth={68}
+                  rowHeight={52}
+                  width={68 * (SEATS.length + 1) + 8}
+                  height={Math.min(52 * rowCount, 400)}
+                  itemData={{ car, ROWS, SEATS, seatMap }}
+                  className="">
+                  {/* @ts-expect-error react-window v2型エラー抑制 */}
+                  {({ columnIndex, rowIndex, style, data }) => {
+                    const { car, ROWS, SEATS, seatMap } = data;
+                    const row = ROWS[rowIndex];
+                    if (columnIndex === 0) {
+                      // 行番号セル
+                      return (
+                        <div style={style} className="w-6 h-12 flex items-center justify-center text-xs font-bold text-gray-500">
+                          {row}
+                        </div>
+                      );
+                    }
+                    const seat = SEATS[columnIndex - 1];
+                    const seatKey = `${car}-${row}${seat}`;
+                    const seatData = seatMap.get(seatKey);
+                    return (
+                      <div style={style}>
+                        <SeatCell car={car} row={row} seat={seat} seatData={seatData} />
+                      </div>
+                    );
+                  }}
+                </Grid>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
     </div>

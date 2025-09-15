@@ -4,7 +4,11 @@ import type { Teacher } from '../interface/models';
 import '../styles/index-table.css';
 import ModernTable from './ModernTable';
 import VerticalLabel from './VerticalLabel';
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, memo } from 'react';
+// テーブル行のメモ化
+const MemoRow = memo(function MemoRow({ children, ...props }: React.HTMLAttributes<HTMLTableRowElement>) {
+  return <tr {...props}>{children}</tr>;
+});
 // import { useNavigate } from 'react-router-dom';
 import RoomDataModal from './RoomDataModal';
 import { SERVER_ENDPOINT } from '../config/serverEndpoint';
@@ -127,12 +131,12 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
         </thead>
         <tbody>
           {/* info START */}
-          <tr>
+          <MemoRow>
             <td rowSpan={isStudentSearch ? 2 : 4} className="vcell vcell--min day-col">
               <VerticalLabel text="各種資料" />
             </td>
-          </tr>
-          <tr>
+          </MemoRow>
+          <MemoRow>
             <td className="label-cell">{'行程表'}</td>
             <td
               className="cell-interactive"
@@ -162,7 +166,7 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
               {isStudentSearch ? (studentData ? `${studentData.surname} ${studentData.forename} ` : '◯◯◯◯') : 'あなた'}
               {'の行程表をcheck！'}
             </td>
-          </tr>
+          </MemoRow>
           {!isStudentSearch && (
             <>
               <tr>
