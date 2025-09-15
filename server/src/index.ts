@@ -28,7 +28,7 @@ app.use(
     credentials: true
   })
 ); // クライアントのオリジンに合わせて変更してください
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 // Rate limiter for auth routes
 const authLimiter = rateLimit({

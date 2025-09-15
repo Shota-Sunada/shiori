@@ -35,8 +35,23 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
 // 新しい先生データを追加
 router.post('/', authenticateToken, isAdmin, async (req: Request, res: Response) => {
   const teacherData = req.body;
-  const { id, surname, forename, room_fpr, room_tdh, shinkansen_day1_car_number, shinkansen_day1_seat, shinkansen_day4_car_number, shinkansen_day4_seat, day1id, day1bus, day3id, day3bus, day4class } =
-    teacherData;
+  const {
+    id,
+    surname,
+    forename,
+    room_fpr,
+    room_tdh,
+    shinkansen_day1_car_number,
+    shinkansen_day1_seat,
+    shinkansen_day4_car_number,
+    shinkansen_day4_seat,
+    day1id,
+    day1bus,
+    day2,
+    day3id,
+    day3bus,
+    day4class
+  } = teacherData;
 
   // IDが8桁の数字であることを確認
   if (!/^[0-9]{8}$/.test(String(id))) return res.status(400).json({ message: 'IDは8桁の数字である必要があります。' });
@@ -59,9 +74,9 @@ router.post('/', authenticateToken, isAdmin, async (req: Request, res: Response)
         room_fpr, room_tdh,
         shinkansen_day1_car_number, shinkansen_day1_seat,
         shinkansen_day4_car_number, shinkansen_day4_seat,
-        day1id, day1bus, day3id, day3bus, day4class
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, surname, forename, room_fpr, room_tdh, shinkansen_day1_car_number, shinkansen_day1_seat, shinkansen_day4_car_number, shinkansen_day4_seat, day1id, day1bus, day3id, day3bus, day4class]
+        day1id, day1bus, day2, day3id, day3bus, day4class
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, surname, forename, room_fpr, room_tdh, shinkansen_day1_car_number, shinkansen_day1_seat, shinkansen_day4_car_number, shinkansen_day4_seat, day1id, day1bus, day2, day3id, day3bus, day4class]
     );
     res.status(201).json({ message: '先生の追加に成功' });
   } catch (error) {

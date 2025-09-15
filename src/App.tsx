@@ -38,6 +38,7 @@ import Shinkansen from './pages/Shinkansen';
 import Boats from './pages/Boats';
 import BoatsAdmin from './pages/Admin/BoatsAdmin';
 import ShinkansenFloor from './pages/ShinkansenFloor';
+import Day2 from './pages/Day2';
 
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: unknown }> {
   constructor(props: { children: React.ReactNode }) {
@@ -316,6 +317,7 @@ function App() {
     { path: '/shinkansen', element: <Shinkansen /> },
     { path: '/shinkansen/floor', element: <ShinkansenFloor /> },
     { path: '/boats', element: <Boats /> },
+    { path: '/day2', element: <Day2 /> },
     { path: '/teacher', element: <TeacherIndex /> },
     { path: '/teacher/search', element: <TeacherIndexTable /> },
     { path: '/teacher/roll-call-list', element: <TeacherRollCallList /> },

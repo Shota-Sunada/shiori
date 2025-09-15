@@ -14,6 +14,7 @@ export interface Teacher {
   shinkansen_day4_seat: string;
   day1id: string;
   day1bus: number;
+  day2: number;
   day3id: string;
   day3bus: number;
   day4class: number;

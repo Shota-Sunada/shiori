@@ -93,6 +93,7 @@ const initialForm = {
   shinkansen_day4_seat: '',
   day1id: '',
   day1bus: 0,
+  day2: 0,
   day3id: '',
   day3bus: 0,
   day4class: 0
@@ -133,6 +134,9 @@ const MemoizedTeacherRow: FC<MemoizedTeacherRowProps> = memo(({ t, handleDelete,
       </td>
       <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(t, 'day1bus')}>
         {renderCellContent(t, 'day1bus')}
+      </td>
+      <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(t, 'day2')}>
+        {renderCellContent(t, 'day2')}
       </td>
       <td className="bg-white" onDoubleClick={() => handleCellDoubleClick(t, 'day3id')}>
         {renderCellContent(t, 'day3id')}
@@ -326,6 +330,19 @@ const TeacherModal: FC<TeacherModalProps> = memo(({ modalMode, editRowForm, hand
               name="day1bus"
               value={editRowForm.day1bus}
               onChange={(e) => setEditRowForm({ ...editRowForm, day1bus: Number(e.target.value) })}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            />
+          </div>
+          <div className="mb-4">
+            <label htmlFor="day2" className="block text-gray-700 text-sm font-bold mb-2">
+              {'2日目担当'}
+            </label>
+            <input
+              type="number"
+              id="day2"
+              name="day2"
+              value={editRowForm.day2}
+              onChange={(e) => setEditRowForm({ ...editRowForm, day2: Number(e.target.value) })}
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             />
           </div>
@@ -577,7 +594,7 @@ const TeacherAdmin = () => {
     let valueToSave: string | number = editingValue;
 
     // Explicitly handle type conversions for new fields and existing number fields
-    if (['room_fpr', 'room_tdh', 'shinkansen_day1_car_number', 'shinkansen_day4_car_number', 'day1bus', 'day3bus', 'day4class'].includes(field as string)) {
+    if (['room_fpr', 'room_tdh', 'shinkansen_day1_car_number', 'shinkansen_day4_car_number', 'day1bus', 'day3bus', 'day4class', 'day2'].includes(field as string)) {
       valueToSave = Number(editingValue);
       if (isNaN(valueToSave)) {
         setStatus('無効な数値です。');
@@ -745,6 +762,11 @@ const TeacherAdmin = () => {
               <th className="w-24">
                 <button className="th-sort" onClick={(e) => handleSort('day1bus', e.shiftKey)} disabled={modalMode !== null}>
                   ①バス {getSortIndicator('day1bus')}
+                </button>
+              </th>
+              <th className="w-24">
+                <button className="th-sort" onClick={(e) => handleSort('day2', e.shiftKey)} disabled={modalMode !== null}>
+                  ②担当 {getSortIndicator('day2')}
                 </button>
               </th>
               <th className="w-24">

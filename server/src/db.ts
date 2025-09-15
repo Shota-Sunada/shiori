@@ -136,6 +136,7 @@ async function initializeDatabase() {
         shinkansen_day4_seat VARCHAR(255),
         day1id VARCHAR(255) NOT NULL DEFAULT '',
         day1bus INT NOT NULL DEFAULT 0,
+        day2 INT NOT NULL DEFAULT 0,
         day3id VARCHAR(255) NOT NULL DEFAULT '',
         day3bus INT NOT NULL DEFAULT 0,
         day4class INT NOT NULL DEFAULT 0,

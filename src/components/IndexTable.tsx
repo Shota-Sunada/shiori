@@ -1,5 +1,5 @@
 import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4, DAY4_DATA } from '../data/courses';
-import type { StudentDTO } from '../helpers/domainApi';
+import { type StudentDTO } from '../helpers/domainApi';
 import type { Teacher } from '../interface/models';
 import '../styles/index-table.css';
 import ModernTable from './ModernTable';
@@ -13,6 +13,7 @@ import { useAuth } from '../auth-context';
 import { appFetch } from '../helpers/apiClient';
 import { CacheKeys } from '../helpers/cacheKeys';
 import type { Roommate, IndexTeacher } from '../interface/models';
+import { TEACHERS_DAY2 } from '../data/teachers';
 
 // 型は interface/models に移動 (IndexTeacher / Roommate)
 
@@ -181,7 +182,16 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
               <VerticalLabel text="１日目" />
             </td>
             <td className="label-cell">{'研修先'}</td>
-            <td>{(studentData && COURSES_DAY1.find((x) => x.key === studentData.day1id)?.name) || (teacherData && COURSES_DAY1.find((x) => x.key === teacherData.day1id)?.name) || '◯◯◯◯◯◯◯◯'}</td>
+            <td>
+              <p>{(studentData && COURSES_DAY1.find((x) => x.key === studentData.day1id)?.name) || (teacherData && COURSES_DAY1.find((x) => x.key === teacherData.day1id)?.name) || '◯◯◯◯◯◯◯◯'}</p>
+              <div className="flex flex-row">
+                <p className="text-gray-600 text-xs">{'引率: '}</p>
+                <p className="text-gray-600 text-xs px-1 items-center justify-center">
+                  {(studentData && teachers.filter((teacher) => teacher.day1id === studentData.day1id).map((teacher) => `${teacher.surname} ${teacher.forename} 先生${'　'}`)) ||
+                    (teacherData && teachers.filter((teacher) => teacher.day1id === teacherData.day1id).map((teacher) => `${teacher.surname} ${teacher.forename} 先生${'　'}`))}
+                </p>
+              </div>
+            </td>
           </tr>
           <tr>
             <td className="label-cell">{'バス'}</td>
@@ -190,12 +200,28 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
           {/* day1 END */}
           {/* day2 START */}
           <tr>
-            <td rowSpan={1} className="vcell vcell--min day-col">
+            <td rowSpan={teacherData ? 3 : 2} className="vcell vcell--min day-col">
               <VerticalLabel text="２日目" />
             </td>
-            <td className="label-cell">{''}</td>
+            <td className="label-cell">{studentData && (studentData.day2num >= 10 ? `${studentData.day2num / 10}班 班長` : `${studentData.day2num}班`)}</td>
             <td>{'班別自由行動'}</td>
           </tr>
+          <tr>
+            <td className="label-cell">{'班の一覧'}</td>
+            <td
+              className="cell-interactive"
+              onClick={() => {
+                navigate('/day2');
+              }}>
+              {'班の一覧をチェック！'}
+            </td>
+          </tr>
+          {teacherData && (
+            <tr>
+              <td className="label-cell">{'担当位置'}</td>
+              <td>{TEACHERS_DAY2[teacherData.day2]}</td>
+            </tr>
+          )}
           {/* day2 END */}
           {/* day3 START */}
           <tr>
@@ -203,7 +229,16 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
               <VerticalLabel text="３日目" />
             </td>
             <td className="label-cell">{'研修先'}</td>
-            <td>{(studentData && COURSES_DAY3.find((x) => x.key === studentData.day3id)?.name) || (teacherData && COURSES_DAY3.find((x) => x.key === teacherData.day3id)?.name) || '◯◯◯◯◯◯◯◯'}</td>
+            <td>
+              <p>{(studentData && COURSES_DAY3.find((x) => x.key === studentData.day3id)?.name) || (teacherData && COURSES_DAY3.find((x) => x.key === teacherData.day3id)?.name) || '◯◯◯◯◯◯◯◯'}</p>
+              <div className="flex flex-row">
+                <p className="text-gray-600 text-xs">{'引率: '}</p>
+                <p className="text-gray-600 text-xs px-1 items-center justify-center">
+                  {(studentData && teachers.filter((teacher) => teacher.day3id === studentData.day3id).map((teacher) => `${teacher.surname} ${teacher.forename} 先生${'　'}`)) ||
+                    (teacherData && teachers.filter((teacher) => teacher.day3id === teacherData.day3id).map((teacher) => `${teacher.surname} ${teacher.forename} 先生${'　'}`))}
+                </p>
+              </div>
+            </td>
           </tr>
           <tr>
             <td className="label-cell">{'バス'}</td>
@@ -253,13 +288,9 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
                   </p>
                   <div className="flex flex-row">
                     <p className="text-gray-600 text-xs">{'引率: '}</p>
-                    <div className="flex flex-row">
-                      {teachers
-                        .filter((teacher) => teacher.day4class === studentData.class)
-                        .map((teacher) => (
-                          <p key={teacher.id} className="text-gray-600 text-xs px-1 items-center justify-center">{`${teacher.surname} ${teacher.forename} 先生`}</p>
-                        ))}
-                    </div>
+                    <p className="text-gray-600 text-xs px-1 items-center justify-center">
+                      {teachers.filter((teacher) => teacher.day4class === studentData.class).map((teacher) => `${teacher.surname} ${teacher.forename} 先生${'　'}`)}
+                    </p>
                   </div>
                 </>
               )) ||
