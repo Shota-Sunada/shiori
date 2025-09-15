@@ -1,22 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-// localStorageのappFetchCache_で始まるキャッシュを全削除
-function clearAllAppFetchLocalStorageCache() {
-  try {
-    const prefix = 'appFetchCache_';
-    const keysToRemove: string[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith(prefix)) {
-        keysToRemove.push(key);
-      }
-    }
-    for (const k of keysToRemove) {
-      localStorage.removeItem(k);
-    }
-  } catch {
-    // 
-  }
-}
+import { clearAllAppFetchLocalStorageCache } from '../helpers/clearShioriCache';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 

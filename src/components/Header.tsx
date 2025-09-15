@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo, type ReactElement } 
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
+import { clearShioriCache } from '../helpers/clearShioriCache';
 import { PrefetchLink } from '../prefetch/PrefetchLink';
 import { otanoshimiApi } from '../helpers/domainApi';
 import { IoHome, IoReload, IoLogOut, IoSettingsSharp } from 'react-icons/io5';
@@ -11,6 +12,8 @@ import { VscDebugAlt } from 'react-icons/vsc';
 import { FaUserGraduate } from 'react-icons/fa6';
 import { TbTrain } from 'react-icons/tb';
 import { MdAirlineSeatReclineNormal } from 'react-icons/md';
+import { PiBagFill } from 'react-icons/pi';
+import { FaListCheck } from 'react-icons/fa6';
 
 const HamburgerIcon = ({ open }: { open: boolean }) => (
   <div className="flex flex-col justify-center items-center w-8 h-8 cursor-pointer">
@@ -20,7 +23,11 @@ const HamburgerIcon = ({ open }: { open: boolean }) => (
   </div>
 );
 
-const Header = () => {
+interface HeaderProps {
+  menuBgColor?: string;
+}
+
+const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
   const { user, logout } = useAuth();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -83,45 +90,90 @@ const Header = () => {
   const closeMenu = useCallback(() => setIsMenuOpen(false), []);
 
   type MenuItem =
-    | { type: 'link'; icon?: ReactElement; to: string; label: string; note?: string; prefetchKey?: import('../prefetch/cache').PrefetchKey; fetcher?: () => Promise<unknown>; only_admin?: boolean }
-    | { type: 'action'; icon?: ReactElement; label: string; onClick: () => void; only_admin?: boolean };
+    | {
+        type: 'link';
+        icon?: ReactElement;
+        to: string;
+        label: string;
+        note?: string;
+        prefetchKey?: import('../prefetch/cache').PrefetchKey;
+        fetcher?: () => Promise<unknown>;
+        only_admin?: boolean;
+        bgColor?: 'blue' | 'green' | 'white' | 'red' | 'yellow' | 'purple' | 'light_blue' | 'light_green' | 'pink' | 'light_yellow';
+      }
+    | {
+        type: 'action';
+        icon?: ReactElement;
+        label: string;
+        onClick: () => void;
+        only_admin?: boolean;
+        bgColor?: 'blue' | 'green' | 'white' | 'red' | 'yellow' | 'purple' | 'light_blue' | 'light_green' | 'pink' | 'light_yellow';
+      };
   const menuItems: MenuItem[] = useMemo(
     () => [
       {
         type: 'link',
         icon: <IoHome />,
         to: user?.is_teacher ? '/teacher' : '/',
-        label: 'ホーム'
+        label: 'ホーム',
+        bgColor: 'green'
       },
       {
         type: 'link',
         icon: <FaTable />,
         to: '/yotei',
-        label: '全工程表'
+        label: '全工程表',
+        bgColor: 'light_green'
+      },
+      {
+        type: 'link',
+        icon: <PiBagFill />,
+        to: '/shinkansen',
+        label: '持ち物',
+        bgColor: 'green'
+      },
+      {
+        type: 'link',
+        icon: <FaListCheck />,
+        to: '/shinkansen',
+        label: '持ち物チェッカー',
+        bgColor: 'light_green'
       },
       {
         type: 'link',
         icon: <TbTrain />,
         to: '/shinkansen',
+        bgColor: 'blue',
         label: '新幹線'
       },
       {
         type: 'link',
         icon: <MdAirlineSeatReclineNormal />,
         to: '/shinkansen/floor',
+        bgColor: 'light_blue',
         label: '新幹線座席一覧'
       },
       {
         type: 'link',
         icon: <LuPartyPopper />,
         to: '/otanoshimi',
-        label: 'お楽しみ会ページ',
+        label: 'お楽しみ会',
+        bgColor: 'yellow',
         prefetchKey: 'otanoshimiTeams',
         fetcher: async () => otanoshimiApi.list()
       },
-      { type: 'action', icon: <IoReload />, label: 'しおりを再読み込み', onClick: () => window.location.reload() },
-      { type: 'link', icon: <VscDebugAlt />, to: '/env-debug', label: 'デバッグ用環境表示' },
-      { type: 'link', icon: <FaUserGraduate />, to: '/credits', label: 'クレジット' },
+      { type: 'link', icon: <FaUserGraduate />, to: '/credits', label: 'クレジット', bgColor: 'light_yellow' },
+      {
+        type: 'action',
+        icon: <IoReload />,
+        label: 'しおりを再読み込み',
+        bgColor: 'red',
+        onClick: () => {
+          clearShioriCache();
+          window.location.reload();
+        }
+      },
+      { type: 'link', icon: <VscDebugAlt />, to: '/env-debug', label: 'デバッグ用環境表示', bgColor: 'pink' },
       { type: 'link', icon: <IoSettingsSharp />, to: '/admin/students', label: '生徒管理画面', note: '管理者&先生専用', only_admin: true },
       { type: 'link', icon: <IoSettingsSharp />, to: '/admin/teachers', label: '先生管理画面', note: '管理者&先生専用', only_admin: true },
       { type: 'link', icon: <IoSettingsSharp />, to: '/admin/users', label: 'ユーザー管理画面', note: '管理者&先生専用', only_admin: true },
@@ -168,42 +220,60 @@ const Header = () => {
                   role="menu"
                   id="header-menu"
                   aria-hidden={!isMenuOpen ? 'true' : undefined}
-                  className={`fixed top-0 right-0 h-full w-72 max-w-full bg-white text-black z-[1100] flex flex-col border-l shadow-xl transition-transform duration-300 ease-in-out overflow-y-auto max-h-screen
-                    ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}
-                  `}
+                  className={`fixed top-0 right-0 h-full w-72 max-w-full text-black z-[1100] flex flex-col shadow-xl transition-transform duration-300 ease-in-out overflow-y-auto max-h-screen ${menuBgColor} ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
                   style={{ willChange: 'transform' }}>
                   <button className="self-end m-4 px-4 py-2 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold" onClick={closeMenu} aria-label="閉じる">
                     × 閉じる
                   </button>
                   <nav className="flex-1 flex flex-col divide-y">
-                    {menuItems.map((item, i) =>
-                      user.is_admin || user.is_teacher || !item.only_admin ? (
-                        item.type === 'link' ? (
-                          item.prefetchKey && item.fetcher ? (
+                    {menuItems.map((item, i) => {
+                      if (!(user.is_admin || user.is_teacher || !item.only_admin)) return <></>;
+                      // 色名→Tailwindクラス変換
+                      const colorMap: Record<string, { base: string; hover: string }> = {
+                        blue: { base: 'bg-blue-100 text-blue-900', hover: 'hover:bg-blue-50' },
+                        green: { base: 'bg-green-100 text-green-900', hover: 'hover:bg-green-50' },
+                        white: { base: 'bg-white text-gray-900', hover: 'hover:bg-gray-100' },
+                        red: { base: 'bg-red-100 text-red-900', hover: 'hover:bg-red-50' },
+                        yellow: { base: 'bg-yellow-100 text-yellow-900', hover: 'hover:bg-yellow-50' },
+                        purple: { base: 'bg-purple-100 text-purple-900', hover: 'hover:bg-purple-50' },
+                        light_blue: { base: 'bg-blue-50 text-blue-900', hover: 'hover:bg-blue-100' },
+                        light_green: { base: 'bg-green-50 text-green-900', hover: 'hover:bg-green-100' },
+                        pink: { base: 'bg-pink-100 text-pink-900', hover: 'hover:bg-pink-50' },
+                        light_yellow: { base: 'bg-yellow-50 text-yellow-900', hover: 'hover:bg-yellow-100' }
+                      };
+                      const color = item.bgColor && colorMap[item.bgColor] ? colorMap[item.bgColor] : { base: '', hover: 'hover:bg-gray-100' };
+                      const itemClass = `header-menu-item text-left px-4 py-3 cursor-pointer ${color.base} ${color.hover}`;
+                      if (item.type === 'link') {
+                        if (item.prefetchKey && item.fetcher) {
+                          return (
                             <PrefetchLink
                               key={i}
                               to={item.to}
                               prefetchKey={item.prefetchKey}
                               fetcher={item.fetcher}
-                              className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer flex flex-row items-center justify-start"
+                              className={`${itemClass} flex flex-row items-center justify-start`}
                               onClick={closeMenu}>
                               {item.icon}
                               <p className="ml-2">{item.label}</p>
                               {item.note && <p className="text-xs text-gray-500">{item.note}</p>}
                             </PrefetchLink>
-                          ) : (
-                            <Link key={i} to={item.to} className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer" onClick={closeMenu}>
+                          );
+                        } else {
+                          return (
+                            <Link key={i} to={item.to} className={`${itemClass} flex flex-col items-start justify-start`} onClick={closeMenu}>
                               <div className="flex flex-row items-center justify-start">
                                 {item.icon}
                                 <p className="ml-2">{item.label}</p>
                               </div>
                               {item.note && <p className="ml-3 text-xs text-gray-500">{item.note}</p>}
                             </Link>
-                          )
-                        ) : (
+                          );
+                        }
+                      } else {
+                        return (
                           <button
                             key={i}
-                            className="header-menu-item text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
+                            className={`${itemClass} flex flex-col items-start justify-start`}
                             onClick={() => {
                               item.onClick?.();
                               closeMenu();
@@ -213,13 +283,11 @@ const Header = () => {
                               <p className="ml-2">{item.label}</p>
                             </div>
                           </button>
-                        )
-                      ) : (
-                        <></>
-                      )
-                    )}
+                        );
+                      }
+                    })}
                     <button
-                      className="header-menu-item text-left px-4 py-3 hover:bg-red-50 text-red-600 cursor-pointer"
+                      className="header-menu-item text-left px-4 py-3 hover:bg-red-600 bg-red-500 text-white cursor-pointer"
                       onClick={() => {
                         closeMenu();
                         handleLogout();

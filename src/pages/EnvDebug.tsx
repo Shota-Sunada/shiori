@@ -118,6 +118,8 @@ import andIcon from '@egoistdeveloper/operating-system-logos/src/32x32/AND.png';
 import iosIcon from '@egoistdeveloper/operating-system-logos/src/32x32/IOS.png';
 import macIcon from '@egoistdeveloper/operating-system-logos/src/32x32/MAC.png';
 import linIcon from '@egoistdeveloper/operating-system-logos/src/32x32/LIN.png';
+import { BackToHome } from '../components/MDButton';
+import { useAuth } from '../auth-context';
 
 const BROWSER_ICONS: Record<string, string> = {
   Safari: safariIcon,
@@ -150,6 +152,7 @@ function InfoCard({ icon, title, label }: { icon: string; title: string; label: 
 }
 
 const EnvDebug: React.FC = () => {
+  const { user } = useAuth();
   const env = parseClientEnvironment();
   const osIcon = OS_ICONS[env.os] || genericIcon;
   const browserIcon = BROWSER_ICONS[env.browser] || genericIcon;
@@ -179,17 +182,15 @@ const EnvDebug: React.FC = () => {
 
   return (
     <div className="w-full max-w-3xl mx-auto py-10 px-4">
-      <div className='mb-4'>
+      <div className="mb-4">
         <h1 className="text-2xl font-bold">動作環境表示</h1>
         <p>この画面は、問題が発生したときなどに使用します。</p>
       </div>
-
       <div className="grid grid-cols-1 gap-4">
         <InfoCard icon={osIcon} title="Operating System" label={`${env.os} ${env.osVersion}`} />
         <InfoCard icon={browserIcon} title="Browser" label={`${env.browser} ${env.browserVersion}`} />
         <FcmTokenStatus />
       </div>
-
       <div className="mt-4">
         <div className="bg-white/90 p-4 rounded shadow-sm">
           <h2 className="text-lg font-semibold mb-2">キャッシュ一覧</h2>
@@ -238,6 +239,9 @@ const EnvDebug: React.FC = () => {
             </table>
           )}
         </div>
+      </div>
+      <div className='flex flex-col items-center justify-center'>
+        <BackToHome user={user} />
       </div>
     </div>
   );
