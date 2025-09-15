@@ -56,6 +56,110 @@ const Shinkansen = () => {
     fetch();
   }, [user]);
 
+  const getStudentDoor = (isDay4?: boolean) => {
+    if (student) {
+      if (isDay4) {
+        switch (student.shinkansen_day4_car_number) {
+          case 13:
+            return '①13号車東京側ドア';
+          case 14:
+            if (student.class === 2) {
+              return '②14号車博多側ドア';
+            } else {
+              return '③14号車東京側ドア';
+            }
+          case 15:
+            if (
+              student.class === 3 ||
+              student.shinkansen_day4_seat === '6A' ||
+              student.shinkansen_day4_seat === '6B' ||
+              student.shinkansen_day4_seat === '6C' ||
+              student.shinkansen_day4_seat === '6D' ||
+              student.shinkansen_day4_seat === '6E' ||
+              student.shinkansen_day4_seat === '7A' ||
+              student.shinkansen_day4_seat === '7B' ||
+              student.shinkansen_day4_seat === '7C' ||
+              student.shinkansen_day4_seat === '7D' ||
+              student.shinkansen_day4_seat === '7E' ||
+              student.shinkansen_day4_seat === '8A' ||
+              student.shinkansen_day4_seat === '8B' ||
+              student.shinkansen_day4_seat === '8C' ||
+              student.shinkansen_day4_seat === '8D' ||
+              student.shinkansen_day4_seat === '8E'
+            ) {
+              return '④15号車博多側ドア';
+            } else {
+              return '⑤15号車東京側ドア';
+            }
+          case 16:
+            if (student.class === 6) {
+              return '⑥16号車博多側ドア';
+            } else {
+              return '⑦16号車東京側ドア';
+            }
+        }
+      } else {
+        switch (student.shinkansen_day1_car_number) {
+          case 13:
+            return '①13号車東京側ドア';
+          case 14:
+            if (student.class === 3 || student.class === 4) {
+              return '②14号車博多側ドア';
+            } else {
+              return '③14号車東京側ドア';
+            }
+          case 15:
+            if (student.class === 6) {
+              return '④15号車博多側ドア';
+            } else {
+              return '⑤15号車東京側ドア';
+            }
+          case 16:
+            if (student.class === 3 || student.class === 2) {
+              return '⑥16号車博多側ドア';
+            } else {
+              return '⑦16号車東京側ドア';
+            }
+        }
+      }
+    }
+  };
+
+  const getTeacherDoor = (isDay4?: boolean) => {
+    if (teacher) {
+      if (isDay4) {
+        switch (teacher.shinkansen_day4_car_number) {
+          case 13:
+            return '①13号車東京側ドア';
+          case 14:
+            return '②14号車博多側ドア';
+          case 15:
+            return '⑤15号車東京側ドア';
+          case 16:
+            return '⑦16号車東京側ドア';
+        }
+      } else {
+        if (teacher.shinkansen_day1_car_number === 13) {
+          return '①13号車東京側ドア';
+        } else if (teacher.shinkansen_day1_car_number === 14) {
+          if (['1A', '1B', '1C', '1D', '1E'].includes(teacher.shinkansen_day1_seat)) {
+            return '②14号車博多側ドア';
+          } else {
+            return '③14号車東京側ドア';
+          }
+        } else if (teacher.shinkansen_day1_car_number === 15) {
+          if (teacher.shinkansen_day1_seat === '1D' || teacher.shinkansen_day1_seat === '1E') {
+            return '④15号車博多側ドア';
+          } else {
+            return '⑤15号車東京側ドア';
+          }
+        } else {
+          return '⑦16号車東京側ドア';
+        }
+      }
+    }
+  };
+
   if (loading) {
     return <div className="p-6">読み込み中...</div>;
   }
@@ -83,6 +187,10 @@ const Shinkansen = () => {
             <div>
               <span className="font-semibold">乗車位置：</span>
               <span>広島駅新幹線ホーム13番線</span>
+            </div>
+            <div>
+              <span className="font-semibold">乗降ドア：</span>
+              <span>{user?.is_teacher ? getTeacherDoor() : getStudentDoor()}</span>
             </div>
             <div className="grid grid-cols-2">
               <div>
@@ -139,6 +247,10 @@ const Shinkansen = () => {
               <div>
                 <span className="font-semibold">乗車位置：</span>
                 <span>新横浜駅新幹線ホーム4番線</span>
+              </div>
+              <div>
+                <span className="font-semibold">乗降ドア：</span>
+                <span>{user?.is_teacher ? getTeacherDoor(true) : getStudentDoor(true)}</span>
               </div>
               <div className="grid grid-cols-2">
                 <div>
