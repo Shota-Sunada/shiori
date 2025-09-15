@@ -15,7 +15,7 @@ import { DAY4_DATA, type COURSES_DAY1_KEY, type COURSES_DAY3_KEY, type COURSES_D
 import ModernTable from '../components/ModernTable';
 import ScrollToTopButton from '../components/ScrollToTopButton';
 import '../styles/index-table.css';
-import MDButton, { BackToHome } from '../components/MDButton';
+import { BackToHome } from '../components/MDButton';
 import type { Schedule } from './Admin/ScheduleAdmin/Types';
 
 const Yotei = () => {
