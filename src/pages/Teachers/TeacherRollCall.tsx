@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent, useMemo } from 'react';
+import KanaSearchModal from '../../components/KanaSearchModal';
 import type { StudentDTO } from '../../helpers/domainApi';
 import MDButton, { BackToHome } from '../../components/MDButton';
 import GroupEditorModal from '../../components/GroupEditorModal';
@@ -16,7 +17,8 @@ const TeacherRollCall = () => {
   const navigate = useNavigate();
 
   const [allStudents, setAllStudents] = useState<StudentDTO[]>([]);
-  const [specificStudentId, setSpecificStudentId] = useState('');
+  const [selectedStudents, setSelectedStudents] = useState<StudentDTO[]>([]);
+  const [kanaModalOpen, setKanaModalOpen] = useState(false);
   const [durationMinutes, setDurationMinutes] = useState(2);
   const [targetStudents, setTargetStudents] = useState<string>('default');
   const [rollCallGroups, setRollCallGroups] = useState<RollCallGroup[]>([]);
@@ -58,8 +60,9 @@ const TeacherRollCall = () => {
         return;
       }
 
-      if (specificStudentId) {
-        if (!window.confirm(`学籍番号【${specificStudentId}】の生徒に点呼を発動します。\nよろしいですか?`)) {
+      if (selectedStudents.length > 0) {
+        const ids = selectedStudents.map((s) => `【${s.gakuseki} ${s.surname} ${s.forename}】`).join('\n');
+        if (!window.confirm(`下記の生徒に点呼を発動します。\n${ids}\nよろしいですか?`)) {
           alert('点呼を中止しました。');
           return;
         }
@@ -83,15 +86,15 @@ const TeacherRollCall = () => {
       const requestBody: {
         teacher_id: number;
         duration_minutes: number;
-        specific_student_id?: string;
+        specific_student_ids?: number[];
         group_name?: string;
       } = {
         teacher_id: Number(user.userId),
         duration_minutes: durationMinutes
       };
 
-      if (specificStudentId) {
-        requestBody.specific_student_id = specificStudentId;
+      if (selectedStudents.length > 0) {
+        requestBody.specific_student_ids = selectedStudents.map((s) => s.gakuseki);
       } else if (targetStudents !== 'all') {
         requestBody.group_name = targetStudents;
       }
@@ -105,7 +108,7 @@ const TeacherRollCall = () => {
         alert(`点呼の開始に失敗しました.\n${(error as Error).message}`);
       }
     },
-    [user, token, specificStudentId, targetStudents, durationMinutes, rollCallGroups, navigate]
+    [user, token, selectedStudents, targetStudents, durationMinutes, rollCallGroups, navigate]
   );
 
   const groupOptions = useMemo(
@@ -170,19 +173,27 @@ const TeacherRollCall = () => {
               </div>
             </div>
             <div className="mb-6">
-              <label htmlFor="specific_student_id" className="block text-gray-700 text-sm font-bold mb-2">
-                {'学籍番号で特定の生徒に送信'}
-              </label>
-              <input
-                type="text"
-                name="specific_student_id"
-                id="specific_student_id"
-                placeholder="学籍番号を入力..."
-                value={specificStudentId}
-                onChange={(e) => setSpecificStudentId(e.target.value)}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              />
-              <p className="text-xs text-gray-600 mt-1">{'ここに学籍番号を入力すると、その生徒にのみ通知が送信されます。空の場合は、選択されたプリセットが適用されます。'}</p>
+              <label className="block text-gray-700 text-sm font-bold mb-2">{'カタカナ検索で生徒を選択'}</label>
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-row gap-2 flex-wrap">
+                  {selectedStudents.map((s) => (
+                    <div key={s.gakuseki} className="flex items-center bg-blue-100 rounded px-2 py-1 text-sm mb-1">
+                      <span>{`${s.surname} ${s.forename}`}</span>
+                      <button
+                        type="button"
+                        className="ml-1 text-red-500 hover:text-red-700"
+                        onClick={() => setSelectedStudents(selectedStudents.filter((x) => x.gakuseki !== s.gakuseki))}
+                        aria-label="削除">
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" className="bg-blue-500 text-white rounded px-2 py-1 hover:bg-blue-600" onClick={() => setKanaModalOpen(true)}>
+                    生徒を追加
+                  </button>
+                </div>
+                <p className="text-xs text-gray-600 mt-1">{'ここで選択した生徒にのみ通知が送信されます。空の場合は、選択されたプリセットが適用されます。'}</p>
+              </div>
             </div>
             <div className="flex items-center justify-center">
               <MDButton text="点呼開始" arrowRight color="red" type="submit" />
@@ -190,6 +201,17 @@ const TeacherRollCall = () => {
           </form>
         </div>
       </section>
+      <KanaSearchModal
+        isOpen={kanaModalOpen}
+        onClose={() => setKanaModalOpen(false)}
+        allStudents={allStudents}
+        onStudentSelect={(student) => {
+          if (!selectedStudents.some((s) => s.gakuseki === student.gakuseki)) {
+            setSelectedStudents([...selectedStudents, student]);
+          }
+        }}
+        closeOnSelect={true}
+      />
       <GroupEditorModal
         isOpen={isGroupEditorOpen}
         onClose={() => setGroupEditorOpen(false)}

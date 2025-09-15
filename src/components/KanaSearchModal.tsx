@@ -1,5 +1,4 @@
 import { useState, useEffect, type FC, useRef } from 'react';
-import { List } from 'react-window';
 import type { StudentDTO } from '../helpers/domainApi';
 import StudentCardContent from './StudentCardContent';
 import Modal from './Modal';
@@ -50,10 +49,9 @@ const getDakutenHandakutenMap = (): Map<string, string[]> => {
   return map;
 };
 
-const KanaSearchModal: FC<KanaSearchModalProps> = ({ isOpen, onClose, allStudents, onStudentSelect, closeOnSelect = true }) => {
+const KanaSearchModal: FC<KanaSearchModalProps> = ({ isOpen, onClose, allStudents = [], onStudentSelect, closeOnSelect = true }) => {
   const [showResults, setShowResults] = useState(false);
-  const [currentKana, setCurrentKana] = useState<string | undefined>('');
-  const [selectedKana, setSelectedKana] = useState('');
+  const [selectedKana, setSelectedKana] = useState<string>('');
   const [filteredBySurnameKana, setFilteredBySurnameKana] = useState<StudentDTO[]>([]);
   const [filteredByForenameKana, setFilteredByForenameKana] = useState<StudentDTO[]>([]);
 
@@ -69,10 +67,11 @@ const KanaSearchModal: FC<KanaSearchModalProps> = ({ isOpen, onClose, allStudent
       const dakutenHandakutenMap = getDakutenHandakutenMap();
       const searchKanas = dakutenHandakutenMap.get(selectedKana) || [selectedKana];
 
-      const surnameMatches = allStudents.filter((s) => {
+      const students = Array.isArray(allStudents) ? allStudents : [];
+      const surnameMatches = students.filter((s) => {
         return s.surname_kana && searchKanas.some((kana) => s.surname_kana.startsWith(kana));
       });
-      const forenameMatches = allStudents.filter((s) => {
+      const forenameMatches = students.filter((s) => {
         return s.forename_kana && searchKanas.some((kana) => s.forename_kana.startsWith(kana));
       });
 
@@ -102,13 +101,14 @@ const KanaSearchModal: FC<KanaSearchModalProps> = ({ isOpen, onClose, allStudent
       onClose();
     }
   };
+  // react-window廃止のためグローバル参照不要
 
   const handleClose = () => {
     onClose();
   };
 
   const handleClosed = () => {
-    setCurrentKana(undefined);
+    setSelectedKana('');
   };
 
   return (
@@ -130,15 +130,13 @@ const KanaSearchModal: FC<KanaSearchModalProps> = ({ isOpen, onClose, allStudent
           {showResults ? (
             <button
               onClick={() => {
-                setCurrentKana(undefined);
+                setSelectedKana('');
                 setShowResults(false);
               }}
               className="flex flex-row items-center bg-none border-none cursor-pointer">
               <p>{'戻る'}</p>
             </button>
-          ) : (
-            <></>
-          )}
+          ) : null}
           <button onClick={handleClose} className="flex flex-row items-center bg-none border-none cursor-pointer">
             <p>{'閉じる'}</p>
             <p className="ml-1 text-2xl">&times;</p>
@@ -153,10 +151,7 @@ const KanaSearchModal: FC<KanaSearchModalProps> = ({ isOpen, onClose, allStudent
                     ref={index === 0 ? firstInteractiveRef : undefined}
                     className="p-2.5 border-2 border-solid border-[#ccc] bg-[#f9f9f9] rounded-md cursor-pointer hover:bg-[#eee] focus:outline-none focus:ring"
                     key={index}
-                    onClick={() => {
-                      handleKanaClick(kana);
-                      setCurrentKana(kana);
-                    }}>
+                    onClick={() => handleKanaClick(kana)}>
                     {kana}
                   </button>
                 ) : (
@@ -166,40 +161,28 @@ const KanaSearchModal: FC<KanaSearchModalProps> = ({ isOpen, onClose, allStudent
             </div>
           ) : (
             <div className="flex flex-col min-h-0">
-              <p>{`「${currentKana}」の検索結果`}</p>
+              <p>{selectedKana ? `「${selectedKana}」の検索結果` : ''}</p>
               <div className="flex flex-col min-h-0 overflow-y-auto">
                 <p>{'姓'}</p>
                 <div className="">
-                  {filteredBySurnameKana.length > 0 ? (
-                    <List height={Math.min(240, filteredBySurnameKana.length * 56)} itemCount={filteredBySurnameKana.length} itemSize={56} width={'100%'} itemData={filteredBySurnameKana}>
-                      {/* @ts-expect-error react-window型エラー抑制 */}
-                      {({ index, style, data }) => {
-                        const s = data[index];
-                        return (
-                          <div key={s.gakuseki} style={style} className="p-1 border-b-2 border-solid border-[#eee] cursor-pointer hover:bg-[#f0f0f0]" onClick={() => handleStudentClick(s)}>
-                            <StudentCardContent student={s} />
-                          </div>
-                        );
-                      }}
-                    </List>
+                  {selectedKana && filteredBySurnameKana.length > 0 ? (
+                    filteredBySurnameKana.map((s) => (
+                      <div key={s.gakuseki} className="p-1 border-b-2 border-solid border-[#eee] cursor-pointer hover:bg-[#f0f0f0]" onClick={() => handleStudentClick(s)}>
+                        <StudentCardContent student={s} />
+                      </div>
+                    ))
                   ) : (
                     <p>{'該当する生徒は見つかりませんでした。'}</p>
                   )}
                 </div>
                 <p className="mt-4">{'名'}</p>
                 <div className="">
-                  {filteredByForenameKana.length > 0 ? (
-                    <List height={Math.min(240, filteredByForenameKana.length * 56)} itemCount={filteredByForenameKana.length} itemSize={56} width={'100%'} itemData={filteredByForenameKana}>
-                      {/* @ts-expect-error react-window型エラー抑制 */}
-                      {({ index, style, data }) => {
-                        const s = data[index];
-                        return (
-                          <div key={s.gakuseki} style={style} className="p-1 border-b-2 border-solid border-[#eee] cursor-pointer hover:bg-[#f0f0f0]" onClick={() => handleStudentClick(s)}>
-                            <StudentCardContent student={s} />
-                          </div>
-                        );
-                      }}
-                    </List>
+                  {selectedKana && filteredByForenameKana.length > 0 ? (
+                    filteredByForenameKana.map((s) => (
+                      <div key={s.gakuseki} className="p-1 border-b-2 border-solid border-[#eee] cursor-pointer hover:bg-[#f0f0f0]" onClick={() => handleStudentClick(s)}>
+                        <StudentCardContent student={s} />
+                      </div>
+                    ))
                   ) : (
                     <p>{'該当する生徒は見つかりませんでした。'}</p>
                   )}
