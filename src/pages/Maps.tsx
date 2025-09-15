@@ -45,6 +45,7 @@ const Maps = () => {
       return (
         <div className="flex flex-col items-center justify-center text-center">
           <p>{'閲覧したいマップを選択してください'}</p>
+          <p>{"まだ作ってる途中だから雑です。m(._.)m"}</p>
           <p
             className="bg-blue-400 px-20 py-10 text-white m-3 cursor-pointer"
             onClick={() => {
