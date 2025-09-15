@@ -16,7 +16,7 @@ const Boats = () => {
     (async () => {
       setLoading(true);
       try {
-        const [boatsData, studentsData, teachersData] = await Promise.all([boatAssignmentsApi.list(), studentApi.list({ alwaysFetch: true }), teacherApi.list()]);
+        const [boatsData, studentsData, teachersData] = await Promise.all([boatAssignmentsApi.list(), studentApi.list(), teacherApi.list()]);
         setBoats(boatsData);
         setStudents(studentsData);
         setTeachers(teachersData);

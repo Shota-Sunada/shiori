@@ -46,7 +46,7 @@ interface AppFetchOptions extends Omit<BaseRequestOptions, 'authToken' | 'json'>
 
 const responseCache: Record<string, { data: unknown; at: number }> = {};
 
-export const DEFAULT_TTL_MS = 0; // 明示未指定の場合はTTL無効 (0で判定スキップ)
+export const DEFAULT_TTL_MS = 1000 * 60 * 60 * 3; // 明示未指定の場合は3時間
 
 export async function appFetch<T = unknown>(url: string, opts: AppFetchOptions = {}): Promise<T> {
   const { requiresAuth, jsonBody, cacheKey, alwaysFetch, ttlMs = DEFAULT_TTL_MS, staleWhileRevalidate, ...rest } = opts;

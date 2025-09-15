@@ -9,8 +9,7 @@ export interface BoatAssignmentDTO {
 export const boatAssignmentsApi = {
   list: () =>
     appFetch<BoatAssignmentDTO[]>(`${SERVER_ENDPOINT}/api/boats`, {
-      requiresAuth: true,
-      alwaysFetch: true
+      requiresAuth: true
     }),
   create: (payload: { boat_index: number; student_ids: number[]; teacher_ids: number[] }) =>
     mutate({
@@ -117,8 +116,7 @@ export const studentApi = {
     }),
   roommates: (hotel: 'tdh' | 'fpr', room: string | number) =>
     appFetch<Pick<StudentDTO, 'gakuseki' | 'surname' | 'forename' | 'class' | 'number'>[]>(`${SERVER_ENDPOINT}/api/students/roommates/${hotel}/${room}`, {
-      requiresAuth: true,
-      alwaysFetch: true
+      requiresAuth: true
     })
 };
 
@@ -192,8 +190,7 @@ export const teacherApi = {
   self: (id: string | number) =>
     appFetch<TeacherDTO>(`${SERVER_ENDPOINT}/api/teachers/${id}`, {
       requiresAuth: true,
-      cacheKey: CacheKeys.teachers.self(id),
-      alwaysFetch: true
+      cacheKey: CacheKeys.teachers.self(id)
     }),
   add: (payload: Omit<TeacherDTO, 'id'> & { id: number }) =>
     mutate({
@@ -233,8 +230,7 @@ export interface OtanoshimiTeamDTO {
 export const otanoshimiApi = {
   list: () =>
     appFetch<OtanoshimiTeamDTO[]>(`${SERVER_ENDPOINT}/api/otanoshimi`, {
-      requiresAuth: true,
-      alwaysFetch: true // 毎回最新
+      requiresAuth: true
     })
 };
 

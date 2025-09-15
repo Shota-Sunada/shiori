@@ -5,7 +5,7 @@ import '../styles/index-table.css';
 import ModernTable from './ModernTable';
 import VerticalLabel from './VerticalLabel';
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import RoomDataModal from './RoomDataModal';
 import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import { usePrefetchNavigate } from '../prefetch/usePrefetchNavigate';
@@ -26,7 +26,7 @@ interface IndexTableProps {
 const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = false }: IndexTableProps) => {
   // useNavigateは他セルで今後使う可能性があるが現状未使用のため削除
   const { navigateWithPrefetch } = usePrefetchNavigate();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { token } = useAuth();
   const [showRoommateModal, setShowRoommateModal] = useState(false);
   const [currentRoommates, setCurrentRoommates] = useState<Roommate[]>([]);
@@ -139,12 +139,24 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
               onClick={() => {
                 if (studentData) {
                   if (isStudentSearch) {
-                    navigate(`/yotei?user=${studentData.gakuseki}`);
+                    navigateWithPrefetch({
+                      to: `/yotei?user=${studentData.gakuseki}`,
+                      key: 'yoteiStudent',
+                      fetcher: async () => appFetch(`${SERVER_ENDPOINT}/api/students/${studentData.gakuseki}`, { requiresAuth: true })
+                    });
                   } else {
-                    navigate('/yotei');
+                    navigateWithPrefetch({
+                      to: '/yotei',
+                      key: 'yoteiStudent',
+                      fetcher: async () => appFetch(`${SERVER_ENDPOINT}/api/students`, { requiresAuth: true })
+                    });
                   }
                 } else if (teacherData) {
-                  navigate('/yotei');
+                  navigateWithPrefetch({
+                    to: '/yotei',
+                    key: 'studentIndexData',
+                    fetcher: async () => appFetch(`${SERVER_ENDPOINT}/api/teachers`, { requiresAuth: true })
+                  });
                 }
               }}>
               {isStudentSearch ? (studentData ? `${studentData.surname} ${studentData.forename} ` : '◯◯◯◯') : 'あなた'}
@@ -158,7 +170,11 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
                 <td
                   className="cell-interactive"
                   onClick={() => {
-                    navigate('/maps');
+                    navigateWithPrefetch({
+                      to: '/maps',
+                      key: 'mapsPage',
+                      fetcher: async () => Promise.resolve(null)
+                    });
                   }}>
                   {'マップをチェック！'}
                 </td>
@@ -168,7 +184,11 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
                 <td
                   className="cell-interactive"
                   onClick={() => {
-                    navigate('/goods');
+                    navigateWithPrefetch({
+                      to: '/goods',
+                      key: 'goodsPage',
+                      fetcher: async () => Promise.resolve(null)
+                    });
                   }}>
                   {'持ち物を確認しましょう！'}
                 </td>
@@ -211,7 +231,11 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
             <td
               className="cell-interactive"
               onClick={() => {
-                navigate('/day2');
+                navigateWithPrefetch({
+                  to: '/day2',
+                  key: 'day2List',
+                  fetcher: async () => appFetch(`${SERVER_ENDPOINT}/api/students`, { requiresAuth: true })
+                });
               }}>
               {'班の一覧をチェック！'}
             </td>
@@ -247,7 +271,15 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
           {((studentData && studentData.day3id === 'okutama') || teacherData) && (
             <tr>
               <td className="label-cell">{'ボート割'}</td>
-              <td className="cell-interactive" onClick={() => navigate('/boats')}>
+              <td
+                className="cell-interactive"
+                onClick={() =>
+                  navigateWithPrefetch({
+                    to: '/boats',
+                    key: 'boatsList',
+                    fetcher: async () => appFetch(`${SERVER_ENDPOINT}/api/boats`, { requiresAuth: true, alwaysFetch: true })
+                  })
+                }>
                 ﾗﾌﾃｨﾝｸﾞのボート割をチェック！
               </td>
             </tr>
@@ -423,7 +455,11 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
               className="cell-interactive"
               onClick={() => {
                 if (!isStudentSearch) {
-                  navigate('/shinkansen?tab=day1');
+                  navigateWithPrefetch({
+                    to: '/shinkansen?tab=day1',
+                    key: 'shinkansenDay1',
+                    fetcher: async () => Promise.resolve(null)
+                  });
                 }
               }}>
               {(studentData && (
@@ -456,7 +492,11 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
               className="cell-interactive"
               onClick={() => {
                 if (!isStudentSearch) {
-                  navigate('/shinkansen?tab=day4');
+                  navigateWithPrefetch({
+                    to: '/shinkansen?tab=day4',
+                    key: 'shinkansenDay4',
+                    fetcher: async () => Promise.resolve(null)
+                  });
                 }
               }}>
               {(studentData && (

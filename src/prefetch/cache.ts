@@ -1,5 +1,16 @@
 // シンプルなメモリキャッシュ (ページ遷移前プレフェッチ用)
-export type PrefetchKey = 'otanoshimiTeams' | 'rollCalls' | 'studentIndexData';
+export type PrefetchKey =
+  | 'otanoshimiTeams'
+  | 'rollCalls'
+  | 'studentIndexData'
+  | 'yoteiStudent'
+  | 'yoteiTeacher'
+  | 'mapsPage'
+  | 'goodsPage'
+  | 'day2List'
+  | 'boatsList'
+  | 'shinkansenDay1'
+  | 'shinkansenDay4';
 
 type CacheStore = Partial<Record<PrefetchKey, unknown>>;
 
