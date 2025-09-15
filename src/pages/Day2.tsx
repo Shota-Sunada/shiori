@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { studentApi, type StudentDTO } from '../helpers/domainApi';
-import  { BackToHome } from '../components/MDButton';
+import { BackToHome } from '../components/MDButton';
 import { useAuth } from '../auth-context';
 
 const Day2: React.FC = () => {
@@ -35,7 +35,7 @@ const Day2: React.FC = () => {
 
   // 各classごとにテーブルを作成
   return (
-    <div className="p-4 space-y-8">
+    <div className="flex flex-col items-center justify-center">
       {Object.entries(classMap).map(([classNum, classStudents]) => {
         // day2numごとに班員・班長をグループ化
         const byDay2num: Record<number, { leader?: StudentDTO; members: StudentDTO[] }> = {};
@@ -66,19 +66,19 @@ const Day2: React.FC = () => {
           showMemberCols[i] = sortedDay2nums.some((num) => !!byDay2num[num]?.members[i]);
         }
         return (
-          <div key={classNum} className='flex flex-col items-center justify-center'>
+          <div key={classNum} className="flex flex-col items-center justify-center">
             <h2 className="text-lg font-bold mb-2">{classNum}組</h2>
-            <div className="overflow-x-auto rounded-lg shadow-lg border border-gray-200 bg-gradient-to-br from-white to-blue-50">
-              <table className="min-w-max w-full border-separate border-spacing-0">
+            <div className="w-screen max-w-[90%] overflow-x-auto rounded-lg shadow-lg border border-gray-200 bg-gradient-to-br from-white to-blue-50">
+              <table className="min-w-max border-separate border-spacing-0">
                 <thead>
                   <tr>
-                    <th className="px-4 py-2 border-b-2 border-blue-200 bg-blue-100 text-blue-900 font-semibold text-center rounded-tl-lg">班番号</th>
-                    {showLeaderCol && <th className="px-4 py-2 border-b-2 border-blue-200 bg-blue-100 text-blue-900 font-semibold text-center">班長</th>}
+                    <th className="sticky top-0 z-20 px-4 py-2 border-b-2 border-blue-200 bg-blue-100 text-blue-900 font-semibold text-center rounded-tl-lg">班</th>
+                    {showLeaderCol && <th className="sticky top-0 z-20 px-4 py-2 border-b-2 border-blue-200 bg-blue-100 text-blue-900 font-semibold text-center">班長</th>}
                     {showMemberCols.map((show, i) =>
                       show ? (
                         <th
                           key={`member-header-${i}`}
-                          className={'px-4 py-2 border-b-2 border-blue-200 bg-blue-100 text-blue-900 font-semibold text-center' + (i === showMemberCols.length - 1 ? ' rounded-tr-lg' : '')}>
+                          className={'sticky top-0 z-20 px-4 py-2 border-b-2 border-blue-200 bg-blue-100 text-blue-900 font-semibold text-center' + (i === showMemberCols.length - 1 ? ' rounded-tr-lg' : '')}>
                           班員
                         </th>
                       ) : null
