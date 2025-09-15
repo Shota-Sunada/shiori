@@ -117,7 +117,7 @@ const Day2: React.FC = () => {
                               className={
                                 'px-4 py-2 border-b border-r border-blue-100 text-center ' + (!s ? 'text-gray-300 bg-gray-50' : '') + (i === showMemberCols.length - 1 ? ' rounded-tr-lg' : '')
                               }>
-                              {s ? `${s.surname}${s.forename}` : '-'}
+                              {s ? `${s.surname} ${s.forename}` : '-'}
                             </td>
                           );
                         })}
