@@ -1,5 +1,4 @@
-import { useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useMemo } from 'react';
 import MDButton from '../components/MDButton';
 import { usePWAInstallPrompt } from '../hooks/usePWAInstallPrompt';
 import { detectPWAPushSupport, parseClientEnvironment } from '../helpers/pwaSupport';
@@ -152,35 +151,12 @@ function useIsStandalone() {
 
 const InstallPWA = () => {
   const isStandalone = useIsStandalone();
-  const { supported, promptInstall, deferred, outcome } = usePWAInstallPrompt();
-  const navigate = useNavigate();
+  const { promptInstall, outcome } = usePWAInstallPrompt();
   const { unsupportedPush, reason } = detectPWAPushSupport();
   const env = parseClientEnvironment();
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
   const { browserStatus, supportedBrowserNames } = getSupportContext(env.os, env.browser);
   const isSupportedEnv = browserStatus === 'supported';
-
-  const proceed = (to: string) => {
-    try {
-      localStorage.setItem('pwaInstallSeen', '1');
-    } catch {
-      /* ignore storage errors */
-    }
-    navigate(to, { replace: true });
-  };
-
-  useEffect(() => {
-    // outcome をログ（必要なら削除可）
-    if (outcome) console.log('PWA install outcome:', outcome);
-    if (outcome) {
-      // インストール試行結果が出たら次へ進めるようにフラグ保存
-      try {
-        localStorage.setItem('pwaInstallSeen', '1');
-      } catch {
-        /* ignore */
-      }
-    }
-  }, [outcome]);
 
   if (isStandalone) {
     return (
@@ -243,47 +219,44 @@ const InstallPWA = () => {
 
         {isSupportedEnv && !unsupportedPush && (
           <div className="space-y-6 text-left">
-            {supported && deferred ? (
-              <div className="space-y-4 text-center flex flex-col items-center justify-center">
-                <p className="font-semibold">インストール可能</p>
-                <MDButton text="インストール" arrowRight onClick={promptInstall} />
-                <p className="text-xs text-gray-600">上手くいかない場合は下記補足を参照してください。</p>
-                <div className="text-xs bg-white/70 rounded p-3 space-y-2 w-full text-left">
-                  <p className="font-medium">インストール項目が表示されない / 失敗する場合</p>
-                  <ul className="list-disc ml-5 space-y-1">
-                    <li>数回ページ操作後に再度インストールを試す。</li>
-                    <li>ブラウザを再起動してキャッシュを更新。</li>
-                    {ios ? <li>必ず Safari を使用 (共有ボタンから追加)。他ブラウザは非対応。</li> : <li>Chrome / Edge を最新版へ更新。</li>}
-                    <li>それでも出ない場合は下の「対応ブラウザ一覧」を確認し推奨ブラウザへ切替。</li>
-                  </ul>
-                </div>
+            <div className="space-y-4 text-center flex flex-col items-center justify-center">
+              <p className="font-semibold">インストール可能</p>
+              <MDButton text="インストール" arrowRight onClick={promptInstall} />
+              <p className="text-xs text-gray-600">上手くいかない場合は下記補足を参照してください。</p>
+              <div className="text-xs bg-white/70 rounded p-3 space-y-2 w-full text-left">
+                <p className="font-medium">インストール項目が表示されない / 失敗する場合</p>
+                <ul className="list-disc ml-5 space-y-1">
+                  <li>数回ページ操作後に再度インストールを試す。</li>
+                  <li>ブラウザを再起動してキャッシュを更新。</li>
+                  {ios ? <li>必ず Safari を使用 (共有ボタンから追加)。他ブラウザは非対応。</li> : <li>Chrome / Edge を最新版へ更新。</li>}
+                  <li>それでも出ない場合は下の「対応ブラウザ一覧」を確認し推奨ブラウザへ切替。</li>
+                </ul>
               </div>
-            ) : (
-              <div className="space-y-5 flex flex-col items-stretch">
-                <p className="font-semibold text-center">インストール (ホーム画面追加) 詳細手順</p>
-                <DetailedInstallSteps os={env.os} browser={env.browser} ios={ios} />
-                <div className="text-xs bg-white/70 rounded p-3 space-y-2">
-                  <p className="font-medium">インストール項目が表示されない場合</p>
-                  <ul className="list-disc ml-5 space-y-1">
-                    <li>数回利用 (ナビゲーション) 後にバナーが出ることがあります。</li>
-                    <li>ブラウザを一度終了して再起動。</li>
-                    {ios ? <li>iOS は Safari の共有メニューからのみ追加可能。</li> : <li>Chrome / Edge の最新版を利用しているか確認。</li>}
-                    <li>出ない場合でもメニュー内「ホーム画面に追加」等で手動追加できます。</li>
-                  </ul>
-                </div>
+            </div>
+            <div className="space-y-5 flex flex-col items-stretch">
+              <p className="font-semibold text-center">インストール (ホーム画面追加) 詳細手順</p>
+              <DetailedInstallSteps os={env.os} browser={env.browser} ios={ios} />
+              <div className="text-xs bg-white/70 rounded p-3 space-y-2">
+                <p className="font-medium">インストール項目が表示されない場合</p>
+                <ul className="list-disc ml-5 space-y-1">
+                  <li>数回利用 (ナビゲーション) 後にバナーが出ることがあります。</li>
+                  <li>ブラウザを一度終了して再起動。</li>
+                  {ios ? <li>iOS は Safari の共有メニューからのみ追加可能。</li> : <li>Chrome / Edge の最新版を利用しているか確認。</li>}
+                  <li>出ない場合でもメニュー内「ホーム画面に追加」等で手動追加できます。</li>
+                </ul>
               </div>
-            )}
+            </div>
           </div>
         )}
 
         <BrowserMatrix currentBrowserName={env.browser} currentOS={env.os} />
         {outcome === 'accepted' && <p className="text-green-600 font-semibold">インストールを受け付けました。ホーム画面を確認してください。</p>}
         {outcome === 'dismissed' && <p className="text-orange-600 text-base">インストールがキャンセルされました。後でもう一度お試しください。</p>}
-        {!(isSupportedEnv && !unsupportedPush) && (
+        {/* {!(isSupportedEnv && !unsupportedPush) && (
           <div className="pt-4 flex flex-col items-center justify-center">
             <MDButton text={unsupportedPush ? 'インストールせず続行 (通知非対応)' : 'インストールせず続行'} arrowRight onClick={() => proceed('/login')} />
           </div>
-        )}
+        )} */}
       </div>
     </PageContainer>
   );
