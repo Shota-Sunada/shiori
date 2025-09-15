@@ -80,6 +80,7 @@ export interface StudentFormData {
   class: string;
   number: string;
   gakuseki: string;
+  day2num: string;
   day1id: string;
   day3id: string;
   day1bus: string;

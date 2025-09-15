@@ -42,6 +42,7 @@ router.post('/', async (req: Request, res: Response) => {
     forename_kana,
     class: studentClass,
     number: studentNumber,
+    day2num,
     day1id,
     day3id,
     day1bus,
@@ -58,11 +59,11 @@ router.post('/', async (req: Request, res: Response) => {
     await pool.execute(
       `INSERT INTO students (
         gakuseki, surname, forename, surname_kana, forename_kana,
-        class, number, day1id, day3id,
+        class, number, day2num, day1id, day3id,
         day1bus, day3bus, room_fpr, room_tdh,
         shinkansen_day1_car_number, shinkansen_day1_seat,
         shinkansen_day4_car_number, shinkansen_day4_seat
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         gakuseki,
         surname,
@@ -71,6 +72,7 @@ router.post('/', async (req: Request, res: Response) => {
         forename_kana,
         studentClass,
         studentNumber,
+        day2num,
         day1id,
         day3id,
         day1bus,
@@ -144,6 +146,9 @@ router.post('/batch', async (req: Request, res: Response) => {
       const { gakuseki, ...rest } = studentData;
       const [existing] = await connection.execute<RowDataPacket[]>('SELECT gakuseki FROM students WHERE gakuseki = ?', [gakuseki]);
 
+      // day2numがなければ0を補完
+      if (rest.day2num === undefined) rest.day2num = 0;
+
       if (existing.length > 0) {
         // Update
         const fields = Object.keys(rest)
@@ -153,6 +158,7 @@ router.post('/batch', async (req: Request, res: Response) => {
         await connection.execute(`UPDATE students SET ${fields} WHERE gakuseki = ?`, [...values, gakuseki]);
       } else {
         // Insert
+        if (studentData.day2num === undefined) studentData.day2num = 0;
         const columns = Object.keys(studentData).join(', ');
         const placeholders = Object.keys(studentData)
           .map(() => '?')

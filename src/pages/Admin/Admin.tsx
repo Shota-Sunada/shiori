@@ -62,6 +62,7 @@ const allColumns: { key: keyof StudentDTO; label: string; className: string; sor
   { key: 'class', label: '組', className: 'w-8', sortable: true },
   { key: 'number', label: '番号', className: 'w-10', sortable: true },
   { key: 'day1id', label: '①研修先', className: 'w-40', sortable: true },
+  { key: 'day2num', label: '②班番号', className: 'w-16', sortable: true },
   { key: 'day3id', label: '③研修先', className: 'w-40', sortable: true },
   { key: 'day1bus', label: '①バス', className: 'w-20', sortable: true },
   { key: 'day3bus', label: '③バス', className: 'w-20', sortable: true },
@@ -131,12 +132,13 @@ const sortList = (list: StudentDTO[], configs: SortConfig[]): StudentDTO[] => {
   return sortedList;
 };
 
-const initialForm: Omit<StudentDTO, 'class' | 'number' | 'gakuseki' | 'shinkansen_day1_car_number' | 'shinkansen_day4_car_number'> & {
+const initialForm: Omit<StudentDTO, 'class' | 'number' | 'gakuseki' | 'shinkansen_day1_car_number' | 'shinkansen_day4_car_number' | 'day2num'> & {
   class: string;
   number: string;
   gakuseki: string;
   shinkansen_day1_car_number: string;
   shinkansen_day4_car_number: string;
+  day2num: string;
 } = {
   surname: '',
   forename: '',
@@ -145,6 +147,7 @@ const initialForm: Omit<StudentDTO, 'class' | 'number' | 'gakuseki' | 'shinkanse
   class: '',
   number: '',
   gakuseki: '',
+  day2num: '',
   day1id: 'yrp_nifco',
   day3id: 'okutama',
   day1bus: '',
@@ -351,6 +354,7 @@ const Admin = () => {
       class: String(s.class),
       number: String(s.number),
       gakuseki: String(s.gakuseki),
+      day2num: s.day2num !== undefined && s.day2num !== null ? String(s.day2num) : '',
       shinkansen_day1_car_number: String(s.shinkansen_day1_car_number),
       shinkansen_day4_car_number: String(s.shinkansen_day4_car_number)
     });
@@ -701,6 +705,7 @@ const Admin = () => {
               class: Number(formData.class) as IntRange<1, 8>,
               number: Number(formData.number) as IntRange<1, 8>,
               gakuseki: Number(formData.gakuseki),
+              day2num: Number(formData.day2num),
               room_fpr: Number(formData.room_fpr),
               room_tdh: Number(formData.room_tdh),
               shinkansen_day1_car_number: Number(formData.shinkansen_day1_car_number) as IntRange<1, 17>,

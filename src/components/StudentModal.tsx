@@ -13,6 +13,7 @@ const localInitialForm: StudentFormData = {
   class: '',
   number: '',
   gakuseki: '',
+  day2num: '',
   day1id: 'yrp_nifco',
   day3id: 'okutama',
   day1bus: '',
@@ -145,6 +146,9 @@ const StudentModal = ({ open, onSave, onCancel, day1idOptions, day3idOptions, in
             </option>
           ))}
         </select>
+
+        <label htmlFor="day2num">{'二日目番号'}</label>
+        <input id="day2num" name="day2num" type="number" value={form.day2num} onChange={handleChange} />
 
         <label htmlFor="day3id">{'三日目研修先'}</label>
         <select id="day3id" name="day3id" value={form.day3id} required onChange={handleChange}>

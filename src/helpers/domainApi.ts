@@ -60,6 +60,7 @@ export interface StudentDTO {
   shinkansen_day1_seat: string;
   shinkansen_day4_car_number: IntRange<1, 17>;
   shinkansen_day4_seat: string;
+  day2num: number;
 }
 
 export const studentApi = {

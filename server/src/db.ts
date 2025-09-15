@@ -108,6 +108,7 @@ async function initializeDatabase() {
         forename_kana VARCHAR(255) NOT NULL,
         class INT NOT NULL,
         number INT NOT NULL,
+        day2num INT NOT NULL DEFAULT 0,
         day1id VARCHAR(255) NOT NULL,
         day3id VARCHAR(255) NOT NULL,
         day1bus INT NOT NULL DEFAULT 0,
