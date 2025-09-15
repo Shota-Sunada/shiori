@@ -105,6 +105,7 @@ import { studentApi, teacherApi } from '../helpers/domainApi';
 import type { StudentDTO, TeacherDTO } from '../helpers/domainApi';
 import { pad2 } from '../helpers/pad2';
 import MDButton from '../components/MDButton';
+import { useAuth } from '../auth-context';
 const CAR_NUMBERS = [13, 14, 15, 16];
 const CAR_ROWS: Record<number, number> = {
   16: 15,
@@ -116,6 +117,7 @@ const CAR_ROWS: Record<number, number> = {
 const BASE_SEATS = ['A', 'B', 'C', '', 'D', 'E']; // 3+通路+2配列
 
 const ShinkansenFloor = () => {
+  const { user } = useAuth();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const direction = params.get('direction');
@@ -291,11 +293,38 @@ const ShinkansenFloor = () => {
                           }
                           const seatKey = `${car}-${row}${seat}`;
                           const seatData = seatMap.get(seatKey);
+                          const youCss = 'bg-red-100 text-red-900 border-red-400';
+                          const teacherCss = 'bg-yellow-100 text-yellow-900 border-yellow-400';
+                          const staffCss = 'bg-purple-100 text-purple-900 border-purple-400';
+                          const studentCss = 'bg-green-100 text-gray-700 border-green-300';
+                          const othersCss = 'bg-blue-50 text-gray-700 hover:bg-blue-200';
+
+                          let css = othersCss;
+                          if (seatData) {
+                            // 自分の席かどうか判定
+                            let isYou = false;
+                            if (user) {
+                              if (seatData.type === 'student' && 'gakuseki' in seatData.data && user.userId && String(user.userId) === String((seatData.data as StudentDTO).gakuseki)) {
+                                isYou = true;
+                              } else if (seatData.type === 'teacher' && 'id' in seatData.data && user.userId && String(user.userId) === String((seatData.data as TeacherDTO).id)) {
+                                isYou = true;
+                              }
+                            }
+                            if (isYou) {
+                              css = youCss;
+                            } else if (seatData.type === 'teacher') {
+                              css = teacherCss;
+                            } else if (seatData.type === 'staff') {
+                              css = staffCss;
+                            } else if (seatData.type === 'student') {
+                              css = studentCss;
+                            }
+                          }
+
                           return (
                             <div
                               key={row + seat}
-                              className={`w-16 h-12 flex flex-col items-center justify-center border-2 rounded text-base cursor-pointer font-semibold m-0.5
-                              ${seatData ? (seatData.type === 'teacher' ? 'bg-yellow-100 text-yellow-900 border-yellow-400' : seatData.type === 'staff' ? 'bg-purple-100 text-purple-900 border-purple-400' : 'bg-green-100 text-gray-700 border-green-300') : 'bg-blue-50 text-gray-700 hover:bg-blue-200'}`}
+                              className={`w-16 h-12 flex flex-col items-center justify-center border-2 rounded text-base cursor-pointer font-semibold m-0.5 ${css}`}
                               title={`${car}号車${row}${seat}`}>
                               {seatData ? (
                                 seatData.type === 'teacher' ? (
