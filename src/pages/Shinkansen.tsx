@@ -181,63 +181,75 @@ const Shinkansen = () => {
       </div>
 
       {tab === 'day1' && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-2">1日目（ゆき）のぞみ84号 東京行</h2>
-          <div className="bg-white rounded shadow p-4 flex flex-col gap-2">
-            <div>
-              <span className="font-semibold">乗車位置：</span>
-              <span>広島駅新幹線ホーム13番線</span>
-            </div>
-            <div>
-              <span className="font-semibold">乗降ドア：</span>
-              <span>{user?.is_teacher ? getTeacherDoor() : getStudentDoor()}</span>
-            </div>
-            <div className="grid grid-cols-2">
+        <>
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-2">1日目（ゆき）のぞみ84号 東京行</h2>
+            <div className="bg-white rounded shadow p-4 flex flex-col gap-2">
               <div>
-                <span className="font-semibold">号車：</span>
-                {(student && <span>{student.shinkansen_day1_car_number}号車</span>) || (teacher && <span>{teacher.shinkansen_day1_car_number}号車</span>) || (
-                  <span className="text-gray-400">未割当</span>
-                )}
+                <span className="font-semibold">乗車位置：</span>
+                <span>広島駅新幹線ホーム13番線</span>
               </div>
               <div>
-                <span className="font-semibold">座席：</span>
-                {(student && <span>{student.shinkansen_day1_seat}</span>) || (teacher && <span>{teacher.shinkansen_day1_seat}</span>) || <span className="text-gray-400">未割当</span>}
+                <span className="font-semibold">乗降ドア：</span>
+                <span>{user?.is_teacher ? getTeacherDoor() : getStudentDoor()}</span>
               </div>
-            </div>
-            {(student && day1TokyoGetOff.includes(student.day1id)) || (teacher && day1TokyoGetOff.includes(teacher.day1id)) ? (
-              <>
+              <div className="grid grid-cols-2">
                 <div>
-                  <span className="font-semibold">降車駅：</span>
-                  <span>東京駅で降車</span>
+                  <span className="font-semibold">号車：</span>
+                  {(student && <span>{student.shinkansen_day1_car_number}号車</span>) || (teacher && <span>{teacher.shinkansen_day1_car_number}号車</span>) || (
+                    <span className="text-gray-400">未割当</span>
+                  )}
                 </div>
-                <div className="flex items-center justify-center">
-                  <span className="font-semibold">東京駅では、進行方向右側の扉が開きます。</span>
-                </div>
-              </>
-            ) : (
-              <>
                 <div>
-                  <span className="font-semibold">降車駅：</span>
-                  <span>新横浜駅で降車</span>
+                  <span className="font-semibold">座席：</span>
+                  {(student && <span>{student.shinkansen_day1_seat}</span>) || (teacher && <span>{teacher.shinkansen_day1_seat}</span>) || <span className="text-gray-400">未割当</span>}
                 </div>
-                <div className="flex items-center justify-center">
-                  <span className="font-semibold">新横浜駅では、進行方向左側の扉が開きます。</span>
-                </div>
-              </>
-            )}
-            <div className="grid grid-cols-3 text-center">
-              <span>広島駅</span>
-              <span></span>
-              <span>7:57発</span>
-              <span>新横浜駅</span>
-              <span>11:34着</span>
-              <span>11:35発</span>
-              <span>東京駅</span>
-              <span>11:57着</span>
-              <span></span>
+              </div>
+              {(student && day1TokyoGetOff.includes(student.day1id)) || (teacher && day1TokyoGetOff.includes(teacher.day1id)) ? (
+                <>
+                  <div>
+                    <span className="font-semibold">降車駅：</span>
+                    <span>東京駅で降車</span>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <span className="font-semibold">東京駅では、進行方向右側の扉が開きます。</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <span className="font-semibold">降車駅：</span>
+                    <span>新横浜駅で降車</span>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <span className="font-semibold">新横浜駅では、進行方向左側の扉が開きます。</span>
+                  </div>
+                </>
+              )}
+              <div className="grid grid-cols-3 text-center">
+                <span>広島駅</span>
+                <span></span>
+                <span>7:57発</span>
+                <span>新横浜駅</span>
+                <span>11:34着</span>
+                <span>11:35発</span>
+                <span>東京駅</span>
+                <span>11:57着</span>
+                <span></span>
+              </div>
             </div>
           </div>
-        </div>
+          <Message type="important">
+            <li>離れた場所との席の入れ替えはお控えください。</li>
+            <li>一般の方のご迷惑にならないように心がけましょう。</li>
+            <li>新幹線車内は Free Wi-Fi が使用できます。</li>
+            <li>周囲の座席は、下の「新幹線座席表」から確認できます。</li>
+            <li>走行位置は、下の「新幹線 個別列車案内 (JR東海)」で詳しく確認できます。</li>
+            <li>新横浜駅の停車時間は、1分です。降車する人はあらかじめ準備をしておきましょう。</li>
+            <li>乗降時は、混雑回避のため上の「乗降ドア」に記載された場所で乗り降りしましょう。</li>
+            <li>運行状況により、到着時刻や発着ホームが変更になる場合があります。</li>
+          </Message>
+        </>
       )}
       {tab === 'day4' && (
         <>
@@ -285,7 +297,15 @@ const Shinkansen = () => {
             </div>
           </div>
           <Message type="important">
-            <p>同じ班内であれば、座席の入れ替えが可能です。</p>
+            <li>同じ班内であれば、座席の入れ替えが可能です。</li>
+            <li>離れた場所との席の入れ替えはお控えください。</li>
+            <li>一般の方のご迷惑にならないように心がけましょう。</li>
+            <li>新幹線車内は Free Wi-Fi が使用できます。</li>
+            <li>周囲の座席は、下の「新幹線座席表」から確認できます。</li>
+            <li>走行位置は、下の「新幹線 個別列車案内 (JR東海)」で詳しく確認できます。</li>
+            <li>新横浜駅、福山駅の停車時間は、1分です。あらかじめ準備をしておきましょう。</li>
+            <li>乗降時は、混雑回避のため上の「乗降ドア」に記載された場所で乗り降りしましょう。</li>
+            <li>運行状況により、到着時刻や発着ホームが変更になる場合があります。</li>
           </Message>
         </>
       )}
@@ -303,7 +323,7 @@ const Shinkansen = () => {
           }}
         />
         <p>↑JR東海のページが開きます。</p>
-        <MDButton text="新幹線座席表一覧" arrowRight link={tab === 'day4' ? '/shinkansen/floor?direction=hiroshima' : '/shinkansen/floor'} />
+        <MDButton text="新幹線座席表" arrowRight link={tab === 'day4' ? '/shinkansen/floor?direction=hiroshima' : '/shinkansen/floor'} />
         <BackToHome user={user} />
       </div>
     </div>

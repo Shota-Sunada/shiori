@@ -1,9 +1,11 @@
 const FACILITY_COLOR_CLASS: Record<string, [string, string]> = {
   deck: ['デッキ (ドア&ゴミ箱)', 'bg-blue-200 border-blue-400 text-blue-900'],
+  door: ['デッキ (ドアのみ)', 'bg-blue-200 border-blue-400 text-blue-900'],
   driver: ['運転台', 'bg-gray-300 border-gray-400 text-gray-800'],
   wc: ['WC', 'bg-green-100 border-green-300 text-green-800'],
   wash: ['洗面', 'bg-cyan-100 border-cyan-300 text-cyan-800'],
   phone: ['電話', 'bg-yellow-100 border-yellow-300 text-yellow-800'],
+  none: ["ﾅﾆﾓﾅｲﾖ" , ""],
   smoking: ['喫煙室', 'bg-red-100 border-red-300 text-red-800']
 };
 
@@ -83,20 +85,20 @@ type CarFacilities = {
 
 const CAR_FACILITIES: Record<number, CarFacilities> = {
   16: {
-    front: [{ both: 'driver' }, { both: 'deck' }],
+    front: [{ both: 'driver' }, { both: 'door' }],
     back: [{ both: 'deck' }]
   },
   15: {
-    front: [{ abc: 'wc', de: 'wc' }, { abc: 'wash', de: 'wc' }, { abc: 'wash', de: 'phone' }, { both: 'deck' }],
-    back: [{ both: 'deck' }]
+    front: [{ abc: 'wc', de: 'wc' }, { abc: 'wash', de: 'wc' }, { abc: 'wash', de: 'none' }, { both: 'deck' }],
+    back: [{ both: 'door' }]
   },
   14: {
-    front: [{ both: 'deck' }],
+    front: [{ both: 'door' }],
     back: [{ both: 'deck' }]
   },
   13: {
     front: [{ abc: 'wc', de: 'wc' }, { abc: 'wash', de: 'wc' }, { both: 'deck' }],
-    back: [{ both: 'deck' }]
+    back: [{ both: 'door' }]
   }
 };
 import { useLocation, useNavigate } from 'react-router-dom';
