@@ -1,0 +1,164 @@
+/* IndexTable 用の微調整 (共通 table-base 上書き) */
+.index-table th,
+.index-table td {
+  padding: 0.75rem 0.75rem;
+}
+.index-table thead th {
+  font-size: 1rem;
+}
+.index-table thead th[colspan] {
+  text-align: center;
+  font-size: 1.1rem;
+}
+/* table-base の thead 背景(#e5e7eb) を確実に上書き */
+.index-table.table-base thead {
+  background: #fde68a;
+}
+/* 念のため th 個別にも適用 (一部ブラウザの継承/重ね順対策) */
+.index-table.table-base thead th {
+  background: #fde68a;
+}
+
+/* レイアウト最適化 */
+.index-table-wrapper {
+  max-width: min(640px, 92dvw);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* iOS Safari 縦書き崩れ対策: vertical-stack */
+.vertical-stack {
+  display: inline-flex;
+  flex-direction: column; /* 文字列順そのまま上→下 */
+  justify-content: center;
+  align-items: center;
+  line-height: 1.1;
+  font-feature-settings: 'pkna' 1;
+  min-height: 72px;
+}
+.vertical-stack .vertical-char {
+  display: block;
+}
+.vertical-stack.need-reverse {
+  flex-direction: column-reverse !important; /* 自動検出で逆転していた場合に補正 */
+}
+
+/* セル内で縦ラベルを完全中央寄せするためのラッパ */
+td.vcell,
+th.vcell {
+  position: relative;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+td.vcell .vertical-stack,
+th.vcell .vertical-stack {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-height: unset; /* セル高さに合わせる */
+}
+
+/* 単独行の縦セル最小高さ (2日目/4日目) */
+td.vcell.vcell--min,
+th.vcell.vcell--min {
+  height: 50px;
+}
+td.vcell.vcell--min::after,
+th.vcell.vcell--min::after {
+  content: '';
+  display: block;
+  height: 50px;
+  width: 0;
+}
+@media (max-width: 480px) {
+  td.vcell.vcell--min,
+  th.vcell.vcell--min {
+    height: 92px;
+  }
+  td.vcell.vcell--min::after,
+  th.vcell.vcell--min::after {
+    height: 92px;
+  }
+}
+
+@supports (writing-mode: vertical-rl) {
+  /* 通常ブラウザでは従来の縦書き表示を優先し自然な並びを得る */
+  .vertical-stack:not(.is-ios) {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    flex-direction: initial;
+    display: inline-block;
+  }
+  .vertical-stack:not(.is-ios) .vertical-char {
+    display: inline;
+  }
+}
+.index-table {
+  table-layout: fixed;
+  width: 100%;
+}
+.index-table .col-day {
+  width: 32px;
+}
+.index-table .col-label {
+  width: 120px;
+}
+.index-table .col-value {
+  width: auto;
+}
+.index-table td,
+.index-table th {
+  word-break: break-word;
+}
+.index-table td span.align-middle {
+  display: inline-block;
+}
+.index-table td p {
+  margin: 2px 0;
+}
+.index-table td.bg-gray-200 {
+  background: #f3f4f6;
+}
+
+/* ラベル列中央揃え（rowSpan の影響を受けないよう class ベース） */
+.index-table td.label-cell {
+  text-align: center;
+  vertical-align: middle;
+  padding: 0.55rem 0.5rem;
+}
+
+/* 枠線強調 (縦横) */
+.index-table.table-base {
+  border: 1px solid #d1d5db;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.index-table.table-base th,
+.index-table.table-base td {
+  border-right: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+}
+.index-table.table-base tbody tr:last-child td {
+  border-bottom: none;
+}
+
+@media (max-width: 480px) {
+  .index-table th,
+  .index-table td {
+    padding: 0.55rem 0.5rem;
+  }
+  .index-table .col-day {
+    width: 28px;
+  }
+  .index-table .col-label {
+    width: 92px;
+  }
+}
+
+/* 縦ラベル(１日目 等)のみ狭くしたい → 汎用 first-child では rowSpan 行の次行に副作用が出るため専用クラスに変更 */
+.index-table td.day-col,
+.index-table th.day-col {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}

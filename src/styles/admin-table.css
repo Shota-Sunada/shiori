@@ -1,0 +1,49 @@
+.table-root > table > thead > tr > th,
+.table-root > table > tbody > tr > td {
+  padding: 4px;
+}
+
+.table-root > table {
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 0.5px solid #ebebde;
+}
+
+.inline-edit {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.table-root > table > thead > tr {
+  background-color: #ebebde;
+}
+
+.table-root > table > tbody > tr > td {
+  border-bottom: 0.5px solid #ebebde;
+  border-right: 0.5px solid #ebebde;
+}
+
+.table-root > table > tbody > tr > td:last-child {
+  border-right: none;
+}
+
+.inline-p-fix {
+  padding-left: 4px;
+}
+
+.sticky-col {
+  position: sticky;
+  right: 0;
+}
+
+.table-root > table > thead > tr > th.sticky-col {
+  z-index: 15;
+  background-color: #ebebde; /* Match header row background */
+}
+
+/* Ensure sticky body cells have a background */
+.table-root > table > tbody > tr > td.sticky-col {
+  background-color: white;
+  z-index: 5;
+}

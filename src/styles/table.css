@@ -1,0 +1,423 @@
+/* 共通テーブルスタイル (再利用用) */
+.table-base {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  font-size: 0.875rem;
+  border: 1px solid #d1d5db; /* 外枠 */
+}
+.table-base thead {
+  background: #e5e7eb;
+}
+.table-base th,
+.table-base td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-right: 1px solid #e5e7eb; /* 縦区切り */
+}
+.table-base tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+}
+.table-base tbody tr:last-child {
+  border-bottom: none;
+}
+.table-base tbody tr:hover {
+  background: #f9fafb;
+}
+.table-rounded {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+.table-shadow {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    0 4px 12px -2px rgba(0, 0, 0, 0.06);
+}
+.table-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+.table-badge-green {
+  background: #dcfce7;
+  color: #15803d;
+}
+.table-badge-yellow {
+  background: #fef9c3;
+  color: #a16207;
+}
+.table-badge-red {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.table-badge-blue {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* 時間表示レスポンシブ: デフォルトはインライン（開始/終了別列） */
+.time-col-stacked {
+  display: none;
+}
+.time-range {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.1;
+}
+.time-range span {
+  white-space: nowrap;
+}
+
+/* 一定幅以下でスタック表示に切替 */
+@media (max-width: 720px) {
+  .time-col-inline {
+    display: none;
+  }
+  .time-col-stacked {
+    display: table-cell;
+  }
+}
+
+/* Otanoshimi schedule specific column widths */
+table.schedule-table col.col-time-narrow {
+  width: 64px;
+}
+table.schedule-table col.col-time-stacked {
+  width: 92px;
+}
+table.schedule-table col.col-wide {
+  width: auto;
+}
+@media (max-width: 720px) {
+  table.schedule-table col.col-time-narrow {
+    width: 68px;
+  }
+  table.schedule-table col.col-time-stacked {
+    width: 108px;
+  }
+}
+
+/* 単一時間列（開始+終了統合版） */
+table.schedule-table th.time-col,
+table.schedule-table td.time-col {
+  width: 90px;
+  white-space: nowrap;
+}
+@media (max-width: 720px) {
+  table.schedule-table th.time-col,
+  table.schedule-table td.time-col {
+    width: 82px;
+  }
+}
+/* Otanoshimi 団体/演目 列幅調整 */
+table.schedule-table td.col-team,
+table.schedule-table th.col-team {
+  width: 45%;
+}
+table.schedule-table td.col-enmoku,
+table.schedule-table th.col-enmoku {
+  width: 25%;
+}
+@media (max-width: 900px) {
+  table.schedule-table td.col-team,
+  table.schedule-table th.col-team {
+    width: 50%;
+  }
+  table.schedule-table td.col-enmoku,
+  table.schedule-table th.col-enmoku {
+    width: 30%;
+  }
+}
+
+/* テーブル全体の最大幅制限 */
+.schedule-table-wrapper {
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+@media (max-width: 960px) {
+  .schedule-table-wrapper {
+    max-width: 100%;
+  }
+}
+
+/* ================= Modern Schedule Table Theme ================= */
+table.modern-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border: 1px solid #d1d5db; /* 外枠 */
+}
+table.modern-table thead th {
+  position: relative;
+  background: linear-gradient(135deg, #fde68a, #fcd34d);
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #4b5563;
+}
+table.modern-table thead th:first-child {
+  border-top-left-radius: 0.5rem;
+}
+table.modern-table thead th:last-child {
+  border-top-right-radius: 0.5rem;
+}
+table.modern-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 0.5rem;
+}
+table.modern-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 0.5rem;
+}
+table.modern-table tbody tr {
+  transition: background 0.18s ease;
+}
+table.modern-table tbody tr:hover {
+  background: #fff9e6;
+}
+table.modern-table td,
+table.modern-table th {
+  border-right: 1px solid #e5e7eb; /* 縦線 */
+  border-bottom: 1px solid #f1f5f9; /* 横線 */
+}
+table.modern-table td {
+  background: #ffffff;
+}
+table.modern-table tbody tr:nth-child(even) td {
+  background: #fdfcf8;
+}
+table.modern-table .time-col {
+  font-variant-numeric: tabular-nums;
+}
+table.modern-table .time-range span {
+  font-size: 0.75rem;
+}
+table.modern-table .schedule-divider {
+  background: linear-gradient(90deg, #fcd34d, #fbbf24);
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #78350f;
+}
+table.modern-table .schedule-divider {
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.08);
+}
+table.modern-table .schedule-divider {
+  font-size: 0.9rem;
+}
+@media (max-width: 720px) {
+  table.modern-table thead th {
+    font-size: 0.7rem;
+  }
+  table.modern-table .schedule-divider {
+    font-size: 0.8rem;
+  }
+}
+/* subtle shadow already via .table-shadow; ensure stacking for gradient */
+table.modern-table.table-shadow {
+  box-shadow:
+    0 4px 12px -2px rgba(0, 0, 0, 0.12),
+    0 2px 4px rgba(0, 0, 0, 0.08);
+}
+/* Focus ring style if later interactive rows are added */
+table.modern-table tr:focus-within {
+  outline: 2px solid #fbbf24;
+  outline-offset: -2px;
+}
+
+/* ============ Interactive Cell (モバイル優先) ============ */
+.cell-interactive {
+  position: relative;
+  cursor: pointer;
+  padding-right: 2.2rem !important; /* アイコン分スペース拡張 */
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+  background: #f3f4f6;
+}
+.cell-interactive:active {
+  background: #e5e7eb;
+}
+/* ベースアイコン（右向き chevron を丸背景で常時表示） */
+.cell-interactive::after {
+  content: '›';
+  position: absolute;
+  top: 50%;
+  right: 0.55rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  line-height: 1.35rem;
+  text-align: center;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-radius: 9999px;
+  transform: translateY(-50%);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.18),
+    0 0 0 2px rgba(255, 255, 255, 0.65);
+  transition:
+    background 0.22s ease,
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .cell-interactive:hover {
+    background: #eef6ff;
+  }
+  .cell-interactive:hover::after {
+    background: #1d4ed8;
+    transform: translateY(-50%) scale(1.06);
+    box-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.25),
+      0 0 0 2px rgba(255, 255, 255, 0.7);
+  }
+}
+/* タッチ環境: わずかに大きく */
+@media (hover: none) {
+  .cell-interactive::after {
+    background: #2563eb;
+  }
+  .cell-interactive:active::after {
+    transform: translateY(-50%) scale(0.92);
+  }
+}
+.cell-interactive:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+/* 外部リンク用バリエーション */
+.cell-interactive.cell-external::after {
+  content: '↗';
+  font-size: 0.8rem;
+}
+/* モーダル表示用（目アイコン風にするためにUnicode） */
+.cell-interactive.cell-modal::after {
+  content: '👁';
+  font-size: 0.95rem;
+  background: #334155;
+}
+@media (hover: hover) {
+  .cell-interactive.cell-modal:hover::after {
+    background: #1e293b;
+  }
+}
+
+/* ===== 強調: IndexTable 内のクリック可能セル視認性向上 (モバイル優先) ===== */
+/* 基本背景と軽いエレベーション */
+.index-table td.cell-interactive {
+  background: linear-gradient(180deg, #f0f7ff 0%, #e6f1ff 100%);
+  position: relative;
+  box-shadow:
+    inset 0 0 0 1px #cfe3ff,
+    0 1px 2px rgba(0, 0, 0, 0.06);
+  border-radius: 6px; /* 角を少し丸く (表の罫線はそのまま) */
+  overflow: hidden; /* 擬似要素のはみ出し防止 */
+}
+/* 左側アクセントバー */
+.index-table td.cell-interactive::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+  opacity: 0.85;
+  /* 以前: scaleY アニメーション。要望により常時全高さ & アニメ除去 */
+  transform: none;
+  transform-origin: top;
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px;
+  pointer-events: none;
+}
+/* ホバー時の伸長アニメーションを削除 */
+/* 既存矢印バッジのサイズ微調整 (IndexTable 限定) */
+.index-table td.cell-interactive::after {
+  width: 1.45rem;
+  height: 1.45rem;
+  line-height: 1.45rem;
+  font-size: 0.95rem;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.25),
+    0 0 0 2px rgba(255, 255, 255, 0.75);
+}
+/* 既存の hover 拡大(transform scale) を無効化 */
+@media (hover: hover) {
+  .index-table td.cell-interactive:hover::after {
+    transform: translateY(-50%);
+  }
+}
+/* タップ時のフィードバック強調 */
+.index-table td.cell-interactive:active {
+  background: #e0efff;
+  box-shadow:
+    inset 0 0 0 1px #b7d5ff,
+    0 1px 2px rgba(0, 0, 0, 0.06);
+}
+/* モバイル (hover: none) で矢印を軽く鼓動させ視認性アップ */
+@media (hover: none) {
+  .index-table td.cell-interactive::after {
+    animation: pulseArrow 2.8s ease-in-out infinite;
+  }
+}
+@keyframes pulseArrow {
+  0%,
+  60%,
+  100% {
+    transform: translateY(-50%) scale(1);
+  }
+  30% {
+    transform: translateY(-50%) scale(1.15);
+  }
+}
+/* 低視覚コントラスト環境用 / prefers-reduced-motion でアニメ除去 */
+@media (prefers-reduced-motion: reduce) {
+  .index-table td.cell-interactive::after {
+    animation: none !important;
+  }
+}
+/* フォーカスリング調整 (キーボード操作 / アクセシビリティ) */
+.index-table td.cell-interactive:focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 2px;
+}
+
+/* ================= Index Table (非 modern / 非 table-base のものにも枠線適用) ================= */
+.index-table:not(.modern-table):not(.table-base) {
+  border: 1px solid #d1d5db;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.index-table:not(.modern-table):not(.table-base) th,
+.index-table:not(.modern-table):not(.table-base) td {
+  border-right: 1px solid #e5e7eb;
+  padding: 0.6rem 0.75rem;
+}
+.index-table:not(.modern-table):not(.table-base) th:last-child,
+.index-table:not(.modern-table):not(.table-base) td:last-child {
+  border-right: none;
+}
+.index-table:not(.modern-table):not(.table-base) tr {
+  border-bottom: 1px solid #e5e7eb;
+}
+.index-table:not(.modern-table):not(.table-base) tr:last-child {
+  border-bottom: none;
+}
+
+@media (orientation: landscape) {
+  /* 横向き時も同じ枠線を明示（将来の上書き衝突防止） */
+  .index-table:not(.modern-table):not(.table-base) {
+    border-color: #d1d5db;
+  }
+  .index-table:not(.modern-table):not(.table-base) th,
+  .index-table:not(.modern-table):not(.table-base) td {
+    border-right: 1px solid #e5e7eb;
+  }
+}

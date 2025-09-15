@@ -1,0 +1,8 @@
+form input,
+form select {
+  border-radius: 6px;
+  padding: 10px;
+  margin: 1vh;
+  color: black;
+  background-color: white;
+}

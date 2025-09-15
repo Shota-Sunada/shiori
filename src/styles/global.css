@@ -1,0 +1,517 @@
+@import 'tailwindcss';
+
+* {
+  font-family:
+    Inter,
+    Noto Sans JP,
+    sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+  /* 基本フォールバック */
+  word-break: break-word;
+  /* anywhere は日本語の不自然改行を誘発するため全体から外す */
+  overflow-wrap: break-word;
+  /* Chrome など対応環境で自然な文節改行 (budoux 風) */
+  word-break: auto-phrase;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #a0a0a0 transparent; /* Firefox */
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ================= Safari / iOS Fallback Utilities ================= */
+/* 100dvh 未対応 (またはブラウザUI高さ揺れ) 環境向けフォールバック */
+.min-h-dvh {
+  min-height: 100vh; /* 先に古い/静的 */
+  min-height: 100dvh; /* 対応ブラウザで上書き (Safari 16+, Chromium, FF) */
+}
+/* iOS Safari 一部で 100vh がアドレスバー表示/非表示で跳ねる問題への緩和 */
+@supports (-webkit-touch-callout: none) {
+  body {
+    min-height: -webkit-fill-available; /* iOS 13+ */
+  }
+}
+html,
+body {
+  height: 100%; /* -webkit-fill-available の基準用 */
+}
+
+/* Budoux 風自然改行用ユーティリティ (必要箇所だけで強制) */
+@supports (word-break: auto-phrase) {
+  .jp-auto-line,
+  .auto-phrase {
+    word-break: auto-phrase;
+    overflow-wrap: normal;
+    line-break: strict;
+  }
+}
+@supports not (word-break: auto-phrase) {
+  .jp-auto-line,
+  .auto-phrase {
+    /* 未対応ブラウザでは従来の安全な折り返し */
+    word-break: break-word;
+    line-break: strict;
+  }
+}
+
+/* 長い英数字やURLだけをどこでも折りたい場合に明示利用 */
+.force-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+button {
+  cursor: pointer;
+}
+
+body {
+  overscroll-behavior-y: none;
+  /* iOS Safari ビューポート揺れ対策用カスタムvh */
+  min-height: 100vh; /* 古い環境 */
+}
+
+/* Dynamic viewport unit が使えるなら優先 */
+@supports (min-height: 100dvh) {
+  body {
+    min-height: 100dvh;
+  }
+}
+
+.mobiry-button-blue {
+  background-color: #219bce;
+}
+
+.mobiry-button-arrow-blue {
+  color: #219bce;
+}
+
+.mobiry-button-blue:hover {
+  background-color: #008fc0;
+}
+
+.mobiry-button-red {
+  background-color: #ce2121;
+}
+
+.mobiry-button-arrow-red {
+  color: #ce2121;
+}
+
+.mobiry-button-red:hover {
+  background-color: #c00000;
+}
+
+.mobiry-button-green {
+  background-color: #21ce2f;
+}
+
+.mobiry-button-arrow-green {
+  color: #21ce2f;
+}
+
+.mobiry-button-green:hover {
+  background-color: #00c020;
+}
+
+.mobiry-button-purple {
+  background-color: #5521ce;
+}
+
+.mobiry-button-arrow-purple {
+  color: #5521ce;
+}
+
+.mobiry-button-purple:hover {
+  background-color: #4a00c0;
+}
+
+.mobiry-button-gray {
+  background-color: #505050;
+}
+
+.mobiry-button-arrow-gray {
+  color: #505050;
+}
+
+.mobiry-button-gray:hover {
+  background-color: #303030;
+}
+
+.mobiry-button-white {
+  background-color: white;
+  color: #219bce;
+  border: #219bce solid 1px;
+}
+
+.mobiry-button-arrow-white {
+  color: #219bce;
+}
+
+.mobiry-button-white:hover {
+  background-color: #edf7fb;
+}
+
+.mobiry-button-orange {
+  background-color: #ee6d00;
+}
+
+.mobiry-button-arrow-orange {
+  color: #ee6d00;
+}
+
+.mobiry-button-orange:hover {
+  background-color: #ce5d00;
+}
+
+.mobiry-button-transparent {
+  background-color: transparent;
+  color: #219bce;
+  border: #219bce solid 1px;
+}
+
+.mobiry-button-arrow-transparent {
+  color: #219bce;
+}
+
+.mobiry-button-transparent:hover {
+  background-color: transparent;
+}
+
+.mobiry-button-200 {
+  width: 200px;
+}
+
+.mobiry-button-150 {
+  width: 150px;
+}
+
+.anim {
+  transition: 0.2s;
+}
+
+/* ===== Scrollbar CSS ===== */
+/* Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #a0a0a0;
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-button {
+  display: none;
+}
+
+html.modal-open,
+body.modal-open {
+  overflow: hidden;
+  height: 100%;
+}
+
+.modal-overlay {
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+/* ===== iOS Safe Area (ノッチ) 対応: 必要に応じてラッパーで利用 ===== */
+:root {
+  /* Fallback */
+  --safe-top: 0px;
+  --safe-right: 0px;
+  --safe-bottom: 0px;
+  --safe-left: 0px;
+  /* Modal animation durations (調整しやすいよう変数化) */
+  /* Keep in sync with UI_ANIMATION.modal.overlayMs / dialogMs */
+  --modal-overlay-duration: 0.5s;
+  --modal-dialog-duration: 0.5s;
+}
+@supports (padding: max(0px)) {
+  :root {
+    --safe-top: env(safe-area-inset-top);
+    --safe-right: env(safe-area-inset-right);
+    --safe-bottom: env(safe-area-inset-bottom);
+    --safe-left: env(safe-area-inset-left);
+  }
+}
+/* 旧 iOS 11.x ~ 12.x legacy constant() シンタックス (存在すれば上書き) */
+@supports (padding: constant(safe-area-inset-top)) {
+  :root {
+    --safe-top: constant(safe-area-inset-top);
+    --safe-right: constant(safe-area-inset-right);
+    --safe-bottom: constant(safe-area-inset-bottom);
+    --safe-left: constant(safe-area-inset-left);
+  }
+}
+
+/* ヘッダーやフッターに適用するためのユーティリティ */
+.pad-safe-top {
+  padding-top: calc(var(--safe-top));
+}
+.pad-safe-bottom {
+  padding-bottom: calc(var(--safe-bottom));
+}
+
+/* ===== JS なしでの簡易フォントサイズ調整防止 ===== */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ===== word-break: auto-phrase 非対応ブラウザ用 明示的補強 ===== */
+@supports not (word-break: auto-phrase) {
+  * {
+    word-break: break-word;
+  }
+}
+
+/* ========= Page Transition ========= */
+.page-fade {
+  /* ルートコンポーネント用フェードイン。
+     モーダルは body (portal) 直下に描画されるため影響しない。 */
+  animation: pageFadeIn 0.28s cubic-bezier(0.4, 0, 0.2, 1) both;
+  position: relative;
+  min-height: 100%;
+  will-change: opacity, transform;
+}
+@keyframes pageFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* アニメーション無効化: ユーザーが簡易表示を希望する場合 */
+@media (prefers-reduced-motion: reduce) {
+  .page-fade {
+    animation: none !important;
+  }
+}
+
+/* ========= Modal Transition ========= */
+.modal-anim-overlay {
+  animation: modalOverlayIn var(--modal-overlay-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.modal-anim-dialog {
+  animation: modalDialogIn var(--modal-dialog-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+  transform-origin: 50% 44%;
+}
+.modal-anim-overlay.modal-closing {
+  animation: modalOverlayOut var(--modal-overlay-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.modal-anim-overlay.modal-closing .modal-anim-dialog {
+  animation: modalDialogOut var(--modal-dialog-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+/* data-state フォールバック (JS 側 safety) */
+.modal-anim-overlay[data-state='closing'] {
+  pointer-events: none;
+}
+.modal-anim-dialog[data-state='closing'] {
+  pointer-events: none;
+}
+@keyframes modalOverlayIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes modalOverlayOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes modalDialogIn {
+  0% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes modalDialogOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal-anim-overlay,
+  .modal-anim-dialog,
+  .modal-anim-overlay.modal-closing,
+  .modal-anim-overlay.modal-closing .modal-anim-dialog {
+    animation: none !important;
+  }
+}
+
+/* ========= Header Menu Animation ========= */
+.header-menu-anim-in {
+  animation: headerMenuIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.header-menu-anim-out {
+  animation: headerMenuOut 0.15s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+/* 閉じアニメ中はクリック無効 (視覚的には消えかけている状態) */
+[data-state='closing'].header-menu-anim-out {
+  pointer-events: none;
+}
+/* そもそもアンマウントされるが将来 display 切替に変えた場合の保険 */
+.header-menu-hidden {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+/* ========= Hamburger Button ========= */
+.hamburger-btn {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  line-height: 0;
+  cursor: pointer;
+  border-radius: 6px; /* 少しだけヒットエリアの角を丸める */
+}
+.hamburger-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 2px;
+}
+.hamburger-btn:focus:not(:focus-visible) {
+  outline: none;
+}
+@keyframes headerMenuIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes headerMenuOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.96);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .header-menu-anim-in,
+  .header-menu-anim-out {
+    animation: none !important;
+  }
+}
+
+/* ========= Header Menu Item Stagger ========= */
+.header-menu-anim-in .header-menu-item {
+  opacity: 0;
+  transform: translateY(-6px);
+  animation: headerMenuItemIn 0.38s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.header-menu-anim-in .header-menu-item:nth-child(1) {
+  animation-delay: 40ms;
+}
+.header-menu-anim-in .header-menu-item:nth-child(2) {
+  animation-delay: 70ms;
+}
+.header-menu-anim-in .header-menu-item:nth-child(3) {
+  animation-delay: 100ms;
+}
+.header-menu-anim-in .header-menu-item:nth-child(4) {
+  animation-delay: 130ms;
+}
+.header-menu-anim-in .header-menu-item:nth-child(5) {
+  animation-delay: 160ms;
+}
+.header-menu-anim-in .header-menu-item:nth-child(6) {
+  animation-delay: 190ms;
+}
+.header-menu-anim-in .header-menu-item:nth-child(7) {
+  animation-delay: 220ms;
+}
+.header-menu-anim-in .header-menu-item:nth-child(8) {
+  animation-delay: 250ms;
+}
+.header-menu-anim-in .header-menu-item:nth-child(9) {
+  animation-delay: 280ms;
+}
+.header-menu-anim-in .header-menu-item:nth-child(10) {
+  animation-delay: 310ms;
+}
+.header-menu-anim-in .header-menu-item:nth-child(11) {
+  animation-delay: 340ms;
+}
+/* 閉じは即時非表示のため Out アニメ不要 */
+@keyframes headerMenuItemIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .header-menu-anim .header-menu-item,
+  .header-menu-closing .header-menu-item {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Safari / animation-unavailable fallback:
+   If the JS-driven out-animation doesn't run (or animations are disabled),
+   animate opacity/transform via CSS transitions so the menu fades/zooms out smoothly.
+   Use a 0s visibility transition with matching delay so visibility becomes hidden
+   after the fade completes (prevents sudden disappearance).
+*/
+#header-menu:not(.header-menu-anim-out)[data-state='closing'],
+#header-menu:not(.header-menu-anim-out)[aria-hidden='true'] {
+  opacity: 0 !important;
+  transform: translateY(-4px) scale(0.96) !important;
+  pointer-events: none !important;
+  will-change: opacity, transform;
+  transition:
+    opacity 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 150ms;
+}
+
+/* Base visibility/transition so visibility change can be delayed to let opacity/transform animate */
+#header-menu {
+  visibility: visible;
+  transition:
+    opacity 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 150ms;
+}
