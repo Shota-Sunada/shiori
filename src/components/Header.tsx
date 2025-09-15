@@ -126,13 +126,13 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
       {
         type: 'link',
         icon: <PiBagFill />,
-        to: '/shinkansen',
+        to: '/goods',
         label: '持ち物'
       },
       {
         type: 'link',
         icon: <FaListCheck />,
-        to: '/shinkansen',
+        to: '/goods-check',
         label: '持ち物チェッカー'
       },
       {
