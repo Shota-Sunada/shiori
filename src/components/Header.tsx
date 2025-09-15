@@ -115,42 +115,36 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
         type: 'link',
         icon: <IoHome />,
         to: user?.is_teacher ? '/teacher' : '/',
-        label: 'ホーム',
-        bgColor: 'green'
+        label: 'ホーム'
       },
       {
         type: 'link',
         icon: <FaTable />,
         to: '/yotei',
-        label: '全工程表',
-        bgColor: 'light_green'
+        label: '全工程表'
       },
       {
         type: 'link',
         icon: <PiBagFill />,
         to: '/shinkansen',
-        label: '持ち物',
-        bgColor: 'green'
+        label: '持ち物'
       },
       {
         type: 'link',
         icon: <FaListCheck />,
         to: '/shinkansen',
-        label: '持ち物チェッカー',
-        bgColor: 'light_green'
+        label: '持ち物チェッカー'
       },
       {
         type: 'link',
         icon: <TbTrain />,
         to: '/shinkansen',
-        bgColor: 'blue',
         label: '新幹線'
       },
       {
         type: 'link',
         icon: <MdAirlineSeatReclineNormal />,
         to: '/shinkansen/floor',
-        bgColor: 'light_blue',
         label: '新幹線座席一覧'
       },
       {
@@ -158,22 +152,20 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
         icon: <LuPartyPopper />,
         to: '/otanoshimi',
         label: 'お楽しみ会',
-        bgColor: 'yellow',
         prefetchKey: 'otanoshimiTeams',
         fetcher: async () => otanoshimiApi.list()
       },
-      { type: 'link', icon: <FaUserGraduate />, to: '/credits', label: 'クレジット', bgColor: 'light_yellow' },
+      { type: 'link', icon: <FaUserGraduate />, to: '/credits', label: 'クレジット' },
       {
         type: 'action',
         icon: <IoReload />,
         label: 'しおりを再読み込み',
-        bgColor: 'red',
         onClick: () => {
           clearShioriCache();
           window.location.reload();
         }
       },
-      { type: 'link', icon: <VscDebugAlt />, to: '/env-debug', label: 'デバッグ用環境表示', bgColor: 'pink' },
+      { type: 'link', icon: <VscDebugAlt />, to: '/env-debug', label: 'デバッグ用環境表示' },
       { type: 'link', icon: <IoSettingsSharp />, to: '/admin/students', label: '生徒管理画面', note: '管理者&先生専用', only_admin: true },
       { type: 'link', icon: <IoSettingsSharp />, to: '/admin/teachers', label: '先生管理画面', note: '管理者&先生専用', only_admin: true },
       { type: 'link', icon: <IoSettingsSharp />, to: '/admin/users', label: 'ユーザー管理画面', note: '管理者&先生専用', only_admin: true },
