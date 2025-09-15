@@ -69,16 +69,16 @@ const Shinkansen = () => {
       <h1 className="text-2xl font-bold mb-4">新幹線座席情報</h1>
       <div className="flex gap-2 mb-6">
         <button className={`px-4 py-2 rounded-t ${tab === 'day1' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-100 text-gray-600'}`} onClick={() => setTab('day1')}>
-          行き（1日目）
+          ゆき（1日目）
         </button>
         <button className={`px-4 py-2 rounded-t ${tab === 'day4' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-100 text-gray-600'}`} onClick={() => setTab('day4')}>
-          帰り（4日目）
+          かえり（4日目）
         </button>
       </div>
 
       {tab === 'day1' && (
         <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-2">1日目（行き）のぞみ84号 東京行</h2>
+          <h2 className="text-lg font-semibold mb-2">1日目（ゆき）のぞみ84号 東京行</h2>
           <div className="bg-white rounded shadow p-4 flex flex-col gap-2">
             <div>
               <span className="font-semibold">号車：</span>
@@ -101,7 +101,7 @@ const Shinkansen = () => {
       {tab === 'day4' && (
         <>
           <div className="mb-6">
-            <h2 className="text-lg font-semibold mb-2">4日目（帰り）のぞみ77号 広島行</h2>
+            <h2 className="text-lg font-semibold mb-2">4日目（かえり）のぞみ77号 広島行</h2>
             <div className="bg-white rounded shadow p-4 flex flex-col gap-2">
               <div>
                 <span className="font-semibold">号車：</span>
@@ -127,7 +127,7 @@ const Shinkansen = () => {
       <div className="flex flex-col items-center justify-center">
         <p>新幹線 個別列車案内</p>
         <MDButton
-          text={tab === 'day1' ? 'のぞみ84号 (行き)' : tab === 'day4' ? 'のぞみ77号 (帰り)' : '不明'}
+          text={tab === 'day1' ? 'のぞみ84号 (ゆき)' : tab === 'day4' ? 'のぞみ77号 (かえり)' : '不明'}
           color="orange"
           onClick={() => {
             if (tab === 'day1') {
