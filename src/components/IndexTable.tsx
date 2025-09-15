@@ -339,11 +339,11 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
                     </p>
                     <div className="flex flex-row">
                       <p className="text-gray-600 text-xs">{'引率: '}</p>
-                      <div className="flex flex-row">
+                      <div className="text-gray-600 text-xs px-1 items-center justify-center">
                         {teachers
                           .filter((teacher) => teacher.day4class === teacherData.day4class)
                           .map((teacher) => (
-                            <p key={teacher.id} className="text-gray-600 text-xs px-1 items-center justify-center">{`${teacher.surname} ${teacher.forename} 先生`}</p>
+                            `${teacher.surname} ${teacher.forename} 先生${'　'}`
                           ))}
                       </div>
                     </div>
