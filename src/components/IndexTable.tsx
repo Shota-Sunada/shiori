@@ -209,8 +209,8 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
             <td>
               <p>{(studentData && COURSES_DAY1.find((x) => x.key === studentData.day1id)?.name) || (teacherData && COURSES_DAY1.find((x) => x.key === teacherData.day1id)?.name) || '◯◯◯◯◯◯◯◯'}</p>
               <div className="flex flex-row">
-                <p className="text-gray-600 text-xs">{'引率: '}</p>
                 <p className="text-gray-600 text-xs px-1 items-center justify-center">
+                  {'引率: '}
                   {(studentData && teachers.filter((teacher) => teacher.day1id === studentData.day1id).map((teacher) => `${teacher.surname} ${teacher.forename} 先生${'　'}`)) ||
                     (teacherData && teachers.filter((teacher) => teacher.day1id === teacherData.day1id).map((teacher) => `${teacher.surname} ${teacher.forename} 先生${'　'}`))}
                 </p>
@@ -260,8 +260,8 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
             <td>
               <p>{(studentData && COURSES_DAY3.find((x) => x.key === studentData.day3id)?.name) || (teacherData && COURSES_DAY3.find((x) => x.key === teacherData.day3id)?.name) || '◯◯◯◯◯◯◯◯'}</p>
               <div className="flex flex-row">
-                <p className="text-gray-600 text-xs">{'引率: '}</p>
                 <p className="text-gray-600 text-xs px-1 items-center justify-center">
+                  {'引率: '}
                   {(studentData && teachers.filter((teacher) => teacher.day3id === studentData.day3id).map((teacher) => `${teacher.surname} ${teacher.forename} 先生${'　'}`)) ||
                     (teacherData && teachers.filter((teacher) => teacher.day3id === teacherData.day3id).map((teacher) => `${teacher.surname} ${teacher.forename} 先生${'　'}`))}
                 </p>
@@ -323,8 +323,8 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
                     {day4CourseName}
                   </p>
                   <div className="flex flex-row">
-                    <p className="text-gray-600 text-xs">{'引率: '}</p>
                     <p className="text-gray-600 text-xs px-1 items-center justify-center">
+                      {'引率: '}
                       {teachers.filter((teacher) => teacher.day4class === studentData.class).map((teacher) => `${teacher.surname} ${teacher.forename} 先生${'　'}`)}
                     </p>
                   </div>
@@ -338,13 +338,9 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
                       {day4CourseName}
                     </p>
                     <div className="flex flex-row">
-                      <p className="text-gray-600 text-xs">{'引率: '}</p>
                       <div className="text-gray-600 text-xs px-1 items-center justify-center">
-                        {teachers
-                          .filter((teacher) => teacher.day4class === teacherData.day4class)
-                          .map((teacher) => (
-                            `${teacher.surname} ${teacher.forename} 先生${'　'}`
-                          ))}
+                        {'引率: '}
+                        {teachers.filter((teacher) => teacher.day4class === teacherData.day4class).map((teacher) => `${teacher.surname} ${teacher.forename} 先生${'　'}`)}
                       </div>
                     </div>
                   </>
