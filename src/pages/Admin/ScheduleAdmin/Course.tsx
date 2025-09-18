@@ -6,7 +6,7 @@ import type { Course, Schedule } from './Types';
 
 export const EditingCourse = ({ course, setEditingCourse }: { course: Course; setEditingCourse: Dispatch<SetStateAction<Course | null>> }) => {
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 flex flex-col gap-4 border border-blue-100 my-2">
+    <div className="bg-white rounded-lg shadow-md p-4 flex flex-col gap-4 border border-blue-100 my-1">
       <div className="text-sm mb-2 text-gray-600">コースマスタに基づくため、既存コースのキーは変更できません。</div>
       <div className="mb-2">
         <span className="font-semibold text-gray-700">コースキー:</span> {course.course_key}
@@ -52,7 +52,7 @@ export const NewCourse = ({
   setEditingCourse: Dispatch<SetStateAction<Course | null>>;
 }) => {
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 flex flex-col gap-4 border border-blue-100 my-2">
+    <div className="bg-white rounded-lg shadow-md p-4 flex flex-col gap-4 border border-blue-100 my-1">
       <div>
         <label className="block font-semibold text-gray-700 mb-1">コース</label>
         <select

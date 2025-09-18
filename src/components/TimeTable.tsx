@@ -123,7 +123,7 @@ const TimeTable = ({ courseKey, ref, courses }: TimeTableProps) => {
                 <div className="text-xs text-gray-500">{schTitle}</div>
                 <div>{ev.memo}</div>
                 {/* 詳細とメッセージを統合してsort_order順で表示 */}
-                {(ev.details && ev.details.length > 0 || (ev.messages && ev.messages.length > 0)) && (
+                {((ev.details && ev.details.length > 0) || (ev.messages && ev.messages.length > 0)) && (
                   <ul className="ml-4 text-sm text-gray-700 space-y-1">
                     {[
                       ...ev.details.map((d) => ({
@@ -166,7 +166,9 @@ const TimeTable = ({ courseKey, ref, courses }: TimeTableProps) => {
                           const m = item.data as Message;
                           return (
                             <li key={`message-${m.id}`} className="list-none">
-                              <Message type={m.type}>{m.text}</Message>
+                              <Message type={m.type}>
+                                <span className="whitespace-pre-line">{m.text}</span>
+                              </Message>
                             </li>
                           );
                         }

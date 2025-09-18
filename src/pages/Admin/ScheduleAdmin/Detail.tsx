@@ -29,7 +29,7 @@ export const EditingDetail = ({
   >;
 }) => {
   return (
-    <li className="bg-white rounded-lg shadow-md p-4 flex flex-col gap-4 border border-blue-100 my-2">
+    <div className="bg-white rounded-lg shadow-md p-4 flex flex-col gap-4 border border-blue-100 my-1">
       <div>
         <label className="block font-semibold text-gray-700 mb-1">メモ</label>
         <input
@@ -109,7 +109,6 @@ export const EditingDetail = ({
               alert('終了時刻は開始時刻より後にしてください');
               return;
             }
-            const eventId = editingDetail.eventId;
             const payload = {
               memo: input.memo,
               time1Hour: input.time1Hour,
@@ -117,10 +116,27 @@ export const EditingDetail = ({
               time2Hour: input.time2Hour,
               time2Minute: input.time2Minute
             };
-            appFetch(`${SERVER_ENDPOINT}/api/schedules/events/${eventId}/details`, { method: 'POST', requiresAuth: true, jsonBody: payload })
-              .then(() => refresh(setData))
-              .then(() => setEditingDetail(null))
-              .catch((e) => console.error(e));
+            if (isNew) {
+              // 新規追加
+              appFetch(`${SERVER_ENDPOINT}/api/schedules/events/${editingDetail.eventId}/details`, {
+                method: 'POST',
+                requiresAuth: true,
+                jsonBody: payload
+              })
+                .then(() => refresh(setData))
+                .then(() => setEditingDetail(null))
+                .catch((e) => console.error(e));
+            } else if (editingDetail.detail) {
+              // 更新
+              appFetch(`${SERVER_ENDPOINT}/api/schedules/event-details/${editingDetail.detail.id}`, {
+                method: 'PUT',
+                requiresAuth: true,
+                jsonBody: payload
+              })
+                .then(() => refresh(setData))
+                .then(() => setEditingDetail(null))
+                .catch((e) => console.error(e));
+            }
           }}>
           {isNew ? '追加' : '更新'}
         </button>
@@ -128,7 +144,7 @@ export const EditingDetail = ({
           キャンセル
         </button>
       </div>
-    </li>
+    </div>
   );
 };
 
@@ -138,7 +154,7 @@ export const DetailCard = ({ detail }: { detail: EventDetail }) => {
   const hasEnd = detail.time2Hour !== undefined && detail.time2Minute !== undefined && detail.time2Hour !== null && detail.time2Minute !== null;
   const noTime = !hasStart && !hasEnd;
   return (
-    <div className="flex items-center gap-2 text-gray-700 bg-blue-100/40 rounded px-2 py-1">
+    <div className="flex items-center gap-2 text-gray-700 bg-blue-100/40 rounded px-2 py-1 my-1">
       <svg className="w-3 h-3 text-blue-200" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
       </svg>

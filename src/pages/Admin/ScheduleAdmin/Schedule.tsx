@@ -12,7 +12,7 @@ export const EditingSchedule = ({
   setEditingSchedule,
   setData
 }: {
-  isNew?:boolean;
+  isNew?: boolean;
   input: Record<string, string>;
   handleInput: ChangeEventHandler<HTMLInputElement>;
   editingSchedule: {
@@ -28,7 +28,7 @@ export const EditingSchedule = ({
   setData: Dispatch<SetStateAction<Course[]>>;
 }) => {
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 flex flex-col gap-4 border border-blue-100 my-2">
+    <div className="bg-white rounded-lg shadow-md p-4 flex flex-col gap-4 border border-blue-100 my-1">
       <div>
         <label className="block font-semibold text-gray-700 mb-1">タイトル</label>
         <input
@@ -40,44 +40,48 @@ export const EditingSchedule = ({
         />
       </div>
       <div className="flex flex-row gap-2 mt-2">
-        {isNew ? <button
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
-          onClick={() => {
-            if (!editingSchedule || !editingSchedule.courseId) return;
-            if (!input.title || !input.title.trim()) {
-              alert('タイトルは必須です');
-              return;
-            }
-            const payload = { courseId: editingSchedule.courseId, title: input.title.trim() };
-            appFetch(`${SERVER_ENDPOINT}/api/schedules`, { method: 'POST', requiresAuth: true, jsonBody: payload })
-              .then(() => refresh(setData))
-              .then(() => setEditingSchedule(null))
-              .catch((e) => {
-                alert(`スケジュール作成に失敗しました: ${e.message}`);
-                console.error(e);
-              });
-          }}>
-          追加
-        </button> : <button
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-          onClick={() => {
-            if (!editingSchedule?.schedule) return;
-            if (!input.title || !input.title.trim()) {
-              alert('タイトルは必須です');
-              return;
-            }
-            const id = editingSchedule.schedule.id;
-            const payload = { title: input.title.trim() };
-            appFetch(`${SERVER_ENDPOINT}/api/schedules/${id}`, { method: 'PUT', requiresAuth: true, jsonBody: payload })
-              .then(() => refresh(setData))
-              .then(() => setEditingSchedule(null))
-              .catch((e) => {
-                alert(`スケジュール更新に失敗しました: ${e.message}`);
-                console.error(e);
-              });
-          }}>
-          保存
-        </button>}
+        {isNew ? (
+          <button
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+            onClick={() => {
+              if (!editingSchedule || !editingSchedule.courseId) return;
+              if (!input.title || !input.title.trim()) {
+                alert('タイトルは必須です');
+                return;
+              }
+              const payload = { courseId: editingSchedule.courseId, title: input.title.trim() };
+              appFetch(`${SERVER_ENDPOINT}/api/schedules`, { method: 'POST', requiresAuth: true, jsonBody: payload })
+                .then(() => refresh(setData))
+                .then(() => setEditingSchedule(null))
+                .catch((e) => {
+                  alert(`スケジュール作成に失敗しました: ${e.message}`);
+                  console.error(e);
+                });
+            }}>
+            追加
+          </button>
+        ) : (
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            onClick={() => {
+              if (!editingSchedule?.schedule) return;
+              if (!input.title || !input.title.trim()) {
+                alert('タイトルは必須です');
+                return;
+              }
+              const id = editingSchedule.schedule.id;
+              const payload = { title: input.title.trim() };
+              appFetch(`${SERVER_ENDPOINT}/api/schedules/${id}`, { method: 'PUT', requiresAuth: true, jsonBody: payload })
+                .then(() => refresh(setData))
+                .then(() => setEditingSchedule(null))
+                .catch((e) => {
+                  alert(`スケジュール更新に失敗しました: ${e.message}`);
+                  console.error(e);
+                });
+            }}>
+            保存
+          </button>
+        )}
         <button className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition" onClick={() => setEditingSchedule(null)}>
           キャンセル
         </button>

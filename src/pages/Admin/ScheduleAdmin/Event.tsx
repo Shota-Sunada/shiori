@@ -30,7 +30,7 @@ export const EditingEvent = ({
   >;
 }) => {
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 flex flex-col gap-4 border border-blue-100">
+    <div className="bg-white rounded-lg shadow-md p-4 flex flex-col gap-4 border border-blue-100 my-1">
       <div>
         <label className="block font-semibold text-gray-700 mb-1">メモ</label>
         <input
@@ -72,6 +72,7 @@ export const EditingEvent = ({
               <option value="">(なし)</option>
               <option value="発">発</option>
               <option value="着">着</option>
+              <option value="頃">頃</option>
             </select>
           </div>
         </div>
@@ -105,6 +106,7 @@ export const EditingEvent = ({
               <option value="">(なし)</option>
               <option value="発">発</option>
               <option value="着">着</option>
+              <option value="頃">頃</option>
             </select>
           </div>
         </div>
@@ -210,24 +212,14 @@ export const EditingEvent = ({
 const MessageEditor = ({ event, setData, showAdd, onClose }: { event: Event; setData: Dispatch<SetStateAction<Course[]>>; showAdd?: boolean; onClose?: () => void }) => {
   const [input, setInput] = useState<{ text: string; type: 'notice' | 'info' | 'important' | 'alert' }>({ text: '', type: 'info' });
 
-  // 追加（複数文対応）
+  // 追加（1つのMessageとして送信）
   const handleAdd = () => {
     if (!input.text) return;
-    // 改行ごとに分割し、空行を除外
-    const lines = input.text
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0);
-    if (lines.length === 0) return;
-    Promise.all(
-      lines.map((line) =>
-        appFetch(`${SERVER_ENDPOINT}/api/schedules/events/${event.id}/messages`, {
-          method: 'POST',
-          requiresAuth: true,
-          jsonBody: { text: line, type: input.type }
-        })
-      )
-    ).then(() => {
+    appFetch(`${SERVER_ENDPOINT}/api/schedules/events/${event.id}/messages`, {
+      method: 'POST',
+      requiresAuth: true,
+      jsonBody: { text: input.text, type: input.type }
+    }).then(() => {
       setInput({ text: '', type: 'info' });
       refresh(setData);
       if (onClose) onClose();
@@ -235,40 +227,42 @@ const MessageEditor = ({ event, setData, showAdd, onClose }: { event: Event; set
   };
 
   return (
-    <div className="ml-2 mt-2 mb-2">
-      {showAdd && (
-        <div className="flex gap-2 mb-2 items-start">
+    showAdd && (
+      <div className="ml-2 mt-2 mb-2">
+        <div className="flex gap-2 mb-2 items-start flex-col">
           <textarea
             className="border rounded px-2 py-1 w-64 h-20 resize-y"
             placeholder="メッセージ内容（複数行で複数文追加可）"
             value={input.text}
             onChange={(e) => setInput((i) => ({ ...i, text: e.target.value }))}
           />
-          <select
-            className="border rounded px-2 py-1 mt-1"
-            value={input.type}
-            onChange={(e) => {
-              const v = e.target.value;
-              if (v === 'notice' || v === 'info' || v === 'important' || v === 'alert') {
-                setInput((i) => ({ ...i, type: v }));
-              }
-            }}>
-            <option value="info">詳細</option>
-            <option value="notice">注意</option>
-            <option value="important">重要</option>
-            <option value="alert">警告</option>
-          </select>
-          <button className="bg-blue-500 text-white rounded px-3 py-1 mt-1" onClick={handleAdd}>
-            追加
-          </button>
-          {onClose && (
-            <button className="bg-gray-300 rounded px-3 py-1 mt-1" onClick={onClose}>
-              キャンセル
+          <div>
+            <select
+              className="border rounded px-2 py-1 mt-1 mr-1"
+              value={input.type}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === 'notice' || v === 'info' || v === 'important' || v === 'alert') {
+                  setInput((i) => ({ ...i, type: v }));
+                }
+              }}>
+              <option value="info">詳細</option>
+              <option value="notice">注意</option>
+              <option value="important">重要</option>
+              <option value="alert">警告</option>
+            </select>
+            <button className="bg-blue-500 text-white rounded px-3 py-1 mt-1 mr-1" onClick={handleAdd}>
+              追加
             </button>
-          )}
+            {onClose && (
+              <button className="bg-gray-300 rounded px-3 py-1 mt-1 mr-1" onClick={onClose}>
+                キャンセル
+              </button>
+            )}
+          </div>
         </div>
-      )}
-    </div>
+      </div>
+    )
   );
 };
 
@@ -277,12 +271,12 @@ export const EventCard = ({ event, setData }: { event: Event; setData: Dispatch<
   const hasStart = event.time1Hour !== undefined && event.time1Minute !== undefined && event.time1Hour !== null && event.time1Minute !== null;
   const hasEnd = event.time2Hour !== undefined && event.time2Minute !== undefined && event.time2Hour !== null && event.time2Minute !== null;
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 my-1">
       <div className="flex items-center gap-2 text-gray-700 bg-blue-50 rounded px-2 py-1">
         <svg className="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
         </svg>
-        <span className="font-semibold">{event.memo}</span>
+        <span className="font-semibold whitespace-pre-line">{event.memo}</span>
         <span className="text-xs text-gray-500">
           （{hasStart ? `${event.time1Hour}:${pad2(event.time1Minute)}${event.time1Postfix ? ` ${event.time1Postfix}` : ''}` : ''}
           {hasEnd ? ` - ${event.time2Hour}:${pad2(event.time2Minute)}${event.time2Postfix ? ` ${event.time2Postfix}` : ''}` : ''}）
