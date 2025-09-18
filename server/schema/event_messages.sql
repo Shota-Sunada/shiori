@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS event_messages (
   event_id INT NOT NULL,
   text TEXT NOT NULL,
   type ENUM('notice', 'info', 'important', 'alert') DEFAULT 'info',
+  sort_order INT NOT NULL DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE

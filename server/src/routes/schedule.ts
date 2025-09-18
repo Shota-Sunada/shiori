@@ -6,6 +6,41 @@ import { ResultSetHeader } from 'mysql2/promise';
 
 const router = express.Router();
 
+// イベントメッセージ削除（RESTfulなパスに統一）
+router.delete('/events/:eventId/messages/:messageId', async (req, res) => {
+  try {
+    const messageId = Number(req.params.messageId);
+    if (!messageId) return res.status(400).json({ error: 'messageId is required' });
+    await pool.execute('DELETE FROM event_messages WHERE id = ?', [messageId]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'DB error', detail: String(err) });
+  }
+});
+
+// イベント詳細・メッセージの並び順を更新
+router.put('/events/:eventId/items/reorder', async (req, res) => {
+  try {
+    const eventId = Number(req.params.eventId);
+    const { order } = req.body || {};
+    if (!eventId || !Array.isArray(order)) return res.status(400).json({ error: 'eventId and order are required' });
+    // 並び順を一括更新
+    const detailUpdates: Promise<unknown>[] = [];
+    const messageUpdates: Promise<unknown>[] = [];
+    order.forEach((item: { type: string; id: number }, idx: number) => {
+      if (item.type === 'detail') {
+        detailUpdates.push(pool.execute('UPDATE event_details SET sort_order = ? WHERE id = ? AND event_id = ?', [idx, item.id, eventId]));
+      } else if (item.type === 'message') {
+        messageUpdates.push(pool.execute('UPDATE event_messages SET sort_order = ? WHERE id = ? AND event_id = ?', [idx, item.id, eventId]));
+      }
+    });
+    await Promise.all([...detailUpdates, ...messageUpdates]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'DB error', detail: String(err) });
+  }
+});
+
 // スケジュール一覧取得
 router.get('/', async (req, res) => {
   try {
@@ -16,9 +51,11 @@ router.get('/', async (req, res) => {
       'SELECT id, schedule_id as scheduleId, memo, time1_hour as time1Hour, time1_minute as time1Minute, time1_postfix as time1Postfix, time2_hour as time2Hour, time2_minute as time2Minute, time2_postfix as time2Postfix FROM events'
     );
     const [eventDetailsRaw] = await pool.query(
-      'SELECT id, event_id as eventId, memo, time1_hour as time1Hour, time1_minute as time1Minute, time2_hour as time2Hour, time2_minute as time2Minute FROM event_details'
+      'SELECT id, event_id as eventId, memo, time1_hour as time1Hour, time1_minute as time1Minute, time2_hour as time2Hour, time2_minute as time2Minute, sort_order as sortOrder FROM event_details ORDER BY sort_order, id'
     );
-    const [eventMessagesRaw] = await pool.query('SELECT id, event_id as eventId, text, type, created_at as createdAt, updated_at as updatedAt FROM event_messages');
+    const [eventMessagesRaw] = await pool.query(
+      'SELECT id, event_id as eventId, text, type, created_at as createdAt, updated_at as updatedAt, sort_order as sortOrder FROM event_messages ORDER BY sort_order, id'
+    );
 
     const courses = coursesRaw as Course[];
     const schedules = schedulesRaw as Schedule[];
@@ -244,8 +281,8 @@ router.post('/events/:eventId/messages', async (req, res) => {
   }
 });
 
-// イベントメッセージ更新
-router.put('/event-messages/:messageId', async (req, res) => {
+// イベントメッセージ更新（RESTfulなパスに統一）
+router.put('/events/:eventId/messages/:messageId', async (req, res) => {
   try {
     const messageId = Number(req.params.messageId);
     const { text, type } = req.body || {};

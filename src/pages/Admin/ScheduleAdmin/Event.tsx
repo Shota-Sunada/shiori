@@ -4,7 +4,6 @@ import type { Course, Event, EventDetail, Schedule } from './Types';
 import { refresh, toMinutesIfPresent, validateTimeOptionalPairLabeled, validateTimeRequired, validateTimeOptionalPair } from './helpers';
 import { SERVER_ENDPOINT } from '../../../config/serverEndpoint';
 import { appFetch } from '../../../helpers/apiClient';
-import Message from '../../../components/Message';
 import { useState } from 'react';
 
 export const EditingEvent = ({
@@ -210,9 +209,6 @@ export const EditingEvent = ({
 // Message編集UI
 const MessageEditor = ({ event, setData, showAdd, onClose }: { event: Event; setData: Dispatch<SetStateAction<Course[]>>; showAdd?: boolean; onClose?: () => void }) => {
   const [input, setInput] = useState<{ text: string; type: 'notice' | 'info' | 'important' | 'alert' }>({ text: '', type: 'info' });
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editingText, setEditingText] = useState('');
-  const [editingType, setEditingType] = useState<'notice' | 'info' | 'important' | 'alert'>('info');
 
   // 追加（複数文対応）
   const handleAdd = () => {
@@ -237,25 +233,7 @@ const MessageEditor = ({ event, setData, showAdd, onClose }: { event: Event; set
       if (onClose) onClose();
     });
   };
-  // 編集保存
-  const handleEdit = (id: number) => {
-    appFetch(`${SERVER_ENDPOINT}/api/schedules/events/${event.id}/messages/${id}`, {
-      method: 'PUT',
-      requiresAuth: true,
-      jsonBody: { text: editingText, type: editingType }
-    }).then(() => {
-      setEditingId(null);
-      refresh(setData);
-    });
-  };
-  // 削除
-  const handleDelete = (id: number) => {
-    if (!window.confirm('削除してもよろしいですか?')) return;
-    appFetch(`${SERVER_ENDPOINT}/api/schedules/events/${event.id}/messages/${id}`, {
-      method: 'DELETE',
-      requiresAuth: true
-    }).then(() => refresh(setData));
-  };
+
   return (
     <div className="ml-2 mt-2 mb-2">
       {showAdd && (
@@ -290,64 +268,6 @@ const MessageEditor = ({ event, setData, showAdd, onClose }: { event: Event; set
           )}
         </div>
       )}
-      <ul className="space-y-1">
-        {event.messages.map((msg) => (
-          <li key={msg.id} className="relative group">
-            <Message type={editingId === msg.id ? editingType : msg.type}>
-              {/* ボタンをMessage装飾内で明確に表示・hoverで色変化・アイコン付与 */}
-              <div className="absolute top-2 right-4 flex gap-2 z-10">
-                {editingId === msg.id ? (
-                  <>
-                    <button className="text-xs px-2 py-1 mx-1 rounded bg-green-500 text-white" onClick={() => handleEdit(msg.id)}>
-                      保存
-                    </button>
-                    <button className="text-xs px-2 py-1 mx-1 rounded bg-gray-200 text-gray-700" onClick={() => setEditingId(null)}>
-                      キャンセル
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      className="text-xs px-2 py-1 mx-1 bg-yellow-400 rounded"
-                      title="このメッセージを編集"
-                      onClick={() => {
-                        setEditingId(msg.id);
-                        setEditingText(msg.text);
-                        setEditingType(msg.type || 'info');
-                      }}>
-                      編集
-                    </button>
-                    <button className="text-xs px-2 py-1 mx-1 bg-red-400 rounded" title="このメッセージを削除" onClick={() => handleDelete(msg.id)}>
-                      削除
-                    </button>
-                  </>
-                )}
-              </div>
-              {editingId === msg.id ? (
-                <div className="flex gap-2 items-center mt-2 flex-col w-full">
-                  <select
-                    className="border rounded px-2 py-1 w-full"
-                    value={editingType}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      if (v === 'notice' || v === 'info' || v === 'important' || v === 'alert') {
-                        setEditingType(v);
-                      }
-                    }}>
-                    <option value="info">詳細</option>
-                    <option value="notice">注意</option>
-                    <option value="important">重要</option>
-                    <option value="alert">警告</option>
-                  </select>
-                  <textarea className="border rounded px-2 py-1 w-full" value={editingText} onChange={(e) => setEditingText(e.target.value)} />
-                </div>
-              ) : (
-                <span className="block mt-2">{msg.text}</span>
-              )}
-            </Message>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 };

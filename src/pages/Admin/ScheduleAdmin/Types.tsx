@@ -6,6 +6,7 @@ export type EventDetail = {
   time1Minute?: number;
   time2Hour?: number;
   time2Minute?: number;
+  sortOrder?: number;
 };
 
 export type Message = {
@@ -13,6 +14,7 @@ export type Message = {
   eventId: number;
   text: string;
   type?: 'notice' | 'info' | 'important' | 'alert';
+  sortOrder?: number;
 };
 
 export type Event = {

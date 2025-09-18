@@ -1,10 +1,203 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ChangeEventHandler } from 'react';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import type { DropResult } from '@hello-pangea/dnd';
 import { appFetch } from '../../helpers/apiClient';
 import { SERVER_ENDPOINT } from '../../config/serverEndpoint';
 import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4 } from '../../data/courses';
 import type { COURSES_COMMON_KEY } from '../../components/TimeTable';
 import type { EventDetail, Event, Schedule, Course } from './ScheduleAdmin/Types';
 import { DetailButtons, DetailCard, EditingDetail } from './ScheduleAdmin/Detail';
+
+import type { Dispatch, SetStateAction } from 'react';
+import type { Message as MessageType } from './ScheduleAdmin/Types';
+import Message from '../../components/Message';
+
+type Item = { type: 'detail'; id: number; data: EventDetail; sortOrder: number } | { type: 'message'; id: number; data: MessageType; sortOrder: number };
+
+export const EventItemList = ({
+  event,
+  setData,
+  input,
+  handleInput,
+  setInput,
+  editingDetail,
+  setEditingDetail
+}: {
+  event: Event;
+  setData: Dispatch<SetStateAction<Course[]>>;
+  input: Record<string, string>;
+  handleInput: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>;
+  setInput: Dispatch<SetStateAction<Record<string, string>>>;
+  editingDetail: { eventId: number; detail: EventDetail | null } | null;
+  setEditingDetail: Dispatch<SetStateAction<{ eventId: number; detail: EventDetail | null } | null>>;
+}) => {
+  // detailsとmessagesをsortOrderで統合ソート
+  const getSortedItems = () => {
+    const all: Item[] = [
+      ...event.details.map((d) => ({ type: 'detail' as const, id: d.id, data: d, sortOrder: typeof d.sortOrder === 'number' ? d.sortOrder : 0 })),
+      ...event.messages.map((m) => ({ type: 'message' as const, id: m.id, data: m, sortOrder: typeof m.sortOrder === 'number' ? m.sortOrder : 0 }))
+    ];
+    return all.sort((a, b) => a.sortOrder - b.sortOrder);
+  };
+  const [items, setItems] = useState<Item[]>(getSortedItems());
+  useEffect(() => {
+    setItems(getSortedItems());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [event.details, event.messages]);
+
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    const newItems = Array.from(items);
+    const [removed] = newItems.splice(result.source.index, 1);
+    newItems.splice(result.destination.index, 0, removed);
+    setItems(newItems);
+    // 並べ替えAPIのリクエスト内容を確認
+    const payload = { order: newItems.map((i) => ({ type: i.type, id: i.id })) };
+    console.log('並べ替えAPI送信内容:', payload);
+    appFetch(`${SERVER_ENDPOINT}/api/schedules/events/${event.id}/items/reorder`, {
+      method: 'PUT',
+      requiresAuth: true,
+      jsonBody: payload
+    }).then(() => setData((prev) => [...prev]));
+  };
+
+  // 詳細・Message追加UIや編集UIはここに統合（省略可、必要に応じて追加）
+
+  const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
+  const [editingText, setEditingText] = useState('');
+  const [editingType, setEditingType] = useState<'notice' | 'info' | 'important' | 'alert'>('info');
+
+  // 編集保存
+  const handleEditMessage = (msgId: number) => {
+    appFetch(`${SERVER_ENDPOINT}/api/schedules/events/${event.id}/messages/${msgId}`, {
+      method: 'PUT',
+      requiresAuth: true,
+      jsonBody: { text: editingText, type: editingType }
+    }).then(() => {
+      setEditingMessageId(null);
+      setEditingText('');
+      setEditingType('info');
+      // データ再取得
+      appFetch<Course[]>(`${SERVER_ENDPOINT}/api/schedules`, { parse: 'json', alwaysFetch: true, requiresAuth: true }).then((courses) => {
+        const patched = courses.map((course) => ({
+          ...course,
+          schedules: course.schedules.map((schedule) => ({
+            ...schedule,
+            events: schedule.events.map((event) => ({
+              ...event,
+              messages: event.messages ?? []
+            }))
+          }))
+        }));
+        setData(patched);
+      });
+    });
+  };
+  // 削除
+  const handleDeleteMessage = (msgId: number) => {
+    if (!window.confirm('削除してもよろしいですか?')) return;
+    appFetch(`${SERVER_ENDPOINT}/api/schedules/events/${event.id}/messages/${msgId}`, {
+      method: 'DELETE',
+      requiresAuth: true
+    }).then(() => {
+      appFetch<Course[]>(`${SERVER_ENDPOINT}/api/schedules`, { parse: 'json', alwaysFetch: true, requiresAuth: true }).then((courses) => {
+        const patched = courses.map((course) => ({
+          ...course,
+          schedules: course.schedules.map((schedule) => ({
+            ...schedule,
+            events: schedule.events.map((event) => ({
+              ...event,
+              messages: event.messages ?? []
+            }))
+          }))
+        }));
+        setData(patched);
+      });
+    });
+  };
+
+  return (
+    <div className="ml-2 list-none text-sm space-y-1 border-l-4 border-blue-200 pl-4">
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId={`items-droppable-${event.id}`}>
+          {(provided) => (
+            <div ref={provided.innerRef} {...provided.droppableProps}>
+              {items.map((item, idx) => (
+                <Draggable key={item.type + '-' + item.id} draggableId={item.type + '-' + item.id} index={idx}>
+                  {(provided, snapshot) => (
+                    <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className={`flex flex-col gap-1 ${snapshot.isDragging ? 'ring-2 ring-blue-300' : ''}`}>
+                      {item.type === 'detail' && editingDetail && editingDetail.detail && editingDetail.detail.id === item.id ? (
+                        // 編集中の詳細
+                        <EditingDetail isNew={false} input={input} handleInput={handleInput} editingDetail={editingDetail} setData={setData} setEditingDetail={setEditingDetail} />
+                      ) : item.type === 'detail' ? (
+                        <>
+                          <DetailCard detail={item.data as EventDetail} />
+                          <DetailButtons setEditingDetail={setEditingDetail} setInput={setInput} detail={item.data as EventDetail} event={event} setData={setData} />
+                        </>
+                      ) : (
+                        <Message type={(item.data as MessageType).type ?? 'info'}>
+                          <div className="flex flex-row items-start gap-2 w-full">
+                            {editingMessageId === item.id ? (
+                              <>
+                                <div className="flex flex-col gap-1 w-full">
+                                  <select
+                                    className="border rounded px-2 py-1 w-full"
+                                    value={editingType}
+                                    onChange={(e) => {
+                                      const v = e.target.value;
+                                      if (v === 'notice' || v === 'info' || v === 'important' || v === 'alert') {
+                                        setEditingType(v);
+                                      }
+                                    }}>
+                                    <option value="info">詳細</option>
+                                    <option value="notice">注意</option>
+                                    <option value="important">重要</option>
+                                    <option value="alert">警告</option>
+                                  </select>
+                                  <textarea className="border rounded px-2 py-1 w-full" value={editingText} onChange={(e) => setEditingText(e.target.value)} />
+                                </div>
+                                <div className="flex flex-col gap-1 ml-2">
+                                  <button className="text-xs px-2 py-1 rounded bg-green-500 text-white" onClick={() => handleEditMessage(item.id)}>
+                                    保存
+                                  </button>
+                                  <button className="text-xs px-2 py-1 rounded bg-gray-200 text-gray-700" onClick={() => setEditingMessageId(null)}>
+                                    キャンセル
+                                  </button>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <span className="block mt-2 flex-1">{(item.data as MessageType).text}</span>
+                                <button
+                                  className="text-xs px-2 py-1 mx-1 bg-yellow-400 rounded"
+                                  title="このメッセージを編集"
+                                  onClick={() => {
+                                    setEditingMessageId(item.id);
+                                    setEditingText((item.data as MessageType).text);
+                                    setEditingType((item.data as MessageType).type ?? 'info');
+                                  }}>
+                                  編集
+                                </button>
+                                <button className="text-xs px-2 py-1 mx-1 bg-red-400 rounded" title="このメッセージを削除" onClick={() => handleDeleteMessage(item.id)}>
+                                  削除
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </Message>
+                      )}
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+    </div>
+  );
+};
 import { EditingEvent, EventButtons, EventCard } from './ScheduleAdmin/Event';
 import { EditingSchedule, ScheduleButtons, ScheduleCard } from './ScheduleAdmin/Schedule';
 import { CourseButtons, EditingCourse, NewCourse } from './ScheduleAdmin/Course';
@@ -44,6 +237,7 @@ const ScheduleAdmin = () => {
   useEffect(() => {
     appFetch<Course[]>(`${SERVER_ENDPOINT}/api/schedules`, { parse: 'json', alwaysFetch: true, requiresAuth: true })
       .then((courses) => {
+        console.log('サーバーから受信したcourses:', courses);
         // Event.messagesがなければ空配列を補完
         const patched = courses.map((course) => ({
           ...course,
@@ -236,15 +430,6 @@ const ScheduleAdmin = () => {
                                 )}
                                 {schedule.events.map((event: Event) => {
                                   const isEventOpen = openEvents[event.id] ?? true;
-                                  // 詳細を開始時間順にソート（number型）
-                                  const sortedDetails = [...event.details].sort((a, b) => {
-                                    const aTime = a.time1Hour != null && a.time1Minute != null ? a.time1Hour * 60 + a.time1Minute : null;
-                                    const bTime = b.time1Hour != null && b.time1Minute != null ? b.time1Hour * 60 + b.time1Minute : null;
-                                    if (aTime == null && bTime == null) return 0;
-                                    if (aTime == null) return 1;
-                                    if (bTime == null) return -1;
-                                    return aTime - bTime;
-                                  });
                                   return (
                                     <div key={event.id}>
                                       <div className="flex items-center gap-2 p-1">
@@ -274,23 +459,15 @@ const ScheduleAdmin = () => {
                                                 schedule={schedule}
                                               />
                                               {/* 詳細親元 */}
-                                              <div className="ml-2 list-none text-sm space-y-1 border-l-4 border-blue-200 pl-4">
-                                                {editingDetail && editingDetail.eventId === event.id && !editingDetail.detail && (
-                                                  <EditingDetail isNew input={input} handleInput={handleInput} editingDetail={editingDetail} setData={setData} setEditingDetail={setEditingDetail} />
-                                                )}
-                                                {sortedDetails.map((detail: EventDetail) => (
-                                                  <div key={detail.id}>
-                                                    <div className="flex flex-col gap-1 p-1 border border-blue-100">
-                                                      {editingDetail && editingDetail.detail && editingDetail.detail.id === detail.id ? (
-                                                        <EditingDetail input={input} handleInput={handleInput} editingDetail={editingDetail} setData={setData} setEditingDetail={setEditingDetail} />
-                                                      ) : (
-                                                        <DetailCard detail={detail} />
-                                                      )}
-                                                      <DetailButtons setEditingDetail={setEditingDetail} setInput={setInput} detail={detail} event={event} setData={setData} />
-                                                    </div>
-                                                  </div>
-                                                ))}
-                                              </div>
+                                              <EventItemList
+                                                event={event}
+                                                setData={setData}
+                                                input={input}
+                                                handleInput={handleInput}
+                                                setInput={setInput}
+                                                editingDetail={editingDetail}
+                                                setEditingDetail={setEditingDetail}
+                                              />
                                             </div>
                                           )}
                                         </div>
