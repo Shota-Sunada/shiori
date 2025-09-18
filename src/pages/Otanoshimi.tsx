@@ -10,6 +10,7 @@ import type { StudentDTO } from '../helpers/domainApi';
 import { studentApi } from '../helpers/domainApi';
 import MDButton, { BackToHome } from '../components/MDButton';
 import { consumePrefetchData } from '../prefetch/cache';
+import Message from '../components/Message';
 
 interface OtanoshimiDataWithSchedule extends OtanoshimiData {
   schedule: string;
@@ -313,7 +314,7 @@ const Otanoshimi = () => {
                 })
               )}
               <tr className={teams ? (teams.length % 2 === 0 ? 'bg-gray-100' : 'bg-white') : 'bg-white'}>
-                {renderTimeCell('21:30 (厳守)')}
+                {renderTimeCell('21:30 - (厳守)')}
                 <td className="text-center font-bold col-team col-enmoku schedule-divider" colSpan={2}>
                   {'終了 + 解散'}
                 </td>
@@ -321,11 +322,14 @@ const Otanoshimi = () => {
             </tbody>
           </table>
         </section>
-        <div className="mt-3">
-          <p className="text-gray-600 text-sm">{'※当日の進行状況により、時間が変動する場合があります。'}</p>
-          <p className="text-gray-600 text-sm">{'※リハーサルでは、各出演団体が最終確認を行うのみとし、演技は行いません。'}</p>
-          {/* <p className="text-gray-600 text-sm">{'※演技時間は、各団体あたり5~10分(最長)です。'}</p> */}
-        </div>
+        <Message>
+          <p>{'※当日の進行状況により、時間が変動する場合があります。'}</p>
+          <p>{'※リハーサルでは、各出演団体が最終確認を行うのみとし、演技は行いません。'}</p>
+          <p>{'※途中休憩はありません。'}</p>
+          <p>{'※準備ができ次第、次の団体を開始します。そのため、実際のタイムスケジュールより早く進む可能性があります。'}</p>
+          <p>{'※円滑なお楽しみ会運営にご協力をお願いします。'}</p>
+          {/* <p>{'※演技時間は、各団体あたり5~10分(最長)です。'}</p> */}
+        </Message>
       </div>
 
       <BackToHome user={user} />
