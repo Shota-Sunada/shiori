@@ -310,7 +310,7 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
           {/* day3 END */}
           {/* day4 START */}
           <tr>
-            <td rowSpan={1} className="vcell vcell--min day-col">
+            <td rowSpan={2} className="vcell vcell--min day-col">
               <VerticalLabel text="４日目" />
             </td>
             <td className="label-cell">{'研修先'}</td>
@@ -351,6 +351,10 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
                   </>
                 )}
             </td>
+          </tr>
+          <tr>
+            <td className="label-cell">{'バス'}</td>
+            <td>{(studentData && `${studentData.class}号車`) || (teacherData && `${teacherData.day4class ?? '◯◯'}号車`) || '◯◯号車'}</td>
           </tr>
           {/* day4 END */}
           {/* hotel START */}
