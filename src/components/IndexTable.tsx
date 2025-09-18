@@ -416,7 +416,7 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
               <p>
                 {(studentData && (
                   <>
-                    {'Hotel Spor:Sion '}
+                    {'ホテル スポルシオン '}
                     {studentData.room_fpr.toString().substring(1, 2)}
                     {'階 '}
                     {studentData.room_fpr}
@@ -427,7 +427,7 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
                     <>
                       {teacherData.room_fpr ? (
                         <>
-                          {'Hotel Spor:Sion '}
+                          {'ホテル スポルシオン '}
                           {teacherData.room_fpr.toString().substring(1, 2)}
                           {'階 '}
                           {teacherData.room_fpr}
