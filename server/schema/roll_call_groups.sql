@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS roll_call_groups (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL UNIQUE,
+  student_ids JSON NOT NULL
+);

@@ -1,0 +1,17 @@
+-- すべてのテーブル作成SQLをまとめて実行する場合
+\. users.sql
+\. courses.sql
+\. schedules.sql
+\. events.sql
+\. event_details.sql
+\. students.sql
+\. teachers.sql
+\. fcm_tokens.sql
+\. otanoshimi_teams.sql
+\. roll_calls.sql
+\. roll_call_students.sql
+\. roll_call_absences.sql
+\. roll_call_groups.sql
+\. boat_assignments.sql
+\. credits.sql
+\. event_messages.sql

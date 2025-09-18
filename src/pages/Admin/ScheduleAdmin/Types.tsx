@@ -8,6 +8,13 @@ export type EventDetail = {
   time2Minute?: number;
 };
 
+export type Message = {
+  id: number;
+  eventId: number;
+  text: string;
+  type?: 'notice' | 'info' | 'important' | 'alert';
+};
+
 export type Event = {
   id: number;
   scheduleId: number;
@@ -19,6 +26,7 @@ export type Event = {
   time2Minute?: number;
   time2Postfix?: string;
   details: EventDetail[];
+  messages: Message[];
 };
 
 export type Schedule = {

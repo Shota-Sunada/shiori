@@ -1,6 +1,7 @@
 // import { useEffect, useState } from 'react';
 import type { COURSES_DAY1_KEY, COURSES_DAY3_KEY, COURSES_DAY4_KEY } from '../data/courses';
 import { pad2 } from '../helpers/pad2';
+import Message from './Message';
 
 type EventDetail = {
   id: number;
@@ -10,6 +11,12 @@ type EventDetail = {
   time1Minute?: number;
   time2Hour?: number;
   time2Minute?: number;
+};
+type Message = {
+  id: number;
+  eventId: number;
+  text: string;
+  type?: 'notice' | 'info' | 'important' | 'alert';
 };
 type Event = {
   id: number;
@@ -22,6 +29,7 @@ type Event = {
   time2Minute?: number;
   time2Postfix?: string;
   details: EventDetail[];
+  messages?: Message[];
 };
 type Schedule = {
   id: number;
@@ -105,6 +113,15 @@ const TimeTable = ({ courseKey, ref, courses }: TimeTableProps) => {
               <td>
                 <div className="text-xs text-gray-500">{schTitle}</div>
                 <div>{ev.memo}</div>
+                {ev.messages && ev.messages.length > 0 && (
+                  <div className="mt-2 w-full">
+                    {ev.messages.map((msg) => (
+                      <Message key={msg.id} type={msg.type}>
+                        {msg.text}
+                      </Message>
+                    ))}
+                  </div>
+                )}
                 {ev.details.length > 0 && (
                   <ul className="list-disc ml-4 text-sm text-gray-700">
                     {ev.details

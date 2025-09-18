@@ -4,6 +4,8 @@ import type { Course, Event, EventDetail, Schedule } from './Types';
 import { refresh, toMinutesIfPresent, validateTimeOptionalPairLabeled, validateTimeRequired, validateTimeOptionalPair } from './helpers';
 import { SERVER_ENDPOINT } from '../../../config/serverEndpoint';
 import { appFetch } from '../../../helpers/apiClient';
+import Message from '../../../components/Message';
+import { useState } from 'react';
 
 export const EditingEvent = ({
   isNew,
@@ -205,20 +207,172 @@ export const EditingEvent = ({
   );
 };
 
-export const EventCard = ({ event }: { event: Event }) => {
-  // 時刻表示用
+// Message編集UI
+const MessageEditor = ({ event, setData, showAdd, onClose }: { event: Event; setData: Dispatch<SetStateAction<Course[]>>; showAdd?: boolean; onClose?: () => void }) => {
+  const [input, setInput] = useState<{ text: string; type: 'notice' | 'info' | 'important' | 'alert' }>({ text: '', type: 'info' });
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingText, setEditingText] = useState('');
+  const [editingType, setEditingType] = useState<'notice' | 'info' | 'important' | 'alert'>('info');
+
+  // 追加（複数文対応）
+  const handleAdd = () => {
+    if (!input.text) return;
+    // 改行ごとに分割し、空行を除外
+    const lines = input.text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+    if (lines.length === 0) return;
+    Promise.all(
+      lines.map((line) =>
+        appFetch(`${SERVER_ENDPOINT}/api/schedules/events/${event.id}/messages`, {
+          method: 'POST',
+          requiresAuth: true,
+          jsonBody: { text: line, type: input.type }
+        })
+      )
+    ).then(() => {
+      setInput({ text: '', type: 'info' });
+      refresh(setData);
+      if (onClose) onClose();
+    });
+  };
+  // 編集保存
+  const handleEdit = (id: number) => {
+    appFetch(`${SERVER_ENDPOINT}/api/schedules/events/${event.id}/messages/${id}`, {
+      method: 'PUT',
+      requiresAuth: true,
+      jsonBody: { text: editingText, type: editingType }
+    }).then(() => {
+      setEditingId(null);
+      refresh(setData);
+    });
+  };
+  // 削除
+  const handleDelete = (id: number) => {
+    if (!window.confirm('削除してもよろしいですか?')) return;
+    appFetch(`${SERVER_ENDPOINT}/api/schedules/events/${event.id}/messages/${id}`, {
+      method: 'DELETE',
+      requiresAuth: true
+    }).then(() => refresh(setData));
+  };
+  return (
+    <div className="ml-2 mt-2 mb-2">
+      {showAdd && (
+        <div className="flex gap-2 mb-2 items-start">
+          <textarea
+            className="border rounded px-2 py-1 w-64 h-20 resize-y"
+            placeholder="メッセージ内容（複数行で複数文追加可）"
+            value={input.text}
+            onChange={(e) => setInput((i) => ({ ...i, text: e.target.value }))}
+          />
+          <select
+            className="border rounded px-2 py-1 mt-1"
+            value={input.type}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v === 'notice' || v === 'info' || v === 'important' || v === 'alert') {
+                setInput((i) => ({ ...i, type: v }));
+              }
+            }}>
+            <option value="info">詳細</option>
+            <option value="notice">注意</option>
+            <option value="important">重要</option>
+            <option value="alert">警告</option>
+          </select>
+          <button className="bg-blue-500 text-white rounded px-3 py-1 mt-1" onClick={handleAdd}>
+            追加
+          </button>
+          {onClose && (
+            <button className="bg-gray-300 rounded px-3 py-1 mt-1" onClick={onClose}>
+              キャンセル
+            </button>
+          )}
+        </div>
+      )}
+      <ul className="space-y-1">
+        {event.messages.map((msg) => (
+          <li key={msg.id} className="relative group">
+            <Message type={editingId === msg.id ? editingType : msg.type}>
+              {/* ボタンをMessage装飾内で明確に表示・hoverで色変化・アイコン付与 */}
+              <div className="absolute top-2 right-4 flex gap-2 z-10">
+                {editingId === msg.id ? (
+                  <>
+                    <button className="text-xs px-2 py-1 mx-1 rounded bg-green-500 text-white" onClick={() => handleEdit(msg.id)}>
+                      保存
+                    </button>
+                    <button className="text-xs px-2 py-1 mx-1 rounded bg-gray-200 text-gray-700" onClick={() => setEditingId(null)}>
+                      キャンセル
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      className="text-xs px-2 py-1 mx-1 bg-yellow-400 rounded"
+                      title="このメッセージを編集"
+                      onClick={() => {
+                        setEditingId(msg.id);
+                        setEditingText(msg.text);
+                        setEditingType(msg.type || 'info');
+                      }}>
+                      編集
+                    </button>
+                    <button className="text-xs px-2 py-1 mx-1 bg-red-400 rounded" title="このメッセージを削除" onClick={() => handleDelete(msg.id)}>
+                      削除
+                    </button>
+                  </>
+                )}
+              </div>
+              {editingId === msg.id ? (
+                <div className="flex gap-2 items-center mt-2 flex-col w-full">
+                  <select
+                    className="border rounded px-2 py-1 w-full"
+                    value={editingType}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === 'notice' || v === 'info' || v === 'important' || v === 'alert') {
+                        setEditingType(v);
+                      }
+                    }}>
+                    <option value="info">詳細</option>
+                    <option value="notice">注意</option>
+                    <option value="important">重要</option>
+                    <option value="alert">警告</option>
+                  </select>
+                  <textarea className="border rounded px-2 py-1 w-full" value={editingText} onChange={(e) => setEditingText(e.target.value)} />
+                </div>
+              ) : (
+                <span className="block mt-2">{msg.text}</span>
+              )}
+            </Message>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export const EventCard = ({ event, setData }: { event: Event; setData: Dispatch<SetStateAction<Course[]>> }) => {
+  const [showAddMessage, setShowAddMessage] = useState(false);
   const hasStart = event.time1Hour !== undefined && event.time1Minute !== undefined && event.time1Hour !== null && event.time1Minute !== null;
   const hasEnd = event.time2Hour !== undefined && event.time2Minute !== undefined && event.time2Hour !== null && event.time2Minute !== null;
   return (
-    <div className="flex items-center gap-2 text-gray-700 bg-blue-50 rounded px-2 py-1">
-      <svg className="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-      </svg>
-      <span className="font-semibold">{event.memo}</span>
-      <span className="text-xs text-gray-500">
-        （{hasStart ? `${event.time1Hour}:${pad2(event.time1Minute)}${event.time1Postfix ? ` ${event.time1Postfix}` : ''}` : ''}
-        {hasEnd ? ` - ${event.time2Hour}:${pad2(event.time2Minute)}${event.time2Postfix ? ` ${event.time2Postfix}` : ''}` : ''}）
-      </span>
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-2 text-gray-700 bg-blue-50 rounded px-2 py-1">
+        <svg className="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+        <span className="font-semibold">{event.memo}</span>
+        <span className="text-xs text-gray-500">
+          （{hasStart ? `${event.time1Hour}:${pad2(event.time1Minute)}${event.time1Postfix ? ` ${event.time1Postfix}` : ''}` : ''}
+          {hasEnd ? ` - ${event.time2Hour}:${pad2(event.time2Minute)}${event.time2Postfix ? ` ${event.time2Postfix}` : ''}` : ''}）
+        </span>
+        <button className="ml-2 text-xs px-2 py-1 bg-green-400 rounded hover:bg-green-500 transition" onClick={() => setShowAddMessage(true)}>
+          Message追加
+        </button>
+      </div>
+      {/* MessageEditorのリストを常時表示し、追加時のみshowAdd=trueで表示 */}
+      <MessageEditor event={event} setData={setData} showAdd={showAddMessage} onClose={() => setShowAddMessage(false)} />
     </div>
   );
 };
@@ -284,6 +438,7 @@ export const EventButtons = ({
         }}>
         ＋詳細追加
       </button>
+      {/* Message追加ボタンはEventCard内に移動済み */}
     </div>
   );
 };

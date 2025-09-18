@@ -43,7 +43,20 @@ const ScheduleAdmin = () => {
 
   useEffect(() => {
     appFetch<Course[]>(`${SERVER_ENDPOINT}/api/schedules`, { parse: 'json', alwaysFetch: true, requiresAuth: true })
-      .then(setData)
+      .then((courses) => {
+        // Event.messagesがなければ空配列を補完
+        const patched = courses.map((course) => ({
+          ...course,
+          schedules: course.schedules.map((schedule) => ({
+            ...schedule,
+            events: schedule.events.map((event) => ({
+              ...event,
+              messages: event.messages ?? []
+            }))
+          }))
+        }));
+        setData(patched);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -244,35 +257,44 @@ const ScheduleAdmin = () => {
                                             <span className={`transition-transform ${isEventOpen ? '' : 'rotate-180'}`}>▼</span>
                                           </button>
                                         )}
-                                        {editingEvent && editingEvent.event && editingEvent.event.id === event.id ? (
-                                          <EditingEvent input={input} handleInput={handleInput} editingEvent={editingEvent} setData={setData} setEditingEvent={setEditingEvent} />
-                                        ) : (
-                                          <EventCard event={event} />
-                                        )}
-                                      </div>
-                                      {isEventOpen && (
-                                        <>
-                                          <EventButtons setEditingEvent={setEditingEvent} setInput={setInput} event={event} setData={setData} setEditingDetail={setEditingDetail} schedule={schedule} />
-                                          {/* 詳細親元 */}
-                                          <div className="ml-2 list-none text-sm space-y-1 border-l-4 border-blue-200 pl-4">
-                                            {editingDetail && editingDetail.eventId === event.id && !editingDetail.detail && (
-                                              <EditingDetail isNew input={input} handleInput={handleInput} editingDetail={editingDetail} setData={setData} setEditingDetail={setEditingDetail} />
-                                            )}
-                                            {sortedDetails.map((detail: EventDetail) => (
-                                              <div key={detail.id}>
-                                                <div className="flex flex-col gap-1 p-1 border border-blue-100">
-                                                  {editingDetail && editingDetail.detail && editingDetail.detail.id === detail.id ? (
-                                                    <EditingDetail input={input} handleInput={handleInput} editingDetail={editingDetail} setData={setData} setEditingDetail={setEditingDetail} />
-                                                  ) : (
-                                                    <DetailCard detail={detail} />
-                                                  )}
-                                                  <DetailButtons setEditingDetail={setEditingDetail} setInput={setInput} detail={detail} event={event} setData={setData} />
-                                                </div>
+                                        <div>
+                                          {editingEvent && editingEvent.event && editingEvent.event.id === event.id ? (
+                                            <EditingEvent input={input} handleInput={handleInput} editingEvent={editingEvent} setData={setData} setEditingEvent={setEditingEvent} />
+                                          ) : (
+                                            <EventCard event={event} setData={setData} />
+                                          )}
+                                          {isEventOpen && (
+                                            <div>
+                                              <EventButtons
+                                                setEditingEvent={setEditingEvent}
+                                                setInput={setInput}
+                                                event={event}
+                                                setData={setData}
+                                                setEditingDetail={setEditingDetail}
+                                                schedule={schedule}
+                                              />
+                                              {/* 詳細親元 */}
+                                              <div className="ml-2 list-none text-sm space-y-1 border-l-4 border-blue-200 pl-4">
+                                                {editingDetail && editingDetail.eventId === event.id && !editingDetail.detail && (
+                                                  <EditingDetail isNew input={input} handleInput={handleInput} editingDetail={editingDetail} setData={setData} setEditingDetail={setEditingDetail} />
+                                                )}
+                                                {sortedDetails.map((detail: EventDetail) => (
+                                                  <div key={detail.id}>
+                                                    <div className="flex flex-col gap-1 p-1 border border-blue-100">
+                                                      {editingDetail && editingDetail.detail && editingDetail.detail.id === detail.id ? (
+                                                        <EditingDetail input={input} handleInput={handleInput} editingDetail={editingDetail} setData={setData} setEditingDetail={setEditingDetail} />
+                                                      ) : (
+                                                        <DetailCard detail={detail} />
+                                                      )}
+                                                      <DetailButtons setEditingDetail={setEditingDetail} setInput={setInput} detail={detail} event={event} setData={setData} />
+                                                    </div>
+                                                  </div>
+                                                ))}
                                               </div>
-                                            ))}
-                                          </div>
-                                        </>
-                                      )}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
                                     </div>
                                   );
                                 })}
