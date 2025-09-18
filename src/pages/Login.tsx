@@ -99,7 +99,7 @@ const Login = () => {
             </span>
           </div>
         </div>
-        <p>{'Classiで町先生が配信されたものを参考に入力してください。'}</p>
+        <p>{'Classiで先生が配信されたものを参考に入力してください。'}</p>
         <p>{'5648は関係ありません。'}</p>
         <MDButton text={'ログイン'} arrowRight type="submit" />
         {error && <p className="text-red-500 mt-4">{error}</p>}
