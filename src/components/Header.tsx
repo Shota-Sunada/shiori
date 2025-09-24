@@ -121,7 +121,7 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
         type: 'link',
         icon: <FaTable />,
         to: '/yotei',
-        label: '全工程表'
+        label: '行程表'
       },
       {
         type: 'link',
