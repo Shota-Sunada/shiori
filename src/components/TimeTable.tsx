@@ -59,36 +59,27 @@ const hasHM = (h?: number, m?: number) => typeof h === 'number' && typeof m === 
 const fmtEventTime = (e: Event) => {
   const hasStart = hasHM(e.time1Hour, e.time1Minute);
   const hasEnd = hasHM(e.time2Hour, e.time2Minute);
-  const start = hasStart ? `${pad2(e.time1Hour)}:${pad2(e.time1Minute)}${e.time1Postfix ? ` ${e.time1Postfix}` : ''}` : '';
-  const end = hasEnd ? `${pad2(e.time2Hour)}:${pad2(e.time2Minute)}${e.time2Postfix ? ` ${e.time2Postfix}` : ''}` : '';
-  if (hasStart && hasEnd)
-    return (
-      <>
-        <span>{start}</span>
-        <br />
-        <span>{end}</span>
-      </>
-    );
-  if (hasStart) return start;
-  if (hasEnd) return end;
-  return '';
+  const start = hasStart ? `${pad2(e.time1Hour)}:${pad2(e.time1Minute)}${e.time1Postfix ? `${e.time1Postfix}` : ''}` : '';
+  const end = hasEnd ? `${pad2(e.time2Hour)}:${pad2(e.time2Minute)}${e.time2Postfix ? `${e.time2Postfix}` : ''}` : '';
+  return (
+    <div className="flex flex-col items-center" style={{ height: '100%' }}>
+      {hasStart && <div>{start}</div>}
+      {hasStart && hasEnd && <div className="flex-grow flex-shrink" style={{ flexBasis: 0 }} />}
+      {hasEnd && <div>{end}</div>}
+    </div>
+  );
 };
 const fmtDetailTime = (d: EventDetail) => {
   const hasStart = hasHM(d.time1Hour, d.time1Minute);
   const hasEnd = hasHM(d.time2Hour, d.time2Minute);
   const start = hasStart ? `${pad2(d.time1Hour)}:${pad2(d.time1Minute)}` : '';
   const end = hasEnd ? `${pad2(d.time2Hour)}:${pad2(d.time2Minute)}` : '';
-  if (hasStart && hasEnd)
-    return (
-      <>
-        <span>{start}</span>
-        <br />
-        <span>{end}</span>
-      </>
-    );
-  if (hasStart) return start;
-  if (hasEnd) return end;
-  return '';
+  return (
+    <div className="flex flex-col items-center justify-center">
+      {hasStart && <div>{start}</div>}
+      {hasEnd && <div>{end}</div>}
+    </div>
+  );
 };
 
 const TimeTable = ({ courseKey, ref, courses }: TimeTableProps) => {
@@ -118,8 +109,8 @@ const TimeTable = ({ courseKey, ref, courses }: TimeTableProps) => {
           });
           return rows.map(({ schTitle, ev }) => (
             <tr key={ev.id}>
-              <td>{fmtEventTime(ev)}</td>
-              <td>
+              <td className="h-12 align-top p-0 border-b border-gray-300">{fmtEventTime(ev)}</td>
+              <td className="border-b border-gray-300">
                 <div className="text-xs text-gray-500">{schTitle}</div>
                 <div>{ev.memo}</div>
                 {/* 詳細とメッセージを統合してsort_order順で表示 */}
