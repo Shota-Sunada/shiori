@@ -19,7 +19,7 @@ const ScrollToTopButton = () => {
 
   return (
     <button
-      className="sticky flex bottom-10 ml-5 justify-end px-4 py-2 bg-blue-600 text-white rounded shadow-lg hover:bg-blue-700 transition z-[10000]"
+      className="sticky flex bottom-10 ml-5 mb-3 justify-end px-4 py-2 bg-blue-600 text-white rounded shadow-lg hover:bg-blue-700 transition z-[10000]"
       onClick={handleClick}
       aria-label="ページの一番上に戻る">
       ↑
