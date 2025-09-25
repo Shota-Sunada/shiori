@@ -10,6 +10,7 @@ import MDButton from '../components/MDButton';
 import CenterMessage from '../components/CenterMessage';
 import { appFetch } from '../helpers/apiClient';
 import Message from '../components/Message';
+import NotificationBanner from '../components/NotificationBanner';
 
 interface ActiveRollCall {
   id: string;
@@ -131,6 +132,8 @@ const Index = () => {
           点呼が開始されています。ここをタップして出席を確認してください。
         </div>
       )}
+      {/* 通知バナー: 全員宛メッセージ */}
+      <NotificationBanner onClick={() => navigate('/messages')} />
       {studentData ? (
         <p className="m-[10px] text-2xl">
           {'ようこそ、'}

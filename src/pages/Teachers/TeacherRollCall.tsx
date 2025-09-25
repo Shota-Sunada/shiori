@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent, useMemo } from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import KanaSearchModal from '../../components/KanaSearchModal';
 import type { StudentDTO } from '../../helpers/domainApi';
 import MDButton, { BackToHome } from '../../components/MDButton';
@@ -7,11 +7,7 @@ import { useAuth } from '../../auth-context';
 import { rollCallApi, studentApi } from '../../helpers/domainApi';
 import { useNavigate } from 'react-router-dom';
 import CenterMessage from '../../components/CenterMessage';
-interface RollCallGroup {
-  id: number;
-  name: string;
-  student_ids: number[];
-}
+import StudentPresetSelector, { type RollCallGroup } from '../../components/StudentPresetSelector';
 const TeacherRollCall = () => {
   const { user, token } = useAuth();
   const navigate = useNavigate();
@@ -111,16 +107,6 @@ const TeacherRollCall = () => {
     [user, token, selectedStudents, targetStudents, durationMinutes, rollCallGroups, navigate]
   );
 
-  const groupOptions = useMemo(
-    () =>
-      rollCallGroups.map((g) => (
-        <option key={g.id} value={g.name}>
-          {g.name}
-        </option>
-      )),
-    [rollCallGroups]
-  );
-
   if (!user) return <CenterMessage>認証が必要です。</CenterMessage>;
 
   return (
@@ -141,23 +127,7 @@ const TeacherRollCall = () => {
           </div>
 
           <form className="w-full mt-4" onSubmit={handleCallSubmit}>
-            <div className="mb-4">
-              <label htmlFor="target_students" className="block text-gray-700 text-sm font-bold mb-2">
-                {'プリセットを選択'}
-              </label>
-              <select
-                name="target_students"
-                id="target_students"
-                value={targetStudents}
-                onChange={(e) => {
-                  setTargetStudents(e.target.value);
-                }}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white">
-                <option value="default">{'選択してください'}</option>
-                <option value="all">{'【取扱注意】全員'}</option>
-                {groupOptions}
-              </select>
-            </div>
+            <StudentPresetSelector value={targetStudents} onChange={setTargetStudents} rollCallGroups={rollCallGroups} />
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2">{'点呼時間 (分)'}</label>
               <div className="flex justify-center space-x-2">

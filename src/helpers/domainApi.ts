@@ -180,6 +180,7 @@ export interface TeacherDTO {
   shinkansen_day4_seat: string;
   day1id: COURSES_DAY1_KEY;
   day1bus: number;
+  day2: number;
   day3id: COURSES_DAY3_KEY;
   day3bus: number;
   day4class: IntRange<1, 8>;
@@ -192,7 +193,7 @@ export const teacherApi = {
       requiresAuth: true,
       cacheKey: CacheKeys.teachers.self(id)
     }),
-  add: (payload: Omit<TeacherDTO, 'id'> & { id: number }) =>
+  add: (payload: TeacherDTO) =>
     mutate({
       url: `${SERVER_ENDPOINT}/api/teachers`,
       method: 'POST',

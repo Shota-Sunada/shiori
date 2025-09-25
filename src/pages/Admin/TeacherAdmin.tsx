@@ -170,8 +170,8 @@ const TeacherModal: FC<TeacherModalProps> = memo(({ modalMode, editRowForm, hand
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50 modal-overlay">
-      <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-start z-50 modal-overlay">
+      <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full my-6">
         <h2 className="text-2xl font-bold mb-4">{modalMode === 'add' ? '先生追加' : '先生編集'}</h2>
         <form
           className="grid grid-cols-2 gap-2"
@@ -528,6 +528,7 @@ const TeacherAdmin = () => {
           shinkansen_day4_seat: formData.shinkansen_day4_seat,
           day1id: formData.day1id as COURSES_DAY1_KEY,
           day1bus: formData.day1bus,
+          day2: formData.day2,
           day3id: formData.day3id as COURSES_DAY3_KEY,
           day3bus: formData.day3bus,
           day4class: formData.day4class as IntRange<1, 8>

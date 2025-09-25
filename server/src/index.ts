@@ -49,6 +49,7 @@ import creditsRouter from './routes/credits';
 import scheduleRouter from './routes/schedule';
 import boatsRouter from './routes/boats';
 import fcmTokenRouter from './routes/fcm-token';
+import messagesRouter from './routes/messages';
 // バージョン取得用 (package.json から) - PWA クライアントのバージョン不一致検出に利用
 import serverPkg from '../package.json';
 
@@ -69,7 +70,8 @@ const routeConfigs: RouteConfig[] = [
   { path: '/api/teachers', router: teachersRouter, middlewares: [authenticateToken] },
   { path: '/api/credits', router: creditsRouter, middlewares: [authenticateToken] },
   { path: '/api/boats', router: boatsRouter, middlewares: [authenticateToken] },
-  { path: '/api/fcm-token', router: fcmTokenRouter, middlewares: [authenticateToken] }
+  { path: '/api/fcm-token', router: fcmTokenRouter, middlewares: [authenticateToken] },
+  { path: '/api/messages', router: messagesRouter, middlewares: [authenticateToken] }
 ];
 
 routeConfigs.forEach(({ path, router, middlewares }) => {

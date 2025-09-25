@@ -123,6 +123,12 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
         to: '/yotei',
         label: '行程表'
       },
+      // {
+      //   type: 'link',
+      //   icon: <FaTable />,
+      //   to: '/messages',
+      //   label: 'メッセージ'
+      // },
       {
         type: 'link',
         icon: <PiBagFill />,

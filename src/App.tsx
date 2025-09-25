@@ -39,6 +39,8 @@ import Boats from './pages/Boats';
 import BoatsAdmin from './pages/Admin/BoatsAdmin';
 import ShinkansenFloor from './pages/ShinkansenFloor';
 import Day2 from './pages/Day2';
+import TeacherSendMessages from './pages/Teachers/TeacherSendMessages';
+import Messages from './pages/Messages';
 
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: unknown }> {
   constructor(props: { children: React.ReactNode }) {
@@ -319,11 +321,13 @@ function App() {
     { path: '/shinkansen/floor', element: <ShinkansenFloor /> },
     { path: '/boats', element: <Boats /> },
     { path: '/day2', element: <Day2 /> },
+    { path: '/messages', element: <Messages /> },
     { path: '/teacher', element: <TeacherIndex /> },
     { path: '/teacher/search', element: <TeacherIndexTable /> },
     { path: '/teacher/roll-call-list', element: <TeacherRollCallList /> },
     { path: '/teacher/call', element: <TeacherRollCall /> },
-    { path: '/teacher/call-viewer', element: <TeacherRollCallViewer /> }
+    { path: '/teacher/call-viewer', element: <TeacherRollCallViewer /> },
+    { path: '/teacher/messages', element: <TeacherSendMessages /> }
   ];
   const adminRoutes = [
     { path: '/admin/students', element: <Admin /> },
