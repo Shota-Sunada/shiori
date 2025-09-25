@@ -1,7 +1,6 @@
 import { useRef, type FormEvent, useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MDButton from '../components/MDButton';
-import '../styles/login.css';
 import { useAuth, type AuthUser } from '../auth-context';
 import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 import { SERVER_ENDPOINT } from '../config/serverEndpoint';
