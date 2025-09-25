@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import { pool } from '../db';
 import { authenticateToken } from '../middleware/auth';
+import { RowDataPacket } from 'mysql2';
 
 const router = express.Router();
 
@@ -45,12 +46,14 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
     return res.status(400).json({ error: `タイトルは${TITLE_MAX_LENGTH}文字以内で入力してください` });
   }
   try {
-    const [result] = await pool.execute('UPDATE messages SET title = ?, message = ? WHERE id = ?', [title, message, id]);
+    const [result] = await pool.execute('UPDATE messages SET title = ?, message = ?, updated_at = NOW() WHERE id = ?', [title, message, id]);
     // @ts-expect-error result.affectedRows は型定義にないがmysql2の返却値には存在する
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: 'メッセージが見つかりません' });
     }
-    res.status(200).json({ message: 'メッセージを更新しました' });
+    // 更新後のデータを返す
+    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM messages WHERE id = ?', [id]);
+    res.status(200).json({ message: 'メッセージを更新しました', data: rows[0] });
   } catch {
     res.status(500).json({ error: 'メッセージ更新に失敗しました' });
   }

@@ -89,7 +89,7 @@ const TeacherSendMessages = () => {
     setEditLoading(true);
     setEditError(null);
     try {
-      await appFetch(`${SERVER_ENDPOINT}/api/messages/${id}`, {
+      const res = await appFetch<{ message: string; data: TeacherMessage }>(`${SERVER_ENDPOINT}/api/messages/${id}`, {
         method: 'PUT',
         requiresAuth: true,
         jsonBody: { title: editTitle, message: editMessage }
@@ -98,9 +98,8 @@ const TeacherSendMessages = () => {
       setEditTitle('');
       setEditMessage('');
       setEditError(null);
-      // 再取得
-      const all = await appFetch<TeacherMessage[]>(`${SERVER_ENDPOINT}/api/messages`, { requiresAuth: true });
-      setMyMessages(all.filter((m) => m.teacher_id === teacherId));
+      // 直近編集分のみ反映
+      setMyMessages((prev) => prev.map((m) => (m.id === id ? { ...m, ...res.data } : m)));
     } catch {
       setEditError('更新に失敗しました');
     } finally {
@@ -198,7 +197,10 @@ const TeacherSendMessages = () => {
                   <div>
                     <div className="font-bold text-blue-800 text-lg mb-1">{msg.title}</div>
                     <div className="text-gray-800 whitespace-pre-line mb-1">{msg.message}</div>
-                    <div className="text-xs text-gray-400 mb-1">{new Date(msg.created_at).toLocaleString()}</div>
+                    <div className="text-xs text-gray-400 mb-1">
+                      投稿日: {new Date(msg.created_at).toLocaleString()}
+                      {msg.updated_at && <span className="ml-2 text-blue-500">(最終編集: {new Date(msg.updated_at).toLocaleString()})</span>}
+                    </div>
                     <button
                       className="text-blue-600 underline text-sm hover:text-blue-800"
                       onClick={() => {

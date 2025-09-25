@@ -63,7 +63,10 @@ const Messages = () => {
                   </div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold text-gray-900 text-md">{teacherName}</span>
-                    <span className="text-xs text-gray-400 ml-2">{new Date(msg.created_at).toLocaleString()}</span>
+                    <div className="text-xs text-gray-400 ml-2 flex flex-col items-end justify-end">
+                      <span>投稿日: {new Date(msg.created_at).toLocaleString()}</span>
+                      <span className="ml-2 text-blue-500">{msg.updated_at && <>最終編集: {new Date(msg.updated_at).toLocaleString()}</>}</span>
+                    </div>
                   </div>
                   <div className="text-gray-800 whitespace-pre-line break-words text-base leading-relaxed">
                     {isLong && !expanded ? (
