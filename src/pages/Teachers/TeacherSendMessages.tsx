@@ -16,6 +16,12 @@ const TeacherSendMessages = () => {
   const [error, setError] = useState<string | null>(null);
   const [teacherId, setTeacherId] = useState<number | null>(null);
   const [loadingTeacher, setLoadingTeacher] = useState<boolean>(true);
+  const [myMessages, setMyMessages] = useState<TeacherMessage[]>([]);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editMessage, setEditMessage] = useState('');
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editLoading, setEditLoading] = useState(false);
 
   useEffect(() => {
     const fetchTeacher = async () => {
@@ -32,6 +38,20 @@ const TeacherSendMessages = () => {
     };
     if (user?.is_teacher) fetchTeacher();
   }, [user]);
+
+  // 先生の過去メッセージ取得
+  useEffect(() => {
+    const fetchMyMessages = async () => {
+      if (!teacherId || !token) return;
+      try {
+        const all = await appFetch<TeacherMessage[]>(`${SERVER_ENDPOINT}/api/messages`, { requiresAuth: true });
+        setMyMessages(all.filter((m) => m.teacher_id === teacherId));
+      } catch {
+        setMyMessages([]);
+      }
+    };
+    fetchMyMessages();
+  }, [teacherId, token, sending]);
 
   const handleSend = async (e: React.FormEvent) => {
     if (!user || !token) return;
@@ -63,6 +83,31 @@ const TeacherSendMessages = () => {
   if (loadingTeacher) {
     return <div className="flex justify-center items-center h-40 text-lg text-gray-500">先生情報を取得中...</div>;
   }
+
+  // 編集保存
+  const handleEditSave = async (id: number) => {
+    setEditLoading(true);
+    setEditError(null);
+    try {
+      await appFetch(`${SERVER_ENDPOINT}/api/messages/${id}`, {
+        method: 'PUT',
+        requiresAuth: true,
+        jsonBody: { title: editTitle, message: editMessage }
+      });
+      setEditingId(null);
+      setEditTitle('');
+      setEditMessage('');
+      setEditError(null);
+      // 再取得
+      const all = await appFetch<TeacherMessage[]>(`${SERVER_ENDPOINT}/api/messages`, { requiresAuth: true });
+      setMyMessages(all.filter((m) => m.teacher_id === teacherId));
+    } catch {
+      setEditError('更新に失敗しました');
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   return (
     <>
       <div className="max-w-xl mx-auto p-8 bg-white rounded-2xl shadow-lg border border-blue-100 mt-10">
@@ -116,7 +161,62 @@ const TeacherSendMessages = () => {
         {error && <div className="mt-6 text-red-600 font-bold text-center text-lg animate-fade-in">{error}</div>}
       </div>
 
-      <div className="flex items-center justify-center">
+      {/* 過去の投稿一覧・編集 */}
+      <div className="max-w-xl mx-auto mt-10 bg-white rounded-2xl shadow border border-blue-100 p-6">
+        <h3 className="text-xl font-bold mb-4 text-blue-700">過去の投稿</h3>
+        {myMessages.length === 0 ? (
+          <div className="text-gray-500 text-center">まだ投稿がありません。</div>
+        ) : (
+          <ul className="space-y-4">
+            {myMessages.map((msg) => (
+              <li key={msg.id} className="border-b pb-3 last:border-b-0 last:pb-0">
+                {editingId === msg.id ? (
+                  <div className="space-y-2">
+                    <input type="text" value={editTitle} maxLength={TITLE_MAX_LENGTH} onChange={(e) => setEditTitle(e.target.value)} className="w-full p-2 border rounded mb-1" />
+                    <textarea value={editMessage} onChange={(e) => setEditMessage(e.target.value)} rows={4} className="w-full p-2 border rounded mb-1" />
+                    <div className="flex gap-2">
+                      <button
+                        className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                        disabled={editLoading || !editTitle.trim() || !editMessage.trim() || editTitle.length > TITLE_MAX_LENGTH}
+                        onClick={() => handleEditSave(msg.id)}>
+                        保存
+                      </button>
+                      <button
+                        className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
+                        onClick={() => {
+                          setEditingId(null);
+                          setEditTitle('');
+                          setEditMessage('');
+                          setEditError(null);
+                        }}>
+                        キャンセル
+                      </button>
+                    </div>
+                    {editError && <div className="text-red-500 text-sm mt-1">{editError}</div>}
+                  </div>
+                ) : (
+                  <div>
+                    <div className="font-bold text-blue-800 text-lg mb-1">{msg.title}</div>
+                    <div className="text-gray-800 whitespace-pre-line mb-1">{msg.message}</div>
+                    <div className="text-xs text-gray-400 mb-1">{new Date(msg.created_at).toLocaleString()}</div>
+                    <button
+                      className="text-blue-600 underline text-sm hover:text-blue-800"
+                      onClick={() => {
+                        setEditingId(msg.id);
+                        setEditTitle(msg.title);
+                        setEditMessage(msg.message);
+                      }}>
+                      編集
+                    </button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="flex items-center justify-center mt-8">
         <BackToHome user={user} />
       </div>
     </>

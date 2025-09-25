@@ -33,4 +33,27 @@ router.get('/', authenticateToken, async (_req: Request, res: Response) => {
   }
 });
 
+// メッセージ編集（タイトル・本文）
+router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { title, message } = req.body;
+  const TITLE_MAX_LENGTH = 50;
+  if (!title || !message) {
+    return res.status(400).json({ error: 'title, messageは必須です' });
+  }
+  if (typeof title !== 'string' || title.length > TITLE_MAX_LENGTH) {
+    return res.status(400).json({ error: `タイトルは${TITLE_MAX_LENGTH}文字以内で入力してください` });
+  }
+  try {
+    const [result] = await pool.execute('UPDATE messages SET title = ?, message = ? WHERE id = ?', [title, message, id]);
+    // @ts-expect-error result.affectedRows は型定義にないがmysql2の返却値には存在する
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'メッセージが見つかりません' });
+    }
+    res.status(200).json({ message: 'メッセージを更新しました' });
+  } catch {
+    res.status(500).json({ error: 'メッセージ更新に失敗しました' });
+  }
+});
+
 export default router;
