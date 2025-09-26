@@ -1,0 +1,1 @@
+-- Deprecated: message_reads テーブルは messages.read_student_ids JSON カラムへ移行済みのため未使用。

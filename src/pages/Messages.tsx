@@ -13,6 +13,7 @@ const Messages = () => {
   const [teachersData, setTeachersData] = useState<TeacherDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [markingId, setMarkingId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user || !token) return;
@@ -22,7 +23,13 @@ const Messages = () => {
       setError(null);
       try {
         const [msgData, teachers] = await Promise.all([appFetch<TeacherMessage[]>(`${SERVER_ENDPOINT}/api/messages`, { requiresAuth: true }), teacherApi.list()]);
-        setMessages(msgData);
+        // 既読状態がAPIから返却されていない場合は、is_readを0で補完
+        setMessages(
+          msgData.map((m) => ({
+            ...m,
+            is_read: typeof m.is_read === 'number' ? m.is_read : 0
+          }))
+        );
         setTeachersData(teachers);
       } catch {
         setError('メッセージの取得に失敗しました');
@@ -35,6 +42,33 @@ const Messages = () => {
 
   const [expandedIds, setExpandedIds] = useState<{ [id: number]: boolean }>({});
   const MESSAGE_PREVIEW_LENGTH = 100;
+
+  const handleMarkAsRead = async (id: number) => {
+    if (!token || markingId === id) return;
+    setMarkingId(id);
+    try {
+      const result = await appFetch<{ message: string; readAt: string | null }>(`${SERVER_ENDPOINT}/api/messages/${id}/read`, {
+        method: 'POST',
+        requiresAuth: true
+      });
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === id
+            ? {
+                ...m,
+                is_read: 1,
+                read_at: result.readAt ?? new Date().toISOString()
+              }
+            : m
+        )
+      );
+    } catch (err) {
+      console.error('既読処理に失敗しました:', err);
+      alert('既読処理に失敗しました');
+    } finally {
+      setMarkingId(null);
+    }
+  };
 
   if (loading) return <div className="flex justify-center items-center h-40 text-lg text-gray-500">読み込み中...</div>;
   if (error) return <div className="text-red-600 font-semibold text-center my-4">{error}</div>;
@@ -61,11 +95,27 @@ const Messages = () => {
                   <div className="font-bold text-lg text-blue-800 mb-1 truncate" title={msg.title}>
                     {msg.title}
                   </div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-gray-900 text-md">{teacherName}</span>
-                    <div className="text-xs text-gray-400 ml-2 flex flex-col items-end justify-end">
-                      <span>投稿日: {new Date(msg.created_at).toLocaleString()}</span>
-                      <span className="ml-2 text-blue-500">{msg.updated_at && <>最終編集: {new Date(msg.updated_at).toLocaleString()}</>}</span>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <span className="font-semibold text-gray-900 text-md">{teacherName}</span>
+                      {msg.is_read ? (
+                        <span className="inline-flex items-center text-green-600 text-sm bg-green-100 px-2 py-1 rounded-full">
+                          <span className="mr-1">✔</span>
+                          既読{msg.read_at ? `（${new Date(msg.read_at).toLocaleString()}）` : ''}
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleMarkAsRead(msg.id)}
+                          disabled={markingId === msg.id}
+                          className="text-sm px-3 py-1 rounded-full border border-blue-400 text-blue-600 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                          {markingId === msg.id ? '処理中...' : '既読にする'}
+                        </button>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-400 sm:text-right">
+                      <div>投稿日: {new Date(msg.created_at).toLocaleString()}</div>
+                      {msg.updated_at && <div className="text-blue-500">最終編集: {new Date(msg.updated_at).toLocaleString()}</div>}
                     </div>
                   </div>
                   <div className="text-gray-800 whitespace-pre-line break-words text-base leading-relaxed">

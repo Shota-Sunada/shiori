@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { appFetch } from '../../helpers/apiClient';
 import { SERVER_ENDPOINT } from '../../config/serverEndpoint';
 import { useAuth } from '../../auth-context';
-import { teacherApi } from '../../helpers/domainApi';
+import { teacherApi, rollCallApi } from '../../helpers/domainApi';
 import type { TeacherMessage } from '../../interface/messages';
 import { BackToHome } from '../../components/MDButton';
+import StudentPresetSelector, { type RollCallGroup } from '../../components/StudentPresetSelector';
 
 const TeacherSendMessages = () => {
   const { user, token } = useAuth();
@@ -17,6 +18,10 @@ const TeacherSendMessages = () => {
   const [teacherId, setTeacherId] = useState<number | null>(null);
   const [loadingTeacher, setLoadingTeacher] = useState<boolean>(true);
   const [myMessages, setMyMessages] = useState<TeacherMessage[]>([]);
+  const [rollCallGroups, setRollCallGroups] = useState<RollCallGroup[]>([]);
+  const [loadingGroups, setLoadingGroups] = useState<boolean>(false);
+  const [groupError, setGroupError] = useState<string | null>(null);
+  const [targetPreset, setTargetPreset] = useState<string>('all');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editMessage, setEditMessage] = useState('');
@@ -61,6 +66,25 @@ const TeacherSendMessages = () => {
     if (user?.is_teacher) fetchTeacher();
   }, [user]);
 
+  useEffect(() => {
+    const fetchGroups = async () => {
+      if (!token) return;
+      setLoadingGroups(true);
+      setGroupError(null);
+      try {
+        const groups = await rollCallApi.groups();
+        setRollCallGroups(groups as RollCallGroup[]);
+      } catch (err) {
+        console.error('点呼グループの取得に失敗しました:', err);
+        setGroupError('送信先リストの取得に失敗しました');
+        setRollCallGroups([]);
+      } finally {
+        setLoadingGroups(false);
+      }
+    };
+    fetchGroups();
+  }, [token]);
+
   // 先生の過去メッセージ取得
   useEffect(() => {
     const fetchMyMessages = async () => {
@@ -87,14 +111,28 @@ const TeacherSendMessages = () => {
     setSuccess(null);
     setError(null);
     try {
+      const trimmedTitle = title.trim();
+      const trimmedMessage = message.trim();
+      const targetType = targetPreset === 'all' || targetPreset === 'default' ? 'all' : 'group';
+      const payload: Record<string, unknown> = {
+        teacherId,
+        title: trimmedTitle,
+        message: trimmedMessage,
+        targetType
+      };
+      if (targetType === 'group') {
+        payload.targetGroupName = targetPreset;
+      }
+
       await appFetch<Partial<TeacherMessage>>(`${SERVER_ENDPOINT}/api/messages`, {
         method: 'POST',
-        jsonBody: { teacherId, title, message },
+        jsonBody: payload,
         requiresAuth: true
       });
       setSuccess('メッセージを送信しました');
       setTitle('');
       setMessage('');
+      setTargetPreset('all');
     } catch {
       setError('送信に失敗しました');
     } finally {
@@ -135,6 +173,12 @@ const TeacherSendMessages = () => {
         <h2 className="text-3xl font-extrabold mb-8 text-blue-700 border-b-2 border-blue-200 pb-3 tracking-wide text-center">メッセージ送信</h2>
         <form onSubmit={handleSend} className="space-y-3">
           <div>
+            <span className="block text-gray-700 font-semibold mb-1 text-lg">送信先</span>
+            <StudentPresetSelector value={targetPreset} onChange={setTargetPreset} rollCallGroups={rollCallGroups} disabled={loadingGroups || sending} />
+            {groupError && <div className="text-sm text-red-500 mt-1">{groupError}</div>}
+            <p className="text-sm text-gray-500 mt-1">対象を選択してください。未選択の場合は全員に送信されます。</p>
+          </div>
+          <div>
             <label htmlFor="title" className="block text-gray-700 font-semibold mb-1 text-lg">
               タイトル
             </label>
@@ -173,7 +217,7 @@ const TeacherSendMessages = () => {
           </div>
           <button
             type="submit"
-            disabled={sending || !title.trim() || !message.trim() || title.length > TITLE_MAX_LENGTH}
+            disabled={sending || !title.trim() || !message.trim() || title.length > TITLE_MAX_LENGTH || loadingGroups}
             className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold rounded-lg shadow hover:from-blue-600 hover:to-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg tracking-wide">
             {sending ? '送信中...' : '送信'}
           </button>
@@ -219,10 +263,14 @@ const TeacherSendMessages = () => {
                   <div>
                     <div className="font-bold text-blue-800 text-lg mb-1">{msg.title}</div>
                     <div className="text-gray-800 whitespace-pre-line mb-1">{msg.message}</div>
+                    <div className="text-xs text-gray-500 mb-1">
+                      送信先: {msg.target_type === 'group' ? `${msg.target_group_name ?? '未設定'}${typeof msg.recipient_count === 'number' ? `（${msg.recipient_count}人）` : ''}` : '全員'}
+                    </div>
                     <div className="text-xs text-gray-400 mb-1">
                       投稿日: {new Date(msg.created_at).toLocaleString()}
                       {msg.updated_at && <span className="ml-2 text-blue-500">(最終編集: {new Date(msg.updated_at).toLocaleString()})</span>}
                     </div>
+                    <div className="text-xs text-gray-500 mb-1">既読: {typeof msg.read_count === 'number' ? msg.read_count : 0} 件</div>
                     <div className="flex gap-3 items-center mt-1">
                       <button
                         className="text-blue-600 underline text-sm hover:text-blue-800"

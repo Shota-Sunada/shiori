@@ -1,0 +1,1 @@
+-- Deprecated: message_recipients テーブルは messages.target_student_ids JSON カラムへ移行済みのため未使用。
