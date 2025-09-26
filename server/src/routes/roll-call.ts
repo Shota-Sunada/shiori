@@ -226,7 +226,7 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/start', async (req, res) => {
-  const { teacher_id, specific_student_id, duration_minutes, group_name } = req.body;
+  const { teacher_id, specific_student_ids, duration_minutes, group_name } = req.body;
 
   if (!teacher_id) return res.status(400).json({ message: '先生のIDが必要です。' });
 
@@ -254,8 +254,8 @@ router.post('/start', async (req, res) => {
       if (Array.isArray(studentIds)) {
         students = studentIds.map((id) => ({ gakuseki: id }));
       }
-    } else if (specific_student_id) {
-      const [studentRows] = await connection.execute<RowDataPacket[]>('SELECT gakuseki FROM students WHERE gakuseki = ?', [specific_student_id]);
+    } else if (Array.isArray(specific_student_ids) && specific_student_ids.length > 0) {
+      const [studentRows] = await connection.execute<RowDataPacket[]>(`SELECT gakuseki FROM students WHERE gakuseki IN (${specific_student_ids.map(() => '?').join(',')})`, specific_student_ids);
       students = studentRows as { gakuseki: number }[];
     } else {
       const [studentRows] = await connection.execute<RowDataPacket[]>('SELECT gakuseki FROM students');
