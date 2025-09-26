@@ -10,6 +10,7 @@ export interface TeacherMessage {
   read_count?: number | null;
   is_read?: 0 | 1;
   read_at?: string | null;
+  read_student_ids?: number[];
   created_at: string;
   updated_at?: string | null;
 }

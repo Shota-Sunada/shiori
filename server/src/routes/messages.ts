@@ -184,8 +184,8 @@ router.post('/:id/read', authenticateToken, async (req: Request, res: Response) 
   }
 
   const reqWithUser = req as Request & { user?: JwtPayload };
-  const payload = reqWithUser.user as (JwtPayload & { userId?: number; is_teacher?: boolean; is_admin?: boolean }) | undefined;
-  const userId = payload?.userId ? Number(payload.userId) : undefined;
+  const payload = reqWithUser.user as (JwtPayload & { userId?: number | string; is_teacher?: boolean; is_admin?: boolean }) | undefined;
+  const userId = payload?.userId !== undefined ? Number(payload.userId) : undefined;
 
   if (!userId) {
     return res.status(401).json({ error: 'ユーザー情報を確認できませんでした' });
@@ -202,17 +202,20 @@ router.post('/:id/read', authenticateToken, async (req: Request, res: Response) 
     const targetIds = parseJsonNumberArray(row.target_student_ids);
     const readIds = parseJsonNumberArray(row.read_student_ids);
 
+    // userId, targetIds, readIds すべて数値で比較
     const canRead = row.target_type === 'all' || targetIds.includes(userId) || targetIds.length === 0;
     if (!canRead) {
       return res.status(403).json({ error: 'このメッセージにアクセスできません' });
     }
 
     if (!readIds.includes(userId)) {
-      const updatedReads = normalizeNumberArray([...readIds, userId]);
+      // 既存配列もuserIdも必ず数値化して保存
+      const updatedReads = Array.from(new Set([...readIds.map(Number), Number(userId)])).sort((a, b) => a - b);
       await pool.execute('UPDATE messages SET read_student_ids = ?, updated_at = NOW() WHERE id = ?', [JSON.stringify(updatedReads), messageId]);
     }
 
-    res.status(200).json({ message: '既読に登録しました', readAt: new Date().toISOString() });
+    // 保存後の値を返すことで、クライアント側で検証も可能
+    res.status(200).json({ message: '既読に登録しました', readAt: new Date().toISOString(), userId });
   } catch (error) {
     console.error('既読登録エラー:', error);
     res.status(500).json({ error: '既読処理に失敗しました' });

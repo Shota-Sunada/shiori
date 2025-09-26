@@ -6,6 +6,7 @@ import { useAuth } from '../auth-context';
 import { teacherApi } from '../helpers/domainApi';
 import type { TeacherDTO } from '../helpers/domainApi';
 import { BackToHome } from '../components/MDButton';
+import { CacheKeys } from '../helpers/cacheKeys';
 
 const Messages = () => {
   const { user, token } = useAuth();
@@ -15,29 +16,38 @@ const Messages = () => {
   const [error, setError] = useState<string | null>(null);
   const [markingId, setMarkingId] = useState<number | null>(null);
 
+  // メッセージ一覧取得関数を外に出す
+  const fetchAll = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [msgData, teachers] = await Promise.all([appFetch<TeacherMessage[]>(`${SERVER_ENDPOINT}/api/messages`, { requiresAuth: true, cacheKey: CacheKeys.messages.list }), teacherApi.list()]);
+      // userIdがread_student_idsに含まれていればis_read=1、read_atもセット
+      setMessages(
+        msgData.map((m) => {
+          let readIds: number[] = [];
+          if (Array.isArray(m.read_student_ids)) {
+            readIds = m.read_student_ids.filter((id): id is number => typeof id === 'number');
+          }
+          const isRead = user && readIds.includes(Number(user.userId)) ? 1 : typeof m.is_read === 'number' ? m.is_read : 0;
+          return {
+            ...m,
+            is_read: isRead
+          };
+        })
+      );
+      setTeachersData(teachers);
+    } catch {
+      setError('メッセージの取得に失敗しました');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!user || !token) return;
-
-    const fetchAll = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const [msgData, teachers] = await Promise.all([appFetch<TeacherMessage[]>(`${SERVER_ENDPOINT}/api/messages`, { requiresAuth: true }), teacherApi.list()]);
-        // 既読状態がAPIから返却されていない場合は、is_readを0で補完
-        setMessages(
-          msgData.map((m) => ({
-            ...m,
-            is_read: typeof m.is_read === 'number' ? m.is_read : 0
-          }))
-        );
-        setTeachersData(teachers);
-      } catch {
-        setError('メッセージの取得に失敗しました');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, token]);
 
   const [expandedIds, setExpandedIds] = useState<{ [id: number]: boolean }>({});
@@ -92,12 +102,11 @@ const Messages = () => {
             return (
               <div key={msg.id}>
                 <li className="bg-white rounded-lg shadow-md p-5 border border-blue-100 hover:shadow-lg transition-shadow">
-                  <div className="font-bold text-lg text-blue-800 mb-1 truncate" title={msg.title}>
-                    {msg.title}
-                  </div>
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold text-gray-900 text-md">{teacherName}</span>
+                  <div className="flex flex-row justify-between">
+                    <div className="font-bold text-lg text-blue-800 mb-1 truncate" title={msg.title}>
+                      {msg.title}
+                    </div>
+                    <div>
                       {msg.is_read ? (
                         <span className="inline-flex items-center text-green-600 text-sm bg-green-100 px-2 py-1 rounded-full">
                           <span className="mr-1">✔</span>
@@ -108,10 +117,16 @@ const Messages = () => {
                           type="button"
                           onClick={() => handleMarkAsRead(msg.id)}
                           disabled={markingId === msg.id}
-                          className="text-sm px-3 py-1 rounded-full border border-blue-400 text-blue-600 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                          className="text-sm px-3 py-1 rounded-full border border-blue-400 text-blue-600 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed shadow">
                           {markingId === msg.id ? '処理中...' : '既読にする'}
                         </button>
                       )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-2 relative">
+                    <div className="flex items-center gap-3">
+                      <span className="font-semibold text-gray-900 text-md">{teacherName}</span>
                     </div>
                     <div className="text-xs text-gray-400 sm:text-right">
                       <div>投稿日: {new Date(msg.created_at).toLocaleString()}</div>
