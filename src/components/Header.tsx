@@ -111,7 +111,7 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
       };
   const menuItems: MenuItem[] = useMemo(
     () => [
-      { type: 'link', icon: <IoHome />, to: user?.is_teacher ? '/teacher' : '/', label: 'ホーム', bgColor: 'blue' },
+      { type: 'link', icon: <IoHome />, to: user?.is_teacher ? '/teacher' : '/', label: 'ホーム' },
       { type: 'link', icon: <FaTable />, to: '/yotei', label: '行程表' },
       { type: 'link', icon: <MdOutlineMessage />, to: '/messages', label: 'メッセージ' },
       { type: 'link', icon: <IoSend />, to: '/teacher/messages', label: 'メッセージを送信', note: '先生専用', only_admin: true },

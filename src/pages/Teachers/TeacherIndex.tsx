@@ -65,7 +65,7 @@ const TeacherIndex = () => {
 
       <MDButton text="生徒を検索" arrowRight link="/teacher/search"></MDButton>
       <MDButton text="メッセージ送信" arrowRight link="/teacher/messages"></MDButton>
-      <MDButton text="点呼" arrowRight link="/teacher/call"></MDButton>
+      {/* <MDButton text="点呼" arrowRight link="/teacher/call"></MDButton> */}
       <MDButton text="お楽しみ会" arrowRight link="/otanoshimi" color="green"></MDButton>
     </div>
   );

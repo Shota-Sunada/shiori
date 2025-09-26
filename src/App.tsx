@@ -13,16 +13,16 @@ import UserAdmin from './pages/Admin/UserAdmin';
 import Page404 from './pages/Page404';
 import Otanoshimi from './pages/Otanoshimi';
 import TeacherIndex from './pages/Teachers/TeacherIndex';
-import Call from './pages/Call';
+// import Call from './pages/Call';
 import OtanoshimiAdmin from './pages/Admin/OtanoshimiAdmin';
 import NonNotification from './pages/NonNotification';
-import TeacherRollCallList from './pages/Teachers/TeacherRollCallList';
+// import TeacherRollCallList from './pages/Teachers/TeacherRollCallList';
 import Credits from './pages/Credits';
-import TeacherRollCall from './pages/Teachers/TeacherRollCall';
-import TeacherRollCallViewer from './pages/Teachers/TeacherRollCallViewer';
+// import TeacherRollCall from './pages/Teachers/TeacherRollCall';
+// import TeacherRollCallViewer from './pages/Teachers/TeacherRollCallViewer';
 import TeacherIndexTable from './pages/Teachers/TeacherIndexTable';
 import TeacherAdmin from './pages/Admin/TeacherAdmin';
-import RollCallHistory from './pages/RollCallHistory';
+// import RollCallHistory from './pages/RollCallHistory';
 import InstallPWA from './pages/InstallPWA';
 import EnvDebug from './pages/EnvDebug';
 import VersionMismatch from './pages/VersionMismatch';
@@ -316,10 +316,10 @@ function App() {
   const mainRoutes = [
     { path: '/', element: <Index /> },
     { path: '/otanoshimi', element: <Otanoshimi /> },
-    { path: '/call', element: <Call /> },
+    // { path: '/call', element: <Call /> },
     { path: '/credits', element: <Credits /> },
     { path: '/env-debug', element: <EnvDebug /> },
-    { path: '/roll-call-history', element: <RollCallHistory /> },
+    // { path: '/roll-call-history', element: <RollCallHistory /> },
     { path: '/yotei', element: <Yotei /> },
     { path: '/goods-check', element: <GoodsCheck /> },
     { path: '/maps', element: <Maps /> },
@@ -331,9 +331,9 @@ function App() {
     { path: '/messages', element: <Messages /> },
     { path: '/teacher', element: <TeacherIndex /> },
     { path: '/teacher/search', element: <TeacherIndexTable /> },
-    { path: '/teacher/roll-call-list', element: <TeacherRollCallList /> },
-    { path: '/teacher/call', element: <TeacherRollCall /> },
-    { path: '/teacher/call-viewer', element: <TeacherRollCallViewer /> },
+    // { path: '/teacher/roll-call-list', element: <TeacherRollCallList /> },
+    // { path: '/teacher/call', element: <TeacherRollCall /> },
+    // { path: '/teacher/call-viewer', element: <TeacherRollCallViewer /> },
     { path: '/teacher/messages', element: <TeacherSendMessages /> }
   ];
   const adminRoutes = [

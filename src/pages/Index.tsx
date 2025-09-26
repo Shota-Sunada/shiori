@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { getToken } from 'firebase/messaging';
 import { messaging } from '../firebase';
 import { useNavigate } from 'react-router-dom';
@@ -13,18 +13,18 @@ import Message from '../components/Message';
 import NotificationBanner from '../components/NotificationBanner';
 import Memo from '../components/Memo';
 
-interface ActiveRollCall {
-  id: string;
-  teacher_id: string;
-  created_at: string;
-}
+// interface ActiveRollCall {
+//   id: string;
+//   teacher_id: string;
+//   created_at: string;
+// }
 
 const Index = () => {
   const { user, token, loading, logout } = useAuth();
   const navigate = useNavigate();
   const [studentData, setStudentData] = useState<StudentDTO | null | undefined>(undefined); // undefined: ロード中, null: 404 等
   const [studentLoading, setStudentLoading] = useState<boolean>(true);
-  const [activeRollCall, setActiveRollCall] = useState<ActiveRollCall | null>(null);
+  // const [activeRollCall, setActiveRollCall] = useState<ActiveRollCall | null>(null);
 
   // FCMトークンの不一致チェック（ログイン直後は1回だけスキップ）
   useEffect(() => {
@@ -55,7 +55,7 @@ const Index = () => {
       }
     })();
   }, [logout, user?.userId]);
-  const pollTimerRef = useRef<number | null>(null);
+  // const pollTimerRef = useRef<number | null>(null);
 
   // 生徒データ取得 (1回 + キャッシュ)
   useEffect(() => {
@@ -79,28 +79,28 @@ const Index = () => {
   }, [user, token]);
 
   // 有効な点呼ポーリング (5秒間隔)
-  useEffect(() => {
-    const fetchActive = async () => {
-      if (!user || user.is_teacher || !token) return;
-      try {
-        const rc = await appFetch<ActiveRollCall>(`${SERVER_ENDPOINT}/api/roll-call/active?student_id=${user.userId}`, {
-          requiresAuth: true,
-          alwaysFetch: true // 毎回取得
-        });
-        setActiveRollCall(rc);
-      } catch {
-        // 404 等は active なし
-        setActiveRollCall(null);
-      }
-    };
-    if (user && !user.is_teacher && token) {
-      fetchActive();
-      pollTimerRef.current = window.setInterval(fetchActive, 5000);
-    }
-    return () => {
-      if (pollTimerRef.current) window.clearInterval(pollTimerRef.current);
-    };
-  }, [user, token]);
+  // useEffect(() => {
+  //   const fetchActive = async () => {
+  //     if (!user || user.is_teacher || !token) return;
+  //     try {
+  //       const rc = await appFetch<ActiveRollCall>(`${SERVER_ENDPOINT}/api/roll-call/active?student_id=${user.userId}`, {
+  //         requiresAuth: true,
+  //         alwaysFetch: true // 毎回取得
+  //       });
+  //       setActiveRollCall(rc);
+  //     } catch {
+  //       // 404 等は active なし
+  //       setActiveRollCall(null);
+  //     }
+  //   };
+  //   if (user && !user.is_teacher && token) {
+  //     fetchActive();
+  //     pollTimerRef.current = window.setInterval(fetchActive, 5000);
+  //   }
+  //   return () => {
+  //     if (pollTimerRef.current) window.clearInterval(pollTimerRef.current);
+  //   };
+  // }, [user, token]);
 
   // 教員は教師トップへ
   useEffect(() => {
@@ -113,11 +113,11 @@ const Index = () => {
 
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">
-      {activeRollCall && (
+      {/* {activeRollCall && (
         <div className="w-full max-w-md p-4 mb-4 text-xl text-center text-white bg-red-500 rounded-lg cursor-pointer" onClick={() => navigate(`/call?id=${activeRollCall.id}`)}>
           点呼が開始されています。ここをタップして出席を確認してください。
         </div>
-      )}
+      )} */}
       {/* 通知バナー: 全員宛メッセージ */}
       <NotificationBanner onClick={() => navigate('/messages')} />
       {studentData ? (
@@ -168,7 +168,7 @@ const Index = () => {
       {!user.is_teacher && (
         <div className="mt-4">
           <MDButton text="持ち物チェッカー" arrowRight link="/goods-check" />
-          <MDButton text="点呼履歴" arrowRight link="/roll-call-history" />
+          {/* <MDButton text="点呼履歴" arrowRight link="/roll-call-history" /> */}
         </div>
       )}
     </div>
