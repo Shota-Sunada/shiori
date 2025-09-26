@@ -7,7 +7,7 @@ import type { StudentDTO } from '../helpers/domainApi';
 import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import IndexTable from '../components/IndexTable';
 import MDButton from '../components/MDButton';
-import CenterMessage from '../components/CenterMessage';
+import LoadingPage from '../components/LoadingPage';
 import { appFetch } from '../helpers/apiClient';
 import Message from '../components/Message';
 import NotificationBanner from '../components/NotificationBanner';
@@ -113,9 +113,9 @@ const Index = () => {
     if (user?.is_teacher) navigate('/teacher');
   }, [user?.is_teacher, navigate]);
 
-  if (loading || studentLoading) return <CenterMessage>読込中...</CenterMessage>;
-  if (!user) return <CenterMessage>ユーザーデータ読込中...</CenterMessage>;
-  if (studentData === undefined) return <CenterMessage>生徒データ読込中...</CenterMessage>;
+  if (loading || studentLoading) return <LoadingPage message="読込中..." />;
+  if (!user) return <LoadingPage message="ユーザーデータ読込中..." />;
+  if (studentData === undefined) return <LoadingPage message="生徒データ読込中..." />;
 
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">

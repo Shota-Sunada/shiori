@@ -1,3 +1,4 @@
+import LoadingPage from '../components/LoadingPage';
 import { useEffect, useState } from 'react';
 import { appFetch } from '../helpers/apiClient';
 import type { TeacherMessage } from '../interface/messages';
@@ -57,8 +58,9 @@ const Messages = () => {
   const handleMarkAsRead = async (id: number) => {
     if (!token || markingId === id) return;
     if (isOffline()) {
-      console.log("オフラインなので既読しません。")
-      return;}
+      console.log('オフラインなので既読しません。');
+      return;
+    }
     setMarkingId(id);
     try {
       const result = await appFetch<{ message: string; readAt: string | null }>(`${SERVER_ENDPOINT}/api/messages/${id}/read`, {
@@ -84,7 +86,7 @@ const Messages = () => {
     }
   };
 
-  if (loading) return <div className="flex justify-center items-center h-40 text-lg text-gray-500">読み込み中...</div>;
+  if (loading) return <LoadingPage message="読み込み中..." />;
   if (error) return <div className="text-red-600 font-semibold text-center my-4">{error}</div>;
 
   const handleToggle = (id: number) => {

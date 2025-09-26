@@ -1,3 +1,4 @@
+import LoadingPage from '../components/LoadingPage';
 import { GOODS_DATA, GOODS_JAXA, GOODS_OKUTAMA, GOODS_DOKUTSU, GOODS_KANU } from '../data/goods';
 import { useAuth } from '../auth-context';
 import { studentApi, type StudentDTO } from '../helpers/domainApi';
@@ -36,7 +37,7 @@ const Goods = () => {
   }
 
   if (loading) {
-    return <div className="p-6">読み込み中...</div>;
+    return <LoadingPage message="読み込み中..." />;
   }
 
   return (

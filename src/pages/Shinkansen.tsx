@@ -1,3 +1,4 @@
+import LoadingPage from '../components/LoadingPage';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../auth-context';
@@ -161,7 +162,7 @@ const Shinkansen = () => {
   };
 
   if (loading) {
-    return <div className="p-6">読み込み中...</div>;
+    return <LoadingPage message="読み込み中..." />;
   }
 
   if (!student && !teacher) {

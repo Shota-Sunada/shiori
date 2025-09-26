@@ -1,3 +1,4 @@
+import LoadingPage from '../components/LoadingPage';
 import React, { useEffect, useState } from 'react';
 import { studentApi, type StudentDTO } from '../helpers/domainApi';
 import { BackToHome } from '../components/MDButton';
@@ -22,7 +23,7 @@ const Day2: React.FC = () => {
       });
   }, []);
 
-  if (loading) return <div className="p-4 text-center">読込中...</div>;
+  if (loading) return <LoadingPage message="読込中..." />;
   if (error) return <div className="p-4 text-red-500 text-center">{error}</div>;
   if (!students.length) return <div className="p-4 text-center">生徒データがありません</div>;
 
@@ -78,7 +79,9 @@ const Day2: React.FC = () => {
                       show ? (
                         <th
                           key={`member-header-${i}`}
-                          className={'sticky top-0 z-20 px-4 py-2 border-b-2 border-blue-200 bg-blue-100 text-blue-900 font-semibold text-center' + (i === showMemberCols.length - 1 ? ' rounded-tr-lg' : '')}>
+                          className={
+                            'sticky top-0 z-20 px-4 py-2 border-b-2 border-blue-200 bg-blue-100 text-blue-900 font-semibold text-center' + (i === showMemberCols.length - 1 ? ' rounded-tr-lg' : '')
+                          }>
                           班員
                         </th>
                       ) : null

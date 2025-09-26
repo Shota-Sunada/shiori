@@ -1,3 +1,4 @@
+import LoadingPage from '../components/LoadingPage';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth-context';
@@ -129,7 +130,7 @@ const Yotei = () => {
     run();
   }, [user, searchParams]);
 
-  if (loading) return <div className="p-4 text-center">読み込み中…</div>;
+  if (loading) return <LoadingPage message="読み込み中…" />;
   if (error) return <div className="p-4 text-center text-red-600">エラー: {error}</div>;
   if (!day1CourseKey) return <div className="p-4 text-center">コースが設定されていません</div>;
   if (!courses) return <div className="p-4 text-center">コースデータを取得できませんでした</div>;
