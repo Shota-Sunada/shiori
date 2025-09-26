@@ -14,20 +14,19 @@ export interface StudentPresetSelectorProps {
 }
 
 const StudentPresetSelector = ({ value, onChange, rollCallGroups, disabled }: StudentPresetSelectorProps) => {
-  const groupOptions = useMemo(
-    () =>
-      rollCallGroups.map((g) => (
-        <option key={g.id} value={g.name}>
-          {g.name}
-        </option>
-      )),
-    [rollCallGroups]
-  );
+  const groupOptions = useMemo(() => {
+    const sortedGroups = [...rollCallGroups].sort((a, b) => a.id - b.id);
+    return sortedGroups.map((g) => (
+      <option key={g.id} value={g.name}>
+        {g.name}
+      </option>
+    ));
+  }, [rollCallGroups]);
 
   return (
     <div className="mb-4">
-      <label htmlFor="target_students" className="block text-gray-700 text-sm font-bold mb-2">
-        {'プリセットを選択'}
+      <label htmlFor="target_students" className="block text-gray-700 text-sm font-bold">
+        {'送信先を選択'}
       </label>
       <select
         name="target_students"
@@ -37,8 +36,8 @@ const StudentPresetSelector = ({ value, onChange, rollCallGroups, disabled }: St
         disabled={disabled}
         className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white">
         <option value="default">{'選択してください'}</option>
-        <option value="all">{'【取扱注意】全員'}</option>
         {groupOptions}
+        <option value="all">{'【取扱注意】全員'}</option>
       </select>
     </div>
   );

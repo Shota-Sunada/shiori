@@ -123,7 +123,7 @@ const TeacherRollCall = () => {
               prefetchKey="rollCalls"
               prefetchFetcher={async () => rollCallApi.listForTeacher(user!.userId, { alwaysFetch: true })}
             />
-            <MDButton text="ﾌﾟﾘｾｯﾄを編集" arrowRight color="white" onClick={() => setGroupEditorOpen(true)} />
+            <MDButton text="送信先ﾘｽﾄを編集" arrowRight color="white" onClick={() => setGroupEditorOpen(true)} />
           </div>
 
           <form className="w-full mt-4" onSubmit={handleCallSubmit}>
