@@ -61,7 +61,7 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
           setCurrentRoomNumber(room);
           setShowRoommateModal(true);
         } else {
-          const data = await appFetch<Roommate[]>(`${SERVER_ENDPOINT}/api/students/roommates/${hotel}/${room}`, { requiresAuth: true, alwaysFetch: true });
+          const data = await appFetch<Roommate[]>(`${SERVER_ENDPOINT}/api/students/roommates/${hotel}/${room}`, { requiresAuth: true, alwaysFetch: true, cacheKey: CacheKeys.roommates.key(hotel, room) });
           setCurrentRoommates(data);
           setCurrentHotelName(hotelName);
           setCurrentRoomNumber(room);

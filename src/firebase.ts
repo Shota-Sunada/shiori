@@ -3,6 +3,7 @@ import { getMessaging, getToken } from 'firebase/messaging';
 import { SERVER_ENDPOINT } from './config/serverEndpoint';
 import { appFetch } from './helpers/apiClient';
 import { getAuthToken } from './helpers/authTokenStore';
+import { isOffline } from './helpers/isOffline';
 
 // Firebaseプロジェクトの設定情報
 const firebaseConfig = {
@@ -34,13 +35,17 @@ export const registerFCMToken = async (userId: string, swRegistration: ServiceWo
         console.error('JWT token not available');
         return;
       }
-      await appFetch(`${SERVER_ENDPOINT}/register-token`, {
-        method: 'POST',
-        requiresAuth: true,
-        jsonBody: { userId, token: currentToken },
-        alwaysFetch: true
-      });
-      console.log('サーバーでのFCMトークンの登録に成功。');
+      if (isOffline()) {
+        console.log("オフラインなので、FCMトークンの登録をスキップします。")
+      } else {
+        await appFetch(`${SERVER_ENDPOINT}/register-token`, {
+          method: 'POST',
+          requiresAuth: true,
+          jsonBody: { userId, token: currentToken },
+          alwaysFetch: true
+        });
+        console.log('サーバーでのFCMトークンの登録に成功。');
+      }
       try {
         localStorage.setItem('notifications_enabled', '1');
       } catch {

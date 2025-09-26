@@ -2,6 +2,7 @@ import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import { type AuthUser } from '../auth-context';
 import { registerFCMToken } from '../firebase';
 import { appFetch } from './apiClient';
+import { isOffline } from './isOffline';
 
 interface NotificationPayload {
   userId: string;
@@ -31,6 +32,8 @@ const ensureServiceWorkerAndRegister = (userId: string) => {
 export const sendNotification = async (payload: NotificationPayload): Promise<NotificationResult> => {
   const token = getJwt();
   if (!token) return { success: false, error: 'JWT token not found' };
+  if (isOffline()) return { success: false, error: 'The webpage is offline' };
+
   try {
     await appFetch(`${SERVER_ENDPOINT}/send-notification`, {
       method: 'POST',

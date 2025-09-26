@@ -5,6 +5,7 @@ import type { StudentDTO } from '../helpers/domainApi';
 import KanaSearchModal from './KanaSearchModal';
 import Modal from './Modal';
 import type { RollCallGroup } from '../interface/models';
+import { isOffline } from '../helpers/isOffline';
 
 // --- StudentChip Component (from OtanoshimiAdmin) ---
 interface StudentChipProps {
@@ -156,6 +157,7 @@ const GroupEditorModal = ({ isOpen, onClose, token, allStudents, rollCallGroups,
 
     try {
       if (!token) throw new Error('認証情報がありません');
+      if (!isOffline()) throw new Error('オフライン状態です');
       await appFetch(url, {
         method,
         requiresAuth: true,
@@ -176,6 +178,7 @@ const GroupEditorModal = ({ isOpen, onClose, token, allStudents, rollCallGroups,
 
     try {
       if (!token) throw new Error('認証情報がありません');
+      if (!isOffline()) throw new Error('オフライン状態です');
       await appFetch(`${SERVER_ENDPOINT}/api/roll-call-groups/${groupId}`, { method: 'DELETE', requiresAuth: true, alwaysFetch: true });
       onGroupsUpdated();
     } catch (error) {

@@ -46,6 +46,10 @@ function FcmTokenStatus() {
 
   useEffect(() => {
     (async () => {
+      if (isOffline()) {
+        console.log("オフラインなのでFCMトークンの送信を行いません。")
+        return;}
+
       try {
         const data = await appFetch<{ token: string | null }>(`${SERVER_ENDPOINT}/api/fcm-token/me/fcm-token`, { requiresAuth: true, alwaysFetch: true });
         setServerToken(data.token);
@@ -120,6 +124,7 @@ import macIcon from '@egoistdeveloper/operating-system-logos/src/32x32/MAC.png';
 import linIcon from '@egoistdeveloper/operating-system-logos/src/32x32/LIN.png';
 import { BackToHome } from '../components/MDButton';
 import { useAuth } from '../auth-context';
+import { isOffline } from '../helpers/isOffline';
 
 const BROWSER_ICONS: Record<string, string> = {
   Safari: safariIcon,
@@ -240,7 +245,7 @@ const EnvDebug: React.FC = () => {
           )}
         </div>
       </div>
-      <div className='flex flex-col items-center justify-center'>
+      <div className="flex flex-col items-center justify-center">
         <BackToHome user={user} />
       </div>
     </div>

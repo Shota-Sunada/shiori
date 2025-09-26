@@ -12,6 +12,8 @@ import { appFetch } from '../helpers/apiClient';
 import Message from '../components/Message';
 import NotificationBanner from '../components/NotificationBanner';
 import Memo from '../components/Memo';
+import { isOffline } from '../helpers/isOffline';
+import { CacheKeys } from '../helpers/cacheKeys';
 
 // interface ActiveRollCall {
 //   id: string;
@@ -29,6 +31,10 @@ const Index = () => {
   // FCMトークンの不一致チェック（ログイン直後は1回だけスキップ）
   useEffect(() => {
     (async () => {
+      if (isOffline()) {
+        console.log('オフラインなので、FCMトークンのチェックを行いません。');
+      }
+
       try {
         // サーバーのFCMトークン取得
         const data = await appFetch<{ token: string | null }>(`${SERVER_ENDPOINT}/api/fcm-token/me/fcm-token`, { requiresAuth: true, alwaysFetch: true });
@@ -42,7 +48,7 @@ const Index = () => {
         }
         if (serverToken && clientToken && serverToken !== clientToken) {
           // FCMトークンが異なる場合はサーバーにクライアントのトークンを再登録
-          if (user?.userId && clientToken) {
+          if (user?.userId && clientToken && !isOffline()) {
             await appFetch(`${SERVER_ENDPOINT}/register-token`, {
               method: 'POST',
               jsonBody: { userId: user.userId, token: clientToken },
@@ -67,7 +73,7 @@ const Index = () => {
       }
       try {
         // 生徒データ取得API呼び出し例（適宜修正）
-        const data = await appFetch<StudentDTO>(`${SERVER_ENDPOINT}/api/students/${user.userId}`, { requiresAuth: true });
+        const data = await appFetch<StudentDTO>(`${SERVER_ENDPOINT}/api/students/${user.userId}`, { requiresAuth: true, cacheKey: CacheKeys.students.byId(user.userId) });
         setStudentData(data);
       } catch {
         setStudentData(null);

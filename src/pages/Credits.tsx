@@ -4,6 +4,7 @@ import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import { useAuth } from '../auth-context';
 import CenterMessage from '../components/CenterMessage';
 import { appFetch } from '../helpers/apiClient';
+import { CacheKeys } from '../helpers/cacheKeys';
 
 interface Credit {
   category: string;
@@ -21,7 +22,7 @@ const Credits = () => {
     setStatus('loading');
     setError(null);
     try {
-      const data = await appFetch<Credit[]>(`${SERVER_ENDPOINT}/api/credits`, { requiresAuth: true });
+      const data = await appFetch<Credit[]>(`${SERVER_ENDPOINT}/api/credits`, { requiresAuth: true, cacheKey: CacheKeys.credits.list });
       setCredits(data);
       setStatus('success');
     } catch (e) {

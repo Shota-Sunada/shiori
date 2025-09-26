@@ -7,6 +7,7 @@ import { teacherApi } from '../helpers/domainApi';
 import type { TeacherDTO } from '../helpers/domainApi';
 import { BackToHome } from '../components/MDButton';
 import { CacheKeys } from '../helpers/cacheKeys';
+import { isOffline } from '../helpers/isOffline';
 
 const Messages = () => {
   const { user, token } = useAuth();
@@ -55,6 +56,9 @@ const Messages = () => {
 
   const handleMarkAsRead = async (id: number) => {
     if (!token || markingId === id) return;
+    if (isOffline()) {
+      console.log("オフラインなので既読しません。")
+      return;}
     setMarkingId(id);
     try {
       const result = await appFetch<{ message: string; readAt: string | null }>(`${SERVER_ENDPOINT}/api/messages/${id}/read`, {

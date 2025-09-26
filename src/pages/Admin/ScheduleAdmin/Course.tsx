@@ -3,6 +3,7 @@ import { SERVER_ENDPOINT } from '../../../config/serverEndpoint';
 import { appFetch } from '../../../helpers/apiClient';
 import { refresh } from './helpers';
 import type { Course, Schedule } from './Types';
+import { isOffline } from '../../../helpers/isOffline';
 
 export const EditingCourse = ({ course, setEditingCourse }: { course: Course; setEditingCourse: Dispatch<SetStateAction<Course | null>> }) => {
   return (
@@ -78,6 +79,7 @@ export const NewCourse = ({
           disabled={!input.course_key || saving}
           onClick={async () => {
             if (!input.course_key) return;
+            if (isOffline()) return;
             try {
               setSaving(true);
               await appFetch(`${SERVER_ENDPOINT}/api/schedules/courses`, {

@@ -18,7 +18,18 @@ export const CacheKeys = {
     teams: 'otanoshimi:teams'
   },
   messages: {
-    list: 'messages:list'
+    list: 'messages:list',
+    id: (id: number) => `messages:${id}`
+  },
+  roommates: {
+    key: (hotel: string, room: string) => `roommates:${hotel}${room}`
+  },
+  credits: {
+    list: 'credits:list'
+  },
+  schedules: {
+    list: 'schedules:list',
+    courses: 'schedules:courses'
   },
   rollCall: {
     groups: 'call:groups',

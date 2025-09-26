@@ -1,4 +1,5 @@
 import { getAuthToken } from './authTokenStore';
+import { isOffline } from './isOffline';
 
 // 基本的なAPI呼び出しユーティリティ（自動でJSON, 認証, エラーハンドリング）
 export interface BaseRequestOptions extends RequestInit {
@@ -139,27 +140,48 @@ export async function appFetch<T = unknown>(url: string, opts: AppFetchOptions =
       // expired & no staleWhileRevalidate -> fallthrough to network fetch
     }
   }
-  const token = getAuthToken();
-  const data = await apiRequest<T>(url, {
-    ...rest,
-    method: rest.method || (jsonBody ? 'POST' : 'GET'),
-    requiresAuth,
-    authToken: token || undefined,
-    json: jsonBody
-  });
-  if (cacheKey) {
-    const newEntry = { data, at: Date.now(), ttlMs };
-    saveCacheToLocalStorage(cacheKey, newEntry);
-    let ttlStr = '無期限';
-    if (ttlMs > 0) {
-      const h = Math.floor(ttlMs / (1000 * 60 * 60));
-      const m = Math.floor((ttlMs % (1000 * 60 * 60)) / (1000 * 60));
-      const s = Math.floor((ttlMs % (1000 * 60)) / 1000);
-      ttlStr = `${h}時間${m}分${s}秒`;
+  // オフライン時はキャッシュがあれば返す
+  if (isOffline() && cacheKey) {
+    entry = loadCacheFromLocalStorage<T>(cacheKey);
+    if (entry) {
+      console.warn(`[AppFetch] オフラインのためキャッシュ key「${cacheKey}」を返却`);
+      return entry.data as T;
     }
-    console.log(`====================================\n[AppFetch] ｷｬｯｼｭを作成・更新 key「${cacheKey}」\n[AppFetch] (有効期限: ${ttlStr})\n====================================`);
+    throw new Error('オフラインかつキャッシュがありません');
   }
-  return data;
+  const token = getAuthToken();
+  try {
+    const data = await apiRequest<T>(url, {
+      ...rest,
+      method: rest.method || (jsonBody ? 'POST' : 'GET'),
+      requiresAuth,
+      authToken: token || undefined,
+      json: jsonBody
+    });
+    if (cacheKey) {
+      const newEntry = { data, at: Date.now(), ttlMs };
+      saveCacheToLocalStorage(cacheKey, newEntry);
+      let ttlStr = '無期限';
+      if (ttlMs > 0) {
+        const h = Math.floor(ttlMs / (1000 * 60 * 60));
+        const m = Math.floor((ttlMs % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((ttlMs % (1000 * 60)) / 1000);
+        ttlStr = `${h}時間${m}分${s}秒`;
+      }
+      console.log(`====================================\n[AppFetch] ｷｬｯｼｭを作成・更新 key「${cacheKey}」\n[AppFetch] (有効期限: ${ttlStr})\n====================================`);
+    }
+    return data;
+  } catch (e) {
+    // サーバー接続不可時はキャッシュがあれば返す
+    if (cacheKey) {
+      entry = loadCacheFromLocalStorage<T>(cacheKey);
+      if (entry) {
+        console.warn(`[AppFetch] サーバー接続不可のためキャッシュ key「${cacheKey}」を返却`);
+        return entry.data as T;
+      }
+    }
+    throw e;
+  }
 }
 
 export function clearAppFetchCache(key?: string) {

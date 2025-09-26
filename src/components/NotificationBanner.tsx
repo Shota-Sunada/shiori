@@ -3,6 +3,7 @@ import { appFetch } from '../helpers/apiClient';
 import type { TeacherMessage } from '../interface/messages';
 import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import { useAuth } from '../auth-context';
+import { CacheKeys } from '../helpers/cacheKeys';
 
 // 通知バナー: 未読件数と最新メッセージを表示
 const NotificationBanner = ({ onClick }: { onClick?: () => void }) => {
@@ -15,7 +16,7 @@ const NotificationBanner = ({ onClick }: { onClick?: () => void }) => {
     const fetchAll = async () => {
       setLoading(true);
       try {
-        const data = await appFetch<TeacherMessage[]>(`${SERVER_ENDPOINT}/api/messages`, { requiresAuth: true });
+        const data = await appFetch<TeacherMessage[]>(`${SERVER_ENDPOINT}/api/messages`, { requiresAuth: true, cacheKey: CacheKeys.messages.list });
         setMessages(data);
       } finally {
         setLoading(false);

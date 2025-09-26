@@ -17,6 +17,7 @@ import ScrollToTopButton from '../components/ScrollToTopButton';
 import '../styles/index-table.css';
 import { BackToHome } from '../components/MDButton';
 import type { Schedule } from './Admin/ScheduleAdmin/Types';
+import { CacheKeys } from '../helpers/cacheKeys';
 
 const Yotei = () => {
   const { user } = useAuth();
@@ -117,7 +118,7 @@ const Yotei = () => {
       }
       // コースデータ取得
       try {
-        const courseList = await appFetch<Course[]>(`${SERVER_ENDPOINT}/api/schedules`, { parse: 'json', cacheKey: 'schedules', requiresAuth: true });
+        const courseList = await appFetch<Course[]>(`${SERVER_ENDPOINT}/api/schedules`, { parse: 'json', cacheKey: CacheKeys.schedules.list, requiresAuth: true });
         setCourses(courseList);
       } catch {
         setError('コースデータの取得に失敗しました');

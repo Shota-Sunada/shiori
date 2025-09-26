@@ -6,6 +6,8 @@ import { teacherApi, rollCallApi } from '../../helpers/domainApi';
 import type { TeacherMessage } from '../../interface/messages';
 import { BackToHome } from '../../components/MDButton';
 import StudentPresetSelector, { type RollCallGroup } from '../../components/StudentPresetSelector';
+import { isOffline } from '../../helpers/isOffline';
+import { CacheKeys } from '../../helpers/cacheKeys';
 
 const TeacherSendMessages = () => {
   const { user, token } = useAuth();
@@ -34,6 +36,11 @@ const TeacherSendMessages = () => {
   // メッセージ削除処理
   const handleDelete = async (id: number) => {
     if (!token) return;
+    if (isOffline()) {
+      console.log('オフラインなので処理をスキップします。');
+      return;
+    }
+
     setDeleteLoading(true);
     setDeleteError(null);
     try {
@@ -90,7 +97,7 @@ const TeacherSendMessages = () => {
     const fetchMyMessages = async () => {
       if (!teacherId || !token) return;
       try {
-        const all = await appFetch<TeacherMessage[]>(`${SERVER_ENDPOINT}/api/messages`, { requiresAuth: true });
+        const all = await appFetch<TeacherMessage[]>(`${SERVER_ENDPOINT}/api/messages`, { requiresAuth: true, cacheKey: CacheKeys.messages.list });
         setMyMessages(all.filter((m) => m.teacher_id === teacherId));
       } catch {
         setMyMessages([]);
@@ -152,7 +159,8 @@ const TeacherSendMessages = () => {
       const res = await appFetch<{ message: string; data: TeacherMessage }>(`${SERVER_ENDPOINT}/api/messages/${id}`, {
         method: 'PUT',
         requiresAuth: true,
-        jsonBody: { title: editTitle, message: editMessage }
+        jsonBody: { title: editTitle, message: editMessage },
+        cacheKey: CacheKeys.messages.id(id)
       });
       setEditingId(null);
       setEditTitle('');

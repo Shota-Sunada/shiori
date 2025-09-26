@@ -2,6 +2,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import { SERVER_ENDPOINT } from '../../../config/serverEndpoint';
 import { appFetch } from '../../../helpers/apiClient';
 import type { Course } from './Types';
+import { CacheKeys } from '../../../helpers/cacheKeys';
 
 export const parseIntOrNaN = (s?: string) => (s === undefined || s === '' ? NaN : parseInt(s, 10));
 export const isValidHour = (n: number) => Number.isInteger(n) && n >= 0 && n <= 23;
@@ -43,7 +44,7 @@ export const toMinutesIfPresent = (hStr?: string, mStr?: string) => {
 };
 export const refresh = async ( setData: Dispatch<SetStateAction<Course[]>>) => {
   try {
-    const list = await appFetch<Course[]>(`${SERVER_ENDPOINT}/api/schedules`, { parse: 'json', alwaysFetch: true, requiresAuth: true });
+    const list = await appFetch<Course[]>(`${SERVER_ENDPOINT}/api/schedules`, { parse: 'json', alwaysFetch: true, requiresAuth: true, cacheKey: CacheKeys.schedules.list });
     setData(list);
   } catch (e) {
     console.error(e);

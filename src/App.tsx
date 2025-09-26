@@ -41,6 +41,7 @@ import ShinkansenFloor from './pages/ShinkansenFloor';
 import Day2 from './pages/Day2';
 import TeacherSendMessages from './pages/Teachers/TeacherSendMessages';
 import Messages from './pages/Messages';
+import { isOffline } from './helpers/isOffline';
 
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: unknown }> {
   constructor(props: { children: React.ReactNode }) {
@@ -245,20 +246,25 @@ function App() {
   useEffect(() => {
     let active = true;
     (async () => {
-      try {
-        const data = await appFetch<{ version?: string }>(`${SERVER_ENDPOINT}/api/version`, { parse: 'json', alwaysFetch: true });
-        const current = import.meta.env.APP_VERSION;
-        if (active && data.version && current && data.version !== current) {
-          setVersionMismatch(true);
-          if (location.pathname !== '/version-mismatch') {
-            const from = window.location.pathname + window.location.search;
-            navigate('/version-mismatch', { replace: true, state: { from } });
+      if (isOffline()) {
+        console.log("オフラインなので、バージョンチェックをスキップします。")
+        return;
+      } else {
+        try {
+          const data = await appFetch<{ version?: string }>(`${SERVER_ENDPOINT}/api/version`, { parse: 'json', alwaysFetch: true });
+          const current = import.meta.env.APP_VERSION;
+          if (active && data.version && current && data.version !== current) {
+            setVersionMismatch(true);
+            if (location.pathname !== '/version-mismatch') {
+              const from = window.location.pathname + window.location.search;
+              navigate('/version-mismatch', { replace: true, state: { from } });
+            }
           }
+        } catch (e) {
+          console.warn('version check failed', e);
+        } finally {
+          if (active) setVersionChecked(true);
         }
-      } catch (e) {
-        console.warn('version check failed', e);
-      } finally {
-        if (active) setVersionChecked(true);
       }
     })();
     return () => {
