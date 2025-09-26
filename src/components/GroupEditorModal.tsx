@@ -157,7 +157,7 @@ const GroupEditorModal = ({ isOpen, onClose, token, allStudents, rollCallGroups,
 
     try {
       if (!token) throw new Error('認証情報がありません');
-      if (!isOffline()) throw new Error('オフライン状態です');
+      if (isOffline()) throw new Error('オフライン状態です');
       await appFetch(url, {
         method,
         requiresAuth: true,
@@ -178,7 +178,7 @@ const GroupEditorModal = ({ isOpen, onClose, token, allStudents, rollCallGroups,
 
     try {
       if (!token) throw new Error('認証情報がありません');
-      if (!isOffline()) throw new Error('オフライン状態です');
+      if (isOffline()) throw new Error('オフライン状態です');
       await appFetch(`${SERVER_ENDPOINT}/api/roll-call-groups/${groupId}`, { method: 'DELETE', requiresAuth: true, alwaysFetch: true });
       onGroupsUpdated();
     } catch (error) {
