@@ -379,7 +379,7 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
               <p>
                 {(studentData && (
                   <>
-                    {studentData.room_tdh.toString().substring(0, 2)}
+                    {studentData.room_tdh >= 1000 ? studentData.room_tdh.toString().substring(0, 2) : studentData.room_tdh.toString().substring(0, 1)}
                     {'階 '}
                     {studentData.room_tdh}
                     {'号室'}
@@ -389,7 +389,7 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
                     <>
                       {teacherData.room_tdh ? (
                         <>
-                          {teacherData.room_tdh.toString().substring(0, 2)}
+                          {teacherData.room_tdh >= 1000 ? teacherData.room_tdh.toString().substring(0, 2) : teacherData.room_tdh.toString().substring(0, 1)}
                           {'階 '}
                           {teacherData.room_tdh}
                           {'号室'}
