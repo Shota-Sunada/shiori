@@ -114,7 +114,7 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
       { type: 'link', icon: <IoHome />, to: user?.is_teacher ? '/teacher' : '/', label: 'ホーム', bgColor: 'blue' },
       { type: 'link', icon: <FaTable />, to: '/yotei', label: '行程表' },
       { type: 'link', icon: <MdOutlineMessage />, to: '/messages', label: 'メッセージ' },
-      { type: 'link', icon: <IoSend />, to: '/teacher/message', label: 'メッセージを送信', note: '先生専用', only_admin: true },
+      { type: 'link', icon: <IoSend />, to: '/teacher/messages', label: 'メッセージを送信', note: '先生専用', only_admin: true },
       { type: 'link', icon: <PiBagFill />, to: '/goods', label: '持ち物' },
       { type: 'link', icon: <FaListCheck />, to: '/goods-check', label: '持ち物チェッカー' },
       { type: 'link', icon: <TbTrain />, to: '/shinkansen', label: '新幹線' },

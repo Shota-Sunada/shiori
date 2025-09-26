@@ -22,6 +22,28 @@ const TeacherSendMessages = () => {
   const [editMessage, setEditMessage] = useState('');
   const [editError, setEditError] = useState<string | null>(null);
   const [editLoading, setEditLoading] = useState(false);
+  // 削除確認用
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  // メッセージ削除処理
+  const handleDelete = async (id: number) => {
+    if (!token) return;
+    setDeleteLoading(true);
+    setDeleteError(null);
+    try {
+      await appFetch(`${SERVER_ENDPOINT}/api/messages/${id}`, {
+        method: 'DELETE',
+        requiresAuth: true
+      });
+      setMyMessages((prev) => prev.filter((m) => m.id !== id));
+      setDeletingId(null);
+    } catch {
+      setDeleteError('削除に失敗しました');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchTeacher = async () => {
@@ -201,15 +223,48 @@ const TeacherSendMessages = () => {
                       投稿日: {new Date(msg.created_at).toLocaleString()}
                       {msg.updated_at && <span className="ml-2 text-blue-500">(最終編集: {new Date(msg.updated_at).toLocaleString()})</span>}
                     </div>
-                    <button
-                      className="text-blue-600 underline text-sm hover:text-blue-800"
-                      onClick={() => {
-                        setEditingId(msg.id);
-                        setEditTitle(msg.title);
-                        setEditMessage(msg.message);
-                      }}>
-                      編集
-                    </button>
+                    <div className="flex gap-3 items-center mt-1">
+                      <button
+                        className="text-blue-600 underline text-sm hover:text-blue-800"
+                        onClick={() => {
+                          setEditingId(msg.id);
+                          setEditTitle(msg.title);
+                          setEditMessage(msg.message);
+                        }}>
+                        編集
+                      </button>
+                      <button className="text-red-500 underline text-sm hover:text-red-700 ml-2" onClick={() => setDeletingId(msg.id)} disabled={deleteLoading}>
+                        削除
+                      </button>
+                    </div>
+                    {/* 削除確認ダイアログ */}
+                    {deletingId === msg.id && (
+                      <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm">
+                        <div className="bg-white rounded-xl shadow-lg p-6 max-w-xs w-full border border-red-200">
+                          <div className="text-lg font-bold text-red-600 mb-3">本当に削除しますか？</div>
+                          <div className="text-gray-700 mb-4">
+                            このメッセージ「{msg.title}」を削除してもよろしいですか？
+                            <br />
+                            この操作は元に戻せません。
+                          </div>
+                          <div className="flex gap-3 justify-end">
+                            <button className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700" onClick={() => handleDelete(msg.id)} disabled={deleteLoading}>
+                              {deleteLoading ? '削除中...' : '削除する'}
+                            </button>
+                            <button
+                              className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
+                              onClick={() => {
+                                setDeletingId(null);
+                                setDeleteError(null);
+                              }}
+                              disabled={deleteLoading}>
+                              キャンセル
+                            </button>
+                          </div>
+                          {deleteError && <div className="text-red-500 text-sm mt-2">{deleteError}</div>}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </li>

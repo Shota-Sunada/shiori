@@ -59,4 +59,23 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
   }
 });
 
+// ...既存のimport, router宣言...
+
+// ...既存のルーティング...
+
+// メッセージ削除
+router.delete('/:id', authenticateToken, async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const [result] = await pool.execute('DELETE FROM messages WHERE id = ?', [id]);
+    // @ts-expect-error result.affectedRows は型定義にないがmysql2の返却値には存在する
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'メッセージが見つかりません' });
+    }
+    res.status(200).json({ message: 'メッセージを削除しました' });
+  } catch {
+    res.status(500).json({ error: 'メッセージ削除に失敗しました' });
+  }
+});
+
 export default router;
