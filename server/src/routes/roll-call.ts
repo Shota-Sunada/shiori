@@ -226,7 +226,7 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/start', async (req, res) => {
-  const { teacher_id, specific_student_ids, duration_minutes, group_name } = req.body;
+  const { teacher_id, specific_student_ids, duration_minutes, group_name, notification_title, notification_body, notification_link } = req.body;
 
   if (!teacher_id) return res.status(400).json({ message: '先生のIDが必要です。' });
 
@@ -270,9 +270,9 @@ router.post('/start', async (req, res) => {
     const insertPromises = students.map((student) => connection.execute('INSERT INTO roll_call_students (roll_call_id, student_id) VALUES (?, ?)', [rollCallId, student.gakuseki]));
     await Promise.all(insertPromises);
 
-    const notificationTitle = '点呼が開始されました';
-    const notificationBody = 'アプリを開いて出欠を確認してください。';
-    const notificationLink = `/call?id=${rollCallId}`;
+  const notificationTitle = typeof notification_title === 'string' && notification_title.trim().length > 0 ? notification_title.trim() : '点呼が開始されました';
+  const notificationBody = typeof notification_body === 'string' && notification_body.trim().length > 0 ? notification_body.trim() : 'アプリを開いて出欠を確認してください。';
+  const notificationLink = typeof notification_link === 'string' && notification_link.trim().length > 0 ? notification_link.trim() : `/call?id=${rollCallId}`;
 
     for (const student of students) {
       sendNotification(student.gakuseki.toString(), notificationTitle, notificationBody, notificationLink);

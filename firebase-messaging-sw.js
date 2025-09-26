@@ -74,12 +74,13 @@ try {
     log('Background message received:', payload);
 
     // payload 安全化
+    const data = payload?.data || {};
     const notif = payload?.notification || {};
-    const title = notif.title || '通知';
-    const body = notif.body || '';
-    const clickUrl = payload?.fcmOptions?.link || '/';
+    const title = data.title || notif.title || '通知';
+    const body = data.body || notif.body || '';
+    const clickUrl = data.link || payload?.fcmOptions?.link || '/';
 
-    const icon = '/icon.png'; // Precaching 対象 (Workbox) を想定
+    const icon = data.icon || '/icon.png'; // Precaching 対象 (Workbox) を想定
     const tag = `fcm-${Date.now()}`; // 重複防止やグルーピング調整可
     const options = {
       body,

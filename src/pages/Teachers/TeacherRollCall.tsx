@@ -12,6 +12,9 @@ const TeacherRollCall = () => {
   const { user, token } = useAuth();
   const navigate = useNavigate();
 
+  const DEFAULT_NOTIFICATION_TITLE = '点呼が開始されました';
+  const DEFAULT_NOTIFICATION_BODY = 'アプリを開いて出欠を確認してください。';
+
   const [allStudents, setAllStudents] = useState<StudentDTO[]>([]);
   const [selectedStudents, setSelectedStudents] = useState<StudentDTO[]>([]);
   const [kanaModalOpen, setKanaModalOpen] = useState(false);
@@ -19,6 +22,9 @@ const TeacherRollCall = () => {
   const [targetStudents, setTargetStudents] = useState<string>('default');
   const [rollCallGroups, setRollCallGroups] = useState<RollCallGroup[]>([]);
   const [isGroupEditorOpen, setGroupEditorOpen] = useState(false);
+  const [notificationTitle, setNotificationTitle] = useState(DEFAULT_NOTIFICATION_TITLE);
+  const [notificationBody, setNotificationBody] = useState(DEFAULT_NOTIFICATION_BODY);
+  const [notificationLink, setNotificationLink] = useState('');
 
   const fetchRollCallGroups = useCallback(async () => {
     if (!token) return;
@@ -84,6 +90,9 @@ const TeacherRollCall = () => {
         duration_minutes: number;
         specific_student_ids?: number[];
         group_name?: string;
+        notification_title?: string;
+        notification_body?: string;
+        notification_link?: string;
       } = {
         teacher_id: Number(user.userId),
         duration_minutes: durationMinutes
@@ -95,6 +104,20 @@ const TeacherRollCall = () => {
         requestBody.group_name = targetStudents;
       }
 
+      const trimmedTitle = notificationTitle.trim();
+      const trimmedBody = notificationBody.trim();
+      const trimmedLink = notificationLink.trim();
+
+      if (trimmedTitle.length > 0) {
+        requestBody.notification_title = trimmedTitle;
+      }
+      if (trimmedBody.length > 0) {
+        requestBody.notification_body = trimmedBody;
+      }
+      if (trimmedLink.length > 0) {
+        requestBody.notification_link = trimmedLink;
+      }
+
       try {
         const { rollCallId } = await rollCallApi.start(requestBody);
 
@@ -104,7 +127,7 @@ const TeacherRollCall = () => {
         alert(`点呼の開始に失敗しました.\n${(error as Error).message}`);
       }
     },
-    [user, token, selectedStudents, targetStudents, durationMinutes, rollCallGroups, navigate]
+    [user, token, selectedStudents, targetStudents, durationMinutes, rollCallGroups, navigate, notificationTitle, notificationBody, notificationLink]
   );
 
   if (!user) return <CenterMessage>認証が必要です。</CenterMessage>;
@@ -128,6 +151,44 @@ const TeacherRollCall = () => {
 
           <form className="w-full mt-4" onSubmit={handleCallSubmit}>
             <StudentPresetSelector value={targetStudents} onChange={setTargetStudents} rollCallGroups={rollCallGroups} />
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="notification_title">
+                {'通知タイトル'}
+              </label>
+              <input
+                id="notification_title"
+                type="text"
+                value={notificationTitle}
+                onChange={(e) => setNotificationTitle(e.target.value)}
+                className="w-full rounded border border-gray-300 px-3 py-2 text-gray-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="notification_body">
+                {'通知本文'}
+              </label>
+              <textarea
+                id="notification_body"
+                value={notificationBody}
+                onChange={(e) => setNotificationBody(e.target.value)}
+                rows={3}
+                className="w-full rounded border border-gray-300 px-3 py-2 text-gray-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+            <div className="mb-6">
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="notification_link">
+                {'通知リンク（任意）'}
+              </label>
+              <input
+                id="notification_link"
+                type="text"
+                value={notificationLink}
+                onChange={(e) => setNotificationLink(e.target.value)}
+                placeholder="例: /call?id=123"
+                className="w-full rounded border border-gray-300 px-3 py-2 text-gray-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
+              <p className="mt-1 text-xs text-gray-500">{'未入力の場合は自動的に現在の点呼ページへ遷移するリンクになります。'}</p>
+            </div>
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2">{'点呼時間 (分)'}</label>
               <div className="flex justify-center space-x-2">

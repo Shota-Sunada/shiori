@@ -22,16 +22,15 @@ export async function sendNotification(userId: string, title: string, body: stri
 
     const message: admin.messaging.Message = {
       token,
-      notification: { title, body },
       webpush: {
-        notification: { title, body, icon: 'https://shiori.shudo-physics.com/icon.png' },
         fcmOptions: { link: link || 'https://shiori.shudo-physics.com' }
       },
       data: {
         type: 'default_notification',
-        originalTitle: title,
-        originalBody: body,
-        link: link || ''
+        title: title || "",
+        body: body || "",
+        link: link || '',
+        icon: 'https://shiori.shudo-physics.com/icon.png'
       }
     };
 

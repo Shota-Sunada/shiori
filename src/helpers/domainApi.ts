@@ -276,7 +276,15 @@ export interface RollCallDetailDTO {
 
 export const rollCallApi = {
   groups: () => appFetch<RollCallGroupDTO[]>(`${SERVER_ENDPOINT}/api/roll-call-groups`, { requiresAuth: true, cacheKey: CacheKeys.rollCall.groups }),
-  start: (body: { teacher_id: number; duration_minutes: number; specific_student_ids?: number[]; group_name?: string }) =>
+  start: (body: {
+    teacher_id: number;
+    duration_minutes: number;
+    specific_student_ids?: number[];
+    group_name?: string;
+    notification_title?: string;
+    notification_body?: string;
+    notification_link?: string;
+  }) =>
     mutate<{ rollCallId: string }>({
       url: `${SERVER_ENDPOINT}/api/roll-call/start`,
       method: 'POST',
