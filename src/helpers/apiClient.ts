@@ -111,6 +111,33 @@ export async function appFetch<T = unknown>(url: string, opts: AppFetchOptions =
         console.log(`====================================\n[AppFetch] ｷｬｯｼｭ読み込み key「${cacheKey}」\n[AppFetch] (有効期限: ${remainStr})\n====================================`);
         return entry.data as T;
       }
+      // 期限切れかつオフラインでなければキャッシュを更新
+      if (expired && !isOffline()) {
+        try {
+          const fresh = await apiRequest<T>(url, {
+            ...rest,
+            method: rest.method || (jsonBody ? 'POST' : 'GET'),
+            requiresAuth,
+            authToken: getAuthToken() || undefined,
+            json: jsonBody
+          });
+          const newEntry = { data: fresh, at: Date.now(), ttlMs };
+          saveCacheToLocalStorage(cacheKey!, newEntry);
+          let ttlStr = '無期限';
+          if (ttlMs > 0) {
+            const h = Math.floor(ttlMs / (1000 * 60 * 60));
+            const m = Math.floor((ttlMs % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((ttlMs % (1000 * 60)) / 1000);
+            ttlStr = `${h}時間${m}分${s}秒`;
+          }
+          console.log(`====================================\n[AppFetch] ｷｬｯｼｭを作成・更新 key「${cacheKey}」\n[AppFetch] (有効期限: ${ttlStr})\n====================================`);
+          return fresh;
+        } catch {
+          // 通信失敗時はキャッシュを返す
+          return entry.data as T;
+        }
+      }
+      // 期限切れかつstaleWhileRevalidate指定時は裏で更新
       if (expired && staleWhileRevalidate) {
         (async () => {
           try {
