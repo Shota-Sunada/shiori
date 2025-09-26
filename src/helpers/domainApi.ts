@@ -322,3 +322,20 @@ export const rollCallApi = {
       invalidatePrefixes: [CachePrefixes.rollCallListForTeacher(teacherId), CachePrefixes.rollCallListAll]
     })
 };
+
+export const notificationApi = {
+  send: (payload: { userId: string; title: string; body: string; link?: string }) =>
+    mutate({
+      url: `${SERVER_ENDPOINT}/api/notifications/send`,
+      method: 'POST',
+      jsonBody: payload,
+      requiresAuth: true
+    }),
+  sendTestToSelf: (payload: { title?: string; body?: string; link?: string } = {}) =>
+    mutate({
+      url: `${SERVER_ENDPOINT}/api/notifications/me/test`,
+      method: 'POST',
+      jsonBody: payload,
+      requiresAuth: true
+    })
+};

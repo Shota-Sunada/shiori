@@ -242,6 +242,20 @@ router.post('/start', async (req, res) => {
     await connection.beginTransaction();
     await connection.execute('INSERT INTO roll_calls (id, teacher_id, expires_at) VALUES (?, ?, ?)', [rollCallId, teacher_id, expiresAt]);
 
+    // 先生名取得
+    const [teacherRows] = await connection.execute<RowDataPacket[]>('SELECT surname, forename FROM teachers WHERE id = ?', [teacher_id]);
+    const teacherSurname = teacherRows[0]?.surname ?? '';
+    const teacherForename = teacherRows[0]?.forename ?? '';
+    const teacherDisplayName = `${teacherSurname}${teacherForename}`.trim();
+
+    const defaultTitle = '点呼が始まりました！';
+    const defaultBody = teacherDisplayName ? `${teacherDisplayName}先生が呼んでいます！` : '先生が呼んでいます！';
+    const defaultLink = `/call?id=${rollCallId}`;
+
+    const normalizedTitle = typeof notification_title === 'string' && notification_title.trim().length > 0 ? notification_title.trim() : defaultTitle;
+    const normalizedBody = typeof notification_body === 'string' && notification_body.trim().length > 0 ? notification_body.trim() : defaultBody;
+    const normalizedLink = typeof notification_link === 'string' && notification_link.trim().length > 0 ? notification_link.trim() : defaultLink;
+
     let students: { gakuseki: number }[] = [];
 
     if (group_name) {
@@ -270,12 +284,8 @@ router.post('/start', async (req, res) => {
     const insertPromises = students.map((student) => connection.execute('INSERT INTO roll_call_students (roll_call_id, student_id) VALUES (?, ?)', [rollCallId, student.gakuseki]));
     await Promise.all(insertPromises);
 
-  const notificationTitle = typeof notification_title === 'string' && notification_title.trim().length > 0 ? notification_title.trim() : '点呼が開始されました';
-  const notificationBody = typeof notification_body === 'string' && notification_body.trim().length > 0 ? notification_body.trim() : 'アプリを開いて出欠を確認してください。';
-  const notificationLink = typeof notification_link === 'string' && notification_link.trim().length > 0 ? notification_link.trim() : `/call?id=${rollCallId}`;
-
     for (const student of students) {
-      sendNotification(student.gakuseki.toString(), notificationTitle, notificationBody, notificationLink);
+      sendNotification(student.gakuseki.toString(), normalizedTitle, normalizedBody, normalizedLink);
     }
 
     await connection.commit();

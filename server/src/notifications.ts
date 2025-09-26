@@ -20,16 +20,27 @@ export async function sendNotification(userId: string, title: string, body: stri
       return false;
     }
 
+    const normalizedTitle = (title ?? '').trim() || '通知';
+    const normalizedBody = (body ?? '').trim();
+    const normalizedLink = (link ?? '').trim();
+
     const message: admin.messaging.Message = {
       token,
       webpush: {
-        fcmOptions: { link: link || 'https://shiori.shudo-physics.com' }
+        notification: {
+          title: normalizedTitle,
+          body: normalizedBody,
+          icon: 'https://shiori.shudo-physics.com/icon.png'
+        },
+        fcmOptions: { link: normalizedLink || 'https://shiori.shudo-physics.com' }
       },
       data: {
         type: 'default_notification',
-        title: title || "",
-        body: body || "",
-        link: link || '',
+        title: normalizedTitle,
+        body: normalizedBody,
+        originalTitle: normalizedTitle,
+        originalBody: normalizedBody,
+        link: normalizedLink,
         icon: 'https://shiori.shudo-physics.com/icon.png'
       }
     };

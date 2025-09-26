@@ -281,15 +281,22 @@ function App() {
     }
     const unsubscribe = onMessage(messaging, async (payload) => {
       if (payload.data?.type === 'default_notification') {
+        // payload.notificationが存在する場合はOS通知に任せて何もしない（重複防止）
+        if (payload.notification) return;
+
+        const title = payload.data.title || payload.data.originalTitle || '通知';
+        const body = payload.data.body || payload.data.originalBody || '';
+        const link = payload.data.link || '/';
+
         // iOS SafariではフォアグラウンドでもOS通知を出す方が気付きやすい
         try {
           if ('serviceWorker' in navigator) {
             const reg = await navigator.serviceWorker.getRegistration();
             if (reg && Notification.permission === 'granted') {
-              await reg.showNotification(payload.data.originalTitle || '通知', {
-                body: payload.data.originalBody || '',
+              await reg.showNotification(title, {
+                body,
                 icon: '/icon.png',
-                data: { url: payload.data.link || '/' }
+                data: { url: link }
               });
               return;
             }
@@ -298,8 +305,8 @@ function App() {
           /* ignore */
         }
         // フォールバック: 既存のalert
-        alert(`${payload.data.originalTitle}\n${payload.data.originalBody}`);
-        if (payload.data.link) navigate(payload.data.link);
+        alert(`${title}\n${body}`);
+        if (link && link !== '/') navigate(link);
       }
     });
     return () => unsubscribe();

@@ -6,8 +6,7 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { ResultSetHeader } from 'mysql2/promise';
 import { logger } from './logger';
-import { sendNotification } from './notifications';
-import { getUserFcmToken, sendNotification as sendNotificationSingle } from './notifications';
+import { getUserFcmToken } from './notifications';
 import { authenticateToken } from './middleware/auth';
 
 // Firebase Admin SDKを初期化
@@ -50,6 +49,7 @@ import scheduleRouter from './routes/schedule';
 import boatsRouter from './routes/boats';
 import fcmTokenRouter from './routes/fcm-token';
 import messagesRouter from './routes/messages';
+import notificationRouter from './routes/notification';
 // バージョン取得用 (package.json から) - PWA クライアントのバージョン不一致検出に利用
 import serverPkg from '../package.json';
 
@@ -71,7 +71,8 @@ const routeConfigs: RouteConfig[] = [
   { path: '/api/credits', router: creditsRouter, middlewares: [authenticateToken] },
   { path: '/api/boats', router: boatsRouter, middlewares: [authenticateToken] },
   { path: '/api/fcm-token', router: fcmTokenRouter, middlewares: [authenticateToken] },
-  { path: '/api/messages', router: messagesRouter, middlewares: [authenticateToken] }
+  { path: '/api/messages', router: messagesRouter, middlewares: [authenticateToken] },
+  { path: '/api/notifications', router: notificationRouter, middlewares: [authenticateToken] }
 ];
 
 routeConfigs.forEach(({ path, router, middlewares }) => {
@@ -119,22 +120,6 @@ app.post('/register-token', authenticateToken, async (req: Request, res: Respons
   }
 });
 
-app.post('/send-notification', authenticateToken, async (req: Request, res: Response) => {
-  const { userId, title, body, link } = req.body;
-
-  if (!userId || !title || !body) {
-    return res.status(400).send({ error: '「userId」、「title」と「body」のすべてが必要です。' });
-  }
-
-  const success = await sendNotification(userId, title, body, link);
-
-  if (success) {
-    res.status(200).send({ message: '通知の送信に成功しました。' });
-  } else {
-    res.status(404).send({ error: `通知の送信に失敗しました。ユーザー「${userId}」のトークンが無効か、存在しません。` });
-  }
-});
-
 // 型補助: auth ミドルウェアで追加した user から userId を取得
 function getUserId(req: Request): string | undefined {
   const r = req as Request & { user?: { userId?: string } };
@@ -154,19 +139,6 @@ app.get('/api/me/fcm-token', authenticateToken, async (req: Request, res: Respon
   }
 });
 
-// 自分宛テスト通知送信（デバッグ）
-app.post('/api/me/test-notification', authenticateToken, async (req: Request, res: Response) => {
-  const userId = getUserId(req);
-  if (!userId) return res.status(401).json({ error: 'unauthorized' });
-  const { title = 'テスト通知', body = '通知の到達性テスト', link = '/' } = req.body || {};
-  try {
-    const ok = await sendNotificationSingle(userId, title, body, link);
-    res.json({ success: ok });
-  } catch (e) {
-    res.status(500).json({ error: String(e) });
-  }
-});
-
 import * as readline from 'readline';
 import bcrypt from 'bcrypt';
 
@@ -180,7 +152,8 @@ const routers: Array<[string, express.Router, boolean?]> = [
   ['/api/teachers', teachersRouter, true],
   ['/api/credits', creditsRouter, true],
   ['/api/schedules', scheduleRouter, true],
-  ['/api/boats', boatsRouter, true]
+  ['/api/boats', boatsRouter, true],
+  ['/api/notifications', notificationRouter, true]
 ];
 
 routers.forEach(([path, r, needAuth]) => {
