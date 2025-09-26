@@ -9,6 +9,7 @@ import { teacherApi } from '../../helpers/domainApi';
 import IndexTable from '../../components/IndexTable';
 // 生徒 IndexTable と同じ幅/スタイルを適用するため CSS を追加インポート
 import '../../styles/index-table.css';
+import Memo from '../../components/Memo';
 
 const TeacherIndex = () => {
   const { user, loading, token } = useAuth();
@@ -60,7 +61,10 @@ const TeacherIndex = () => {
 
       <IndexTable teacherData={teacherData} />
 
+      <Memo />
+
       <MDButton text="生徒を検索" arrowRight link="/teacher/search"></MDButton>
+      <MDButton text="メッセージ送信" arrowRight link="/teacher/messages"></MDButton>
       <MDButton text="点呼" arrowRight link="/teacher/call"></MDButton>
       <MDButton text="お楽しみ会" arrowRight link="/otanoshimi" color="green"></MDButton>
     </div>

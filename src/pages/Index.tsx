@@ -11,6 +11,7 @@ import CenterMessage from '../components/CenterMessage';
 import { appFetch } from '../helpers/apiClient';
 import Message from '../components/Message';
 import NotificationBanner from '../components/NotificationBanner';
+import Memo from '../components/Memo';
 
 interface ActiveRollCall {
   id: string;
@@ -24,21 +25,6 @@ const Index = () => {
   const [studentData, setStudentData] = useState<StudentDTO | null | undefined>(undefined); // undefined: ロード中, null: 404 等
   const [studentLoading, setStudentLoading] = useState<boolean>(true);
   const [activeRollCall, setActiveRollCall] = useState<ActiveRollCall | null>(null);
-
-  // メモ欄の状態管理（トップレベルで1回だけ宣言）
-  const [memo, setMemo] = useState<string>('');
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('shiori_memo') || '';
-      setMemo(saved);
-    }
-    // setMemoはuseStateのセッターなので依存配列に含めなくてよい
-  }, []);
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('shiori_memo', memo);
-    }
-  }, [memo]);
 
   // FCMトークンの不一致チェック（ログイン直後は1回だけスキップ）
   useEffect(() => {
@@ -177,19 +163,7 @@ const Index = () => {
       </Message>
 
       {/* メモ欄 */}
-      <div className="w-full max-w-md mt-6 mb-2">
-        <label htmlFor="memo" className="block mb-1 font-semibold text-gray-700">
-          メモ欄
-        </label>
-        <textarea
-          id="memo"
-          className="w-full h-32 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-gray-800 resize-y shadow-sm"
-          placeholder="自由にメモを残せます（この端末だけに保存されます）"
-          value={memo}
-          onChange={(e) => setMemo(e.target.value)}
-        />
-        <div className="text-xs text-gray-400 mt-1">※ メモ内容はこの端末のみに保存されます</div>
-      </div>
+      <Memo />
 
       {!user.is_teacher && (
         <div className="mt-4">

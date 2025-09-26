@@ -5,13 +5,13 @@ import { useAuth } from '../auth-context';
 import { clearShioriCache } from '../helpers/clearShioriCache';
 import { PrefetchLink } from '../prefetch/PrefetchLink';
 import { otanoshimiApi } from '../helpers/domainApi';
-import { IoHome, IoReload, IoLogOut, IoSettingsSharp } from 'react-icons/io5';
+import { IoHome, IoReload, IoLogOut, IoSettingsSharp, IoSend } from 'react-icons/io5';
 import { FaTable } from 'react-icons/fa';
 import { LuPartyPopper } from 'react-icons/lu';
 import { VscDebugAlt } from 'react-icons/vsc';
 import { FaUserGraduate } from 'react-icons/fa6';
 import { TbTrain } from 'react-icons/tb';
-import { MdAirlineSeatReclineNormal } from 'react-icons/md';
+import { MdAirlineSeatReclineNormal, MdOutlineMessage } from 'react-icons/md';
 import { PiBagFill } from 'react-icons/pi';
 import { FaListCheck } from 'react-icons/fa6';
 
@@ -111,56 +111,15 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
       };
   const menuItems: MenuItem[] = useMemo(
     () => [
-      {
-        type: 'link',
-        icon: <IoHome />,
-        to: user?.is_teacher ? '/teacher' : '/',
-        label: 'ホーム'
-      },
-      {
-        type: 'link',
-        icon: <FaTable />,
-        to: '/yotei',
-        label: '行程表'
-      },
-      // {
-      //   type: 'link',
-      //   icon: <FaTable />,
-      //   to: '/messages',
-      //   label: 'メッセージ'
-      // },
-      {
-        type: 'link',
-        icon: <PiBagFill />,
-        to: '/goods',
-        label: '持ち物'
-      },
-      {
-        type: 'link',
-        icon: <FaListCheck />,
-        to: '/goods-check',
-        label: '持ち物チェッカー'
-      },
-      {
-        type: 'link',
-        icon: <TbTrain />,
-        to: '/shinkansen',
-        label: '新幹線'
-      },
-      {
-        type: 'link',
-        icon: <MdAirlineSeatReclineNormal />,
-        to: '/shinkansen/floor',
-        label: '新幹線座席一覧'
-      },
-      {
-        type: 'link',
-        icon: <LuPartyPopper />,
-        to: '/otanoshimi',
-        label: 'お楽しみ会',
-        prefetchKey: 'otanoshimiTeams',
-        fetcher: async () => otanoshimiApi.list()
-      },
+      { type: 'link', icon: <IoHome />, to: user?.is_teacher ? '/teacher' : '/', label: 'ホーム', bgColor: 'blue' },
+      { type: 'link', icon: <FaTable />, to: '/yotei', label: '行程表' },
+      { type: 'link', icon: <MdOutlineMessage />, to: '/messages', label: 'メッセージ' },
+      { type: 'link', icon: <IoSend />, to: '/teacher/message', label: 'メッセージを送信', note: '先生専用', only_admin: true },
+      { type: 'link', icon: <PiBagFill />, to: '/goods', label: '持ち物' },
+      { type: 'link', icon: <FaListCheck />, to: '/goods-check', label: '持ち物チェッカー' },
+      { type: 'link', icon: <TbTrain />, to: '/shinkansen', label: '新幹線' },
+      { type: 'link', icon: <MdAirlineSeatReclineNormal />, to: '/shinkansen/floor', label: '新幹線座席一覧' },
+      { type: 'link', icon: <LuPartyPopper />, to: '/otanoshimi', label: 'お楽しみ会', prefetchKey: 'otanoshimiTeams', fetcher: async () => otanoshimiApi.list() },
       { type: 'link', icon: <FaUserGraduate />, to: '/credits', label: 'クレジット' },
       {
         type: 'action',
