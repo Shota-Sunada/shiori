@@ -43,6 +43,7 @@ import TeacherSendMessages from './pages/Teachers/TeacherSendMessages';
 import Messages from './pages/Messages';
 import { isOffline } from './helpers/isOffline';
 import Hotel from './pages/Hotel';
+import Bus from './pages/Bus';
 
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: unknown }> {
   constructor(props: { children: React.ReactNode }) {
@@ -337,6 +338,7 @@ function App() {
     { path: '/day2', element: <Day2 /> },
     { path: '/hotel', element: <Hotel /> },
     { path: '/messages', element: <Messages /> },
+    { path: '/bus', element: <Bus /> },
     { path: '/teacher', element: <TeacherIndex /> },
     { path: '/teacher/search', element: <TeacherIndexTable /> },
     // { path: '/teacher/roll-call-list', element: <TeacherRollCallList /> },
