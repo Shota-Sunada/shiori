@@ -93,12 +93,12 @@ const Messages = () => {
       {messages.length === 0 ? (
         <>
           <div className="text-gray-500 text-center py-8">メッセージはありません。</div>
-          <MDButton text="メッセージを送信" arrowRight link="/teacher/messages" />
+          {user?.is_teacher ? <MDButton text="メッセージを送信" arrowRight link="/teacher/messages" /> : <></>}
         </>
       ) : (
         <>
           <div className="flex flex-col items-center justify-center">
-            <MDButton text="メッセージを送信" arrowRight link="/teacher/messages" />
+          {user?.is_teacher ? <MDButton text="メッセージを送信" arrowRight link="/teacher/messages" /> : <></>}
           </div>
 
           <ul className="space-y-10">
