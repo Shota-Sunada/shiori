@@ -1,4 +1,4 @@
-import type { Dispatch, SetStateAction } from 'react';
+import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { SERVER_ENDPOINT } from '../../../config/serverEndpoint';
 import { appFetch } from '../../../helpers/apiClient';
 import { refresh } from './helpers';
@@ -28,21 +28,17 @@ export const EditingCourse = ({ course, setEditingCourse }: { course: Course; se
 };
 
 export const NewCourse = ({
-  input,
   ALL_COURSES,
-  setInput,
   selectableCourses,
   saving,
   setSaving,
   setData,
   setEditingCourse
 }: {
-  input: Record<string, string>;
   ALL_COURSES: {
     key: string;
     name: string;
   }[];
-  setInput: Dispatch<SetStateAction<Record<string, string>>>;
   selectableCourses: {
     key: string;
     name: string;
@@ -52,6 +48,20 @@ export const NewCourse = ({
   setData: Dispatch<SetStateAction<Course[]>>;
   setEditingCourse: Dispatch<SetStateAction<Course | null>>;
 }) => {
+  const [selectedKey, setSelectedKey] = useState('');
+
+  useEffect(() => {
+    if (selectableCourses.length === 0) {
+      setSelectedKey('');
+      return;
+    }
+    if (!selectedKey || !selectableCourses.some((c) => c.key === selectedKey)) {
+      setSelectedKey(selectableCourses[0].key);
+    }
+  }, [selectableCourses, selectedKey]);
+
+  const selectedCourse = useMemo(() => ALL_COURSES.find((c) => c.key === selectedKey), [ALL_COURSES, selectedKey]);
+
   return (
     <div className="bg-white rounded-lg shadow-md p-4 flex flex-col gap-4 border border-blue-100 my-1">
       <div>
@@ -59,12 +69,8 @@ export const NewCourse = ({
         <select
           name="course_key"
           className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-300"
-          value={input.course_key || ''}
-          onChange={(e) => {
-            const key = e.target.value;
-            const selected = ALL_COURSES.find((c) => c.key === key);
-            setInput({ course_key: key, name: selected?.name ?? '' });
-          }}>
+          value={selectedKey}
+          onChange={(e) => setSelectedKey(e.target.value)}>
           {selectableCourses.length === 0 && <option value="">追加可能なコースはありません</option>}
           {selectableCourses.map((c) => (
             <option key={c.key} value={c.key}>
@@ -75,21 +81,20 @@ export const NewCourse = ({
       </div>
       <div className="flex flex-row gap-2 mt-2">
         <button
-          className={`px-4 py-2 rounded ${input.course_key ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}
-          disabled={!input.course_key || saving}
+          className={`px-4 py-2 rounded ${selectedKey ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}
+          disabled={!selectedKey || saving}
           onClick={async () => {
-            if (!input.course_key) return;
+            if (!selectedKey) return;
             if (isOffline()) return;
             try {
               setSaving(true);
               await appFetch(`${SERVER_ENDPOINT}/api/schedules/courses`, {
                 method: 'POST',
                 requiresAuth: true,
-                jsonBody: { course_key: input.course_key, name: input.name }
+                jsonBody: { course_key: selectedKey, name: selectedCourse?.name ?? '' }
               });
               await refresh(setData);
               setEditingCourse(null);
-              setInput({});
             } catch (e) {
               console.error(e);
             } finally {
@@ -109,13 +114,11 @@ export const NewCourse = ({
 export const CourseButtons = ({
   setEditingCourse,
   course,
-  setInput,
   setData,
   setEditingSchedule
 }: {
   setEditingCourse: Dispatch<SetStateAction<Course | null>>;
   course: Course;
-  setInput: Dispatch<SetStateAction<Record<string, string>>>;
   setData: Dispatch<SetStateAction<Course[]>>;
   setEditingSchedule: Dispatch<
     SetStateAction<{
@@ -130,7 +133,6 @@ export const CourseButtons = ({
         className="text-xs px-2 py-1 mx-1 bg-yellow-400 rounded"
         onClick={() => {
           setEditingCourse(course);
-          setInput({ course_key: course.course_key ?? '', name: course.name ?? '' });
         }}>
         編集
       </button>
@@ -148,7 +150,6 @@ export const CourseButtons = ({
         className="text-xs px-2 py-1 mx-1 bg-blue-400 rounded"
         onClick={() => {
           setEditingSchedule({ courseId: course.id, schedule: null });
-          setInput({ title: '' });
         }}>
         ＋スケジュール追加
       </button>

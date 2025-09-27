@@ -1,4 +1,4 @@
-import type { SetStateAction, Dispatch, ChangeEventHandler } from 'react';
+import { useEffect, useState, type SetStateAction, type Dispatch } from 'react';
 import { SERVER_ENDPOINT } from '../../../config/serverEndpoint';
 import { appFetch } from '../../../helpers/apiClient';
 import { refresh } from './helpers';
@@ -6,15 +6,11 @@ import type { Course, Event, Schedule } from './Types';
 
 export const EditingSchedule = ({
   isNew,
-  input,
-  handleInput,
   editingSchedule,
   setEditingSchedule,
   setData
 }: {
   isNew?: boolean;
-  input: Record<string, string>;
-  handleInput: ChangeEventHandler<HTMLInputElement>;
   editingSchedule: {
     courseId: number;
     schedule: Schedule | null;
@@ -27,14 +23,24 @@ export const EditingSchedule = ({
   >;
   setData: Dispatch<SetStateAction<Course[]>>;
 }) => {
+  const [title, setTitle] = useState('');
+
+  useEffect(() => {
+    if (editingSchedule.schedule) {
+      setTitle(editingSchedule.schedule.title ?? '');
+    } else {
+      setTitle('');
+    }
+  }, [editingSchedule.schedule, editingSchedule.courseId]);
+
   return (
     <div className="bg-white rounded-lg shadow-md p-4 flex flex-col gap-4 border border-blue-100 my-1">
       <div>
         <label className="block font-semibold text-gray-700 mb-1">タイトル</label>
         <input
           name="title"
-          value={input.title || ''}
-          onChange={handleInput}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           placeholder="タイトル"
           className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-300"
         />
@@ -45,11 +51,11 @@ export const EditingSchedule = ({
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
             onClick={() => {
               if (!editingSchedule || !editingSchedule.courseId) return;
-              if (!input.title || !input.title.trim()) {
+              if (!title || !title.trim()) {
                 alert('タイトルは必須です');
                 return;
               }
-              const payload = { courseId: editingSchedule.courseId, title: input.title.trim() };
+              const payload = { courseId: editingSchedule.courseId, title: title.trim() };
               appFetch(`${SERVER_ENDPOINT}/api/schedules`, { method: 'POST', requiresAuth: true, jsonBody: payload })
                 .then(() => refresh(setData))
                 .then(() => setEditingSchedule(null))
@@ -65,12 +71,12 @@ export const EditingSchedule = ({
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
             onClick={() => {
               if (!editingSchedule?.schedule) return;
-              if (!input.title || !input.title.trim()) {
+              if (!title || !title.trim()) {
                 alert('タイトルは必須です');
                 return;
               }
               const id = editingSchedule.schedule.id;
-              const payload = { title: input.title.trim() };
+              const payload = { title: title.trim() };
               appFetch(`${SERVER_ENDPOINT}/api/schedules/${id}`, { method: 'PUT', requiresAuth: true, jsonBody: payload })
                 .then(() => refresh(setData))
                 .then(() => setEditingSchedule(null))
@@ -103,7 +109,6 @@ export const ScheduleCard = ({ schedule }: { schedule: Schedule }) => {
 
 export const ScheduleButtons = ({
   setEditingSchedule,
-  setInput,
   course,
   schedule,
   setData,
@@ -115,7 +120,6 @@ export const ScheduleButtons = ({
       schedule: Schedule | null;
     } | null>
   >;
-  setInput: Dispatch<SetStateAction<Record<string, string>>>;
   course: Course;
   schedule: Schedule;
   setData: Dispatch<SetStateAction<Course[]>>;
@@ -132,7 +136,6 @@ export const ScheduleButtons = ({
         className="text-xs px-2 py-1 mx-1 bg-yellow-400 rounded"
         onClick={() => {
           setEditingSchedule({ courseId: course.id, schedule });
-          setInput({ title: schedule.title });
         }}>
         編集
       </button>
@@ -150,7 +153,6 @@ export const ScheduleButtons = ({
         className="text-xs px-2 py-1 mx-1 bg-blue-400 rounded"
         onClick={() => {
           setEditingEvent({ scheduleId: schedule.id, event: null });
-          setInput({ memo: '', time1Hour: '', time1Minute: '', time1Postfix: '', time2Hour: '', time2Minute: '', time2Postfix: '' });
         }}>
         ＋イベント追加
       </button>

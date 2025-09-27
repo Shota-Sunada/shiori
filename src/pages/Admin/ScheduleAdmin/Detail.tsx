@@ -1,4 +1,4 @@
-import { type ChangeEventHandler, type Dispatch, type SetStateAction } from 'react';
+import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import type { Course, Event, EventDetail } from './Types';
 import { refresh, toMinutesIfPresent, validateTimeOptionalPairLabeled } from './helpers';
 import { appFetch } from '../../../helpers/apiClient';
@@ -7,15 +7,11 @@ import { pad2 } from '../../../helpers/pad2';
 
 export const EditingDetail = ({
   isNew,
-  input,
-  handleInput,
   editingDetail,
   setData,
   setEditingDetail
 }: {
   isNew?: boolean;
-  input: Record<string, string>;
-  handleInput: ChangeEventHandler<HTMLInputElement>;
   editingDetail: {
     eventId: number;
     detail: EventDetail | null;
@@ -28,14 +24,49 @@ export const EditingDetail = ({
     } | null>
   >;
 }) => {
+  const [formState, setFormState] = useState({
+    memo: '',
+    time1Hour: '',
+    time1Minute: '',
+    time2Hour: '',
+    time2Minute: ''
+  });
+
+  useEffect(() => {
+    const detail = editingDetail.detail;
+    if (detail) {
+      setFormState({
+        memo: detail.memo ?? '',
+        time1Hour: detail.time1Hour != null ? detail.time1Hour.toString() : '',
+        time1Minute: detail.time1Minute != null ? detail.time1Minute.toString() : '',
+        time2Hour: detail.time2Hour != null ? detail.time2Hour.toString() : '',
+        time2Minute: detail.time2Minute != null ? detail.time2Minute.toString() : ''
+      });
+    } else {
+      setFormState({ memo: '', time1Hour: '', time1Minute: '', time2Hour: '', time2Minute: '' });
+    }
+  }, [editingDetail.detail, editingDetail.eventId]);
+
+  const numericFields = useMemo(() => new Set(['time1Hour', 'time1Minute', 'time2Hour', 'time2Minute']), []);
+
+  const handleChange = (name: keyof typeof formState, value: string) => {
+    let nextValue = value;
+    if (numericFields.has(name)) {
+      const toHalf = (s: string) => s.replace(/[０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xff10 + 0x30));
+      const half = toHalf(value);
+      nextValue = half.replace(/\D/g, '').slice(0, 2);
+    }
+    setFormState((prev) => ({ ...prev, [name]: nextValue }));
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md p-4 flex flex-col gap-4 border border-blue-100 my-1">
       <div>
         <label className="block font-semibold text-gray-700 mb-1">メモ</label>
         <input
           name="memo"
-          value={input.memo || ''}
-          onChange={handleInput}
+          value={formState.memo}
+          onChange={(e) => handleChange('memo', e.target.value)}
           placeholder="メモ"
           className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-300"
         />
@@ -46,16 +77,16 @@ export const EditingDetail = ({
           <div className="flex flex-row gap-2">
             <input
               name="time1Hour"
-              value={input.time1Hour || ''}
-              onChange={handleInput}
+              value={formState.time1Hour}
+              onChange={(e) => handleChange('time1Hour', e.target.value)}
               placeholder="時"
               className="border border-gray-300 rounded px-2 py-1 w-16 focus:outline-none focus:ring-2 focus:ring-blue-300"
             />
             <span className="self-center">:</span>
             <input
               name="time1Minute"
-              value={input.time1Minute || ''}
-              onChange={handleInput}
+              value={formState.time1Minute}
+              onChange={(e) => handleChange('time1Minute', e.target.value)}
               placeholder="分"
               className="border border-gray-300 rounded px-2 py-1 w-16 focus:outline-none focus:ring-2 focus:ring-blue-300"
             />
@@ -66,16 +97,16 @@ export const EditingDetail = ({
           <div className="flex flex-row gap-2">
             <input
               name="time2Hour"
-              value={input.time2Hour || ''}
-              onChange={handleInput}
+              value={formState.time2Hour}
+              onChange={(e) => handleChange('time2Hour', e.target.value)}
               placeholder="時"
               className="border border-gray-300 rounded px-2 py-1 w-16 focus:outline-none focus:ring-2 focus:ring-blue-300"
             />
             <span className="self-center">:</span>
             <input
               name="time2Minute"
-              value={input.time2Minute || ''}
-              onChange={handleInput}
+              value={formState.time2Minute}
+              onChange={(e) => handleChange('time2Minute', e.target.value)}
               placeholder="分"
               className="border border-gray-300 rounded px-2 py-1 w-16 focus:outline-none focus:ring-2 focus:ring-blue-300"
             />
@@ -87,34 +118,34 @@ export const EditingDetail = ({
           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
           onClick={() => {
             if (!editingDetail || !editingDetail.eventId) return;
-            const memo = (input.memo || '').trim();
+            const memo = formState.memo.trim();
             if (!memo) {
               alert('メモは必須です');
               return;
             }
-            const opt1 = validateTimeOptionalPairLabeled('開始時刻', input.time1Hour, input.time1Minute);
+            const opt1 = validateTimeOptionalPairLabeled('開始時刻', formState.time1Hour, formState.time1Minute);
             if (!opt1.ok) {
               alert(opt1.msg!);
               return;
             }
-            const opt2 = validateTimeOptionalPairLabeled('終了時刻', input.time2Hour, input.time2Minute);
+            const opt2 = validateTimeOptionalPairLabeled('終了時刻', formState.time2Hour, formState.time2Minute);
             if (!opt2.ok) {
               alert(opt2.msg!);
               return;
             }
             // 終了が開始より早い場合はNG（両方揃っているときのみ比較）
-            const startMinForDetAdd = toMinutesIfPresent(input.time1Hour, input.time1Minute);
-            const endMinForDetAdd = toMinutesIfPresent(input.time2Hour, input.time2Minute);
+            const startMinForDetAdd = toMinutesIfPresent(formState.time1Hour, formState.time1Minute);
+            const endMinForDetAdd = toMinutesIfPresent(formState.time2Hour, formState.time2Minute);
             if (startMinForDetAdd !== null && endMinForDetAdd !== null && endMinForDetAdd < startMinForDetAdd) {
               alert('終了時刻は開始時刻より後にしてください');
               return;
             }
             const payload = {
-              memo: input.memo,
-              time1Hour: input.time1Hour,
-              time1Minute: input.time1Minute,
-              time2Hour: input.time2Hour,
-              time2Minute: input.time2Minute
+              memo: formState.memo,
+              time1Hour: formState.time1Hour,
+              time1Minute: formState.time1Minute,
+              time2Hour: formState.time2Hour,
+              time2Minute: formState.time2Minute
             };
             if (isNew) {
               // 新規追加
@@ -171,7 +202,6 @@ export const DetailCard = ({ detail }: { detail: EventDetail }) => {
 
 export const DetailButtons = ({
   setEditingDetail,
-  setInput,
   detail,
   event,
   setData
@@ -182,7 +212,6 @@ export const DetailButtons = ({
       detail: EventDetail | null;
     } | null>
   >;
-  setInput: Dispatch<SetStateAction<Record<string, string>>>;
   detail: EventDetail;
   event: Event;
   setData: Dispatch<SetStateAction<Course[]>>;
@@ -193,13 +222,6 @@ export const DetailButtons = ({
         className="text-xs px-2 py-1 mx-1 bg-yellow-400 rounded"
         onClick={() => {
           setEditingDetail({ eventId: event.id, detail });
-          setInput({
-            memo: detail.memo ?? '',
-            time1Hour: detail.time1Hour?.toString() ?? '',
-            time1Minute: detail.time1Minute?.toString() ?? '',
-            time2Hour: detail.time2Hour?.toString() ?? '',
-            time2Minute: detail.time2Minute?.toString() ?? ''
-          });
         }}>
         編集
       </button>
