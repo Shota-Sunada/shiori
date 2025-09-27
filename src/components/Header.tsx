@@ -9,11 +9,10 @@ import { IoHome, IoReload, IoLogOut, IoSettingsSharp, IoSend } from 'react-icons
 import { FaTable } from 'react-icons/fa';
 import { LuPartyPopper } from 'react-icons/lu';
 import { VscDebugAlt } from 'react-icons/vsc';
-import { FaUserGraduate } from 'react-icons/fa6';
 import { TbTrain } from 'react-icons/tb';
 import { MdAirlineSeatReclineNormal, MdOutlineMessage } from 'react-icons/md';
 import { PiBagFill } from 'react-icons/pi';
-import { FaListCheck } from 'react-icons/fa6';
+import { FaListCheck, FaHotel, FaBus, FaPeopleGroup, FaUserGraduate } from 'react-icons/fa6';
 
 const HamburgerIcon = ({ open }: { open: boolean }) => (
   <div className="flex flex-col justify-center items-center w-8 h-8 cursor-pointer">
@@ -111,16 +110,19 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
       };
   const menuItems: MenuItem[] = useMemo(
     () => [
-      { type: 'link', icon: <IoHome />, to: user?.is_teacher ? '/teacher' : '/', label: 'ホーム' },
-      { type: 'link', icon: <FaTable />, to: '/yotei', label: '行程表' },
-      { type: 'link', icon: <MdOutlineMessage />, to: '/messages', label: 'メッセージ' },
-      { type: 'link', icon: <IoSend />, to: '/teacher/messages', label: 'メッセージを送信', note: '先生専用', only_admin: true },
-      { type: 'link', icon: <PiBagFill />, to: '/goods', label: '持ち物' },
-      { type: 'link', icon: <FaListCheck />, to: '/goods-check', label: '持ち物チェッカー' },
-      { type: 'link', icon: <TbTrain />, to: '/shinkansen', label: '新幹線' },
-      { type: 'link', icon: <MdAirlineSeatReclineNormal />, to: '/shinkansen/floor', label: '新幹線座席一覧' },
-      { type: 'link', icon: <LuPartyPopper />, to: '/otanoshimi', label: 'お楽しみ会', prefetchKey: 'otanoshimiTeams', fetcher: async () => otanoshimiApi.list() },
-      { type: 'link', icon: <FaUserGraduate />, to: '/credits', label: 'クレジット' },
+      { type: 'link', icon: <IoHome />, to: user?.is_teacher ? '/teacher' : '/', label: 'ホーム', bgColor: 'blue' },
+      { type: 'link', icon: <FaTable />, to: '/yotei', label: '行程表', bgColor: 'light_blue' },
+      { type: 'link', icon: <MdOutlineMessage />, to: '/messages', label: 'メッセージ', bgColor: 'blue' },
+      { type: 'link', icon: <IoSend />, to: '/teacher/messages', label: 'メッセージを送信', note: '先生専用', only_admin: true, bgColor: 'purple' },
+      { type: 'link', icon: <PiBagFill />, to: '/goods', label: '持ち物', bgColor: 'light_blue' },
+      { type: 'link', icon: <FaListCheck />, to: '/goods-check', label: '持ち物チェッカー', bgColor: 'blue' },
+      { type: 'link', icon: <TbTrain />, to: '/shinkansen', label: '新幹線', bgColor: 'light_blue' },
+      { type: 'link', icon: <LuPartyPopper />, to: '/otanoshimi', label: 'お楽しみ会', prefetchKey: 'otanoshimiTeams', fetcher: async () => otanoshimiApi.list(), bgColor: 'yellow' },
+      { type: 'link', icon: <FaPeopleGroup />, to: '/day2', label: '自由行動班一覧', bgColor: 'green' },
+      { type: 'link', icon: <FaBus />, to: '/bus', label: 'バス割一覧', bgColor: 'light_green' },
+      { type: 'link', icon: <FaHotel />, to: '/hotel', label: 'ホテル部屋割一覧', bgColor: 'green' },
+      { type: 'link', icon: <MdAirlineSeatReclineNormal />, to: '/shinkansen/floor', label: '新幹線座席一覧', bgColor: 'light_green' },
+      { type: 'link', icon: <FaUserGraduate />, to: '/credits', label: 'クレジット', bgColor: 'purple' },
       {
         type: 'action',
         icon: <IoReload />,
@@ -128,9 +130,10 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
         onClick: () => {
           clearShioriCache();
           window.location.reload();
-        }
+        },
+        bgColor: 'pink'
       },
-      { type: 'link', icon: <VscDebugAlt />, to: '/env-debug', label: 'デバッグ用環境表示' },
+      { type: 'link', icon: <VscDebugAlt />, to: '/env-debug', label: 'デバッグ用環境表示', bgColor: 'pink' },
       { type: 'link', icon: <IoSettingsSharp />, to: '/admin/students', label: '生徒管理画面', note: '管理者&先生専用', only_admin: true },
       { type: 'link', icon: <IoSettingsSharp />, to: '/admin/teachers', label: '先生管理画面', note: '管理者&先生専用', only_admin: true },
       { type: 'link', icon: <IoSettingsSharp />, to: '/admin/users', label: 'ユーザー管理画面', note: '管理者&先生専用', only_admin: true },
@@ -187,16 +190,16 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
                       if (!(user.is_admin || user.is_teacher || !item.only_admin)) return <></>;
                       // 色名→Tailwindクラス変換
                       const colorMap: Record<string, { base: string; hover: string }> = {
-                        blue: { base: 'bg-blue-100 text-blue-900', hover: 'hover:bg-blue-50' },
-                        green: { base: 'bg-green-100 text-green-900', hover: 'hover:bg-green-50' },
-                        white: { base: 'bg-white text-gray-900', hover: 'hover:bg-gray-100' },
-                        red: { base: 'bg-red-100 text-red-900', hover: 'hover:bg-red-50' },
-                        yellow: { base: 'bg-yellow-100 text-yellow-900', hover: 'hover:bg-yellow-50' },
-                        purple: { base: 'bg-purple-100 text-purple-900', hover: 'hover:bg-purple-50' },
-                        light_blue: { base: 'bg-blue-50 text-blue-900', hover: 'hover:bg-blue-100' },
-                        light_green: { base: 'bg-green-50 text-green-900', hover: 'hover:bg-green-100' },
-                        pink: { base: 'bg-pink-100 text-pink-900', hover: 'hover:bg-pink-50' },
-                        light_yellow: { base: 'bg-yellow-50 text-yellow-900', hover: 'hover:bg-yellow-100' }
+                        blue: { base: 'bg-blue-100 text-blue-900', hover: 'hover:bg-white' },
+                        green: { base: 'bg-green-100 text-green-900', hover: 'hover:bg-white' },
+                        white: { base: 'bg-white text-gray-900', hover: 'hover:bg-white' },
+                        red: { base: 'bg-red-100 text-red-900', hover: 'hover:bg-white' },
+                        yellow: { base: 'bg-yellow-100 text-yellow-900', hover: 'hover:bg-white' },
+                        purple: { base: 'bg-purple-100 text-purple-900', hover: 'hover:bg-white' },
+                        light_blue: { base: 'bg-blue-50 text-blue-900', hover: 'hover:bg-white' },
+                        light_green: { base: 'bg-green-50 text-green-900', hover: 'hover:bg-white' },
+                        pink: { base: 'bg-pink-100 text-pink-900', hover: 'hover:bg-white' },
+                        light_yellow: { base: 'bg-yellow-50 text-yellow-900', hover: 'hover:bg-white' }
                       };
                       const color = item.bgColor && colorMap[item.bgColor] ? colorMap[item.bgColor] : { base: '', hover: 'hover:bg-gray-100' };
                       const itemClass = `header-menu-item text-left px-4 py-3 cursor-pointer ${color.base} ${color.hover}`;

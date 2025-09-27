@@ -17,6 +17,9 @@ export const CacheKeys = {
   otanoshimi: {
     teams: 'otanoshimi:teams'
   },
+  boats: {
+    list: "boats:list"
+  },
   messages: {
     list: 'messages:list',
     id: (id: number) => `messages:${id}`
