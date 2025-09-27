@@ -114,6 +114,12 @@ const TeacherSendMessages = () => {
     }
 
     e.preventDefault();
+
+    if (targetPreset === 'default') {
+      alert('送信先を指定してください');
+      return;
+    }
+
     setSending(true);
     setSuccess(null);
     setError(null);

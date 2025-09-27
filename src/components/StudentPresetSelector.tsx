@@ -24,7 +24,7 @@ const StudentPresetSelector = ({ value, onChange, rollCallGroups, disabled }: St
   }, [rollCallGroups]);
 
   return (
-    <div className="mb-4">
+    <div>
       <label htmlFor="target_students" className="block text-gray-700 text-sm font-bold">
         {'送信先を選択'}
       </label>
@@ -34,10 +34,11 @@ const StudentPresetSelector = ({ value, onChange, rollCallGroups, disabled }: St
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white">
+        required
+        className="w-full! p-3! m-0! border! border-blue-300! rounded-lg! focus:outline-none! focus:ring-2! focus:ring-blue-400! text-base! bg-blue-50! placeholder-gray-400! transition!">
         <option value="default">{'選択してください'}</option>
+        <option value="all">{'全員'}</option>
         {groupOptions}
-        <option value="all">{'【取扱注意】全員'}</option>
       </select>
     </div>
   );
