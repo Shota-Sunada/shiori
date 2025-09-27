@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { appFetch } from '../../helpers/apiClient';
 import { SERVER_ENDPOINT } from '../../config/serverEndpoint';
 import { useAuth } from '../../auth-context';
-import { teacherApi, rollCallApi } from '../../helpers/domainApi';
+import { teacherApi, rollCallApi, studentApi, type StudentDTO } from '../../helpers/domainApi';
 import type { TeacherMessage } from '../../interface/messages';
 import { BackToHome } from '../../components/MDButton';
+import Modal from '../../components/Modal';
 import StudentPresetSelector, { type RollCallGroup } from '../../components/StudentPresetSelector';
 import { isOffline } from '../../helpers/isOffline';
 import { CacheKeys } from '../../helpers/cacheKeys';
@@ -33,6 +34,22 @@ const TeacherSendMessages = () => {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  // 既読者モーダル用
+  const [showReadModal, setShowReadModal] = useState(false);
+  const [readModalMessage, setReadModalMessage] = useState<TeacherMessage | null>(null);
+  const [students, setStudents] = useState<StudentDTO[]>([]);
+  const [studentsLoading, setStudentsLoading] = useState(false);
+
+  // 生徒一覧取得（初回のみ）
+  useEffect(() => {
+    if (!token) return;
+    setStudentsLoading(true);
+    studentApi
+      .list({ alwaysFetch: false })
+      .then((list) => setStudents(list))
+      .catch(() => setStudents([]))
+      .finally(() => setStudentsLoading(false));
+  }, [token]);
   // メッセージ削除処理
   const handleDelete = async (id: number) => {
     if (!token) return;
@@ -93,18 +110,19 @@ const TeacherSendMessages = () => {
   }, [token]);
 
   // 先生の過去メッセージ取得
+  const fetchMyMessages = useCallback(async () => {
+    if (!teacherId || !token) return;
+    try {
+      const all = await appFetch<TeacherMessage[]>(`${SERVER_ENDPOINT}/api/messages`, { requiresAuth: true, alwaysFetch: true, cacheKey: CacheKeys.messages.list });
+      setMyMessages(all.filter((m) => m.teacher_id === teacherId));
+    } catch {
+      setMyMessages([]);
+    }
+  }, [teacherId, token]);
+
   useEffect(() => {
-    const fetchMyMessages = async () => {
-      if (!teacherId || !token) return;
-      try {
-        const all = await appFetch<TeacherMessage[]>(`${SERVER_ENDPOINT}/api/messages`, { requiresAuth: true, cacheKey: CacheKeys.messages.list });
-        setMyMessages(all.filter((m) => m.teacher_id === teacherId));
-      } catch {
-        setMyMessages([]);
-      }
-    };
     fetchMyMessages();
-  }, [teacherId, token, sending]);
+  }, [fetchMyMessages]);
 
   const handleSend = async (e: React.FormEvent) => {
     if (!user || !token) return;
@@ -145,7 +163,8 @@ const TeacherSendMessages = () => {
       setSuccess('メッセージを送信しました');
       setTitle('');
       setMessage('');
-      setTargetPreset('all');
+      setTargetPreset('default');
+      await fetchMyMessages(); // 送信後に即時更新
     } catch {
       setError('送信に失敗しました');
     } finally {
@@ -162,7 +181,7 @@ const TeacherSendMessages = () => {
     setEditLoading(true);
     setEditError(null);
     try {
-      const res = await appFetch<{ message: string; data: TeacherMessage }>(`${SERVER_ENDPOINT}/api/messages/${id}`, {
+      await appFetch<{ message: string; data: TeacherMessage }>(`${SERVER_ENDPOINT}/api/messages/${id}`, {
         method: 'PUT',
         requiresAuth: true,
         jsonBody: { title: editTitle, message: editMessage },
@@ -172,8 +191,7 @@ const TeacherSendMessages = () => {
       setEditTitle('');
       setEditMessage('');
       setEditError(null);
-      // 直近編集分のみ反映
-      setMyMessages((prev) => prev.map((m) => (m.id === id ? { ...m, ...res.data } : m)));
+      await fetchMyMessages(); // 編集後に即時更新
     } catch {
       setEditError('更新に失敗しました');
     } finally {
@@ -231,7 +249,7 @@ const TeacherSendMessages = () => {
           </div>
           <button
             type="submit"
-            disabled={sending || !title.trim() || !message.trim() || title.length > TITLE_MAX_LENGTH || loadingGroups || targetPreset === "default"}
+            disabled={sending || !title.trim() || !message.trim() || title.length > TITLE_MAX_LENGTH || loadingGroups || targetPreset === 'default'}
             className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold rounded-lg shadow hover:from-blue-600 hover:to-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg tracking-wide">
             {sending ? '送信中...' : '送信'}
           </button>
@@ -284,10 +302,23 @@ const TeacherSendMessages = () => {
                       投稿日: {new Date(msg.created_at).toLocaleString()}
                       {msg.updated_at && <span className="ml-2 text-blue-500">(最終編集: {new Date(msg.updated_at).toLocaleString()})</span>}
                     </div>
-                    <div className="text-xs text-gray-500 mb-1">既読: {typeof msg.read_count === 'number' ? msg.read_count : 0} 件</div>
-                    <div className="flex gap-3 items-center mt-1">
+                    <div className="text-xs text-gray-500 mb-1 flex flex-wrap items-center gap-2">
+                      <span>既読: {typeof msg.read_count === 'number' ? msg.read_count : 0} 件</span>
+                      {msg.read_student_ids && msg.read_student_ids.length > 0 && (
+                        <button
+                          type="button"
+                          className="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+                          onClick={() => {
+                            setReadModalMessage(msg);
+                            setShowReadModal(true);
+                          }}>
+                          既読者一覧
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex gap-2 items-center mt-2">
                       <button
-                        className="text-blue-600 underline text-sm hover:text-blue-800"
+                        className="px-3 py-1 rounded bg-blue-500 text-white font-semibold hover:bg-blue-700 transition text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                         onClick={() => {
                           setEditingId(msg.id);
                           setEditTitle(msg.title);
@@ -295,7 +326,10 @@ const TeacherSendMessages = () => {
                         }}>
                         編集
                       </button>
-                      <button className="text-red-500 underline text-sm hover:text-red-700 ml-2" onClick={() => setDeletingId(msg.id)} disabled={deleteLoading}>
+                      <button
+                        className="px-3 py-1 rounded bg-red-500 text-white font-semibold hover:bg-red-700 transition text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+                        onClick={() => setDeletingId(msg.id)}
+                        disabled={deleteLoading}>
                         削除
                       </button>
                     </div>
@@ -338,6 +372,28 @@ const TeacherSendMessages = () => {
       <div className="flex items-center justify-center mt-8">
         <BackToHome user={user} />
       </div>
+
+      {/* 既読者一覧モーダル */}
+      <Modal isOpen={showReadModal && !!readModalMessage} onClose={() => setShowReadModal(false)} overlayClassName="backdrop-blur-sm" className="max-w-xs w-full p-6">
+        <div className="text-lg font-bold text-blue-700 mb-3">既読者一覧</div>
+        {studentsLoading ? (
+          <div className="text-gray-500">読込中...</div>
+        ) : (
+          <ul className="max-h-60 overflow-y-auto text-sm">
+            {students.filter((s) => readModalMessage?.read_student_ids?.includes(s.gakuseki)).length === 0 ? (
+              <li className="text-gray-400">既読者なし</li>
+            ) : (
+              students
+                .filter((s) => readModalMessage?.read_student_ids?.includes(s.gakuseki))
+                .map((s) => (
+                  <p key={s.gakuseki}>
+                    {s.surname} {s.forename} (5-{s.class})
+                  </p>
+                ))
+            )}
+          </ul>
+        )}
+      </Modal>
     </>
   );
 };
