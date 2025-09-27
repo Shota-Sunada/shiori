@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo, type ReactElement } 
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
+import { isOffline } from '../helpers/isOffline';
 import { clearShioriCache } from '../helpers/clearShioriCache';
 import { PrefetchLink } from '../prefetch/PrefetchLink';
 import { otanoshimiApi } from '../helpers/domainApi';
@@ -28,6 +29,18 @@ interface HeaderProps {
 
 const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
   const { user, logout } = useAuth();
+
+  // オフライン検知
+  const [offline, setOffline] = useState(isOffline());
+  useEffect(() => {
+    const update = () => setOffline(isOffline());
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
+    return () => {
+      window.removeEventListener('online', update);
+      window.removeEventListener('offline', update);
+    };
+  }, []);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   // bodyスクロールロック用
@@ -145,6 +158,13 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
 
   return (
     <div className="sticky top-0 z-40">
+      {/* オフライン時の細いバー */}
+      {offline && (
+        <div className="w-full bg-yellow-200 text-yellow-900 text-xs text-center py-1 border-b border-yellow-400 select-none">
+          <p>オフラインモード：ネットワークに接続されていません。</p>
+          <p>一部の機能が制限されるおそれがあります。</p>
+        </div>
+      )}
       <div className={`bg-[#50141c] text-white flex flex-row items-center justify-between relative z-50`}>
         <Link to={user?.is_teacher ? '/teacher' : '/'}>
           <img className={`p-[10px] w-[60px] md:w-[80px] ${user ? 'cursor-pointer' : 'cursor-default'}`} src="https://www.shudo-h.ed.jp/portal_assets/images/logo.png" alt="" />
