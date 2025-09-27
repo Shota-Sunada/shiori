@@ -124,8 +124,6 @@ const Index = () => {
           点呼が開始されています。ここをタップして出席を確認してください。
         </div>
       )} */}
-      {/* 通知バナー: 全員宛メッセージ */}
-      <NotificationBanner onClick={() => navigate('/messages')} />
       {studentData ? (
         <p className="m-[10px] text-2xl">
           {'ようこそ、'}
@@ -139,6 +137,8 @@ const Index = () => {
           <p className="text-sm">{'管理者にご連絡ください。'}</p>
         </div>
       )}
+      {/* 通知バナー: 全員宛メッセージ */}
+      <NotificationBanner onClick={() => navigate('/messages')} />
 
       <IndexTable studentData={studentData} />
 

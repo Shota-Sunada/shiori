@@ -16,7 +16,7 @@ const NotificationBanner = ({ onClick }: { onClick?: () => void }) => {
     const fetchAll = async () => {
       setLoading(true);
       try {
-        const data = await appFetch<TeacherMessage[]>(`${SERVER_ENDPOINT}/api/messages`, { requiresAuth: true, cacheKey: CacheKeys.messages.list });
+        const data = await appFetch<TeacherMessage[]>(`${SERVER_ENDPOINT}/api/messages`, { requiresAuth: true, alwaysFetch: true, cacheKey: CacheKeys.messages.list });
         setMessages(data);
       } finally {
         setLoading(false);
@@ -30,7 +30,16 @@ const NotificationBanner = ({ onClick }: { onClick?: () => void }) => {
     return <div className="w-full max-w-md p-3 mb-3 text-base text-center text-gray-500 bg-gray-100 rounded-lg shadow-sm">メッセージはありません。</div>;
   }
 
-  // userIdがread_student_idsに含まれていれば既読扱い
+  // 先生は常に全メッセージ閲覧バナーを表示
+  if (user?.is_teacher) {
+    return (
+      <div className="w-full max-w-md p-3 mb-3 text-base text-center text-blue-700 bg-blue-100 rounded-lg shadow-sm font-semibold cursor-pointer hover:bg-blue-200 transition" onClick={onClick}>
+        すべてのメッセージを閲覧
+      </div>
+    );
+  }
+
+  // 生徒は未読件数で分岐
   const unreadMessages = messages.filter((m) => {
     if (!user || !m.read_student_ids) return m.is_read !== 1;
     const readIds = Array.isArray(m.read_student_ids) ? m.read_student_ids.filter((id): id is number => typeof id === 'number') : [];

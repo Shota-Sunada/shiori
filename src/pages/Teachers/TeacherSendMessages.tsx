@@ -23,7 +23,7 @@ const TeacherSendMessages = () => {
   const [rollCallGroups, setRollCallGroups] = useState<RollCallGroup[]>([]);
   const [loadingGroups, setLoadingGroups] = useState<boolean>(false);
   const [groupError, setGroupError] = useState<string | null>(null);
-  const [targetPreset, setTargetPreset] = useState<string>('all');
+  const [targetPreset, setTargetPreset] = useState<string>('default');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editMessage, setEditMessage] = useState('');

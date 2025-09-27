@@ -23,21 +23,28 @@ const Messages = () => {
     setLoading(true);
     setError(null);
     try {
-      const [msgData, teachers] = await Promise.all([appFetch<TeacherMessage[]>(`${SERVER_ENDPOINT}/api/messages`, { requiresAuth: true, cacheKey: CacheKeys.messages.list }), teacherApi.list()]);
-      // userIdがread_student_idsに含まれていればis_read=1、read_atもセット
-      setMessages(
-        msgData.map((m) => {
-          let readIds: number[] = [];
-          if (Array.isArray(m.read_student_ids)) {
-            readIds = m.read_student_ids.filter((id): id is number => typeof id === 'number');
-          }
-          const isRead = user && readIds.includes(Number(user.userId)) ? 1 : typeof m.is_read === 'number' ? m.is_read : 0;
-          return {
-            ...m,
-            is_read: isRead
-          };
-        })
-      );
+      const [msgData, teachers] = await Promise.all([appFetch<TeacherMessage[]>(`${SERVER_ENDPOINT}/api/messages`, { requiresAuth: true, alwaysFetch: true, cacheKey: CacheKeys.messages.list }), teacherApi.list()]);
+
+      // 先生の場合はすべてのメッセージを表示、生徒の場合は既読状態を管理
+      if (user?.is_teacher) {
+        // 先生の場合はすべてのメッセージをそのまま表示
+        setMessages(msgData);
+      } else {
+        // 生徒の場合は既読状態を管理
+        setMessages(
+          msgData.map((m) => {
+            let readIds: number[] = [];
+            if (Array.isArray(m.read_student_ids)) {
+              readIds = m.read_student_ids.filter((id): id is number => typeof id === 'number');
+            }
+            const isRead = user && readIds.includes(Number(user.userId)) ? 1 : typeof m.is_read === 'number' ? m.is_read : 0;
+            return {
+              ...m,
+              is_read: isRead
+            };
+          })
+        );
+      }
       setTeachersData(teachers);
     } catch {
       setError('メッセージの取得に失敗しました');
@@ -113,7 +120,13 @@ const Messages = () => {
                       {msg.title}
                     </div>
                     <div>
-                      {msg.is_read ? (
+                      {user?.is_teacher ? (
+                        // 先生の場合は既読状態のみ表示（編集不可）
+                        <span className="inline-flex items-center text-blue-600 text-sm bg-blue-100 px-2 py-1 rounded-full">
+                          <span className="mr-1">👨‍🏫</span>
+                          先生モード
+                        </span>
+                      ) : msg.is_read ? (
                         <span className="inline-flex items-center text-green-600 text-sm bg-green-100 px-2 py-1 rounded-full">
                           <span className="mr-1">✔</span>
                           既読{msg.read_at ? `（${new Date(msg.read_at).toLocaleString()}）` : ''}
@@ -133,10 +146,16 @@ const Messages = () => {
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-2 relative">
                     <div className="flex items-center gap-3">
                       <span className="font-semibold text-gray-900 text-md">{teacherName}</span>
+                      {user?.is_teacher && (
+                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                          送信先: {msg.target_type === 'group' ? `${msg.target_group_name ?? '未設定'}${typeof msg.recipient_count === 'number' ? `（${msg.recipient_count}人）` : ''}` : '全員'}
+                        </span>
+                      )}
                     </div>
                     <div className="text-xs text-gray-400 sm:text-right">
                       <div>投稿日: {new Date(msg.created_at).toLocaleString()}</div>
                       {msg.updated_at && <div className="text-blue-500">最終編集: {new Date(msg.updated_at).toLocaleString()}</div>}
+                      {user?.is_teacher && typeof msg.read_count === 'number' && <div className="text-green-600">既読: {msg.read_count} 件</div>}
                     </div>
                   </div>
                   <div className="text-gray-800 whitespace-pre-line break-words text-base leading-relaxed">

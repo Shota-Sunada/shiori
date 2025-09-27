@@ -10,6 +10,7 @@ import IndexTable from '../../components/IndexTable';
 // 生徒 IndexTable と同じ幅/スタイルを適用するため CSS を追加インポート
 import '../../styles/index-table.css';
 import Memo from '../../components/Memo';
+import NotificationBanner from '../../components/NotificationBanner';
 
 const TeacherIndex = () => {
   const { user, loading, token } = useAuth();
@@ -58,6 +59,8 @@ const TeacherIndex = () => {
         </p>
         {teacherError && <p className="text-sm text-red-600 mt-2">{teacherError}</p>}
       </div>
+
+      <NotificationBanner onClick={() => navigate('/messages')} />
 
       <IndexTable teacherData={teacherData} />
 
