@@ -396,7 +396,7 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
           {/* day4 END */}
           {/* hotel START */}
           <tr>
-            <td id="hotel-rowspan" rowSpan={2} className="vcell day-col">
+            <td id="hotel-rowspan" rowSpan={3} className="vcell day-col">
               <VerticalLabel text="ホテル" />
             </td>
             <td className="label-cell">
@@ -481,6 +481,22 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
                   )) ||
                   '◯◯◯号室'}
               </p>
+            </td>
+          </tr>
+          <tr>
+            <td className="label-cell">
+              <p>{'部屋割'}</p>
+            </td>
+            <td
+              className="cell-interactive"
+              onClick={() => {
+                navigateWithPrefetch({
+                  to: '/hotel',
+                  key: 'hotel',
+                  fetcher: async () => Promise.resolve(null)
+                });
+              }}>
+              <p>{'ホテル部屋割一覧をチェック！'}</p>
             </td>
           </tr>
           {/* hotel END */}
