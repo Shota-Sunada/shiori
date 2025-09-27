@@ -36,7 +36,7 @@ const StudentPresetSelector = ({ value, onChange, rollCallGroups, disabled }: St
         disabled={disabled}
         required
         className="w-full! p-3! m-0! border! border-blue-300! rounded-lg! focus:outline-none! focus:ring-2! focus:ring-blue-400! text-base! bg-blue-50! placeholder-gray-400! transition!">
-        <option value="default">{'選択してください'}</option>
+        <option value="default">{'【送信先を選択してください】'}</option>
         <option value="all">{'全員'}</option>
         {groupOptions}
       </select>

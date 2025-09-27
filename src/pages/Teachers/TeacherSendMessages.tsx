@@ -231,7 +231,7 @@ const TeacherSendMessages = () => {
           </div>
           <button
             type="submit"
-            disabled={sending || !title.trim() || !message.trim() || title.length > TITLE_MAX_LENGTH || loadingGroups}
+            disabled={sending || !title.trim() || !message.trim() || title.length > TITLE_MAX_LENGTH || loadingGroups || targetPreset === "default"}
             className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold rounded-lg shadow hover:from-blue-600 hover:to-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg tracking-wide">
             {sending ? '送信中...' : '送信'}
           </button>
