@@ -1,3 +1,4 @@
+import { loginQAs } from '../data/loginQAs';
 import { useRef, type FormEvent, useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MDButton from '../components/MDButton';
@@ -99,10 +100,24 @@ const Login = () => {
           </div>
         </div>
         <p>{'Classiで先生が配信されたものを参考に入力してください。'}</p>
-        <p>{'5648は関係ありません。'}</p>
         <MDButton text={'ログイン'} arrowRight type="submit" />
         {error && <p className="text-red-500 mt-4">{error}</p>}
       </form>
+      {/* Q&Aセクション */}
+      <div className="w-full max-w-md mt-8 bg-white/80 rounded-lg shadow p-4">
+        <h2 className="text-lg font-bold mb-2 text-center">よくある質問</h2>
+        <ul className="space-y-4">
+          {loginQAs.map((qa, i) => (
+            <li key={i} className="border-b last:border-b-0 pb-2 last:pb-0">
+              <div className="font-semibold text-blue-900 mb-1">Q. {qa.question}</div>
+              <div className="text-gray-700 pl-2">A. {qa.answer}</div>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <p>その他不明点は、5-1砂田までお問い合わせください。</p>
+      </div>
     </div>
   );
 };
