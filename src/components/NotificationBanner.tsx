@@ -41,9 +41,8 @@ const NotificationBanner = ({ onClick }: { onClick?: () => void }) => {
 
   // 生徒は未読件数で分岐
   const unreadMessages = messages.filter((m) => {
-    if (!user || !m.read_student_ids) return m.is_read !== 1;
-    const readIds = Array.isArray(m.read_student_ids) ? m.read_student_ids.filter((id): id is number => typeof id === 'number') : [];
-    return !readIds.includes(Number(user.userId));
+    if (!user || !Array.isArray(m.read_reactions)) return m.is_read !== 1;
+    return !m.read_reactions.some((r) => r.user_id === Number(user.userId));
   });
   const unreadCount = unreadMessages.length;
 

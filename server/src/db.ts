@@ -57,7 +57,8 @@ async function initializeDatabase() {
       'boat_assignments.sql',
       'credits.sql',
       'event_messages.sql',
-      'messages.sql'
+      'messages.sql',
+      'message_reactions.sql',
     ];
     for (const file of files) {
       const sql = await fs.readFile(path.join(schemaDir, file), 'utf8');

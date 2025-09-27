@@ -106,14 +106,13 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
   const recipientsJson = JSON.stringify(recipients);
 
   try {
-    await pool.execute<ResultSetHeader>('INSERT INTO messages (teacher_id, title, message, target_type, target_group_name, target_student_ids, read_student_ids) VALUES (?, ?, ?, ?, ?, ?, ?)', [
+    await pool.execute<ResultSetHeader>('INSERT INTO messages (teacher_id, title, message, target_type, target_group_name, target_student_ids) VALUES (?, ?, ?, ?, ?, ?)', [
       teacherId,
       trimmedTitle,
       trimmedMessage,
       targetType,
       normalizedGroupName,
-      recipientsJson,
-      '[]'
+      recipientsJson
     ]);
     res.status(201).json({ message: 'メッセージを送信しました' });
   } catch (error) {
@@ -122,61 +121,49 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
   }
 });
 
-// 全員宛メッセージ一覧取得
+// 全員宛メッセージ一覧取得（read_reactions対応）
 router.get('/', authenticateToken, async (_req: Request, res: Response) => {
   const req = _req as Request & { user?: JwtPayload };
   const payload = req.user as (JwtPayload & { userId?: number; is_teacher?: boolean; is_admin?: boolean }) | undefined;
   const userId = payload?.userId ? Number(payload.userId) : undefined;
-  const isTeacher = Boolean(payload?.is_teacher);
-  const isAdmin = Boolean(payload?.is_admin);
 
   try {
-    if (isTeacher || isAdmin) {
-      const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM messages ORDER BY created_at DESC');
-      const formatted = rows.map((row) => {
-        const targetIds = parseJsonNumberArray(row.target_student_ids);
-        const readIds = parseJsonNumberArray(row.read_student_ids);
-        return {
-          ...row,
-          target_student_ids: targetIds,
-          read_student_ids: readIds,
-          recipient_count: targetIds.length,
-          read_count: readIds.length
-        };
-      });
-      return res.json(formatted);
+    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM messages ORDER BY created_at DESC');
+    // すべてのmessage_idを取得
+    const messageIds = rows.map((row) => row.id);
+    let reactions: { message_id: number; user_id: number; emoji_id: number }[] = [];
+    if (messageIds.length > 0) {
+      const [reactionRows] = await pool.query<RowDataPacket[]>('SELECT message_id, user_id, emoji_id FROM message_reactions WHERE message_id IN (?)', [messageIds]);
+      reactions = reactionRows as { message_id: number; user_id: number; emoji_id: number }[];
     }
-
-    if (!userId) {
-      return res.status(401).json({ error: 'ユーザー情報を確認できませんでした' });
-    }
-
-    const [rows] = await pool.query<RowDataPacket[]>(
-      `SELECT *
-       FROM messages
-       WHERE JSON_CONTAINS(target_student_ids, JSON_ARRAY(?))
-       ORDER BY created_at DESC`,
-      [userId]
-    );
-
     const formatted = rows.map((row) => {
       const targetIds = parseJsonNumberArray(row.target_student_ids);
-      const readIds = parseJsonNumberArray(row.read_student_ids);
+      const msgReactions = reactions.filter((r) => r.message_id === row.id);
+      // emojiごとのカウント
+      const emojiCounts: Record<number, number> = {};
+      for (const { emoji_id } of msgReactions) {
+        if (!emojiCounts[emoji_id]) emojiCounts[emoji_id] = 0;
+        emojiCounts[emoji_id]++;
+      }
+      // 自分のリアクション
+      const myReaction = userId ? msgReactions.find((r) => r.user_id === userId) : undefined;
       return {
         ...row,
         target_student_ids: targetIds,
-        read_student_ids: readIds,
-        is_read: readIds.includes(userId) ? 1 : 0
+        read_reactions: msgReactions,
+        emoji_counts: emojiCounts,
+        my_emoji_id: myReaction?.emoji_id ?? null,
+        recipient_count: targetIds.length
       };
     });
-
-    res.json(formatted);
+    return res.json(formatted);
   } catch (error) {
     console.error('メッセージ取得エラー:', error);
     res.status(500).json({ error: 'メッセージ取得に失敗しました' });
   }
 });
 
+// 既読リアクション登録（emoji_id指定）
 router.post('/:id/read', authenticateToken, async (req: Request, res: Response) => {
   const messageId = Number(req.params.id);
   if (!Number.isInteger(messageId) || messageId <= 0) {
@@ -186,13 +173,17 @@ router.post('/:id/read', authenticateToken, async (req: Request, res: Response) 
   const reqWithUser = req as Request & { user?: JwtPayload };
   const payload = reqWithUser.user as (JwtPayload & { userId?: number | string; is_teacher?: boolean; is_admin?: boolean }) | undefined;
   const userId = payload?.userId !== undefined ? Number(payload.userId) : undefined;
+  const { emoji_id } = req.body as { emoji_id?: number };
 
   if (!userId) {
     return res.status(401).json({ error: 'ユーザー情報を確認できませんでした' });
   }
+  if (typeof emoji_id !== 'number' || ![1, 2, 3].includes(emoji_id)) {
+    return res.status(400).json({ error: '有効なemoji_idを指定してください' });
+  }
 
   try {
-    const [messageRows] = await pool.query<RowDataPacket[]>('SELECT id, target_type, target_student_ids, read_student_ids FROM messages WHERE id = ?', [messageId]);
+    const [messageRows] = await pool.query<RowDataPacket[]>('SELECT id, target_type, target_student_ids FROM messages WHERE id = ?', [messageId]);
 
     if (messageRows.length === 0) {
       return res.status(404).json({ error: 'メッセージが見つかりません' });
@@ -200,22 +191,21 @@ router.post('/:id/read', authenticateToken, async (req: Request, res: Response) 
 
     const row = messageRows[0];
     const targetIds = parseJsonNumberArray(row.target_student_ids);
-    const readIds = parseJsonNumberArray(row.read_student_ids);
-
-    // userId, targetIds, readIds すべて数値で比較
+    // userId, targetIds すべて数値で比較
     const canRead = row.target_type === 'all' || targetIds.includes(userId) || targetIds.length === 0;
     if (!canRead) {
       return res.status(403).json({ error: 'このメッセージにアクセスできません' });
     }
 
-    if (!readIds.includes(userId)) {
-      // 既存配列もuserIdも必ず数値化して保存
-      const updatedReads = Array.from(new Set([...readIds.map(Number), Number(userId)])).sort((a, b) => a - b);
-      await pool.execute('UPDATE messages SET read_student_ids = ?, updated_at = NOW() WHERE id = ?', [JSON.stringify(updatedReads), messageId]);
-    }
+    // message_reactionsテーブルにUPSERT
+    await pool.execute(
+      `INSERT INTO message_reactions (message_id, user_id, emoji_id, reacted_at)
+       VALUES (?, ?, ?, NOW())
+       ON DUPLICATE KEY UPDATE emoji_id = VALUES(emoji_id), reacted_at = NOW()`,
+      [messageId, userId, emoji_id]
+    );
 
-    // 保存後の値を返すことで、クライアント側で検証も可能
-    res.status(200).json({ message: '既読に登録しました', readAt: new Date().toISOString(), userId });
+    res.status(200).json({ message: '既読リアクションを登録しました', readAt: new Date().toISOString(), userId, emoji_id });
   } catch (error) {
     console.error('既読登録エラー:', error);
     res.status(500).json({ error: '既読処理に失敗しました' });

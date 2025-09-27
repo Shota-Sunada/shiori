@@ -155,11 +155,17 @@ const TeacherSendMessages = () => {
         payload.targetGroupName = targetPreset;
       }
 
-      await appFetch<Partial<TeacherMessage>>(`${SERVER_ENDPOINT}/api/messages`, {
+      const res = await appFetch<Partial<TeacherMessage>>(`${SERVER_ENDPOINT}/api/messages`, {
         method: 'POST',
         jsonBody: payload,
         requiresAuth: true
       });
+
+      if (!res) {
+        setError('送信に失敗しました');
+        return;
+      }
+
       setSuccess('メッセージを送信しました');
       setTitle('');
       setMessage('');
@@ -302,19 +308,32 @@ const TeacherSendMessages = () => {
                       投稿日: {new Date(msg.created_at).toLocaleString()}
                       {msg.updated_at && <span className="ml-2 text-blue-500">(最終編集: {new Date(msg.updated_at).toLocaleString()})</span>}
                     </div>
-                    <div className="text-xs text-gray-500 mb-1 flex flex-wrap items-center gap-2">
-                      <span>既読: {typeof msg.read_count === 'number' ? msg.read_count : 0} 件</span>
-                      {msg.read_student_ids && msg.read_student_ids.length > 0 && (
-                        <button
-                          type="button"
-                          className="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
-                          onClick={() => {
-                            setReadModalMessage(msg);
-                            setShowReadModal(true);
-                          }}>
-                          既読者一覧
-                        </button>
+                    <div className="text-xs text-gray-500 mb-1 flex flex-wrap items-center gap-4">
+                      {/* 絵文字ごとの既読数 */}
+                      {msg.emoji_counts && (
+                        <>
+                          <span>既読:</span>
+                          {[
+                            { id: 1, emoji: '👍️' },
+                            { id: 2, emoji: '❤' },
+                            { id: 3, emoji: '☺' }
+                          ].map((e) => (
+                            <span key={e.id} className="inline-flex items-center gap-1">
+                              <span className="text-xl">{e.emoji}</span>
+                              <span>{msg.emoji_counts?.[e.id] ?? 0}</span>
+                            </span>
+                          ))}
+                        </>
                       )}
+                      <button
+                        type="button"
+                        className="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        onClick={() => {
+                          setReadModalMessage(msg);
+                          setShowReadModal(true);
+                        }}>
+                        既読者一覧
+                      </button>
                     </div>
                     <div className="flex gap-2 items-center mt-2">
                       <button
@@ -380,17 +399,20 @@ const TeacherSendMessages = () => {
           <div className="text-gray-500">読込中...</div>
         ) : (
           <ul className="max-h-60 overflow-y-auto text-sm">
-            {students.filter((s) => readModalMessage?.read_student_ids?.includes(s.gakuseki)).length === 0 ? (
-              <li className="text-gray-400">既読者なし</li>
-            ) : (
-              students
-                .filter((s) => readModalMessage?.read_student_ids?.includes(s.gakuseki))
-                .map((s) => (
-                  <p key={s.gakuseki}>
-                    {s.surname} {s.forename} (5-{s.class})
-                  </p>
-                ))
-            )}
+            {(() => {
+              const reactions = readModalMessage?.read_reactions ?? [];
+              if (!reactions.length) return <li className="text-gray-400">既読者なし</li>;
+              // 学籍番号→生徒情報
+              return reactions.map((r) => {
+                const s = students.find((x) => x.gakuseki === r.user_id);
+                return (
+                  <li key={r.user_id} className="flex items-center gap-2">
+                    <span className="text-xl">{r.emoji_id === 1 ? '👍️' : r.emoji_id === 2 ? '❤' : r.emoji_id === 3 ? '☺' : ''}</span>
+                    {s ? `${s.surname} ${s.forename} (5-${s.class})` : `ID:${r.user_id}`}
+                  </li>
+                );
+              });
+            })()}
           </ul>
         )}
       </Modal>

@@ -36,6 +36,22 @@ import { appFetch, mutate } from './apiClient';
 import { CacheKeys, CachePrefixes } from './cacheKeys';
 import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import type { COURSES_DAY1_KEY, COURSES_DAY3_KEY } from '../data/courses';
+import type { TeacherMessage } from '../interface/messages';
+// ---- Messages ----
+export const messagesApi = {
+  list: () =>
+    appFetch<TeacherMessage[]>(`${SERVER_ENDPOINT}/api/messages`, {
+      requiresAuth: true,
+      cacheKey: CacheKeys.messages.list,
+      alwaysFetch: true
+    }),
+  markAsRead: (id: number, emoji_id: number) =>
+    appFetch<{ message: string; readAt: string; userId: number; emoji_id: number }>(`${SERVER_ENDPOINT}/api/messages/${id}/read`, {
+      method: 'POST',
+      requiresAuth: true,
+      jsonBody: { emoji_id }
+    })
+};
 import type { IntRange } from 'type-fest';
 
 // ---- Students ----
