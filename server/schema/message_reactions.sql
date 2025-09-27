@@ -6,6 +6,6 @@ CREATE TABLE IF NOT EXISTS message_reactions (
   emoji_id INT NOT NULL,
   reacted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY unique_message_user (message_id, user_id),
-  FOREIGN KEY (message_id) REFERENCES messages(id),
+  FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
