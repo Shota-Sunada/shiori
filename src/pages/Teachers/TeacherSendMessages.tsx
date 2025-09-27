@@ -3,9 +3,10 @@ import { EMOJI_LIST } from '../../helpers/emoji';
 import { appFetch } from '../../helpers/apiClient';
 import { SERVER_ENDPOINT } from '../../config/serverEndpoint';
 import { useAuth } from '../../auth-context';
-import { teacherApi, rollCallApi, studentApi, type StudentDTO } from '../../helpers/domainApi';
+import { teacherApi, rollCallApi, studentApi, type StudentDTO, type TeacherDTO } from '../../helpers/domainApi';
+
 import type { TeacherMessage } from '../../interface/messages';
-import { BackToHome } from '../../components/MDButton';
+import MDButton, { BackToHome } from '../../components/MDButton';
 import Modal from '../../components/Modal';
 import StudentPresetSelector, { type RollCallGroup } from '../../components/StudentPresetSelector';
 import { isOffline } from '../../helpers/isOffline';
@@ -40,6 +41,14 @@ const TeacherSendMessages = () => {
   const [readModalMessage, setReadModalMessage] = useState<TeacherMessage | null>(null);
   const [students, setStudents] = useState<StudentDTO[]>([]);
   const [studentsLoading, setStudentsLoading] = useState(false);
+  const [teachers, setTeachers] = useState<TeacherDTO[]>([]);
+  // 先生一覧も取得
+  useEffect(() => {
+    teacherApi
+      .list()
+      .then(setTeachers)
+      .catch(() => setTeachers([]));
+  }, []);
 
   // 生徒一覧取得（初回のみ）
   useEffect(() => {
@@ -191,8 +200,7 @@ const TeacherSendMessages = () => {
       await appFetch<{ message: string; data: TeacherMessage }>(`${SERVER_ENDPOINT}/api/messages/${id}`, {
         method: 'PUT',
         requiresAuth: true,
-        jsonBody: { title: editTitle, message: editMessage },
-        cacheKey: CacheKeys.messages.id(id)
+        jsonBody: { title: editTitle, message: editMessage }
       });
       setEditingId(null);
       setEditTitle('');
@@ -265,6 +273,11 @@ const TeacherSendMessages = () => {
         {error && <div className="mt-6 text-red-600 font-bold text-center text-lg animate-fade-in">{error}</div>}
       </div>
 
+      <div className="flex flex-col items-center justify-center mt-8">
+        <MDButton text="メッセージ一覧へ" arrowLeft link="/messages" />
+        <BackToHome user={user} />
+      </div>
+
       {/* 過去の投稿一覧・編集 */}
       <div className="max-w-xl mx-auto mt-10 bg-white rounded-2xl shadow border border-blue-100 p-6">
         <h3 className="text-xl font-bold mb-4 text-blue-700">過去の投稿</h3>
@@ -302,29 +315,36 @@ const TeacherSendMessages = () => {
                   <div>
                     <div className="font-bold text-blue-800 text-lg mb-1">{msg.title}</div>
                     <div className="text-gray-800 whitespace-pre-line mb-1">{msg.message}</div>
-                    <div className="text-xs text-gray-500 mb-1">
+                    <div className="text-sm text-blue-900 font-semibold mb-1">
                       送信先: {msg.target_type === 'group' ? `${msg.target_group_name ?? '未設定'}${typeof msg.recipient_count === 'number' ? `（${msg.recipient_count}人）` : ''}` : '全員'}
                     </div>
-                    <div className="text-xs text-gray-400 mb-1">
-                      投稿日: {new Date(msg.created_at).toLocaleString()}
-                      {msg.updated_at && <span className="ml-2 text-blue-500">(最終編集: {new Date(msg.updated_at).toLocaleString()})</span>}
+                    <div className="flex flex-col text-sm text-gray-700 mb-1">
+                      <p>投稿日: {new Date(msg.created_at).toLocaleString()}</p>
+                      <p>{msg.updated_at && <span className="text-blue-600 font-semibold">(最終編集: {new Date(msg.updated_at).toLocaleString()})</span>}</p>
                     </div>
-                    <div className="text-xs text-gray-500 mb-1 flex flex-wrap items-center gap-4">
+                    <div className="text-sm text-gray-500 mb-1 flex flex-wrap items-center gap-4">
                       {/* 絵文字ごとの既読数 */}
-                      {msg.emoji_counts && (
-                        <>
-                          <span>既読:</span>
-                          {EMOJI_LIST.map((e) => (
-                            <span key={e.id} className="inline-flex items-center gap-1">
-                              <span className="text-xl">{e.emoji}</span>
-                              <span>{msg.emoji_counts?.[e.id] ?? 0}</span>
-                            </span>
-                          ))}
-                        </>
-                      )}
+                      {msg.emoji_counts &&
+                        (() => {
+                          const totalRead = EMOJI_LIST.reduce((sum, e) => sum + (msg.emoji_counts?.[e.id] ?? 0), 0);
+                          const totalRecipients = typeof msg.recipient_count === 'number' ? msg.recipient_count : msg.target_type === 'all' ? students.length : undefined;
+                          return (
+                            <>
+                              <span className="font-bold text-base text-blue-700 bg-blue-50 rounded px-2 py-0.5 mr-2">
+                                既読: {typeof totalRecipients === 'number' ? `${totalRead}/${totalRecipients}` : totalRead}
+                              </span>
+                              {EMOJI_LIST.map((e) => (
+                                <span key={e.id} className="inline-flex items-center gap-1">
+                                  <span className="text-xl">{e.emoji}</span>
+                                  <span>{msg.emoji_counts?.[e.id] ?? 0}</span>
+                                </span>
+                              ))}
+                            </>
+                          );
+                        })()}
                       <button
                         type="button"
-                        className="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        className="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                         onClick={() => {
                           setReadModalMessage(msg);
                           setShowReadModal(true);
@@ -385,58 +405,68 @@ const TeacherSendMessages = () => {
         )}
       </div>
 
-      <div className="flex items-center justify-center mt-8">
+      <div className="flex flex-col items-center justify-center mt-8">
+        <MDButton text="メッセージ一覧へ" arrowLeft link="/messages" />
         <BackToHome user={user} />
       </div>
 
       {/* 既読者一覧モーダル */}
       <Modal isOpen={showReadModal && !!readModalMessage} onClose={() => setShowReadModal(false)} overlayClassName="backdrop-blur-sm" className="max-w-xs w-full p-6">
         <div className="text-lg font-bold text-blue-700 mb-3">既読者一覧</div>
-        {studentsLoading ? (
-          <div className="text-gray-500">読込中...</div>
-        ) : (
-          (() => {
-            const reactions = readModalMessage?.read_reactions ?? [];
-            if (!reactions.length) return <div className="text-gray-400">既読者なし</div>;
-            // emojiごとにグループ化
-            const emojiMap: Record<number, { label: string; list: typeof reactions }> = {};
-            EMOJI_LIST.forEach((e) => {
-              emojiMap[e.id] = { label: e.emoji, list: [] };
-            });
-            reactions.forEach((r) => {
-              if (emojiMap[r.emoji_id]) emojiMap[r.emoji_id].list.push(r);
-            });
-            return (
-              <div className="space-y-4">
-                {EMOJI_LIST.map((e) => {
-                  const { label, list } = emojiMap[e.id];
-                  return (
-                    <div key={e.id}>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xl">{label}</span>
-                        <span className="text-xs text-gray-500">{list.length}人</span>
+        <div className="max-h-80 overflow-y-auto pr-2">
+          {studentsLoading ? (
+            <div className="text-gray-500">読込中...</div>
+          ) : (
+            (() => {
+              const reactions = readModalMessage?.read_reactions ?? [];
+              if (!reactions.length) return <div className="text-gray-400">既読者なし</div>;
+              // emojiごとにグループ化
+              const emojiMap: Record<number, { label: string; list: typeof reactions }> = {};
+              EMOJI_LIST.forEach((e) => {
+                emojiMap[e.id] = { label: e.emoji, list: [] };
+              });
+              reactions.forEach((r) => {
+                if (emojiMap[r.emoji_id]) emojiMap[r.emoji_id].list.push(r);
+              });
+              return (
+                <div className="space-y-4">
+                  {EMOJI_LIST.map((e) => {
+                    const { label, list } = emojiMap[e.id];
+                    return (
+                      <div key={e.id}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xl">{label}</span>
+                          <span className="text-xs text-gray-500">{list.length}人</span>
+                        </div>
+                        {list.length === 0 ? (
+                          <div className="text-gray-300 text-xs ml-6">該当者なし</div>
+                        ) : (
+                          <ul className="ml-4 space-y-1">
+                            {list.map((r) => {
+                              const s = students.find((x) => x.gakuseki === r.user_id);
+                              const t = teachers.find((x) => x.id === r.user_id);
+                              return (
+                                <li key={r.user_id} className="flex items-center gap-2">
+                                  {s ? (
+                                    <span className="text-gray-700">{`${s.surname} ${s.forename} (5-${s.class})`}</span>
+                                  ) : t ? (
+                                    <span className="text-blue-700 font-bold">{`${t.surname} ${t.forename}（先生）`}</span>
+                                  ) : (
+                                    <span className="text-gray-400">ID:{r.user_id}</span>
+                                  )}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
                       </div>
-                      {list.length === 0 ? (
-                        <div className="text-gray-300 text-xs ml-6">該当者なし</div>
-                      ) : (
-                        <ul className="ml-4 space-y-1">
-                          {list.map((r) => {
-                            const s = students.find((x) => x.gakuseki === r.user_id);
-                            return (
-                              <li key={r.user_id} className="flex items-center gap-2">
-                                <span className="text-gray-700">{s ? `${s.surname} ${s.forename} (5-${s.class})` : `ID:${r.user_id}`}</span>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })()
-        )}
+                    );
+                  })}
+                </div>
+              );
+            })()
+          )}
+        </div>
       </Modal>
     </>
   );

@@ -4,7 +4,7 @@ import type { TeacherMessage } from '../interface/messages';
 import { useAuth } from '../auth-context';
 import { teacherApi, messagesApi } from '../helpers/domainApi';
 import type { TeacherDTO } from '../helpers/domainApi';
-import { BackToHome } from '../components/MDButton';
+import MDButton, { BackToHome } from '../components/MDButton';
 import { isOffline } from '../helpers/isOffline';
 
 const Messages = () => {
@@ -91,94 +91,98 @@ const Messages = () => {
     <div className="max-w-2xl mx-auto p-4">
       <h2 className="text-2xl font-bold mb-6 text-blue-700 border-b border-blue-200 pb-2">先生からのメッセージ</h2>
       {messages.length === 0 ? (
-        <div className="text-gray-500 text-center py-8">メッセージはありません。</div>
+        <>
+          <div className="text-gray-500 text-center py-8">メッセージはありません。</div>
+          <MDButton text="メッセージを送信" arrowRight link="/teacher/messages" />
+        </>
       ) : (
-        <ul className="space-y-10">
-          {messages.map((msg) => {
-            const teacher = teachersData.find((t) => t.id === msg.teacher_id);
-            const teacherName = teacher ? `${teacher.surname} ${teacher.forename} 先生` : `ID:${msg.teacher_id}`;
-            const isLong = msg.message.length > MESSAGE_PREVIEW_LENGTH;
-            const expanded = expandedIds[msg.id];
-            return (
-              <div key={msg.id}>
-                <li className="bg-white rounded-lg shadow-md p-5 border border-blue-100 hover:shadow-lg transition-shadow">
-                  <div className="flex flex-row justify-between">
-                    <div className="font-bold text-lg text-blue-800 mb-1 truncate" title={msg.title}>
-                      {msg.title}
+        <>
+          <div className="flex flex-col items-center justify-center">
+            <MDButton text="メッセージを送信" arrowRight link="/teacher/messages" />
+          </div>
+
+          <ul className="space-y-10">
+            {messages.map((msg) => {
+              const teacher = teachersData.find((t) => t.id === msg.teacher_id);
+              const teacherName = teacher ? `${teacher.surname} ${teacher.forename} 先生` : `ID:${msg.teacher_id}`;
+              const isLong = msg.message.length > MESSAGE_PREVIEW_LENGTH;
+              const expanded = expandedIds[msg.id];
+              return (
+                <div key={msg.id}>
+                  <li className="bg-white rounded-lg shadow-md p-5 border border-blue-100 hover:shadow-lg transition-shadow">
+                    <div className="flex flex-row justify-between">
+                      <div className="font-bold text-lg text-blue-800 mb-1 truncate" title={msg.title}>
+                        {msg.title}
+                      </div>
+                      <div>
+                        {msg.my_emoji_id ? (
+                          <span className="inline-flex items-center text-green-600 text-sm bg-green-100 px-2 py-1 rounded-full">
+                            <span className="mr-1 text-xl">{EMOJI_LIST.find((e) => e.id === msg.my_emoji_id)?.emoji ?? EMOJI_LIST[0].emoji}</span>
+                            既読
+                          </span>
+                        ) : (
+                          <div className="flex gap-2">
+                            {EMOJI_LIST.map((e) => (
+                              <button
+                                key={e.id}
+                                type="button"
+                                onClick={() => handleMarkAsRead(msg.id, e.id)}
+                                disabled={markingId === msg.id}
+                                className="text-xl px-3 py-1 rounded-full border border-blue-400 text-blue-600 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                aria-label={`「${e.emoji}」で既読にする`}>
+                                {markingId === msg.id ? '⏳' : e.emoji}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      {user?.is_teacher ? (
-                        <span className="inline-flex items-center text-blue-600 text-sm bg-blue-100 px-2 py-1 rounded-full">
-                          <span className="mr-1">👨‍🏫</span>
-                          先生モード
+
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-2 relative">
+                      <div className="flex items-center gap-3">
+                        <span className="font-semibold text-gray-900 text-md">{teacherName}</span>
+                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                          送信先: {msg.target_type === 'group' ? `${msg.target_group_name ?? '未設定'}${typeof msg.recipient_count === 'number' ? `（${msg.recipient_count}人）` : ''}` : '全員'}
                         </span>
-                      ) : msg.my_emoji_id ? (
-                        <span className="inline-flex items-center text-green-600 text-sm bg-green-100 px-2 py-1 rounded-full">
-                          <span className="mr-1 text-xl">{EMOJI_LIST.find((e) => e.id === msg.my_emoji_id)?.emoji ?? EMOJI_LIST[0].emoji}</span>
-                          既読
-                        </span>
+                      </div>
+                      <div className="text-xs text-gray-400 sm:text-right">
+                        <div>投稿日: {new Date(msg.created_at).toLocaleString()}</div>
+                        {msg.updated_at ? <div className="text-blue-500">最終編集: {new Date(msg.updated_at).toLocaleString()}</div> : <></>}
+                        {user?.is_teacher ? typeof msg.read_count === 'number' && <div className="text-green-600">既読: {msg.read_count} 件</div> : <></>}
+                      </div>
+                    </div>
+                    <div className="text-gray-800 whitespace-pre-line break-words text-base leading-relaxed">
+                      {isLong && !expanded ? (
+                        <>
+                          {msg.message.slice(0, MESSAGE_PREVIEW_LENGTH)}...
+                          <button className="ml-2 text-blue-600 underline text-sm hover:text-blue-800" onClick={() => handleToggle(msg.id)}>
+                            続きを読む
+                          </button>
+                        </>
                       ) : (
-                        <div className="flex gap-2">
-                          {EMOJI_LIST.map((e) => (
-                            <button
-                              key={e.id}
-                              type="button"
-                              onClick={() => handleMarkAsRead(msg.id, e.id)}
-                              disabled={markingId === msg.id}
-                              className="text-xl px-3 py-1 rounded-full border border-blue-400 text-blue-600 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
-                              aria-label={`「${e.emoji}」で既読にする`}>
-                              {markingId === msg.id ? '⏳' : e.emoji}
-                            </button>
-                          ))}
-                        </div>
+                        msg.message
                       )}
                     </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-2 relative">
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold text-gray-900 text-md">{teacherName}</span>
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        送信先: {msg.target_type === 'group' ? `${msg.target_group_name ?? '未設定'}${typeof msg.recipient_count === 'number' ? `（${msg.recipient_count}人）` : ''}` : '全員'}
-                      </span>
+                  </li>
+                  {/* 既読数をemojiごとに表示 */}
+                  {msg.emoji_counts && (
+                    <div className="flex gap-4 mt-2 mb-2">
+                      {EMOJI_LIST.map((e) => (
+                        <div key={e.id} className="flex items-center gap-1">
+                          <span className="text-xl select-none">{e.emoji}</span>
+                          <span className="text-sm text-gray-700 font-semibold">{msg.emoji_counts?.[e.id] ?? 0}</span>
+                        </div>
+                      ))}
                     </div>
-                    <div className="text-xs text-gray-400 sm:text-right">
-                      <div>投稿日: {new Date(msg.created_at).toLocaleString()}</div>
-                      {msg.updated_at ? <div className="text-blue-500">最終編集: {new Date(msg.updated_at).toLocaleString()}</div> : <></>}
-                      {user?.is_teacher ? typeof msg.read_count === 'number' && <div className="text-green-600">既読: {msg.read_count} 件</div> : <></>}
-                    </div>
+                  )}
+                  <div className="flex items-center justify-center">
+                    <BackToHome user={user} />
                   </div>
-                  <div className="text-gray-800 whitespace-pre-line break-words text-base leading-relaxed">
-                    {isLong && !expanded ? (
-                      <>
-                        {msg.message.slice(0, MESSAGE_PREVIEW_LENGTH)}...
-                        <button className="ml-2 text-blue-600 underline text-sm hover:text-blue-800" onClick={() => handleToggle(msg.id)}>
-                          続きを読む
-                        </button>
-                      </>
-                    ) : (
-                      msg.message
-                    )}
-                  </div>
-                </li>
-                {/* 既読数をemojiごとに表示 */}
-                {msg.emoji_counts && (
-                  <div className="flex gap-4 mt-2 mb-2">
-                    {EMOJI_LIST.map((e) => (
-                      <div key={e.id} className="flex items-center gap-1">
-                        <span className="text-xl select-none">{e.emoji}</span>
-                        <span className="text-sm text-gray-700 font-semibold">{msg.emoji_counts?.[e.id] ?? 0}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <div className="flex items-center justify-center">
-                  <BackToHome user={user} />
                 </div>
-              </div>
-            );
-          })}
-        </ul>
+              );
+            })}
+          </ul>
+        </>
       )}
     </div>
   );
