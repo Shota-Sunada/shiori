@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { EMOJI_LIST } from '../helpers/emoji';
 import type { TeacherMessage } from '../interface/messages';
 import { useAuth } from '../auth-context';
 import { teacherApi, messagesApi } from '../helpers/domainApi';
@@ -44,12 +45,7 @@ const Messages = () => {
   const [expandedIds, setExpandedIds] = useState<{ [id: number]: boolean }>({});
   const MESSAGE_PREVIEW_LENGTH = 100;
 
-  // emoji_id: 1=👍️, 2=❤, 3=☺
-  const EMOJI_LIST = [
-    { id: 1, emoji: '👍️' },
-    { id: 2, emoji: '❤' },
-    { id: 3, emoji: '☺' }
-  ];
+  // emoji.tsからEMOJI_LISTを利用
 
   const handleMarkAsRead = async (id: number, emoji_id: number) => {
     if (!token || markingId === id) return;
@@ -118,7 +114,7 @@ const Messages = () => {
                         </span>
                       ) : msg.my_emoji_id ? (
                         <span className="inline-flex items-center text-green-600 text-sm bg-green-100 px-2 py-1 rounded-full">
-                          <span className="mr-1 text-xl">{EMOJI_LIST.find((e) => e.id === msg.my_emoji_id)?.emoji ?? '👍️'}</span>
+                          <span className="mr-1 text-xl">{EMOJI_LIST.find((e) => e.id === msg.my_emoji_id)?.emoji ?? EMOJI_LIST[0].emoji}</span>
                           既読
                         </span>
                       ) : (
@@ -142,16 +138,14 @@ const Messages = () => {
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-2 relative">
                     <div className="flex items-center gap-3">
                       <span className="font-semibold text-gray-900 text-md">{teacherName}</span>
-                      {user?.is_teacher && (
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                          送信先: {msg.target_type === 'group' ? `${msg.target_group_name ?? '未設定'}${typeof msg.recipient_count === 'number' ? `（${msg.recipient_count}人）` : ''}` : '全員'}
-                        </span>
-                      )}
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        送信先: {msg.target_type === 'group' ? `${msg.target_group_name ?? '未設定'}${typeof msg.recipient_count === 'number' ? `（${msg.recipient_count}人）` : ''}` : '全員'}
+                      </span>
                     </div>
                     <div className="text-xs text-gray-400 sm:text-right">
                       <div>投稿日: {new Date(msg.created_at).toLocaleString()}</div>
-                      {msg.updated_at && <div className="text-blue-500">最終編集: {new Date(msg.updated_at).toLocaleString()}</div>}
-                      {user?.is_teacher && typeof msg.read_count === 'number' && <div className="text-green-600">既読: {msg.read_count} 件</div>}
+                      {msg.updated_at ? <div className="text-blue-500">最終編集: {new Date(msg.updated_at).toLocaleString()}</div> : <></>}
+                      {user?.is_teacher ? typeof msg.read_count === 'number' && <div className="text-green-600">既読: {msg.read_count} 件</div> : <></>}
                     </div>
                   </div>
                   <div className="text-gray-800 whitespace-pre-line break-words text-base leading-relaxed">

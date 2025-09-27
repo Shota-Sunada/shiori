@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { EMOJI_LIST } from '../../helpers/emoji';
 import { appFetch } from '../../helpers/apiClient';
 import { SERVER_ENDPOINT } from '../../config/serverEndpoint';
 import { useAuth } from '../../auth-context';
@@ -313,11 +314,7 @@ const TeacherSendMessages = () => {
                       {msg.emoji_counts && (
                         <>
                           <span>既読:</span>
-                          {[
-                            { id: 1, emoji: '👍️' },
-                            { id: 2, emoji: '❤' },
-                            { id: 3, emoji: '☺' }
-                          ].map((e) => (
+                          {EMOJI_LIST.map((e) => (
                             <span key={e.id} className="inline-flex items-center gap-1">
                               <span className="text-xl">{e.emoji}</span>
                               <span>{msg.emoji_counts?.[e.id] ?? 0}</span>
@@ -398,22 +395,47 @@ const TeacherSendMessages = () => {
         {studentsLoading ? (
           <div className="text-gray-500">読込中...</div>
         ) : (
-          <ul className="max-h-60 overflow-y-auto text-sm">
-            {(() => {
-              const reactions = readModalMessage?.read_reactions ?? [];
-              if (!reactions.length) return <li className="text-gray-400">既読者なし</li>;
-              // 学籍番号→生徒情報
-              return reactions.map((r) => {
-                const s = students.find((x) => x.gakuseki === r.user_id);
-                return (
-                  <li key={r.user_id} className="flex items-center gap-2">
-                    <span className="text-xl">{r.emoji_id === 1 ? '👍️' : r.emoji_id === 2 ? '❤' : r.emoji_id === 3 ? '☺' : ''}</span>
-                    {s ? `${s.surname} ${s.forename} (5-${s.class})` : `ID:${r.user_id}`}
-                  </li>
-                );
-              });
-            })()}
-          </ul>
+          (() => {
+            const reactions = readModalMessage?.read_reactions ?? [];
+            if (!reactions.length) return <div className="text-gray-400">既読者なし</div>;
+            // emojiごとにグループ化
+            const emojiMap: Record<number, { label: string; list: typeof reactions }> = {};
+            EMOJI_LIST.forEach((e) => {
+              emojiMap[e.id] = { label: e.emoji, list: [] };
+            });
+            reactions.forEach((r) => {
+              if (emojiMap[r.emoji_id]) emojiMap[r.emoji_id].list.push(r);
+            });
+            return (
+              <div className="space-y-4">
+                {EMOJI_LIST.map((e) => {
+                  const { label, list } = emojiMap[e.id];
+                  return (
+                    <div key={e.id}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xl">{label}</span>
+                        <span className="text-xs text-gray-500">{list.length}人</span>
+                      </div>
+                      {list.length === 0 ? (
+                        <div className="text-gray-300 text-xs ml-6">該当者なし</div>
+                      ) : (
+                        <ul className="ml-4 space-y-1">
+                          {list.map((r) => {
+                            const s = students.find((x) => x.gakuseki === r.user_id);
+                            return (
+                              <li key={r.user_id} className="flex items-center gap-2">
+                                <span className="text-gray-700">{s ? `${s.surname} ${s.forename} (5-${s.class})` : `ID:${r.user_id}`}</span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()
         )}
       </Modal>
     </>
