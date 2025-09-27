@@ -1,9 +1,26 @@
+// 配列で設定できるように変更
+// 例: [{ hotel: 'tdh', floor: 9, room: 17, label: '特別室' }, { hotel: 'fpr', floor: 3, room: 5, label: 'VIP' }]
+const roomLabelsList: { hotel: string; floor: number; room: number; label: string }[] = [
+  { hotel: 'tdh', floor: 9, room: 10, label: '😡' },
+  { hotel: 'fpr', floor: 3, room: 3, label: '改装工事中' },
+  { hotel: 'fpr', floor: 5, room: 3, label: '改装工事中' },
+  { hotel: 'fpr', floor: 5, room: 4, label: '改装工事中' },
+];
+
+// 内部でマップに変換
+const roomLabels: Record<string, Record<string, Record<string, string>>> = {};
+roomLabelsList.forEach(({ hotel, floor, room, label }) => {
+  if (!roomLabels[hotel]) roomLabels[hotel] = {};
+  if (!roomLabels[hotel][String(floor)]) roomLabels[hotel][String(floor)] = {};
+  roomLabels[hotel][String(floor)][String(room)] = label;
+});
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../auth-context';
 import LoadingPage from '../components/LoadingPage';
 import { studentApi, teacherApi } from '../helpers/domainApi';
 import type { StudentDTO, TeacherDTO } from '../helpers/domainApi';
 import { pad2 } from '../helpers/pad2';
+import { getRandomFace } from '../helpers/randomFaces';
 
 const TDH_FLOORS = [9, 10, 11, 13, 16] as const;
 const FPR_FLOORS = [2, 3, 4, 5, 6] as const;
@@ -53,9 +70,13 @@ const Hotel = () => {
       { name: '看護師', floor: 10, room: 34, hotel: 'tdh' },
       { name: '添乗員', floor: 10, room: 36, hotel: 'tdh' },
       { name: '添乗員', floor: 11, room: 34, hotel: 'tdh' },
-      { name: '添乗員', floor: 16, room: 36, hotel: 'tdh' }
+      { name: '添乗員', floor: 16, room: 36, hotel: 'tdh' },
       // FPR用スタッフ（例: 空、または今後追加）
-      // { name: 'スタッフ名', floor: 10, room: 5, hotel: 'fpr' },
+      { name: '保健室', floor: 2, room: 14, hotel: 'fpr' },
+      { name: '保健室', floor: 2, room: 15, hotel: 'fpr' },
+      { name: '保健室', floor: 3, room: 15, hotel: 'fpr' },
+      { name: '保健室', floor: 4, room: 14, hotel: 'fpr' },
+      { name: '保健室', floor: 4, room: 15, hotel: 'fpr' },
     ],
     []
   );
@@ -167,15 +188,42 @@ const Hotel = () => {
               const sortedTeachers = assign.teachers.slice().sort((a, b) => a.surname.localeCompare(b.surname, 'ja'));
               const sortedStaff = assign.staff;
               const total = sortedStudents.length + sortedTeachers.length + sortedStaff.length;
+              // ラベル表示判定
+              let customLabel: string | undefined = undefined;
+              if (roomLabels[selectedHotel]?.[String(selectedFloor)]?.[String(roomNumber)]) {
+                customLabel = roomLabels[selectedHotel][String(selectedFloor)][String(roomNumber)];
+              }
               return (
                 <div key={roomId} className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-bold text-blue-700">{roomId}</span>
                     <span className="text-[10px] text-gray-400">{total ? `${total}名` : '空室'}</span>
                   </div>
+                  {customLabel && <div className="w-full text-center text-2xl font-bold text-pink-600 bg-pink-50 rounded mb-1 py-1">{customLabel}</div>}
                   <div className="flex flex-col gap-1">
                     {total === 0 ? (
-                      <div className="rounded border border-dashed border-gray-300 py-3 text-center text-xs text-gray-400">一般の方が宿泊されます</div>
+                      customLabel ? null : (
+                        <div className="rounded text-center text-xs text-gray-400">
+                          {(() => {
+                            // ホテルごとに人数を決定
+                            const min = selectedHotel === 'fpr' ? 1 : 1;
+                            const max = selectedHotel === 'fpr' ? 5 : 3;
+                            const count = Math.floor(Math.random() * (max - min + 1)) + min;
+                            return (
+                              <>
+                                <div className="flex flex-col gap-1">
+                                  {Array.from({ length: count }).map((_, i) => (
+                                    <div key={i} className="flex flex-col items-center justify-center rounded border border-gray-400 bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
+                                      <span className="text-[10px]">一般の方</span>
+                                      <span>{getRandomFace()}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      )
                     ) : (
                       <>
                         {sortedStudents.map((student) => {
@@ -193,7 +241,10 @@ const Hotel = () => {
                                 5{student.class}
                                 {pad2(student.number)}
                               </span>
-                              <span>{`${student.surname} ${student.forename}`}</span>
+                              <span className="flex flex-row space-x-1">
+                                <p>{student.surname.length > 4 ? student.surname_kana : student.surname}</p>
+                                <p>{student.forename.length > 4 ? student.forename_kana : student.forename}</p>
+                              </span>
                             </div>
                           );
                         })}
@@ -209,7 +260,10 @@ const Hotel = () => {
                                   : 'flex flex-col items-center justify-center rounded border border-blue-300 bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-900'
                               }>
                               <span className="text-[10px]">先生</span>
-                              <span className="">{`${teacher.surname} ${teacher.forename}`}</span>
+                              <span className="flex flex-row space-x-1">
+                                <p>{teacher.surname}</p>
+                                <p>{teacher.forename}</p>
+                              </span>
                             </div>
                           );
                         })}
