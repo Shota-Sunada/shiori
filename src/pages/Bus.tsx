@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { studentApi, teacherApi, type StudentDTO, type TeacherDTO } from '../helpers/domainApi';
 import { pad2 } from '../helpers/pad2';
+import { useAuth } from '../auth-context';
+import { BackToHome } from '../components/MDButton';
 
 const Bus: React.FC = () => {
   const [students, setStudents] = useState<StudentDTO[]>([]);
@@ -10,6 +12,7 @@ const Bus: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     Promise.all([studentApi.list(), teacherApi.list()])
@@ -87,23 +90,36 @@ const Bus: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-4 items-center p-2">
+      <h1 className="text-2xl font-bold text-blue-800 mb-2 mt-2 select-none">
+        {busType === 'day1' && '1日目バス (企業訪問)'}
+        {busType === 'day3' && '3日目バス (コース別研修)'}
+        {busType === 'day4' && '4日目バス (クラス)'}
+      </h1>
+      <div className="w-full flex justify-center mb-2">
+        <div className="flex w-full max-w-[340px] gap-2 py-1">
+          {switchOptions.map((option) => (
+            <button
+              key={option.type}
+              type="button"
+              onClick={() => navigate({ search: option.search })}
+              className="flex-1 flex flex-col items-center justify-center px-2 py-1 border border-blue-300 rounded-md shadow-sm bg-blue-50 hover:bg-blue-100 active:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300 transition text-blue-700">
+              <span className="text-sm font-semibold leading-tight">{option.label}</span>
+              <span className="text-[10px] text-blue-500 leading-tight mt-0.5">へ切替</span>
+            </button>
+          ))}
+        </div>
+      </div>
       {entries.filter(([busName]) => {
-        // 0号車（バス名が'0'）は非表示
-        if (groupKey === 'day1bus' || groupKey === 'day3bus') {
-          return busName !== '0';
-        }
-        return true;
+        // 0号車（バス名が'0'）は非表示（4日目クラス分けも含む）
+        return busName !== '0';
       }).length === 0 ? (
         <div className="text-gray-500">表示できる生徒データがありません</div>
       ) : (
         entries
           .filter(([busName]) => {
-            if (groupKey === 'day1bus' || groupKey === 'day3bus') {
-              return busName !== '0';
-            }
-            return true;
+            return busName !== '0';
           })
-          .map(([busName, busPeople], index, arr) => {
+          .map(([busName, busPeople]) => {
             // 生徒→先生の順で、class/number順で並べる
             const sortedPeople = [...busPeople].sort((a, b) => {
               if (a.isTeacher && !b.isTeacher) return 1;
@@ -207,8 +223,8 @@ const Bus: React.FC = () => {
                     ))}
                   </div>
                 </div>
-                {index < arr.length - 1 && (
-                  <div className="w-full flex justify-center">
+                <div className="w-full flex flex-col items-center gap-2 my-2">
+                  <div className="w-full flex justify-center mb-2">
                     <div className="flex w-full max-w-[340px] gap-2 py-1">
                       {switchOptions.map((option) => (
                         <button
@@ -222,11 +238,26 @@ const Bus: React.FC = () => {
                       ))}
                     </div>
                   </div>
-                )}
+                  <BackToHome user={user} />
+                </div>
               </React.Fragment>
             );
           })
       )}
+      <div className="w-full flex justify-center mt-4">
+        <div className="flex w-full max-w-[340px] gap-2 py-1">
+          {switchOptions.map((option) => (
+            <button
+              key={option.type}
+              type="button"
+              onClick={() => navigate({ search: option.search })}
+              className="flex-1 flex flex-col items-center justify-center px-2 py-1 border border-blue-300 rounded-md shadow-sm bg-blue-50 hover:bg-blue-100 active:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300 transition text-blue-700">
+              <span className="text-sm font-semibold leading-tight">{option.label}</span>
+              <span className="text-[10px] text-blue-500 leading-tight mt-0.5">へ切替</span>
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
