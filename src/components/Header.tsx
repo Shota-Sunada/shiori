@@ -173,7 +173,7 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
         {/* ロゴ（左） */}
         <div className="flex-shrink-0 flex items-center justify-center" style={{ width: '60px', minWidth: '48px' }}>
           <Link to={user?.is_teacher ? '/teacher' : '/'}>
-            <img className={`p-[6px] w-[40px] md:w-[56px] ${user ? 'cursor-pointer' : 'cursor-default'}`} src="https://www.shudo-h.ed.jp/portal_assets/images/logo.png" alt="" />
+            <img className={`ml-2 w-[40px] md:w-[56px] ${user ? 'cursor-pointer' : 'cursor-default'}`} src="https://www.shudo-h.ed.jp/portal_assets/images/logo.png" alt="" />
           </Link>
         </div>
         {/* 中央テキスト */}
