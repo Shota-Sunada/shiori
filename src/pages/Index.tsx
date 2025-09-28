@@ -133,8 +133,8 @@ const Index = () => {
         </p>
       ) : (
         <div className="m-[10px] flex flex-col items-center justify-center">
-          <p className=" text-2xl">{'生徒データが見つかりませんでした。'}</p>
-          <p className="text-sm">{'管理者にご連絡ください。'}</p>
+          <p className="text-2xl text-center">{'生徒データが見つかりませんでした。'}</p>
+          <p className="text-sm text-center">{'管理者にご連絡ください。'}</p>
         </div>
       )}
       {/* 通知バナー: 全員宛メッセージ */}

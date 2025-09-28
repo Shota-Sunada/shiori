@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { isOffline } from '../helpers/isOffline';
+import { useServerReachable } from '../helpers/useServerReachable';
 import { clearShioriCache } from '../helpers/clearShioriCache';
 import { PrefetchLink } from '../prefetch/PrefetchLink';
 import { otanoshimiApi } from '../helpers/domainApi';
@@ -32,6 +33,7 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
 
   // オフライン検知
   const [offline, setOffline] = useState(isOffline());
+  const serverReachable = useServerReachable();
   useEffect(() => {
     const update = () => setOffline(isOffline());
     window.addEventListener('online', update);
@@ -163,10 +165,20 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
   return (
     <div className="sticky top-0 z-40">
       {/* オフライン時の細いバー */}
-      {offline && (
+      {(offline || serverReachable === false) && (
         <div className="w-full bg-yellow-200 text-yellow-900 text-xs text-center py-1 border-b border-yellow-400 select-none">
-          <p>オフラインモード：ネットワークに接続されていません。</p>
-          <p>一部の機能が制限されるおそれがあります。</p>
+          {offline && (
+            <>
+              <p>オフラインモード：ネットワークに接続されていません。</p>
+              <p>一部の機能が制限されるおそれがあります。</p>
+            </>
+          )}
+          {!offline && serverReachable === false && (
+            <>
+              <p>サーバーに接続できません。</p>
+              <p>メンテナンス中か、サーバーに問題が発生している可能性があります。</p>
+            </>
+          )}
         </div>
       )}
       <div className="bg-[#50141c] text-white relative flex items-center h-[56px] md:h-[72px] z-50">
