@@ -54,6 +54,55 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // ページ表示時、オフラインでなく、キャッシュが存在しないものだけ取得
+  useEffect(() => {
+    if (!user || !token) return;
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+    (async () => {
+      const { appFetch } = await import('./helpers/apiClient');
+      const { CacheKeys } = await import('./helpers/cacheKeys');
+      const { SERVER_ENDPOINT } = await import('./config/serverEndpoint');
+      const api = await import('./helpers/domainApi');
+
+      // localStorageキャッシュ判定関数
+      const hasCache = (cacheKey: string) => {
+        try {
+          const v = localStorage.getItem(`appfetch:${cacheKey}`);
+          if (!v) return false;
+          const parsed = JSON.parse(v);
+          // 期限切れはキャッシュなし扱い
+          if (parsed && typeof parsed.expiry === 'number' && parsed.expiry > Date.now()) return true;
+          return false;
+        } catch {
+          return false;
+        }
+      };
+
+      // login時の取得対象と同じものをチェック
+      const fetchList = [
+        { fn: () => api.studentApi.list({}), cacheKey: CacheKeys.students.all },
+        { fn: () => api.userApi.list(), cacheKey: CacheKeys.users.list },
+        { fn: () => api.teacherApi.list(), cacheKey: CacheKeys.teachers.list },
+        { fn: () => api.otanoshimiApi.list(), cacheKey: CacheKeys.otanoshimi.teams },
+        { fn: () => api.messagesApi.list(), cacheKey: CacheKeys.messages.list },
+        { fn: () => api.boatAssignmentsApi.list(), cacheKey: CacheKeys.boats.list },
+        { fn: () => appFetch(`${SERVER_ENDPOINT}/api/otanoshimi`, { requiresAuth: true, cacheKey: CacheKeys.otanoshimi.teams }), cacheKey: CacheKeys.otanoshimi.teams },
+        { fn: () => appFetch(`${SERVER_ENDPOINT}/api/schedules`, { requiresAuth: true, cacheKey: CacheKeys.schedules.list }), cacheKey: CacheKeys.schedules.list }
+      ];
+      await Promise.all(
+        fetchList.map(async ({ fn, cacheKey }) => {
+          if (!hasCache(cacheKey)) {
+            try {
+              await fn();
+            } catch {
+              // 取得失敗は無視
+            }
+          }
+        })
+      );
+    })();
+  }, [user, token]);
+
   const login = useCallback((token: string) => {
     localStorage.setItem('jwt_token', token);
     setToken(token);
