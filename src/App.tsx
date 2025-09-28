@@ -246,14 +246,14 @@ function App() {
 
   // バージョンチェック (最初のレンダリング前に判定し、ミスマッチ時のみ遷移)
   useEffect(() => {
+    let active = true;
     if (isOffline()) {
       console.log('オフラインなので、バージョンチェックをスキップします。');
+      setVersionChecked(true);
       return () => {
         active = false;
       };
     }
-
-    let active = true;
     (async () => {
       try {
         const data = await appFetch<{ version?: string }>(`${SERVER_ENDPOINT}/api/version`, { parse: 'json', alwaysFetch: true });

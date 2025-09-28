@@ -61,6 +61,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const decoded = jwtDecode<JwtPayload>(token);
       setUser({ userId: decoded.userId, is_admin: decoded.is_admin, is_teacher: decoded.is_teacher });
+      // ログイン時に全データ取得（キャッシュは即期限切れにする）
+      import('./helpers/domainApi').then(async (api) => {
+        const { appFetch } = await import('./helpers/apiClient');
+        const { CacheKeys } = await import('./helpers/cacheKeys');
+        const { SERVER_ENDPOINT } = await import('./config/serverEndpoint');
+        try {
+          await Promise.all([
+            api.studentApi.list({ ttlMs: 1 }),
+            api.userApi.list(),
+            api.teacherApi.list(),
+            api.otanoshimiApi.list(),
+            api.messagesApi.list(),
+            api.boatAssignmentsApi.list(),
+            appFetch(`${SERVER_ENDPOINT}/api/otanoshimi`, { requiresAuth: true, cacheKey: CacheKeys.otanoshimi.teams, ttlMs: 1 }),
+            appFetch(`${SERVER_ENDPOINT}/api/schedules`, { requiresAuth: true, cacheKey: CacheKeys.schedules.list, ttlMs: 1 })
+          ]);
+        } catch {
+          // 取得失敗は無視
+        }
+      });
     } catch (error) {
       console.error('JWTのデコードに失敗:', error);
       setUser(null);
