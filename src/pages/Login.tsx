@@ -11,6 +11,17 @@ import { appFetch } from '../helpers/apiClient';
 import { isOffline } from '../helpers/isOffline';
 
 const Login = () => {
+  // オフライン状態を動的に監視
+  const [offline, setOffline] = useState(isOffline());
+  useEffect(() => {
+    const update = () => setOffline(isOffline());
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
+    return () => {
+      window.removeEventListener('online', update);
+      window.removeEventListener('offline', update);
+    };
+  }, []);
   const USER_ID_MIN = 20200000;
   const USER_ID_MAX = 20219008;
 
@@ -105,12 +116,12 @@ const Login = () => {
             </span>
           </div>
         </div>
-        <div className="flex items-center justify-center text-center">
+        <div className="flex flex-col items-center justify-center text-center m-2">
           <p>Classiで先生が配信されたものを参考に入力してください。</p>
-          {isOffline() && <p className="text-red-500">現在オフラインです。ログイン時にはインターネットへの接続が必要です。ネットワークの接続を確認してください。</p>}
+          {offline && <p className="text-red-500">現在オフラインです。ログイン時にはインターネットへの接続が必要です。ネットワークの接続を確認してください。</p>}
           {error && <p className="text-red-500 mt-4">{error}</p>}
         </div>
-        <MDButton text={'ログイン'} arrowRight type="submit" disabled={isOffline()} />
+        <MDButton text={'ログイン'} arrowRight type="submit" disabled={offline} />
       </form>
       {/* Q&Aセクション */}
       <div className="max-w-md bg-white/80 rounded-lg shadow m-2 p-2">
