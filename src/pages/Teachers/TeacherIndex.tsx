@@ -53,7 +53,7 @@ const TeacherIndex = () => {
     <div className="flex flex-col items-center justify-center m-[10px]">
       <div className="m-2 flex flex-col items-center justify-center">
         <p className="m-[10px] text-2xl">{'ようこそ、先生用ページへ'}</p>
-        <p className="text-xl">
+        <p className="text-xl text-center">
           {teacherData ? `${teacherData.surname} ${teacherData.forename} 先生` : user.is_teacher ? '先生データ未登録' : '管理者'}
           {'としてログイン中'}
         </p>
