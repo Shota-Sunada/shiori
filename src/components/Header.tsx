@@ -141,6 +141,10 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
         icon: <IoReload />,
         label: 'しおりを再読み込み',
         onClick: () => {
+          if (isOffline()) {
+            window.location.reload();
+            return;
+          }
           clearShioriCache();
           window.location.reload();
         },
