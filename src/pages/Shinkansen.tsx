@@ -5,6 +5,7 @@ import { useAuth } from '../auth-context';
 import { studentApi, teacherApi, type StudentDTO, type TeacherDTO } from '../helpers/domainApi';
 import Message from '../components/Message';
 import MDButton, { BackToHome } from '../components/MDButton';
+import { isOffline } from '../helpers/isOffline';
 
 const Shinkansen = () => {
   const { user } = useAuth();
@@ -161,6 +162,17 @@ const Shinkansen = () => {
     }
   };
 
+  const [offline, setOffline] = useState(isOffline());
+  useEffect(() => {
+    const update = () => setOffline(isOffline());
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
+    return () => {
+      window.removeEventListener('online', update);
+      window.removeEventListener('offline', update);
+    };
+  }, []);
+
   if (loading) {
     return <LoadingPage message="読み込み中..." />;
   }
@@ -314,9 +326,10 @@ const Shinkansen = () => {
           </Message>
         </>
       )}
-      <div className="flex flex-col items-center justify-center">
+      <div className="flex flex-col items-center justify-center m-2">
         <p>新幹線 個別列車案内</p>
         <MDButton
+          disabled={offline}
           text={tab === 'day1' ? 'のぞみ84号 (ゆき)' : tab === 'day4' ? 'のぞみ77号 (かえり)' : '不明'}
           color="orange"
           onClick={() => {
@@ -327,7 +340,7 @@ const Shinkansen = () => {
             }
           }}
         />
-        <p>↑JR東海のページが開きます。</p>
+        {offline ? <p className='text-red-500'>個別列車案内を開くには、インターネットに接続する必要があります。</p> : <p>↑JR東海のページが開きます。</p>}
         <MDButton text="新幹線座席表" arrowRight link={tab === 'day4' ? '/shinkansen/floor?direction=hiroshima' : '/shinkansen/floor'} />
         <BackToHome user={user} />
       </div>
