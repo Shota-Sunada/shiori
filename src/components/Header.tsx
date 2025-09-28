@@ -165,16 +165,21 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
           <p>一部の機能が制限されるおそれがあります。</p>
         </div>
       )}
-      <div className={`bg-[#50141c] text-white flex flex-row items-center justify-between relative z-50`}>
-        <Link to={user?.is_teacher ? '/teacher' : '/'}>
-          <img className={`p-[10px] w-[60px] md:w-[80px] ${user ? 'cursor-pointer' : 'cursor-default'}`} src="https://www.shudo-h.ed.jp/portal_assets/images/logo.png" alt="" />
-        </Link>
-        <div className="mx-2 flex flex-col">
-          <p className="font-bold text-base md:text-lg lg:text-xl leading-tight">{'修道高校79回生'}</p>
-          <p className="text-sm md:text-base lg:text-lg leading-tight">{'修学旅行のしおり'}</p>
+      <div className="bg-[#50141c] text-white relative flex items-center h-[56px] md:h-[72px] z-50">
+        {/* ロゴ（左） */}
+        <div className="flex-shrink-0 flex items-center justify-center" style={{ width: '60px', minWidth: '48px' }}>
+          <Link to={user?.is_teacher ? '/teacher' : '/'}>
+            <img className={`p-[6px] w-[40px] md:w-[56px] ${user ? 'cursor-pointer' : 'cursor-default'}`} src="https://www.shudo-h.ed.jp/portal_assets/images/logo.png" alt="" />
+          </Link>
         </div>
+        {/* 中央テキスト */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center text-center pointer-events-none select-none">
+          <p className="font-bold text-sm md:text-base lg:text-lg leading-tight">{'修道高校79回生'}</p>
+          <p className="text-xs md:text-sm lg:text-base leading-tight">{'修学旅行のしおり'}</p>
+        </div>
+        {/* メニュー（右） */}
         {user && (
-          <div className="relative mx-2">
+          <div className="flex-shrink-0 flex items-center justify-center ml-auto" style={{ width: '60px', minWidth: '48px' }}>
             <button
               type="button"
               aria-label="メニュー"
