@@ -246,27 +246,29 @@ function App() {
 
   // バージョンチェック (最初のレンダリング前に判定し、ミスマッチ時のみ遷移)
   useEffect(() => {
+    if (isOffline()) {
+      console.log('オフラインなので、バージョンチェックをスキップします。');
+      return () => {
+        active = false;
+      };
+    }
+
     let active = true;
     (async () => {
-      if (isOffline()) {
-        console.log("オフラインなので、バージョンチェックをスキップします。")
-        return;
-      } else {
-        try {
-          const data = await appFetch<{ version?: string }>(`${SERVER_ENDPOINT}/api/version`, { parse: 'json', alwaysFetch: true });
-          const current = import.meta.env.APP_VERSION;
-          if (active && data.version && current && data.version !== current) {
-            setVersionMismatch(true);
-            if (location.pathname !== '/version-mismatch') {
-              const from = window.location.pathname + window.location.search;
-              navigate('/version-mismatch', { replace: true, state: { from } });
-            }
+      try {
+        const data = await appFetch<{ version?: string }>(`${SERVER_ENDPOINT}/api/version`, { parse: 'json', alwaysFetch: true });
+        const current = import.meta.env.APP_VERSION;
+        if (active && data.version && current && data.version !== current) {
+          setVersionMismatch(true);
+          if (location.pathname !== '/version-mismatch') {
+            const from = window.location.pathname + window.location.search;
+            navigate('/version-mismatch', { replace: true, state: { from } });
           }
-        } catch (e) {
-          console.warn('version check failed', e);
-        } finally {
-          if (active) setVersionChecked(true);
         }
+      } catch (e) {
+        console.warn('version check failed', e);
+      } finally {
+        if (active) setVersionChecked(true);
       }
     })();
     return () => {
