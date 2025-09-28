@@ -92,8 +92,8 @@ const TimeTable = ({ courseKey, ref, courses }: TimeTableProps) => {
           <th colSpan={2}>{course.name}</th>
         </tr>
         <tr>
-          <th className="w-1/5">時間</th>
-          <th className="w-4/5">内容</th>
+          <th className="w-1/10">時間</th>
+          <th className="w-9/10">内容</th>
         </tr>
       </thead>
       <tbody>
@@ -158,7 +158,7 @@ const TimeTable = ({ courseKey, ref, courses }: TimeTableProps) => {
                           return (
                             <li key={`message-${m.id}`} className="list-none">
                               <Message type={m.type}>
-                                <span className="whitespace-pre-line">{m.text}</span>
+                                <span>{m.text}</span>
                               </Message>
                             </li>
                           );

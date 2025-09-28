@@ -47,12 +47,12 @@ const typeStyles: Record<MessageType, { label: string; bg: string; border: strin
 const Message: React.FC<MessageProps> = ({ children, className = '', type = 'info' }) => {
   const style = typeStyles[type];
   return (
-    <div className={`relative ${style.bg} ${style.border} border-l-4 rounded-md p-2 ${style.text} text-sm shadow-sm my-2 ${className}`}>
-      <span className={`absolute left-2 top-1 text-lg ${style.iconColor} select-none flex flex-row items-center`} aria-hidden>
+    <div className={`${style.bg} ${style.border} border-l-4 rounded-md p-2 ${style.text} text-sm shadow-sm my-1 ${className}`}>
+      <span className={`text-lg ${style.iconColor} select-none flex flex-row items-center`} aria-hidden>
         <p>{style.icon}</p>
         <p className={`ml-2 ${style.text}`}>{style.label}</p>
       </span>
-      <div className="m-2 mt-6 flex flex-col items-start">{children}</div>
+      <div className="m-2 mt-1 flex flex-col items-start">{children}</div>
     </div>
   );
 };

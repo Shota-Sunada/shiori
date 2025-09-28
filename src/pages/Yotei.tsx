@@ -137,25 +137,29 @@ const Yotei = () => {
 
   return (
     <>
-      <div className="flex flex-col items-center justify-start text-left p-2">
+      <div className="flex flex-col items-center justify-center text-left">
         <h2 className="font-bold text-3xl">全体の流れ</h2>
         {/* スクロールボタン */}
-        <div className="flex gap-2 my-2">
-          <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={() => handleScroll(day1Ref)}>
-            1日目へ
-          </button>
-          <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={() => handleScroll(day2Ref)}>
-            2日目へ
-          </button>
-          <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={() => handleScroll(day3Ref)}>
-            3日目へ
-          </button>
-          <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={() => handleScroll(day4Ref)}>
-            4日目へ
-          </button>
+        <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-2 my-2">
+          <div className="space-x-2">
+            <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={() => handleScroll(day1Ref)}>
+              1日目へ
+            </button>
+            <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={() => handleScroll(day2Ref)}>
+              2日目へ
+            </button>
+          </div>
+          <div className="space-x-2">
+            <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={() => handleScroll(day3Ref)}>
+              3日目へ
+            </button>
+            <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={() => handleScroll(day4Ref)}>
+              4日目へ
+            </button>
+          </div>
         </div>
         <BackToHome user={user} />
-        <div className="w-full max-w-4xl my-3 index-table-wrapper">
+        <div className="w-full my-3 index-table-wrapper">
           {/* 表示中のユーザー名を上部に表示 */}
           {displayName && <div className="mb-2 text-lg font-semibold text-center text-blue-700">{displayName} さんの行程表</div>}
           <ModernTable>

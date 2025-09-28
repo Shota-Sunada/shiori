@@ -21,7 +21,7 @@
 
 /* レイアウト最適化 */
 .index-table-wrapper {
-  max-width: min(640px, 92dvw);
+  max-width: min(640px, 97dvw);
   margin-left: auto;
   margin-right: auto;
 }
