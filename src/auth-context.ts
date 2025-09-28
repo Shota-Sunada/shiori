@@ -68,14 +68,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const { SERVER_ENDPOINT } = await import('./config/serverEndpoint');
         try {
           await Promise.all([
-            api.studentApi.list({ ttlMs: 1 }),
+            api.studentApi.list(),
             api.userApi.list(),
             api.teacherApi.list(),
             api.otanoshimiApi.list(),
             api.messagesApi.list(),
             api.boatAssignmentsApi.list(),
-            appFetch(`${SERVER_ENDPOINT}/api/otanoshimi`, { requiresAuth: true, cacheKey: CacheKeys.otanoshimi.teams, ttlMs: 1 }),
-            appFetch(`${SERVER_ENDPOINT}/api/schedules`, { requiresAuth: true, cacheKey: CacheKeys.schedules.list, ttlMs: 1 })
+            appFetch(`${SERVER_ENDPOINT}/api/otanoshimi`, { requiresAuth: true, cacheKey: CacheKeys.otanoshimi.teams }),
+            appFetch(`${SERVER_ENDPOINT}/api/schedules`, { requiresAuth: true, cacheKey: CacheKeys.schedules.list })
           ]);
         } catch {
           // 取得失敗は無視
