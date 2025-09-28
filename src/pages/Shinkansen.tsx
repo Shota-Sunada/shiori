@@ -225,7 +225,7 @@ const Shinkansen = () => {
                     <span>東京駅で降車</span>
                   </div>
                   <div className="flex items-center justify-center">
-                    <span className="font-semibold">東京駅では、進行方向右側の扉が開きます。</span>
+                    <span className="font-semibold text-center">東京駅では、進行方向右側の扉が開きます。</span>
                   </div>
                 </>
               ) : (
@@ -235,7 +235,7 @@ const Shinkansen = () => {
                     <span>新横浜駅で降車</span>
                   </div>
                   <div className="flex items-center justify-center">
-                    <span className="font-semibold">新横浜駅では、進行方向左側の扉が開きます。</span>
+                    <span className="font-semibold text-center">新横浜駅では、進行方向左側の扉が開きます。</span>
                   </div>
                 </>
               )}
@@ -296,7 +296,7 @@ const Shinkansen = () => {
                 <span>広島駅または福山駅で降車</span>
               </div>
               <div className="flex flex-col items-center justify-center">
-                <span className="font-semibold">広島駅･福山駅では、進行方向左側の扉が開きます。</span>
+                <span className="font-semibold text-center">広島駅･福山駅では、進行方向左側の扉が開きます。</span>
               </div>
               <div className="grid grid-cols-3 text-center">
                 <span>新横浜駅</span>
@@ -340,7 +340,7 @@ const Shinkansen = () => {
             }
           }}
         />
-        {offline ? <p className='text-red-500'>個別列車案内を開くには、インターネットに接続する必要があります。</p> : <p>↑JR東海のページが開きます。</p>}
+        {offline ? <p className="text-red-500">個別列車案内を開くには、インターネットに接続する必要があります。</p> : <p>↑JR東海のページが開きます。</p>}
         <MDButton text="新幹線座席表" arrowRight link={tab === 'day4' ? '/shinkansen/floor?direction=hiroshima' : '/shinkansen/floor'} />
         <BackToHome user={user} />
       </div>
