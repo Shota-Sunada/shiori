@@ -1,7 +1,7 @@
 {
   "name": "shiori",
   "private": true,
-  "version": "9.1.1",
+  "version": "9.1.2",
   "description": "修道高校79回生のための修学旅行のしおり",
   "type": "module",
   "scripts": {
