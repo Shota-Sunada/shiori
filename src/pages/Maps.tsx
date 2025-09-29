@@ -3,7 +3,7 @@ import MDButton, { BackToHome } from '../components/MDButton';
 import { useAuth } from '../auth-context';
 
 const Maps = () => {
-  type MapId = 'tdh' | 'fpr' | 'hiroshima_sta' | 'metro' | undefined;
+  type MapId = 'tdh' | 'fpr' | 'hiroshima_sta' | 'metro' | 'metro_station' | undefined;
 
   const { user } = useAuth();
   const [id, setId] = useState<MapId>(undefined);
@@ -32,6 +32,17 @@ const Maps = () => {
       return (
         <div className="flex flex-col items-center justify-center text-center">
           {Image('東京メトロ路線図', 'metro.png')}
+          <MDButton text="戻る" color="white" arrowLeft onClick={() => setId(undefined)} />
+        </div>
+      );
+    case 'metro_station':
+      return (
+        <div className="flex flex-col items-center justify-center text-center">
+          {Image('[ARDA/Urth] 丸ノ内線 東京駅 構内立体図', 'https://www.tokyometro.jp/station/yardmap_img/figure_yardmap_tokyo_all.jpg', 'インターネットに接続されていないので、表示できません。')}
+          {Image('[ARDA] 霞が関駅 構内立体図', 'https://www.tokyometro.jp/station/yardmap_img/figure_yardmap_kasumigaseki_all.jpg', 'インターネットに接続されていないので、表示できません。')}
+          {Image('[ARDA] 六本木駅 構内立体図', 'https://www.tokyometro.jp/station/yardmap_img/figure_yardmap_roppongi_all.jpg', 'インターネットに接続されていないので、表示できません。')}
+          {Image('[Urth] 大手町駅 構内立体図', 'https://www.tokyometro.jp/station/yardmap_img/figure_yardmap_otemachi_all.jpg', 'インターネットに接続されていないので、表示できません。')}
+          {Image('[Urth] 半蔵門線 半蔵門駅 構内立体図', 'https://www.tokyometro.jp/station/yardmap_img/figure_yardmap_hanzomon_all.jpg', 'インターネットに接続されていないので、表示できません。')}
           <MDButton text="戻る" color="white" arrowLeft onClick={() => setId(undefined)} />
         </div>
       );
@@ -68,6 +79,11 @@ const Maps = () => {
               className="bg-white border border-blue-300 hover:border-blue-500 text-blue-900 font-semibold rounded-xl shadow-md px-8 py-6 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg text-left"
               onClick={() => setId('metro')}>
               <span className="block">地下鉄メトロ路線図</span>
+            </button>
+            <button
+              className="bg-white border border-blue-300 hover:border-blue-500 text-blue-900 font-semibold rounded-xl shadow-md px-8 py-6 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg text-left"
+              onClick={() => setId('metro_station')}>
+              <span className="block">地下鉄駅構内図 (1日目)</span>
             </button>
             <button
               className="bg-white border border-blue-300 hover:border-blue-500 text-blue-900 font-semibold rounded-xl shadow-md px-8 py-6 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg text-left"
