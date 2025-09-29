@@ -3,7 +3,7 @@ import MDButton, { BackToHome } from '../components/MDButton';
 import { useAuth } from '../auth-context';
 
 const Maps = () => {
-  type MapId = 'tdh' | 'fpr' | 'hiroshima_sta' | undefined;
+  type MapId = 'tdh' | 'fpr' | 'hiroshima_sta' | 'metro' | undefined;
 
   const { user } = useAuth();
   const [id, setId] = useState<MapId>(undefined);
@@ -24,13 +24,21 @@ const Maps = () => {
       return (
         <div className="flex flex-col items-center justify-center text-center">
           {Image('広島駅集合場所', 'hiroshima_sta.png')}
+          {Image('広島駅集合場所', 'hiroshima_sta2.png')}
+          <MDButton text="戻る" color="white" arrowLeft onClick={() => setId(undefined)} />
+        </div>
+      );
+    case 'metro':
+      return (
+        <div className="flex flex-col items-center justify-center text-center">
+          {Image('東京メトロ路線図', 'metro.png')}
           <MDButton text="戻る" color="white" arrowLeft onClick={() => setId(undefined)} />
         </div>
       );
     case 'tdh':
       return (
         <div className="flex flex-col items-center justify-center text-center">
-          {Image('TDH 食事会場 B1F「天空」席', 'tenku.png')}
+          {Image('TDH 食事会場 B1F「天空」席', 'tenku2.png')}
           <MDButton text="戻る" color="white" arrowLeft onClick={() => setId(undefined)} />
           {Image('TDH 食事会場 3F「スーパーダイニングリラッサ」席', 'rirassa.png')}
           <MDButton text="戻る" color="white" arrowLeft onClick={() => setId(undefined)} />
@@ -54,7 +62,12 @@ const Maps = () => {
             <button
               className="bg-white border border-blue-300 hover:border-blue-500 text-blue-900 font-semibold rounded-xl shadow-md px-8 py-6 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg text-left"
               onClick={() => setId('hiroshima_sta')}>
-              <span className="block">広島駅</span>
+              <span className="block">広島駅集合場所</span>
+            </button>
+            <button
+              className="bg-white border border-blue-300 hover:border-blue-500 text-blue-900 font-semibold rounded-xl shadow-md px-8 py-6 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg text-left"
+              onClick={() => setId('metro')}>
+              <span className="block">地下鉄メトロ路線図</span>
             </button>
             <button
               className="bg-white border border-blue-300 hover:border-blue-500 text-blue-900 font-semibold rounded-xl shadow-md px-8 py-6 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg text-left"
