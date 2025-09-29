@@ -10,9 +10,11 @@ const Maps = () => {
 
   const Image = (title: string, src: string, alt?: string) => {
     return (
-      <div className="m-2">
-        <p className="text-2xl font-semibold">{title}</p>
-        <img src={src} alt={alt} />
+      <div className="my-6 flex flex-col items-center w-full max-w-2xl bg-white rounded-lg shadow-md p-4 border border-gray-200">
+        <p className="text-lg md:text-2xl font-bold mb-2 text-gray-800">{title}</p>
+        <div className="w-full flex justify-center">
+          <img src={src} alt={alt} className="rounded-lg max-w-full h-auto border border-gray-300 shadow-sm" />
+        </div>
       </div>
     );
   };
@@ -43,31 +45,31 @@ const Maps = () => {
       );
     case undefined:
       return (
-        <div className="flex flex-col items-center justify-center text-center">
-          <p>{'閲覧したいマップを選択してください'}</p>
-          <p>{"まだ作ってる途中だから雑です。m(._.)m"}</p>
-          <p
-            className="bg-blue-400 px-20 py-10 text-white m-3 cursor-pointer"
-            onClick={() => {
-              setId('hiroshima_sta');
-            }}>
-            {'広島駅'}
-          </p>
-          <p
-            className="bg-blue-400 px-20 py-10 text-white m-3 cursor-pointer"
-            onClick={() => {
-              setId('tdh');
-            }}>
-            {'東京ドームホテル'}
-          </p>
-          <p
-            className="bg-blue-400 px-20 py-10 text-white m-3 cursor-pointer"
-            onClick={() => {
-              setId('fpr');
-            }}>
-            {'フジプレミアムリゾート'}
-          </p>
-          <BackToHome user={user} />
+        <div className="flex flex-col items-center justify-center min-h-[60vh] py-8 px-2">
+          <div className="mb-6 text-center">
+            <p className="text-xl md:text-2xl font-bold text-blue-900 mb-2">閲覧したいマップを選択してください</p>
+            <p className="text-sm text-gray-500">※ まだ作成途中です。m(._.)m</p>
+          </div>
+          <div className="flex flex-col gap-6 w-full max-w-md mx-auto">
+            <button
+              className="bg-white border border-blue-300 hover:border-blue-500 text-blue-900 font-semibold rounded-xl shadow-md px-8 py-6 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg text-left"
+              onClick={() => setId('hiroshima_sta')}>
+              <span className="block">広島駅</span>
+            </button>
+            <button
+              className="bg-white border border-blue-300 hover:border-blue-500 text-blue-900 font-semibold rounded-xl shadow-md px-8 py-6 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg text-left"
+              onClick={() => setId('tdh')}>
+              <span className="block">東京ドームホテル</span>
+            </button>
+            <button
+              className="bg-white border border-blue-300 hover:border-blue-500 text-blue-900 font-semibold rounded-xl shadow-md px-8 py-6 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg text-left"
+              onClick={() => setId('fpr')}>
+              <span className="block">フジプレミアムリゾート</span>
+            </button>
+          </div>
+          <div className="mt-10">
+            <BackToHome user={user} />
+          </div>
         </div>
       );
   }
