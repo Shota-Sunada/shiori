@@ -67,7 +67,6 @@ const Maps = () => {
         <div className="flex flex-col items-center justify-center min-h-[60vh] py-8 px-2">
           <div className="mb-6 text-center">
             <p className="text-xl md:text-2xl font-bold text-blue-900 mb-2">閲覧したいマップを選択してください</p>
-            <p className="text-sm text-gray-500">※ まだ作成途中です。m(._.)m</p>
           </div>
           <div className="flex flex-col gap-6 w-full max-w-md mx-auto">
             <button
