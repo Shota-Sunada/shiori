@@ -172,8 +172,17 @@ const Index = () => {
       <Memo />
 
       {!user.is_teacher && (
-        <div className="mt-4">
+        <div className="mt-4 flex flex-col items-center justify-center">
           <MDButton text="持ち物チェッカー" arrowRight link="/goods-check" />
+          <p className="text-center">東京メトロの路線図が下から見られます</p>
+          <p className="text-center">(東京メトロのページが開きます)</p>
+          <MDButton
+            text="東京メトロ路線図"
+            color="green"
+            onClick={() => {
+              window.open('https://www.tokyometro.jp/station/index.html', '_blank', 'noreferrer');
+            }}
+          />
           {/* <MDButton text="点呼履歴" arrowRight link="/roll-call-history" /> */}
         </div>
       )}
