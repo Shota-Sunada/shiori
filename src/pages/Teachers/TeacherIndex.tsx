@@ -70,6 +70,15 @@ const TeacherIndex = () => {
       <MDButton text="メッセージ送信" arrowRight link="/teacher/messages"></MDButton>
       {/* <MDButton text="点呼" arrowRight link="/teacher/call"></MDButton> */}
       <MDButton text="お楽しみ会" arrowRight link="/otanoshimi" color="green"></MDButton>
+      <p className="text-center">東京メトロの路線図が下から見られます</p>
+      <p className="text-center">(東京メトロのページが開きます)</p>
+      <MDButton
+        text="東京メトロ路線図"
+        color="green"
+        onClick={() => {
+          window.open('https://www.tokyometro.jp/station/index.html', '_blank', 'noreferrer');
+        }}
+      />
     </div>
   );
 };
