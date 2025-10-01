@@ -467,6 +467,7 @@ const TeacherSendMessages = () => {
             })()
           )}
         </div>
+        <p className="text-center mt-3">外の部分を押すと閉じます</p>
       </Modal>
     </>
   );
