@@ -1,4 +1,5 @@
 // import { useEffect, useState } from 'react';
+import { Fragment } from 'react';
 import type { COURSES_DAY1_KEY, COURSES_DAY3_KEY, COURSES_DAY4_KEY } from '../data/courses';
 import { pad2 } from '../helpers/pad2';
 import Message from './Message';
@@ -155,10 +156,18 @@ const TimeTable = ({ courseKey, ref, courses }: TimeTableProps) => {
                           );
                         } else {
                           const m = item.data as Message;
+                          const lines = m.text.split(/\r?\n/);
                           return (
                             <li key={`message-${m.id}`} className="list-none">
                               <Message type={m.type}>
-                                <span>{m.text}</span>
+                                <span>
+                                  {lines.map((line, idx) => (
+                                    <Fragment key={`${m.id}-line-${idx}`}>
+                                      {line}
+                                      {idx < lines.length - 1 ? <br /> : null}
+                                    </Fragment>
+                                  ))}
+                                </span>
                               </Message>
                             </li>
                           );
