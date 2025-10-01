@@ -17,12 +17,25 @@ const Messages = () => {
   // メッセージ一覧取得関数を外に出す
   const fetchAll = useCallback(async () => {
     setError(null);
-    setError(null);
     try {
       const [msgData, teachers] = await Promise.all([messagesApi.list(), teacherApi.list()]);
-      // my_emoji_idをクライアント側で必ずセット
       const userId = user?.userId ? Number(user.userId) : undefined;
-      const withMyEmoji = msgData.map((m) => {
+      // 自分宛以外のメッセージを除外
+      const filtered = msgData.filter((m) => {
+        if (!userId) return false;
+        if (m.target_type === 'all') return true;
+        if (m.target_type === 'group' && Array.isArray(m.read_reactions)) {
+          // グループ宛はread_reactionsに自分が含まれていれば受信対象
+          return m.read_reactions.some((r) => r.user_id === userId);
+        }
+        if (m.target_type === 'custom' && Array.isArray(m.read_reactions)) {
+          // customも同様
+          return m.read_reactions.some((r) => r.user_id === userId);
+        }
+        return false;
+      });
+      // my_emoji_idをクライアント側で必ずセット
+      const withMyEmoji = filtered.map((m) => {
         let my_emoji_id = m.my_emoji_id;
         if (userId && Array.isArray(m.read_reactions)) {
           const found = m.read_reactions.find((r) => r.user_id === userId);
@@ -97,9 +110,7 @@ const Messages = () => {
         </>
       ) : (
         <>
-          <div className="flex flex-col items-center justify-center">
-          {user?.is_teacher ? <MDButton text="メッセージを送信" arrowRight link="/teacher/messages" /> : <></>}
-          </div>
+          <div className="flex flex-col items-center justify-center">{user?.is_teacher ? <MDButton text="メッセージを送信" arrowRight link="/teacher/messages" /> : <></>}</div>
 
           <ul className="space-y-10">
             {messages.map((msg) => {

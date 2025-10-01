@@ -40,9 +40,19 @@ const NotificationBanner = ({ onClick }: { onClick?: () => void }) => {
   }
 
   // 生徒は未読件数で分岐
-  const unreadMessages = messages.filter((m) => {
-    if (!user || !Array.isArray(m.read_reactions)) return m.is_read !== 1;
-    return !m.read_reactions.some((r) => r.user_id === Number(user.userId));
+  // 自分宛でないメッセージは未読件数に含めない
+  const userId = user?.userId ? Number(user.userId) : undefined;
+  const filteredMessages = messages.filter((m) => {
+    if (!userId) return false;
+    if (m.target_type === 'all') return true;
+    if ((m.target_type === 'group' || m.target_type === 'custom') && Array.isArray(m.read_reactions)) {
+      return m.read_reactions.some((r) => r.user_id === userId);
+    }
+    return false;
+  });
+  const unreadMessages = filteredMessages.filter((m) => {
+    if (!userId || !Array.isArray(m.read_reactions)) return m.is_read !== 1;
+    return !m.read_reactions.some((r) => r.user_id === userId);
   });
   const unreadCount = unreadMessages.length;
 
