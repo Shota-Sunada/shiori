@@ -271,7 +271,7 @@ const ShinkansenFloor = () => {
                 <div key={car} className="bg-white rounded-lg shadow p-2 flex flex-col items-center">
                   <div className="flex flex-row items-center justify-center font-semibold text-lg my-2">
                     <p className="mx-1">{car}号車</p>
-                    <img className="mx-1" src="https://railway.jr-central.co.jp/train/_common/_img/uni_bod_ico_07_02.gif" alt="禁煙" />
+                  
                   </div>
                   {/* 上部設備（reverse対応） */}
                   {topFacilitiesArr.map((fg, idx) => (
@@ -364,7 +364,6 @@ const ShinkansenFloor = () => {
                   ))}
                   <div className="flex flex-row items-center justify-center font-semibold text-lg my-2">
                     <p className="mx-1">{car}号車</p>
-                    <img className="mx-1" src="https://railway.jr-central.co.jp/train/_common/_img/uni_bod_ico_07_02.gif" alt="禁煙" />
                   </div>
                   <MDButton text="戻る" arrowLeft color="white" link="/shinkansen" />
                 </div>
