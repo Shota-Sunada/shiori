@@ -61,7 +61,11 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
           setCurrentRoomNumber(room);
           setShowRoommateModal(true);
         } else {
-          const data = await appFetch<Roommate[]>(`${SERVER_ENDPOINT}/api/students/roommates/${hotel}/${room}`, { requiresAuth: true, alwaysFetch: true });
+          const data = await appFetch<Roommate[]>(`${SERVER_ENDPOINT}/api/students/roommates/${hotel}/${room}`, {
+            requiresAuth: true,
+            alwaysFetch: true,
+            cacheKey: CacheKeys.roommates.key(hotel, room)
+          });
           setCurrentRoommates(data);
           setCurrentHotelName(hotelName);
           setCurrentRoomNumber(room);
@@ -209,8 +213,8 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
             <td>
               <p>{(studentData && COURSES_DAY1.find((x) => x.key === studentData.day1id)?.name) || (teacherData && COURSES_DAY1.find((x) => x.key === teacherData.day1id)?.name) || '◯◯◯◯◯◯◯◯'}</p>
               <div className="flex flex-row">
-                <p className="text-gray-600 text-xs">{'引率: '}</p>
                 <p className="text-gray-600 text-xs px-1 items-center justify-center">
+                  {'引率: '}
                   {(studentData && teachers.filter((teacher) => teacher.day1id === studentData.day1id).map((teacher) => `${teacher.surname} ${teacher.forename} 先生${'　'}`)) ||
                     (teacherData && teachers.filter((teacher) => teacher.day1id === teacherData.day1id).map((teacher) => `${teacher.surname} ${teacher.forename} 先生${'　'}`))}
                 </p>
@@ -219,7 +223,18 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
           </tr>
           <tr>
             <td className="label-cell">{'バス'}</td>
-            <td>{(studentData && `${studentData.day1bus}号車`) || (teacherData && `${teacherData.day1bus ?? '◯◯'}号車`) || '◯◯号車'}</td>
+            <td
+              className="cell-interactive"
+              onClick={() => {
+                navigateWithPrefetch({
+                  to: `/bus?bus=day1`,
+                  key: 'busListDay1',
+                  fetcher: async () => appFetch(`${SERVER_ENDPOINT}/api/students`, { requiresAuth: true })
+                });
+              }}>
+              <p>{(studentData && `${studentData.day1bus}号車`) || (teacherData && `${teacherData.day1bus ?? '◯◯'}号車`) || '◯◯号車'}</p>
+              <p>{'クリックしてバス割一覧を表示！'}</p>
+            </td>
           </tr>
           {/* day1 END */}
           {/* day2 START */}
@@ -231,7 +246,7 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
             <td>{'班別自由行動'}</td>
           </tr>
           <tr>
-            <td className="label-cell">{'班の一覧'}</td>
+            <td className="label-cell">{'班一覧'}</td>
             <td
               className="cell-interactive"
               onClick={() => {
@@ -241,7 +256,7 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
                   fetcher: async () => appFetch(`${SERVER_ENDPOINT}/api/students`, { requiresAuth: true })
                 });
               }}>
-              {'班の一覧をチェック！'}
+              {'自由行動班一覧をチェック！'}
             </td>
           </tr>
           {teacherData && (
@@ -260,8 +275,8 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
             <td>
               <p>{(studentData && COURSES_DAY3.find((x) => x.key === studentData.day3id)?.name) || (teacherData && COURSES_DAY3.find((x) => x.key === teacherData.day3id)?.name) || '◯◯◯◯◯◯◯◯'}</p>
               <div className="flex flex-row">
-                <p className="text-gray-600 text-xs">{'引率: '}</p>
                 <p className="text-gray-600 text-xs px-1 items-center justify-center">
+                  {'引率: '}
                   {(studentData && teachers.filter((teacher) => teacher.day3id === studentData.day3id).map((teacher) => `${teacher.surname} ${teacher.forename} 先生${'　'}`)) ||
                     (teacherData && teachers.filter((teacher) => teacher.day3id === teacherData.day3id).map((teacher) => `${teacher.surname} ${teacher.forename} 先生${'　'}`))}
                 </p>
@@ -270,7 +285,18 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
           </tr>
           <tr>
             <td className="label-cell">{'バス'}</td>
-            <td>{(studentData && `${studentData.day3bus}号車`) || (teacherData && `${teacherData.day3bus ?? '◯◯'}号車`) || '◯◯号車'}</td>
+            <td
+              className="cell-interactive"
+              onClick={() => {
+                navigateWithPrefetch({
+                  to: `/bus?bus=day3`,
+                  key: 'busListDay3',
+                  fetcher: async () => appFetch(`${SERVER_ENDPOINT}/api/students`, { requiresAuth: true })
+                });
+              }}>
+              <p>{(studentData && `${studentData.day3bus}号車`) || (teacherData && `${teacherData.day3bus ?? '◯◯'}号車`) || '◯◯号車'}</p>
+              <p>{'クリックしてバス割一覧を表示！'}</p>
+            </td>
           </tr>
           {((studentData && studentData.day3id === 'okutama') || teacherData) && (
             <tr>
@@ -310,7 +336,7 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
           {/* day3 END */}
           {/* day4 START */}
           <tr>
-            <td rowSpan={1} className="vcell vcell--min day-col">
+            <td rowSpan={2} className="vcell vcell--min day-col">
               <VerticalLabel text="４日目" />
             </td>
             <td className="label-cell">{'研修先'}</td>
@@ -323,8 +349,8 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
                     {day4CourseName}
                   </p>
                   <div className="flex flex-row">
-                    <p className="text-gray-600 text-xs">{'引率: '}</p>
                     <p className="text-gray-600 text-xs px-1 items-center justify-center">
+                      {'引率: '}
                       {teachers.filter((teacher) => teacher.day4class === studentData.class).map((teacher) => `${teacher.surname} ${teacher.forename} 先生${'　'}`)}
                     </p>
                   </div>
@@ -338,13 +364,9 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
                       {day4CourseName}
                     </p>
                     <div className="flex flex-row">
-                      <p className="text-gray-600 text-xs">{'引率: '}</p>
                       <div className="text-gray-600 text-xs px-1 items-center justify-center">
-                        {teachers
-                          .filter((teacher) => teacher.day4class === teacherData.day4class)
-                          .map((teacher) => (
-                            `${teacher.surname} ${teacher.forename} 先生${'　'}`
-                          ))}
+                        {'引率: '}
+                        {teachers.filter((teacher) => teacher.day4class === teacherData.day4class).map((teacher) => `${teacher.surname} ${teacher.forename} 先生${'　'}`)}
                       </div>
                     </div>
                   </>
@@ -356,10 +378,25 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
                 )}
             </td>
           </tr>
+          <tr>
+            <td className="label-cell">{'バス'}</td>
+            <td
+              className="cell-interactive"
+              onClick={() => {
+                navigateWithPrefetch({
+                  to: `/bus?bus=day4`,
+                  key: 'busListDay4',
+                  fetcher: async () => appFetch(`${SERVER_ENDPOINT}/api/students`, { requiresAuth: true })
+                });
+              }}>
+              <p>{(studentData && `${studentData.class}号車`) || (teacherData && `${teacherData.day4class ?? '◯◯'}号車`) || '◯◯号車'}</p>
+              <p>{'クリックしてバス割一覧を表示！'}</p>
+            </td>
+          </tr>
           {/* day4 END */}
           {/* hotel START */}
           <tr>
-            <td id="hotel-rowspan" rowSpan={2} className="vcell day-col">
+            <td id="hotel-rowspan" rowSpan={3} className="vcell day-col">
               <VerticalLabel text="ホテル" />
             </td>
             <td className="label-cell">
@@ -379,7 +416,7 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
               <p>
                 {(studentData && (
                   <>
-                    {studentData.room_tdh.toString().substring(0, 2)}
+                    {studentData.room_tdh >= 1000 ? studentData.room_tdh.toString().substring(0, 2) : studentData.room_tdh.toString().substring(0, 1)}
                     {'階 '}
                     {studentData.room_tdh}
                     {'号室'}
@@ -389,7 +426,7 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
                     <>
                       {teacherData.room_tdh ? (
                         <>
-                          {teacherData.room_tdh.toString().substring(0, 2)}
+                          {teacherData.room_tdh >= 1000 ? teacherData.room_tdh.toString().substring(0, 2) : teacherData.room_tdh.toString().substring(0, 1)}
                           {'階 '}
                           {teacherData.room_tdh}
                           {'号室'}
@@ -420,7 +457,7 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
               <p>
                 {(studentData && (
                   <>
-                    {'Hotel Spor:Sion '}
+                    {'ホテル スポルシオン '}
                     {studentData.room_fpr.toString().substring(1, 2)}
                     {'階 '}
                     {studentData.room_fpr}
@@ -431,7 +468,7 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
                     <>
                       {teacherData.room_fpr ? (
                         <>
-                          {'Hotel Spor:Sion '}
+                          {'ホテル スポルシオン '}
                           {teacherData.room_fpr.toString().substring(1, 2)}
                           {'階 '}
                           {teacherData.room_fpr}
@@ -444,6 +481,22 @@ const IndexTable = ({ studentData = null, teacherData = null, isStudentSearch = 
                   )) ||
                   '◯◯◯号室'}
               </p>
+            </td>
+          </tr>
+          <tr>
+            <td className="label-cell">
+              <p>{'部屋割'}</p>
+            </td>
+            <td
+              className="cell-interactive"
+              onClick={() => {
+                navigateWithPrefetch({
+                  to: '/hotel',
+                  key: 'hotel',
+                  fetcher: async () => Promise.resolve(null)
+                });
+              }}>
+              <p>{'ホテル部屋割一覧をチェック！'}</p>
             </td>
           </tr>
           {/* hotel END */}

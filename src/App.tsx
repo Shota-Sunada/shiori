@@ -13,16 +13,16 @@ import UserAdmin from './pages/Admin/UserAdmin';
 import Page404 from './pages/Page404';
 import Otanoshimi from './pages/Otanoshimi';
 import TeacherIndex from './pages/Teachers/TeacherIndex';
-import Call from './pages/Call';
+// import Call from './pages/Call';
 import OtanoshimiAdmin from './pages/Admin/OtanoshimiAdmin';
 import NonNotification from './pages/NonNotification';
-import TeacherRollCallList from './pages/Teachers/TeacherRollCallList';
+// import TeacherRollCallList from './pages/Teachers/TeacherRollCallList';
 import Credits from './pages/Credits';
-import TeacherRollCall from './pages/Teachers/TeacherRollCall';
-import TeacherRollCallViewer from './pages/Teachers/TeacherRollCallViewer';
+// import TeacherRollCall from './pages/Teachers/TeacherRollCall';
+// import TeacherRollCallViewer from './pages/Teachers/TeacherRollCallViewer';
 import TeacherIndexTable from './pages/Teachers/TeacherIndexTable';
 import TeacherAdmin from './pages/Admin/TeacherAdmin';
-import RollCallHistory from './pages/RollCallHistory';
+// import RollCallHistory from './pages/RollCallHistory';
 import InstallPWA from './pages/InstallPWA';
 import EnvDebug from './pages/EnvDebug';
 import VersionMismatch from './pages/VersionMismatch';
@@ -39,6 +39,11 @@ import Boats from './pages/Boats';
 import BoatsAdmin from './pages/Admin/BoatsAdmin';
 import ShinkansenFloor from './pages/ShinkansenFloor';
 import Day2 from './pages/Day2';
+import TeacherSendMessages from './pages/Teachers/TeacherSendMessages';
+import Messages from './pages/Messages';
+// import { isOffline } from './helpers/isOffline';
+import Hotel from './pages/Hotel';
+import Bus from './pages/Bus';
 
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: unknown }> {
   constructor(props: { children: React.ReactNode }) {
@@ -283,15 +288,22 @@ function App() {
     }
     const unsubscribe = onMessage(messaging, async (payload) => {
       if (payload.data?.type === 'default_notification') {
+        // payload.notificationが存在する場合はOS通知に任せて何もしない（重複防止）
+        if (payload.notification) return;
+
+        const title = payload.data.title || payload.data.originalTitle || '通知';
+        const body = payload.data.body || payload.data.originalBody || '';
+        const link = payload.data.link || '/';
+
         // iOS SafariではフォアグラウンドでもOS通知を出す方が気付きやすい
         try {
           if ('serviceWorker' in navigator) {
             const reg = await navigator.serviceWorker.getRegistration();
             if (reg && Notification.permission === 'granted') {
-              await reg.showNotification(payload.data.originalTitle || '通知', {
-                body: payload.data.originalBody || '',
+              await reg.showNotification(title, {
+                body,
                 icon: '/icon.png',
-                data: { url: payload.data.link || '/' }
+                data: { url: link }
               });
               return;
             }
@@ -300,8 +312,8 @@ function App() {
           /* ignore */
         }
         // フォールバック: 既存のalert
-        alert(`${payload.data.originalTitle}\n${payload.data.originalBody}`);
-        if (payload.data.link) navigate(payload.data.link);
+        alert(`${title}\n${body}`);
+        if (link && link !== '/') navigate(link);
       }
     });
     return () => unsubscribe();
@@ -311,10 +323,10 @@ function App() {
   const mainRoutes = [
     { path: '/', element: <Index /> },
     { path: '/otanoshimi', element: <Otanoshimi /> },
-    { path: '/call', element: <Call /> },
+    // { path: '/call', element: <Call /> },
     { path: '/credits', element: <Credits /> },
     { path: '/env-debug', element: <EnvDebug /> },
-    { path: '/roll-call-history', element: <RollCallHistory /> },
+    // { path: '/roll-call-history', element: <RollCallHistory /> },
     { path: '/yotei', element: <Yotei /> },
     { path: '/goods-check', element: <GoodsCheck /> },
     { path: '/maps', element: <Maps /> },
@@ -323,11 +335,15 @@ function App() {
     { path: '/shinkansen/floor', element: <ShinkansenFloor /> },
     { path: '/boats', element: <Boats /> },
     { path: '/day2', element: <Day2 /> },
+    { path: '/hotel', element: <Hotel /> },
+    { path: '/messages', element: <Messages /> },
+    { path: '/bus', element: <Bus /> },
     { path: '/teacher', element: <TeacherIndex /> },
     { path: '/teacher/search', element: <TeacherIndexTable /> },
-    { path: '/teacher/roll-call-list', element: <TeacherRollCallList /> },
-    { path: '/teacher/call', element: <TeacherRollCall /> },
-    { path: '/teacher/call-viewer', element: <TeacherRollCallViewer /> }
+    // { path: '/teacher/roll-call-list', element: <TeacherRollCallList /> },
+    // { path: '/teacher/call', element: <TeacherRollCall /> },
+    // { path: '/teacher/call-viewer', element: <TeacherRollCallViewer /> },
+    { path: '/teacher/messages', element: <TeacherSendMessages /> }
   ];
   const adminRoutes = [
     { path: '/admin/students', element: <Admin /> },

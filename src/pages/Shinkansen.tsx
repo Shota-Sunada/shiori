@@ -1,9 +1,11 @@
+import LoadingPage from '../components/LoadingPage';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../auth-context';
 import { studentApi, teacherApi, type StudentDTO, type TeacherDTO } from '../helpers/domainApi';
 import Message from '../components/Message';
 import MDButton, { BackToHome } from '../components/MDButton';
+import { isOffline } from '../helpers/isOffline';
 
 const Shinkansen = () => {
   const { user } = useAuth();
@@ -160,8 +162,19 @@ const Shinkansen = () => {
     }
   };
 
+  const [offline, setOffline] = useState(isOffline());
+  useEffect(() => {
+    const update = () => setOffline(isOffline());
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
+    return () => {
+      window.removeEventListener('online', update);
+      window.removeEventListener('offline', update);
+    };
+  }, []);
+
   if (loading) {
-    return <div className="p-6">読み込み中...</div>;
+    return <LoadingPage message="読み込み中..." />;
   }
 
   if (!student && !teacher) {
@@ -212,7 +225,7 @@ const Shinkansen = () => {
                     <span>東京駅で降車</span>
                   </div>
                   <div className="flex items-center justify-center">
-                    <span className="font-semibold">東京駅では、進行方向右側の扉が開きます。</span>
+                    <span className="font-semibold text-center">東京駅では、進行方向右側の扉が開きます。</span>
                   </div>
                 </>
               ) : (
@@ -222,7 +235,7 @@ const Shinkansen = () => {
                     <span>新横浜駅で降車</span>
                   </div>
                   <div className="flex items-center justify-center">
-                    <span className="font-semibold">新横浜駅では、進行方向左側の扉が開きます。</span>
+                    <span className="font-semibold text-center">新横浜駅では、進行方向左側の扉が開きます。</span>
                   </div>
                 </>
               )}
@@ -240,14 +253,16 @@ const Shinkansen = () => {
             </div>
           </div>
           <Message type="important">
-            <li>離れた場所との席の入れ替えはお控えください。</li>
-            <li>一般の方のご迷惑にならないように心がけましょう。</li>
-            <li>新幹線車内は Free Wi-Fi が使用できます。</li>
-            <li>周囲の座席は、下の「新幹線座席表」から確認できます。</li>
-            <li>走行位置は、下の「新幹線 個別列車案内 (JR東海)」で詳しく確認できます。</li>
-            <li>新横浜駅の停車時間は、1分です。降車する人はあらかじめ準備をしておきましょう。</li>
-            <li>乗降時は、混雑回避のため上の「乗降ドア」に記載された場所で乗り降りしましょう。</li>
-            <li>運行状況により、到着時刻や発着ホームが変更になる場合があります。</li>
+            <div className="ml-2">
+              <li>離れた場所との席の入れ替えはお控えください。</li>
+              <li>一般の方のご迷惑にならないように心がけましょう。</li>
+              <li>新幹線車内は Free Wi-Fi が使用できます。</li>
+              <li>周囲の座席は、下の「新幹線座席表」から確認できます。</li>
+              <li>走行位置は、下の「新幹線 個別列車案内 (JR東海)」で詳しく確認できます。</li>
+              <li>新横浜駅の停車時間は、1分です。降車する人はあらかじめ準備をしておきましょう。</li>
+              <li>乗降時は、混雑回避のため上の「乗降ドア」に記載された場所で乗り降りしましょう。</li>
+              <li>運行状況により、到着時刻や発着ホームが変更になる場合があります。</li>
+            </div>
           </Message>
         </>
       )}
@@ -281,7 +296,7 @@ const Shinkansen = () => {
                 <span>広島駅または福山駅で降車</span>
               </div>
               <div className="flex flex-col items-center justify-center">
-                <span className="font-semibold">広島駅･福山駅では、進行方向左側の扉が開きます。</span>
+                <span className="font-semibold text-center">広島駅･福山駅では、進行方向左側の扉が開きます。</span>
               </div>
               <div className="grid grid-cols-3 text-center">
                 <span>新横浜駅</span>
@@ -297,21 +312,24 @@ const Shinkansen = () => {
             </div>
           </div>
           <Message type="important">
-            <li>同じ班内であれば、座席の入れ替えが可能です。</li>
-            <li>離れた場所との席の入れ替えはお控えください。</li>
-            <li>一般の方のご迷惑にならないように心がけましょう。</li>
-            <li>新幹線車内は Free Wi-Fi が使用できます。</li>
-            <li>周囲の座席は、下の「新幹線座席表」から確認できます。</li>
-            <li>走行位置は、下の「新幹線 個別列車案内 (JR東海)」で詳しく確認できます。</li>
-            <li>新横浜駅、福山駅の停車時間は、1分です。あらかじめ準備をしておきましょう。</li>
-            <li>乗降時は、混雑回避のため上の「乗降ドア」に記載された場所で乗り降りしましょう。</li>
-            <li>運行状況により、到着時刻や発着ホームが変更になる場合があります。</li>
+            <div className="ml-2">
+              <li>しおりでは席が指定されていますが、同じ班内であれば座席の入れ替えが自由に可能です。</li>
+              <li>離れた場所との席の入れ替えはお控えください。</li>
+              <li>一般の方のご迷惑にならないように心がけましょう。</li>
+              <li>新幹線車内は Free Wi-Fi が使用できます。</li>
+              <li>周囲の座席は、下の「新幹線座席表」から確認できます。</li>
+              <li>走行位置は、下の「新幹線 個別列車案内 (JR東海)」で詳しく確認できます。</li>
+              <li>新横浜駅、福山駅の停車時間は、1分です。あらかじめ準備をしておきましょう。</li>
+              <li>乗降時は、混雑回避のため上の「乗降ドア」に記載された場所で乗り降りしましょう。</li>
+              <li>運行状況により、到着時刻や発着ホームが変更になる場合があります。</li>
+            </div>
           </Message>
         </>
       )}
-      <div className="flex flex-col items-center justify-center">
+      <div className="flex flex-col items-center justify-center m-2">
         <p>新幹線 個別列車案内</p>
         <MDButton
+          disabled={offline}
           text={tab === 'day1' ? 'のぞみ84号 (ゆき)' : tab === 'day4' ? 'のぞみ77号 (かえり)' : '不明'}
           color="orange"
           onClick={() => {
@@ -322,7 +340,7 @@ const Shinkansen = () => {
             }
           }}
         />
-        <p>↑JR東海のページが開きます。</p>
+        {offline ? <p className="text-red-500">個別列車案内を開くには、インターネットに接続する必要があります。</p> : <p>↑JR東海のページが開きます。</p>}
         <MDButton text="新幹線座席表" arrowRight link={tab === 'day4' ? '/shinkansen/floor?direction=hiroshima' : '/shinkansen/floor'} />
         <BackToHome user={user} />
       </div>

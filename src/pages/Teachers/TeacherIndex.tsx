@@ -9,6 +9,8 @@ import { teacherApi } from '../../helpers/domainApi';
 import IndexTable from '../../components/IndexTable';
 // 生徒 IndexTable と同じ幅/スタイルを適用するため CSS を追加インポート
 import '../../styles/index-table.css';
+import Memo from '../../components/Memo';
+import NotificationBanner from '../../components/NotificationBanner';
 
 const TeacherIndex = () => {
   const { user, loading, token } = useAuth();
@@ -50,19 +52,33 @@ const TeacherIndex = () => {
   return (
     <div className="flex flex-col items-center justify-center m-[10px]">
       <div className="m-2 flex flex-col items-center justify-center">
-        <p className="m-[10px] text-2xl">{'ようこそ、先生用ページへ'}</p>
-        <p className="text-xl">
+        <p className="m-[10px] text-2xl text-center">{'ようこそ、先生用ページへ'}</p>
+        <p className="text-xl text-center">
           {teacherData ? `${teacherData.surname} ${teacherData.forename} 先生` : user.is_teacher ? '先生データ未登録' : '管理者'}
           {'としてログイン中'}
         </p>
         {teacherError && <p className="text-sm text-red-600 mt-2">{teacherError}</p>}
       </div>
 
+      <NotificationBanner onClick={() => navigate('/messages')} />
+
       <IndexTable teacherData={teacherData} />
 
+      <Memo />
+
       <MDButton text="生徒を検索" arrowRight link="/teacher/search"></MDButton>
-      <MDButton text="点呼" arrowRight link="/teacher/call"></MDButton>
+      <MDButton text="メッセージ送信" arrowRight link="/teacher/messages"></MDButton>
+      {/* <MDButton text="点呼" arrowRight link="/teacher/call"></MDButton> */}
       <MDButton text="お楽しみ会" arrowRight link="/otanoshimi" color="green"></MDButton>
+      <p className="text-center">東京メトロの路線図が下から見られます</p>
+      <p className="text-center">(東京メトロのページが開きます)</p>
+      <MDButton
+        text="東京メトロ路線図"
+        color="green"
+        onClick={() => {
+          window.open('https://www.tokyometro.jp/station/index.html', '_blank', 'noreferrer');
+        }}
+      />
     </div>
   );
 };

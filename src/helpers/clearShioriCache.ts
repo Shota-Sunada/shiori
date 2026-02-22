@@ -2,7 +2,7 @@
 // jwt_tokenは保持し、それ以外のlocalStorage/sessionStorageキャッシュを削除
 export function clearShioriCache() {
   try {
-    const keepKeys = ['jwt_token'];
+    const keepKeys = ['jwt_token', 'shiori_memo'];
     const toRemove: string[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);

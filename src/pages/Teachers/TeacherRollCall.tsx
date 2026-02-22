@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent, useMemo } from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import KanaSearchModal from '../../components/KanaSearchModal';
 import type { StudentDTO } from '../../helpers/domainApi';
 import MDButton, { BackToHome } from '../../components/MDButton';
@@ -7,14 +7,12 @@ import { useAuth } from '../../auth-context';
 import { rollCallApi, studentApi } from '../../helpers/domainApi';
 import { useNavigate } from 'react-router-dom';
 import CenterMessage from '../../components/CenterMessage';
-interface RollCallGroup {
-  id: number;
-  name: string;
-  student_ids: number[];
-}
+import StudentPresetSelector, { type RollCallGroup } from '../../components/StudentPresetSelector';
 const TeacherRollCall = () => {
   const { user, token } = useAuth();
   const navigate = useNavigate();
+
+  // 通知内容はサーバー側で設定するため、フロントでは不要
 
   const [allStudents, setAllStudents] = useState<StudentDTO[]>([]);
   const [selectedStudents, setSelectedStudents] = useState<StudentDTO[]>([]);
@@ -23,6 +21,7 @@ const TeacherRollCall = () => {
   const [targetStudents, setTargetStudents] = useState<string>('default');
   const [rollCallGroups, setRollCallGroups] = useState<RollCallGroup[]>([]);
   const [isGroupEditorOpen, setGroupEditorOpen] = useState(false);
+  // 通知内容のstateは不要
 
   const fetchRollCallGroups = useCallback(async () => {
     if (!token) return;
@@ -99,6 +98,8 @@ const TeacherRollCall = () => {
         requestBody.group_name = targetStudents;
       }
 
+      // 通知内容は送信しない
+
       try {
         const { rollCallId } = await rollCallApi.start(requestBody);
 
@@ -109,16 +110,6 @@ const TeacherRollCall = () => {
       }
     },
     [user, token, selectedStudents, targetStudents, durationMinutes, rollCallGroups, navigate]
-  );
-
-  const groupOptions = useMemo(
-    () =>
-      rollCallGroups.map((g) => (
-        <option key={g.id} value={g.name}>
-          {g.name}
-        </option>
-      )),
-    [rollCallGroups]
   );
 
   if (!user) return <CenterMessage>認証が必要です。</CenterMessage>;
@@ -137,27 +128,12 @@ const TeacherRollCall = () => {
               prefetchKey="rollCalls"
               prefetchFetcher={async () => rollCallApi.listForTeacher(user!.userId, { alwaysFetch: true })}
             />
-            <MDButton text="ﾌﾟﾘｾｯﾄを編集" arrowRight color="white" onClick={() => setGroupEditorOpen(true)} />
+            <MDButton text="送信先ﾘｽﾄを編集" arrowRight color="white" onClick={() => setGroupEditorOpen(true)} />
           </div>
 
           <form className="w-full mt-4" onSubmit={handleCallSubmit}>
-            <div className="mb-4">
-              <label htmlFor="target_students" className="block text-gray-700 text-sm font-bold mb-2">
-                {'プリセットを選択'}
-              </label>
-              <select
-                name="target_students"
-                id="target_students"
-                value={targetStudents}
-                onChange={(e) => {
-                  setTargetStudents(e.target.value);
-                }}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white">
-                <option value="default">{'選択してください'}</option>
-                <option value="all">{'【取扱注意】全員'}</option>
-                {groupOptions}
-              </select>
-            </div>
+            <StudentPresetSelector value={targetStudents} onChange={setTargetStudents} rollCallGroups={rollCallGroups} />
+            {/* 通知内容の入力欄は不要なので削除 */}
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2">{'点呼時間 (分)'}</label>
               <div className="flex justify-center space-x-2">

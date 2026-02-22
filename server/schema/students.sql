@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS students (
+  gakuseki INT PRIMARY KEY,
+  surname VARCHAR(255) NOT NULL,
+  forename VARCHAR(255) NOT NULL,
+  surname_kana VARCHAR(255) NOT NULL,
+  forename_kana VARCHAR(255) NOT NULL,
+  class INT NOT NULL,
+  number INT NOT NULL,
+  day2num INT NOT NULL DEFAULT 0,
+  day1id VARCHAR(255) NOT NULL,
+  day3id VARCHAR(255) NOT NULL,
+  day1bus INT NOT NULL DEFAULT 0,
+  day3bus INT NOT NULL DEFAULT 0,
+  room_fpr INT NOT NULL DEFAULT 0,
+  room_tdh INT NOT NULL DEFAULT 0,
+  shinkansen_day1_car_number INT NOT NULL,
+  shinkansen_day1_seat VARCHAR(255),
+  shinkansen_day4_car_number INT NOT NULL,
+  shinkansen_day4_seat VARCHAR(255)
+);

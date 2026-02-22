@@ -4,6 +4,7 @@ import type { BoatAssignmentDTO, StudentDTO, TeacherDTO } from '../helpers/domai
 import { BackToHome } from '../components/MDButton';
 import { useAuth } from '../auth-context';
 import { pad2 } from '../helpers/pad2';
+import LoadingPage from '../components/LoadingPage';
 
 const Boats = () => {
   const { user } = useAuth();
@@ -40,7 +41,7 @@ const Boats = () => {
       <h1 className="text-2xl font-bold m-2">ラフティング ボート割 一覧</h1>
       <BackToHome user={user} />
       {loading ? (
-        <div>データ読込中...</div>
+        <LoadingPage>データ読込中...</LoadingPage>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {boats.length === 0 && <div className="col-span-2 text-gray-500">ボート割データがありません</div>}

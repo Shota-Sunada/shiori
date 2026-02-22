@@ -5,7 +5,7 @@ const FACILITY_COLOR_CLASS: Record<string, [string, string]> = {
   wc: ['WC', 'bg-green-100 border-green-300 text-green-800'],
   wash: ['洗面', 'bg-cyan-100 border-cyan-300 text-cyan-800'],
   phone: ['電話', 'bg-yellow-100 border-yellow-300 text-yellow-800'],
-  none: ["ﾅﾆﾓﾅｲﾖ" , ""],
+  none: ['ﾅﾆﾓﾅｲﾖ', ''],
   smoking: ['喫煙室', 'bg-red-100 border-red-300 text-red-800']
 };
 
@@ -108,6 +108,7 @@ import type { StudentDTO, TeacherDTO } from '../helpers/domainApi';
 import { pad2 } from '../helpers/pad2';
 import MDButton from '../components/MDButton';
 import { useAuth } from '../auth-context';
+import { getRandomFace } from '../helpers/randomFaces';
 const CAR_NUMBERS = [13, 14, 15, 16];
 const CAR_ROWS: Record<number, number> = {
   16: 15,
@@ -191,13 +192,6 @@ const ShinkansenFloor = () => {
   const setGoodName = (student: StudentDTO) => {
     const name = student.surname;
     return name.length > 4 ? student.surname_kana : name;
-  };
-
-  const getRandomFace = () => {
-    const FACES = ['(･。･)?', '(･へ･)', '(-_-)zzz', 'Σ(-｡-)', '(^o^)', '(LOL)', 'θwθ', '(T_T)', '(*_*)', '・ω・', '(*´∀｀)'];
-
-    const random = Math.round(Math.random() * (FACES.length - 1));
-    return FACES[random];
   };
 
   const SwitchButton = () => {

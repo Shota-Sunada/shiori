@@ -1,4 +1,4 @@
-import type { ChangeEventHandler, Dispatch, SetStateAction } from 'react';
+import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { pad2 } from '../../../helpers/pad2';
 import type { Course, Event, EventDetail, Schedule } from './Types';
 import { refresh, toMinutesIfPresent, validateTimeOptionalPairLabeled, validateTimeRequired, validateTimeOptionalPair } from './helpers';
@@ -7,15 +7,11 @@ import { appFetch } from '../../../helpers/apiClient';
 
 export const EditingEvent = ({
   isNew,
-  input,
-  handleInput,
   editingEvent,
   setData,
   setEditingEvent
 }: {
   isNew?: boolean;
-  input: Record<string, string>;
-  handleInput: ChangeEventHandler<HTMLInputElement | HTMLSelectElement>;
   editingEvent: {
     scheduleId: number;
     event: Event | null;
@@ -28,14 +24,53 @@ export const EditingEvent = ({
     } | null>
   >;
 }) => {
+  const [formState, setFormState] = useState({
+    memo: '',
+    time1Hour: '',
+    time1Minute: '',
+    time1Postfix: '',
+    time2Hour: '',
+    time2Minute: '',
+    time2Postfix: ''
+  });
+
+  useEffect(() => {
+    const detail = editingEvent?.event;
+    if (detail) {
+      setFormState({
+        memo: detail.memo ?? '',
+        time1Hour: detail.time1Hour != null ? detail.time1Hour.toString() : '',
+        time1Minute: detail.time1Minute != null ? detail.time1Minute.toString() : '',
+        time1Postfix: detail.time1Postfix ?? '',
+        time2Hour: detail.time2Hour != null ? detail.time2Hour.toString() : '',
+        time2Minute: detail.time2Minute != null ? detail.time2Minute.toString() : '',
+        time2Postfix: detail.time2Postfix ?? ''
+      });
+    } else {
+      setFormState({ memo: '', time1Hour: '', time1Minute: '', time1Postfix: '', time2Hour: '', time2Minute: '', time2Postfix: '' });
+    }
+  }, [editingEvent?.event, editingEvent?.scheduleId, isNew]);
+
+  const numericFields = useMemo(() => new Set(['time1Hour', 'time1Minute', 'time2Hour', 'time2Minute']), []);
+
+  const handleChange = (name: keyof typeof formState, value: string) => {
+    let nextValue = value;
+    if (numericFields.has(name)) {
+      const toHalf = (s: string) => s.replace(/[０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xff10 + 0x30));
+      const half = toHalf(value);
+      nextValue = half.replace(/\D/g, '').slice(0, 2);
+    }
+    setFormState((prev) => ({ ...prev, [name]: nextValue }));
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 flex flex-col gap-4 border border-blue-100">
+    <div className="bg-white rounded-lg shadow-md p-4 flex flex-col gap-4 border border-blue-100 my-1">
       <div>
         <label className="block font-semibold text-gray-700 mb-1">メモ</label>
         <input
           name="memo"
-          value={input.memo || ''}
-          onChange={handleInput}
+          value={formState.memo}
+          onChange={(e) => handleChange('memo', e.target.value)}
           placeholder="メモ"
           className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-300"
         />
@@ -46,8 +81,8 @@ export const EditingEvent = ({
           <div className="flex flex-row gap-2">
             <input
               name="time1Hour"
-              value={input.time1Hour || ''}
-              onChange={handleInput}
+              value={formState.time1Hour}
+              onChange={(e) => handleChange('time1Hour', e.target.value)}
               placeholder="時"
               className="border border-gray-300 rounded px-2 py-1 w-16 focus:outline-none focus:ring-2 focus:ring-blue-300"
               inputMode="numeric"
@@ -56,8 +91,8 @@ export const EditingEvent = ({
             <span className="self-center">:</span>
             <input
               name="time1Minute"
-              value={input.time1Minute || ''}
-              onChange={handleInput}
+              value={formState.time1Minute}
+              onChange={(e) => handleChange('time1Minute', e.target.value)}
               placeholder="分"
               className="border border-gray-300 rounded px-2 py-1 w-16 focus:outline-none focus:ring-2 focus:ring-blue-300"
               inputMode="numeric"
@@ -65,12 +100,13 @@ export const EditingEvent = ({
             />
             <select
               name="time1Postfix"
-              value={input.time1Postfix || ''}
-              onChange={handleInput}
+              value={formState.time1Postfix}
+              onChange={(e) => handleChange('time1Postfix', e.target.value)}
               className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300">
               <option value="">(なし)</option>
               <option value="発">発</option>
               <option value="着">着</option>
+              <option value="頃">頃</option>
             </select>
           </div>
         </div>
@@ -79,8 +115,8 @@ export const EditingEvent = ({
           <div className="flex flex-row gap-2">
             <input
               name="time2Hour"
-              value={input.time2Hour || ''}
-              onChange={handleInput}
+              value={formState.time2Hour}
+              onChange={(e) => handleChange('time2Hour', e.target.value)}
               placeholder="時"
               className="border border-gray-300 rounded px-2 py-1 w-16 focus:outline-none focus:ring-2 focus:ring-blue-300"
               inputMode="numeric"
@@ -89,8 +125,8 @@ export const EditingEvent = ({
             <span className="self-center">:</span>
             <input
               name="time2Minute"
-              value={input.time2Minute || ''}
-              onChange={handleInput}
+              value={formState.time2Minute}
+              onChange={(e) => handleChange('time2Minute', e.target.value)}
               placeholder="分"
               className="border border-gray-300 rounded px-2 py-1 w-16 focus:outline-none focus:ring-2 focus:ring-blue-300"
               inputMode="numeric"
@@ -98,12 +134,13 @@ export const EditingEvent = ({
             />
             <select
               name="time2Postfix"
-              value={input.time2Postfix || ''}
-              onChange={handleInput}
+              value={formState.time2Postfix}
+              onChange={(e) => handleChange('time2Postfix', e.target.value)}
               className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300">
               <option value="">(なし)</option>
               <option value="発">発</option>
               <option value="着">着</option>
+              <option value="頃">頃</option>
             </select>
           </div>
         </div>
@@ -114,36 +151,36 @@ export const EditingEvent = ({
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
             onClick={() => {
               if (!editingEvent || !editingEvent.scheduleId) return;
-              const memo = (input.memo || '').trim();
+              const memo = formState.memo.trim();
               if (!memo) {
                 alert('メモは必須です');
                 return;
               }
-              if (!validateTimeRequired(input.time1Hour, input.time1Minute)) {
+              if (!validateTimeRequired(formState.time1Hour, formState.time1Minute)) {
                 alert('開始時刻が不正です（時は0–23、分は0–59）');
                 return;
               }
-              const opt2 = validateTimeOptionalPair(input.time2Hour, input.time2Minute);
+              const opt2 = validateTimeOptionalPair(formState.time2Hour, formState.time2Minute);
               if (!opt2.ok) {
                 alert(opt2.msg!);
                 return;
               }
               // 終了が開始より早い場合はNG
-              const startMinForEvAdd = toMinutesIfPresent(input.time1Hour, input.time1Minute);
-              const endMinForEvAdd = toMinutesIfPresent(input.time2Hour, input.time2Minute);
+              const startMinForEvAdd = toMinutesIfPresent(formState.time1Hour, formState.time1Minute);
+              const endMinForEvAdd = toMinutesIfPresent(formState.time2Hour, formState.time2Minute);
               if (endMinForEvAdd !== null && startMinForEvAdd !== null && endMinForEvAdd < startMinForEvAdd) {
                 alert('終了時刻は開始時刻より後にしてください');
                 return;
               }
               const scheduleId = editingEvent.scheduleId;
               const payload = {
-                memo: input.memo,
-                time1Hour: input.time1Hour,
-                time1Minute: input.time1Minute,
-                time1Postfix: input.time1Postfix ? input.time1Postfix : null,
-                time2Hour: input.time2Hour,
-                time2Minute: input.time2Minute,
-                time2Postfix: input.time2Postfix ? input.time2Postfix : null
+                memo: formState.memo,
+                time1Hour: formState.time1Hour,
+                time1Minute: formState.time1Minute,
+                time1Postfix: formState.time1Postfix ? formState.time1Postfix : null,
+                time2Hour: formState.time2Hour,
+                time2Minute: formState.time2Minute,
+                time2Postfix: formState.time2Postfix ? formState.time2Postfix : null
               };
               appFetch(`${SERVER_ENDPOINT}/api/schedules/${scheduleId}/events`, { method: 'POST', requiresAuth: true, jsonBody: payload })
                 .then(() => refresh(setData))
@@ -157,37 +194,37 @@ export const EditingEvent = ({
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
             onClick={() => {
               if (!editingEvent?.event) return;
-              const memo = (input.memo || '').trim();
+              const memo = formState.memo.trim();
               if (!memo) {
                 alert('メモは必須です');
                 return;
               }
-              const opt1 = validateTimeOptionalPairLabeled('開始時刻', input.time1Hour, input.time1Minute);
+              const opt1 = validateTimeOptionalPairLabeled('開始時刻', formState.time1Hour, formState.time1Minute);
               if (!opt1.ok) {
                 alert(opt1.msg!);
                 return;
               }
-              const opt2 = validateTimeOptionalPairLabeled('終了時刻', input.time2Hour, input.time2Minute);
+              const opt2 = validateTimeOptionalPairLabeled('終了時刻', formState.time2Hour, formState.time2Minute);
               if (!opt2.ok) {
                 alert(opt2.msg!);
                 return;
               }
               // 終了が開始より早い場合はNG
-              const startMinForEvSave = toMinutesIfPresent(input.time1Hour, input.time1Minute);
-              const endMinForEvSave = toMinutesIfPresent(input.time2Hour, input.time2Minute);
+              const startMinForEvSave = toMinutesIfPresent(formState.time1Hour, formState.time1Minute);
+              const endMinForEvSave = toMinutesIfPresent(formState.time2Hour, formState.time2Minute);
               if (endMinForEvSave !== null && startMinForEvSave !== null && endMinForEvSave < startMinForEvSave) {
                 alert('終了時刻は開始時刻より後にしてください');
                 return;
               }
               const id = editingEvent.event.id;
               const payload = {
-                memo: input.memo,
-                time1Hour: input.time1Hour,
-                time1Minute: input.time1Minute,
-                time1Postfix: input.time1Postfix ? input.time1Postfix : null,
-                time2Hour: input.time2Hour,
-                time2Minute: input.time2Minute,
-                time2Postfix: input.time2Postfix ? input.time2Postfix : null
+                memo: formState.memo,
+                time1Hour: formState.time1Hour,
+                time1Minute: formState.time1Minute,
+                time1Postfix: formState.time1Postfix ? formState.time1Postfix : null,
+                time2Hour: formState.time2Hour,
+                time2Minute: formState.time2Minute,
+                time2Postfix: formState.time2Postfix ? formState.time2Postfix : null
               };
               appFetch(`${SERVER_ENDPOINT}/api/schedules/events/${id}`, { method: 'PUT', requiresAuth: true, jsonBody: payload })
                 .then(() => refresh(setData))
@@ -205,27 +242,91 @@ export const EditingEvent = ({
   );
 };
 
-export const EventCard = ({ event }: { event: Event }) => {
-  // 時刻表示用
+// Message編集UI
+const MessageEditor = ({ event, setData, showAdd, onClose }: { event: Event; setData: Dispatch<SetStateAction<Course[]>>; showAdd?: boolean; onClose?: () => void }) => {
+  const [input, setInput] = useState<{ text: string; type: 'notice' | 'info' | 'important' | 'alert' }>({ text: '', type: 'info' });
+
+  // 追加（1つのMessageとして送信）
+  const handleAdd = () => {
+    if (!input.text) return;
+    appFetch(`${SERVER_ENDPOINT}/api/schedules/events/${event.id}/messages`, {
+      method: 'POST',
+      requiresAuth: true,
+      jsonBody: { text: input.text, type: input.type }
+    }).then(() => {
+      setInput({ text: '', type: 'info' });
+      refresh(setData);
+      if (onClose) onClose();
+    });
+  };
+
+  return (
+    showAdd && (
+      <div className="ml-2 mt-2 mb-2">
+        <div className="flex gap-2 mb-2 items-start flex-col">
+          <textarea
+            className="border rounded px-2 py-1 w-64 h-20 resize-y"
+            placeholder="メッセージ内容（複数行で複数文追加可）"
+            value={input.text}
+            onChange={(e) => setInput((i) => ({ ...i, text: e.target.value }))}
+          />
+          <div>
+            <select
+              className="border rounded px-2 py-1 mt-1 mr-1"
+              value={input.type}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === 'notice' || v === 'info' || v === 'important' || v === 'alert') {
+                  setInput((i) => ({ ...i, type: v }));
+                }
+              }}>
+              <option value="info">詳細</option>
+              <option value="notice">注意</option>
+              <option value="important">重要</option>
+              <option value="alert">警告</option>
+            </select>
+            <button className="bg-blue-500 text-white rounded px-3 py-1 mt-1 mr-1" onClick={handleAdd}>
+              追加
+            </button>
+            {onClose && (
+              <button className="bg-gray-300 rounded px-3 py-1 mt-1 mr-1" onClick={onClose}>
+                キャンセル
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  );
+};
+
+export const EventCard = ({ event, setData }: { event: Event; setData: Dispatch<SetStateAction<Course[]>> }) => {
+  const [showAddMessage, setShowAddMessage] = useState(false);
   const hasStart = event.time1Hour !== undefined && event.time1Minute !== undefined && event.time1Hour !== null && event.time1Minute !== null;
   const hasEnd = event.time2Hour !== undefined && event.time2Minute !== undefined && event.time2Hour !== null && event.time2Minute !== null;
   return (
-    <div className="flex items-center gap-2 text-gray-700 bg-blue-50 rounded px-2 py-1">
-      <svg className="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-      </svg>
-      <span className="font-semibold">{event.memo}</span>
-      <span className="text-xs text-gray-500">
-        （{hasStart ? `${event.time1Hour}:${pad2(event.time1Minute)}${event.time1Postfix ? ` ${event.time1Postfix}` : ''}` : ''}
-        {hasEnd ? ` - ${event.time2Hour}:${pad2(event.time2Minute)}${event.time2Postfix ? ` ${event.time2Postfix}` : ''}` : ''}）
-      </span>
+    <div className="flex flex-col gap-1 my-1">
+      <div className="flex items-center gap-2 text-gray-700 bg-blue-50 rounded px-2 py-1">
+        <svg className="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+        <span className="font-semibold whitespace-pre-line">{event.memo}</span>
+        <span className="text-xs text-gray-500">
+          （{hasStart ? `${event.time1Hour}:${pad2(event.time1Minute)}${event.time1Postfix ? ` ${event.time1Postfix}` : ''}` : ''}
+          {hasEnd ? ` - ${event.time2Hour}:${pad2(event.time2Minute)}${event.time2Postfix ? ` ${event.time2Postfix}` : ''}` : ''}）
+        </span>
+        <button className="ml-2 text-xs px-2 py-1 bg-green-400 rounded hover:bg-green-500 transition" onClick={() => setShowAddMessage(true)}>
+          Message追加
+        </button>
+      </div>
+      {/* MessageEditorのリストを常時表示し、追加時のみshowAdd=trueで表示 */}
+      <MessageEditor event={event} setData={setData} showAdd={showAddMessage} onClose={() => setShowAddMessage(false)} />
     </div>
   );
 };
 
 export const EventButtons = ({
   setEditingEvent,
-  setInput,
   event,
   setData,
   setEditingDetail,
@@ -237,7 +338,6 @@ export const EventButtons = ({
       event: Event | null;
     } | null>
   >;
-  setInput: Dispatch<SetStateAction<Record<string, string>>>;
   event: Event;
   setData: Dispatch<SetStateAction<Course[]>>;
   setEditingDetail: Dispatch<
@@ -254,15 +354,6 @@ export const EventButtons = ({
         className="text-xs px-2 py-1 mx-1 bg-yellow-400 rounded"
         onClick={() => {
           setEditingEvent({ scheduleId: schedule.id, event });
-          setInput({
-            memo: event.memo ?? '',
-            time1Hour: event.time1Hour?.toString() ?? '',
-            time1Minute: event.time1Minute?.toString() ?? '',
-            time1Postfix: event.time1Postfix ?? '',
-            time2Hour: event.time2Hour?.toString() ?? '',
-            time2Minute: event.time2Minute?.toString() ?? '',
-            time2Postfix: event.time2Postfix ?? ''
-          });
         }}>
         編集
       </button>
@@ -280,10 +371,10 @@ export const EventButtons = ({
         className="text-xs px-2 py-1 mx-1 bg-blue-400 rounded"
         onClick={() => {
           setEditingDetail({ eventId: event.id, detail: null });
-          setInput({ memo: '', time1Hour: '', time1Minute: '', time2Hour: '', time2Minute: '' });
         }}>
         ＋詳細追加
       </button>
+      {/* Message追加ボタンはEventCard内に移動済み */}
     </div>
   );
 };

@@ -1,10 +1,203 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import type { DropResult } from '@hello-pangea/dnd';
 import { appFetch } from '../../helpers/apiClient';
 import { SERVER_ENDPOINT } from '../../config/serverEndpoint';
 import { COURSES_DAY1, COURSES_DAY3, COURSES_DAY4 } from '../../data/courses';
 import type { COURSES_COMMON_KEY } from '../../components/TimeTable';
 import type { EventDetail, Event, Schedule, Course } from './ScheduleAdmin/Types';
 import { DetailButtons, DetailCard, EditingDetail } from './ScheduleAdmin/Detail';
+import { refresh } from './ScheduleAdmin/helpers';
+
+import type { Dispatch, SetStateAction } from 'react';
+import type { Message as MessageType } from './ScheduleAdmin/Types';
+import Message from '../../components/Message';
+
+type Item = { type: 'detail'; id: number; data: EventDetail; sortOrder: number } | { type: 'message'; id: number; data: MessageType; sortOrder: number };
+
+const COURSES_COMMON: { key: COURSES_COMMON_KEY; name: string }[] = [
+  { key: 'day1_common1', name: '[1日目] 共通(昼)' },
+  { key: 'day1_common2', name: '[1日目] 共通(夜)' },
+  { key: 'day2_common', name: '[2日目] 共通' },
+  { key: 'day3_common1', name: '[3日目] 共通(朝)' },
+  { key: 'day3_common2', name: '[3日目] 共通(夜)' },
+  { key: 'day4_common1', name: '[4日目] 共通(昼)' },
+  { key: 'day4_common2', name: '[4日目] 共通(夜)' }
+];
+
+const ALL_COURSE_OPTIONS: Array<{ key: string; name: string }> = [
+  ...COURSES_DAY1.map((c) => ({ key: c.key, name: `[1日目] ${c.name}` })),
+  ...COURSES_DAY3.map((c) => ({ key: c.key, name: `[3日目] ${c.name}` })),
+  ...COURSES_DAY4.map((c) => ({ key: c.key, name: `[4日目] ${c.name}` })),
+  ...COURSES_COMMON.map((c) => ({ key: c.key, name: c.name }))
+];
+
+export const EventItemList = ({
+  event,
+  setData,
+  editingDetail,
+  setEditingDetail
+}: {
+  event: Event;
+  setData: Dispatch<SetStateAction<Course[]>>;
+  editingDetail: { eventId: number; detail: EventDetail | null } | null;
+  setEditingDetail: Dispatch<SetStateAction<{ eventId: number; detail: EventDetail | null } | null>>;
+}) => {
+  // detailsとmessagesをsortOrderで統合ソート（useMemoで毎回生成）
+  const items = useMemo(() => {
+    const all: Item[] = [
+      ...event.details.map((d) => ({ type: 'detail' as const, id: d.id, data: d, sortOrder: typeof d.sortOrder === 'number' ? d.sortOrder : 0 })),
+      ...event.messages.map((m) => ({ type: 'message' as const, id: m.id, data: m, sortOrder: typeof m.sortOrder === 'number' ? m.sortOrder : 0 }))
+    ];
+    return all.sort((a, b) => a.sortOrder - b.sortOrder);
+  }, [event.details, event.messages]);
+
+  const handleDragEnd = useCallback(
+    (result: DropResult) => {
+      if (!result.destination) return;
+      const newItems = Array.from(items);
+      const [removed] = newItems.splice(result.source.index, 1);
+      newItems.splice(result.destination.index, 0, removed);
+      const payload = { order: newItems.map((i) => ({ type: i.type, id: i.id })) };
+      appFetch(`${SERVER_ENDPOINT}/api/schedules/events/${event.id}/items/reorder`, {
+        method: 'PUT',
+        requiresAuth: true,
+        jsonBody: payload
+      }).then(() => {
+        void refresh(setData);
+      });
+    },
+    [items, event.id, setData]
+  );
+
+  // 詳細・Message追加UIや編集UIはここに統合（省略可、必要に応じて追加）
+
+  const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
+  const [editingText, setEditingText] = useState('');
+  const [editingType, setEditingType] = useState<'notice' | 'info' | 'important' | 'alert'>('info');
+
+  // 編集保存
+  const handleEditMessage = (msgId: number) => {
+    appFetch(`${SERVER_ENDPOINT}/api/schedules/events/${event.id}/messages/${msgId}`, {
+      method: 'PUT',
+      requiresAuth: true,
+      jsonBody: { text: editingText, type: editingType }
+    }).then(() => {
+      setEditingMessageId(null);
+      setEditingText('');
+      setEditingType('info');
+      void refresh(setData);
+    });
+  };
+  // 削除
+  const handleDeleteMessage = (msgId: number) => {
+    if (!window.confirm('削除してもよろしいですか?')) return;
+    appFetch(`${SERVER_ENDPOINT}/api/schedules/events/${event.id}/messages/${msgId}`, {
+      method: 'DELETE',
+      requiresAuth: true
+    }).then(() => {
+      void refresh(setData);
+    });
+  };
+
+  return (
+    <div className="pl-3 border-l border-blue-200 flex flex-col gap-2 my-2">
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId={`items-droppable-${event.id}`}>
+          {(provided) => (
+            <div ref={provided.innerRef} {...provided.droppableProps} className="flex flex-col gap-2">
+              {/* 新規追加フォームを最初に表示（editingDetail.detail === null の場合） */}
+              {editingDetail && editingDetail.eventId === event.id && editingDetail.detail === null && (
+                <div className="my-1">
+                  <EditingDetail isNew={true} editingDetail={editingDetail} setData={setData} setEditingDetail={setEditingDetail} />
+                </div>
+              )}
+              {items.map((item, idx) => (
+                <Draggable key={item.type + '-' + item.id} draggableId={item.type + '-' + item.id} index={idx}>
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      className={`flex flex-col gap-1 bg-white ${snapshot.isDragging ? 'ring-2 ring-blue-300' : ''} rounded`}
+                      style={{
+                        marginBottom: 4,
+                        ...provided.draggableProps.style
+                      }}>
+                      {item.type === 'detail' && editingDetail && editingDetail.detail && editingDetail.detail.id === item.id ? (
+                        // 編集中の詳細
+                        <div className="my-1">
+                          <EditingDetail isNew={false} editingDetail={editingDetail} setData={setData} setEditingDetail={setEditingDetail} />
+                        </div>
+                      ) : item.type === 'detail' ? (
+                        <>
+                          <DetailCard detail={item.data as EventDetail} />
+                          <DetailButtons setEditingDetail={setEditingDetail} detail={item.data as EventDetail} event={event} setData={setData} />
+                        </>
+                      ) : (
+                        <Message type={(item.data as MessageType).type ?? 'info'}>
+                          <div className="flex flex-row items-start gap-2 w-full">
+                            {editingMessageId === item.id ? (
+                              <div className="flex flex-row gap-2 w-full">
+                                <div className="flex flex-col gap-1 w-full">
+                                  <select
+                                    className="border rounded px-2 py-1 w-full"
+                                    value={editingType}
+                                    onChange={(e) => {
+                                      const v = e.target.value;
+                                      if (v === 'notice' || v === 'info' || v === 'important' || v === 'alert') {
+                                        setEditingType(v);
+                                      }
+                                    }}>
+                                    <option value="info">詳細</option>
+                                    <option value="notice">注意</option>
+                                    <option value="important">重要</option>
+                                    <option value="alert">警告</option>
+                                  </select>
+                                  <textarea className="border rounded px-2 py-1 w-full" value={editingText} onChange={(e) => setEditingText(e.target.value)} />
+                                </div>
+                                <div className="flex flex-col gap-1 ml-2">
+                                  <button className="text-xs px-2 py-1 rounded bg-green-500 text-white" onClick={() => handleEditMessage(item.id)}>
+                                    保存
+                                  </button>
+                                  <button className="text-xs px-2 py-1 rounded bg-gray-200 text-gray-700" onClick={() => setEditingMessageId(null)}>
+                                    キャンセル
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="block mt-2 flex-1 whitespace-pre-line">{(item.data as MessageType).text}</div>
+                                <button
+                                  className="text-xs px-2 py-1 mx-1 bg-yellow-400 rounded"
+                                  title="このメッセージを編集"
+                                  onClick={() => {
+                                    setEditingMessageId(item.id);
+                                    setEditingText((item.data as MessageType).text);
+                                    setEditingType((item.data as MessageType).type ?? 'info');
+                                  }}>
+                                  編集
+                                </button>
+                                <button className="text-xs px-2 py-1 mx-1 bg-red-400 rounded" title="このメッセージを削除" onClick={() => handleDeleteMessage(item.id)}>
+                                  削除
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </Message>
+                      )}
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+    </div>
+  );
+};
 import { EditingEvent, EventButtons, EventCard } from './ScheduleAdmin/Event';
 import { EditingSchedule, ScheduleButtons, ScheduleCard } from './ScheduleAdmin/Schedule';
 import { CourseButtons, EditingCourse, NewCourse } from './ScheduleAdmin/Course';
@@ -16,7 +209,6 @@ const ScheduleAdmin = () => {
   const [editingSchedule, setEditingSchedule] = useState<{ courseId: number; schedule: Schedule | null } | null>(null);
   const [editingEvent, setEditingEvent] = useState<{ scheduleId: number; event: Event | null } | null>(null);
   const [editingDetail, setEditingDetail] = useState<{ eventId: number; detail: EventDetail | null } | null>(null);
-  const [input, setInput] = useState<Record<string, string>>({});
 
   const [saving, setSaving] = useState(false);
   // スケジュール開閉状態: scheduleIdの配列
@@ -26,97 +218,141 @@ const ScheduleAdmin = () => {
   // コース開閉状態: courseIdの配列
   const [openCourses, setOpenCourses] = useState<Record<number, boolean>>({});
 
-  const handleInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    // 数字のみ許可するフィールド（時・分）
-    const numericFields = new Set(['time1Hour', 'time1Minute', 'time2Hour', 'time2Minute']);
-    let v = value;
-    if (numericFields.has(name)) {
-      // 全角数字を半角に正規化
-      const toHalf = (s: string) => s.replace(/[０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xff10 + 0x30));
-      const half = toHalf(value);
-      // 数字以外を除去し、最大2桁に制限
-      v = half.replace(/\D/g, '').slice(0, 2);
-    }
-    setInput({ ...input, [name]: v });
-  };
-
-  useEffect(() => {
-    appFetch<Course[]>(`${SERVER_ENDPOINT}/api/schedules`, { parse: 'json', alwaysFetch: true, requiresAuth: true })
-      .then(setData)
-      .finally(() => setLoading(false));
+  const ensureCourseOpen = useCallback((courseId?: number) => {
+    if (courseId == null) return;
+    setOpenCourses((prev) => {
+      if (prev[courseId]) return prev;
+      return { ...prev, [courseId]: true };
+    });
   }, []);
 
-  const COURSES_COMMON: { key: COURSES_COMMON_KEY; name: string }[] = [
-    { key: 'day1_common1', name: '[1日目] 共通(昼)' },
-    { key: 'day1_common2', name: '[1日目] 共通(夜)' },
-    { key: 'day2_common', name: '[2日目] 共通' },
-    { key: 'day3_common1', name: '[3日目] 共通(朝)' },
-    { key: 'day3_common2', name: '[3日目] 共通(夜)' },
-    { key: 'day4_common1', name: '[4日目] 共通(昼)' },
-    { key: 'day4_common2', name: '[4日目] 共通(夜)' }
-  ];
+  const ensureScheduleOpen = useCallback((scheduleId?: number) => {
+    if (scheduleId == null) return;
+    setOpenSchedules((prev) => {
+      if (prev[scheduleId]) return prev;
+      return { ...prev, [scheduleId]: true };
+    });
+  }, []);
 
-  const existingKeys = new Set((data || []).map((c) => c.course_key));
-  const ALL_COURSES: Array<{ key: string; name: string }> = [
-    ...COURSES_DAY1.map((c) => ({ key: c.key, name: `[1日目] ${c.name}` })),
-    ...COURSES_DAY3.map((c) => ({ key: c.key, name: `[3日目] ${c.name}` })),
-    ...COURSES_DAY4.map((c) => ({ key: c.key, name: `[4日目] ${c.name}` })),
-    ...COURSES_COMMON.map((c) => ({ key: c.key, name: c.name }))
-  ];
-  const selectableCourses = ALL_COURSES.filter((c) => !existingKeys.has(c.key));
+  const ensureEventOpen = useCallback((eventId?: number) => {
+    if (eventId == null) return;
+    setOpenEvents((prev) => {
+      if (prev[eventId]) return prev;
+      return { ...prev, [eventId]: true };
+    });
+  }, []);
 
-  if (loading) return <div>読み込み中...</div>;
+  useEffect(() => {
+    refresh(setData).finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (!editingCourse || editingCourse.id === 0) return;
+    ensureCourseOpen(editingCourse.id);
+  }, [editingCourse, ensureCourseOpen]);
+
+  useEffect(() => {
+    if (!editingSchedule) return;
+    ensureCourseOpen(editingSchedule.courseId);
+    if (editingSchedule.schedule?.id) {
+      ensureScheduleOpen(editingSchedule.schedule.id);
+    }
+  }, [editingSchedule, ensureCourseOpen, ensureScheduleOpen]);
+
+  useEffect(() => {
+    if (!editingEvent) return;
+    let matchedCourseId: number | undefined;
+    for (const course of data) {
+      const schedule = course.schedules.find((s) => s.id === editingEvent.scheduleId);
+      if (schedule) {
+        matchedCourseId = course.id;
+        ensureCourseOpen(course.id);
+        ensureScheduleOpen(schedule.id);
+        if (editingEvent.event?.id) {
+          ensureEventOpen(editingEvent.event.id);
+        }
+        break;
+      }
+    }
+    if (!matchedCourseId && editingEvent.event?.id) {
+      ensureEventOpen(editingEvent.event.id);
+    }
+  }, [editingEvent, data, ensureCourseOpen, ensureScheduleOpen, ensureEventOpen]);
+
+  useEffect(() => {
+    if (!editingDetail) return;
+    for (const course of data) {
+      for (const schedule of course.schedules) {
+        const event = schedule.events.find((e) => e.id === editingDetail.eventId);
+        if (event) {
+          ensureCourseOpen(course.id);
+          ensureScheduleOpen(schedule.id);
+          ensureEventOpen(event.id);
+          return;
+        }
+      }
+    }
+  }, [editingDetail, data, ensureCourseOpen, ensureScheduleOpen, ensureEventOpen]);
+
+  const selectableCourses = useMemo(() => {
+    const existingKeys = new Set((data || []).map((c) => c.course_key));
+    return ALL_COURSE_OPTIONS.filter((c) => !existingKeys.has(c.key));
+  }, [data]);
 
   // 全開・全閉ハンドラ
   // 全開・全閉ハンドラ（全体 or コース単位）
-  const handleAllToggle = (open: boolean, courseId?: number) => {
-    if (courseId == null) {
-      // 全体
-      const newCourses: Record<number, boolean> = {};
-      data.forEach((course) => {
-        newCourses[course.id] = open;
-      });
-      setOpenCourses(newCourses);
-      const newSchedules: Record<number, boolean> = {};
-      data.forEach((course) =>
-        course.schedules.forEach((s) => {
-          newSchedules[s.id] = open;
-        })
-      );
-      setOpenSchedules(newSchedules);
-      const newEvents: Record<number, boolean> = {};
-      data.forEach((course) =>
-        course.schedules.forEach((s) =>
-          s.events.forEach((e) => {
-            newEvents[e.id] = open;
-          })
-        )
-      );
-      setOpenEvents(newEvents);
-    } else {
-      // コース単位
-      setOpenCourses((prev) => ({ ...prev, [courseId]: open }));
-      const course = data.find((c) => c.id === courseId);
-      if (!course) return;
-      setOpenSchedules((prev) => {
-        const next = { ...prev };
-        course.schedules.forEach((s) => {
-          next[s.id] = open;
+  const handleAllToggle = useCallback(
+    (open: boolean, courseId?: number) => {
+      if (courseId == null) {
+        // 全体
+        const newCourses: Record<number, boolean> = {};
+        data.forEach((course) => {
+          newCourses[course.id] = open;
         });
-        return next;
-      });
-      setOpenEvents((prev) => {
-        const next = { ...prev };
-        course.schedules.forEach((s) =>
-          s.events.forEach((e) => {
-            next[e.id] = open;
+        setOpenCourses(newCourses);
+        const newSchedules: Record<number, boolean> = {};
+        data.forEach((course) =>
+          course.schedules.forEach((s) => {
+            newSchedules[s.id] = open;
           })
         );
-        return next;
-      });
-    }
-  };
+        setOpenSchedules(newSchedules);
+        const newEvents: Record<number, boolean> = {};
+        data.forEach((course) =>
+          course.schedules.forEach((s) =>
+            s.events.forEach((e) => {
+              newEvents[e.id] = open;
+            })
+          )
+        );
+        setOpenEvents(newEvents);
+      } else {
+        // コース単位
+        setOpenCourses((prev) => ({ ...prev, [courseId]: open }));
+        const course = data.find((c) => c.id === courseId);
+        if (!course) return;
+        setOpenSchedules((prev) => {
+          const next = { ...prev };
+          course.schedules.forEach((s) => {
+            next[s.id] = open;
+          });
+          return next;
+        });
+        setOpenEvents((prev) => {
+          const next = { ...prev };
+          course.schedules.forEach((s) =>
+            s.events.forEach((e) => {
+              next[e.id] = open;
+            })
+          );
+          return next;
+        });
+      }
+    },
+    [data]
+  );
+
+  if (loading) return <div>読み込み中...</div>;
 
   return (
     <div className="min-h-screen p-4 md:p-8">
@@ -140,23 +376,6 @@ const ScheduleAdmin = () => {
           {data.map((course: Course) => {
             const isCourseOpen = openCourses[course.id] ?? true;
             // スケジュールを最初のイベントの開始時間順にソート
-            const getEventTime = (ev?: Event) => {
-              if (!ev || ev.time1Hour == null || ev.time1Minute == null) return null;
-              return ev.time1Hour * 60 + ev.time1Minute;
-            };
-            const getScheduleTime = (sch: Schedule) => {
-              if (!sch.events || sch.events.length === 0) return null;
-              // 最初のイベントの開始時刻
-              return getEventTime(sch.events[0]);
-            };
-            const sortedSchedules = [...course.schedules].sort((a, b) => {
-              const aTime = getScheduleTime(a);
-              const bTime = getScheduleTime(b);
-              if (aTime == null && bTime == null) return 0;
-              if (aTime == null) return 1;
-              if (bTime == null) return -1;
-              return aTime - bTime;
-            });
             return (
               <div key={course.id} className="rounded-xl shadow-lg border border-blue-100 bg-white p-4 mb-2 transition hover:shadow-xl">
                 {/* カード上部の全開・全閉ボタン */}
@@ -186,14 +405,14 @@ const ScheduleAdmin = () => {
                   </h2>
                 </div>
                 {isCourseOpen && (
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-3">
                     {/* コース親元 */}
                     {editingSchedule && editingSchedule.courseId === course.id && !editingSchedule.schedule && (
-                      <EditingSchedule isNew input={input} handleInput={handleInput} editingSchedule={editingSchedule} setEditingSchedule={setEditingSchedule} setData={setData} />
+                      <EditingSchedule isNew editingSchedule={editingSchedule} setEditingSchedule={setEditingSchedule} setData={setData} />
                     )}
                     {editingCourse && editingCourse.id === course.id && <EditingCourse course={course} setEditingCourse={setEditingCourse} />}
-                    <CourseButtons setEditingCourse={setEditingCourse} course={course} setInput={setInput} setData={setData} setEditingSchedule={setEditingSchedule} />
-                    {sortedSchedules.map((schedule: Schedule) => {
+                    <CourseButtons setEditingCourse={setEditingCourse} course={course} setData={setData} setEditingSchedule={setEditingSchedule} />
+                    {course.schedules.map((schedule: Schedule) => {
                       const isOpen = openSchedules[schedule.id] ?? true;
                       return (
                         <div key={schedule.id} className="rounded-lg border border-blue-100 bg-blue-50/40 p-3 mb-2">
@@ -208,30 +427,23 @@ const ScheduleAdmin = () => {
                               </button>
                             )}
                             {editingSchedule && editingSchedule.schedule && editingSchedule.schedule.id === schedule.id ? (
-                              <EditingSchedule input={input} handleInput={handleInput} editingSchedule={editingSchedule} setEditingSchedule={setEditingSchedule} setData={setData} />
+                              <EditingSchedule editingSchedule={editingSchedule} setEditingSchedule={setEditingSchedule} setData={setData} />
                             ) : (
                               <ScheduleCard schedule={schedule} />
                             )}
                           </div>
                           {isOpen && (
                             <>
-                              <ScheduleButtons setEditingSchedule={setEditingSchedule} setInput={setInput} course={course} schedule={schedule} setData={setData} setEditingEvent={setEditingEvent} />
+                              <ScheduleButtons setEditingSchedule={setEditingSchedule} course={course} schedule={schedule} setData={setData} setEditingEvent={setEditingEvent} />
                               {/* イベント親元 */}
-                              <div className="ml-2 md:ml-4 list-none border-l-4 border-blue-200 pl-4 space-y-2">
+                              <div className="ml-2 md:ml-4 list-none border-l-4 border-blue-200 pl-4">
                                 {editingEvent && editingEvent.scheduleId === schedule.id && !editingEvent.event && (
-                                  <EditingEvent isNew input={input} handleInput={handleInput} editingEvent={editingEvent} setData={setData} setEditingEvent={setEditingEvent} />
+                                  <div className="my-1">
+                                    <EditingEvent isNew editingEvent={editingEvent} setData={setData} setEditingEvent={setEditingEvent} />
+                                  </div>
                                 )}
                                 {schedule.events.map((event: Event) => {
                                   const isEventOpen = openEvents[event.id] ?? true;
-                                  // 詳細を開始時間順にソート（number型）
-                                  const sortedDetails = [...event.details].sort((a, b) => {
-                                    const aTime = a.time1Hour != null && a.time1Minute != null ? a.time1Hour * 60 + a.time1Minute : null;
-                                    const bTime = b.time1Hour != null && b.time1Minute != null ? b.time1Hour * 60 + b.time1Minute : null;
-                                    if (aTime == null && bTime == null) return 0;
-                                    if (aTime == null) return 1;
-                                    if (bTime == null) return -1;
-                                    return aTime - bTime;
-                                  });
                                   return (
                                     <div key={event.id}>
                                       <div className="flex items-center gap-2 p-1">
@@ -244,35 +456,23 @@ const ScheduleAdmin = () => {
                                             <span className={`transition-transform ${isEventOpen ? '' : 'rotate-180'}`}>▼</span>
                                           </button>
                                         )}
-                                        {editingEvent && editingEvent.event && editingEvent.event.id === event.id ? (
-                                          <EditingEvent input={input} handleInput={handleInput} editingEvent={editingEvent} setData={setData} setEditingEvent={setEditingEvent} />
-                                        ) : (
-                                          <EventCard event={event} />
-                                        )}
+                                        <div>
+                                          {editingEvent && editingEvent.event && editingEvent.event.id === event.id ? (
+                                            <div className="my-1">
+                                              <EditingEvent editingEvent={editingEvent} setData={setData} setEditingEvent={setEditingEvent} />
+                                            </div>
+                                          ) : (
+                                            <EventCard event={event} setData={setData} />
+                                          )}
+                                          {isEventOpen && (
+                                            <div className="mt-1">
+                                              <EventButtons setEditingEvent={setEditingEvent} event={event} setData={setData} setEditingDetail={setEditingDetail} schedule={schedule} />
+                                              {/* 詳細親元 */}
+                                              <EventItemList event={event} setData={setData} editingDetail={editingDetail} setEditingDetail={setEditingDetail} />
+                                            </div>
+                                          )}
+                                        </div>
                                       </div>
-                                      {isEventOpen && (
-                                        <>
-                                          <EventButtons setEditingEvent={setEditingEvent} setInput={setInput} event={event} setData={setData} setEditingDetail={setEditingDetail} schedule={schedule} />
-                                          {/* 詳細親元 */}
-                                          <div className="ml-2 list-none text-sm space-y-1 border-l-4 border-blue-200 pl-4">
-                                            {editingDetail && editingDetail.eventId === event.id && !editingDetail.detail && (
-                                              <EditingDetail isNew input={input} handleInput={handleInput} editingDetail={editingDetail} setData={setData} setEditingDetail={setEditingDetail} />
-                                            )}
-                                            {sortedDetails.map((detail: EventDetail) => (
-                                              <div key={detail.id}>
-                                                <div className="flex flex-col gap-1 p-1 border border-blue-100">
-                                                  {editingDetail && editingDetail.detail && editingDetail.detail.id === detail.id ? (
-                                                    <EditingDetail input={input} handleInput={handleInput} editingDetail={editingDetail} setData={setData} setEditingDetail={setEditingDetail} />
-                                                  ) : (
-                                                    <DetailCard detail={detail} />
-                                                  )}
-                                                  <DetailButtons setEditingDetail={setEditingDetail} setInput={setInput} detail={detail} event={event} setData={setData} />
-                                                </div>
-                                              </div>
-                                            ))}
-                                          </div>
-                                        </>
-                                      )}
                                     </div>
                                   );
                                 })}
@@ -289,16 +489,7 @@ const ScheduleAdmin = () => {
           })}
         </div>
         {editingCourse && editingCourse.id === 0 && (
-          <NewCourse
-            input={input}
-            ALL_COURSES={ALL_COURSES}
-            setInput={setInput}
-            selectableCourses={selectableCourses}
-            saving={saving}
-            setSaving={setSaving}
-            setData={setData}
-            setEditingCourse={setEditingCourse}
-          />
+          <NewCourse ALL_COURSES={ALL_COURSE_OPTIONS} selectableCourses={selectableCourses} saving={saving} setSaving={setSaving} setData={setData} setEditingCourse={setEditingCourse} />
         )}
 
         <div className="flex justify-center mt-8">
@@ -306,9 +497,7 @@ const ScheduleAdmin = () => {
             className={`px-6 py-3 rounded-full text-lg font-semibold shadow transition-all duration-150 ${selectableCourses.length ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}
             disabled={!selectableCourses.length}
             onClick={() => {
-              const first = selectableCourses[0];
               setEditingCourse({ id: 0, course_key: '', name: '', schedules: [] });
-              setInput(first ? { course_key: first.key, name: first.name } : { course_key: '', name: '' });
             }}>
             ＋コース追加
           </button>
