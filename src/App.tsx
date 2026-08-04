@@ -27,9 +27,9 @@ import InstallPWA from './pages/InstallPWA';
 import EnvDebug from './pages/EnvDebug';
 import VersionMismatch from './pages/VersionMismatch';
 import React from 'react';
-import { SERVER_ENDPOINT } from './config/serverEndpoint';
+// import { SERVER_ENDPOINT } from './config/serverEndpoint';
 import ScheduleAdmin from './pages/Admin/ScheduleAdmin';
-import { appFetch } from './helpers/apiClient';
+// import { appFetch } from './helpers/apiClient';
 import Yotei from './pages/Yotei';
 import Maps from './pages/Maps';
 import GoodsCheck from './pages/GoodsCheck';
@@ -41,7 +41,7 @@ import ShinkansenFloor from './pages/ShinkansenFloor';
 import Day2 from './pages/Day2';
 import TeacherSendMessages from './pages/Teachers/TeacherSendMessages';
 import Messages from './pages/Messages';
-import { isOffline } from './helpers/isOffline';
+// import { isOffline } from './helpers/isOffline';
 import Hotel from './pages/Hotel';
 import Bus from './pages/Bus';
 
@@ -239,42 +239,39 @@ function CenterMessage({ children }: { children: ReactNode }) {
 function App() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
+  // const location = useLocation();
   const FadeContainer = ({ children }: { children: ReactNode }) => <div className="page-fade">{children}</div>;
-  const [versionChecked, setVersionChecked] = useState(false);
-  const [versionMismatch, setVersionMismatch] = useState(false);
+  // const [versionChecked, setVersionChecked] = useState(true);
+  // const [versionMismatch, setVersionMismatch] = useState(false);
 
-  // バージョンチェック (最初のレンダリング前に判定し、ミスマッチ時のみ遷移)
-  useEffect(() => {
-    let active = true;
-    if (isOffline()) {
-      console.log('オフラインなので、バージョンチェックをスキップします。');
-      setVersionChecked(true);
-      return () => {
-        active = false;
-      };
-    }
-    (async () => {
-      try {
-        const data = await appFetch<{ version?: string }>(`${SERVER_ENDPOINT}/api/version`, { parse: 'json', alwaysFetch: true });
-        const current = import.meta.env.APP_VERSION;
-        if (active && data.version && current && data.version !== current) {
-          setVersionMismatch(true);
-          if (location.pathname !== '/version-mismatch') {
-            const from = window.location.pathname + window.location.search;
-            navigate('/version-mismatch', { replace: true, state: { from } });
-          }
-        }
-      } catch (e) {
-        console.warn('version check failed', e);
-      } finally {
-        if (active) setVersionChecked(true);
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, [navigate, location.pathname]);
+  const versionChecked = true;
+  const versionMismatch = false;
+
+  /* 全情コン展示のため、バージョンチェックを無効化 */
+  // // バージョンチェック (最初のレンダリング前に判定し、ミスマッチ時のみ遷移)
+  // useEffect(() => {
+  //   let active = true;
+  //   (async () => {
+  //     try {
+  //       const data = await appFetch<{ version?: string }>(`${SERVER_ENDPOINT}/api/version`, { parse: 'json', alwaysFetch: true });
+  //       const current = import.meta.env.APP_VERSION;
+  //       if (active && data.version && current && data.version !== current) {
+  //         setVersionMismatch(true);
+  //         if (location.pathname !== '/version-mismatch') {
+  //           const from = window.location.pathname + window.location.search;
+  //           navigate('/version-mismatch', { replace: true, state: { from } });
+  //         }
+  //       }
+  //     } catch (e) {
+  //       console.warn('version check failed', e);
+  //     } finally {
+  //       if (active) setVersionChecked(true);
+  //     }
+  //   })();
+  //   return () => {
+  //     active = false;
+  //   };
+  // }, [navigate, location.pathname]);
 
   useEffect(() => {
     // 開発中(vite dev)は SW を登録しない: importScripts + CDN 利用での頻繁な SyntaxError/リロードを避ける

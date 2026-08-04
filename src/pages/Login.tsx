@@ -116,12 +116,10 @@ const Login = () => {
             </span>
           </div>
         </div>
-        <div className="flex flex-col items-center justify-center text-center m-2">
-          <p>Classiで先生が配信されたものを参考に入力してください。</p>
-          {offline && <p className="text-red-500">現在オフラインです。ログイン時にはインターネットへの接続が必要です。ネットワークの接続を確認してください。</p>}
-          {error && <p className="text-red-500 mt-4">{error}</p>}
-        </div>
-        <MDButton text={'ログイン'} arrowRight type="submit" disabled={offline} />
+        <p>{'Classiで町先生が配信されたものを参考に入力してください。'}</p>
+        {/* <p>{'5648は関係ありません。'}</p> */}
+        <MDButton text={'ログイン'} arrowRight type="submit" />
+        {error && <p className="text-red-500 mt-4">{error}</p>}
       </form>
       {/* Q&Aセクション */}
       <div className="max-w-md bg-white/80 rounded-lg shadow m-2 p-2">
