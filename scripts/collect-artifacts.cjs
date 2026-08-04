@@ -63,6 +63,11 @@ async function main() {
   if (await exists(serverDist)) {
     await copyDir(serverDist, path.join(serverOut, 'dist'));
   }
+  // copy server/schema as a directory (keep structure)
+  const serverSchema = path.join(serverRoot, 'schema');
+  if (await exists(serverSchema)) {
+    await copyDir(serverSchema, path.join(serverOut, 'schema'));
+  }
   // copy server meta files (.env, package.json, serviceAccountKey.json)
   const metaFiles = ['.env', 'package.json', 'serviceAccountKey.json'];
   for (const f of metaFiles) {

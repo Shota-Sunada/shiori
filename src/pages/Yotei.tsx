@@ -1,3 +1,4 @@
+import LoadingPage from '../components/LoadingPage';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth-context';
@@ -17,6 +18,7 @@ import ScrollToTopButton from '../components/ScrollToTopButton';
 import '../styles/index-table.css';
 import { BackToHome } from '../components/MDButton';
 import type { Schedule } from './Admin/ScheduleAdmin/Types';
+import { CacheKeys } from '../helpers/cacheKeys';
 
 const Yotei = () => {
   const { user } = useAuth();
@@ -117,7 +119,7 @@ const Yotei = () => {
       }
       // コースデータ取得
       try {
-        const courseList = await appFetch<Course[]>(`${SERVER_ENDPOINT}/api/schedules`, { parse: 'json', cacheKey: 'schedules', requiresAuth: true });
+        const courseList = await appFetch<Course[]>(`${SERVER_ENDPOINT}/api/schedules`, { parse: 'json', cacheKey: CacheKeys.schedules.list, requiresAuth: true });
         setCourses(courseList);
       } catch {
         setError('コースデータの取得に失敗しました');
@@ -128,32 +130,36 @@ const Yotei = () => {
     run();
   }, [user, searchParams]);
 
-  if (loading) return <div className="p-4 text-center">読み込み中…</div>;
+  if (loading) return <LoadingPage message="読み込み中…" />;
   if (error) return <div className="p-4 text-center text-red-600">エラー: {error}</div>;
   if (!day1CourseKey) return <div className="p-4 text-center">コースが設定されていません</div>;
   if (!courses) return <div className="p-4 text-center">コースデータを取得できませんでした</div>;
 
   return (
     <>
-      <div className="flex flex-col items-center justify-start text-left p-2">
+      <div className="flex flex-col items-center justify-center text-left">
         <h2 className="font-bold text-3xl">全体の流れ</h2>
         {/* スクロールボタン */}
-        <div className="flex gap-2 my-2">
-          <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={() => handleScroll(day1Ref)}>
-            1日目へ
-          </button>
-          <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={() => handleScroll(day2Ref)}>
-            2日目へ
-          </button>
-          <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={() => handleScroll(day3Ref)}>
-            3日目へ
-          </button>
-          <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={() => handleScroll(day4Ref)}>
-            4日目へ
-          </button>
+        <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-2 my-2">
+          <div className="space-x-2">
+            <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={() => handleScroll(day1Ref)}>
+              1日目へ
+            </button>
+            <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={() => handleScroll(day2Ref)}>
+              2日目へ
+            </button>
+          </div>
+          <div className="space-x-2">
+            <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={() => handleScroll(day3Ref)}>
+              3日目へ
+            </button>
+            <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={() => handleScroll(day4Ref)}>
+              4日目へ
+            </button>
+          </div>
         </div>
         <BackToHome user={user} />
-        <div className="w-full max-w-4xl my-3 index-table-wrapper">
+        <div className="w-full my-3 index-table-wrapper">
           {/* 表示中のユーザー名を上部に表示 */}
           {displayName && <div className="mb-2 text-lg font-semibold text-center text-blue-700">{displayName} さんの行程表</div>}
           <ModernTable>

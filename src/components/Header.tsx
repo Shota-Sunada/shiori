@@ -2,18 +2,19 @@ import { useState, useEffect, useRef, useCallback, useMemo, type ReactElement } 
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth-context';
+import { isOffline } from '../helpers/isOffline';
+import { useServerReachable } from '../helpers/useServerReachable';
 import { clearShioriCache } from '../helpers/clearShioriCache';
 import { PrefetchLink } from '../prefetch/PrefetchLink';
 import { otanoshimiApi } from '../helpers/domainApi';
-import { IoHome, IoReload, IoLogOut, IoSettingsSharp } from 'react-icons/io5';
+import { IoHome, IoReload, IoLogOut, IoSettingsSharp, IoSend } from 'react-icons/io5';
 import { FaTable } from 'react-icons/fa';
 import { LuPartyPopper } from 'react-icons/lu';
 import { VscDebugAlt } from 'react-icons/vsc';
-import { FaUserGraduate } from 'react-icons/fa6';
 import { TbTrain } from 'react-icons/tb';
-import { MdAirlineSeatReclineNormal } from 'react-icons/md';
+import { MdAirlineSeatReclineNormal, MdOutlineMessage } from 'react-icons/md';
 import { PiBagFill } from 'react-icons/pi';
-import { FaListCheck } from 'react-icons/fa6';
+import { FaListCheck, FaHotel, FaBus, FaPeopleGroup, FaUserGraduate } from 'react-icons/fa6';
 
 const HamburgerIcon = ({ open }: { open: boolean }) => (
   <div className="flex flex-col justify-center items-center w-8 h-8 cursor-pointer">
@@ -29,6 +30,19 @@ interface HeaderProps {
 
 const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
   const { user, logout } = useAuth();
+
+  // オフライン検知
+  const [offline, setOffline] = useState(isOffline());
+  const serverReachable = useServerReachable();
+  useEffect(() => {
+    const update = () => setOffline(isOffline());
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
+    return () => {
+      window.removeEventListener('online', update);
+      window.removeEventListener('offline', update);
+    };
+  }, []);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   // bodyスクロールロック用
@@ -111,61 +125,34 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
       };
   const menuItems: MenuItem[] = useMemo(
     () => [
-      {
-        type: 'link',
-        icon: <IoHome />,
-        to: user?.is_teacher ? '/teacher' : '/',
-        label: 'ホーム'
-      },
-      {
-        type: 'link',
-        icon: <FaTable />,
-        to: '/yotei',
-        label: '全工程表'
-      },
-      {
-        type: 'link',
-        icon: <PiBagFill />,
-        to: '/goods',
-        label: '持ち物'
-      },
-      {
-        type: 'link',
-        icon: <FaListCheck />,
-        to: '/goods-check',
-        label: '持ち物チェッカー'
-      },
-      {
-        type: 'link',
-        icon: <TbTrain />,
-        to: '/shinkansen',
-        label: '新幹線'
-      },
-      {
-        type: 'link',
-        icon: <MdAirlineSeatReclineNormal />,
-        to: '/shinkansen/floor',
-        label: '新幹線座席一覧'
-      },
-      {
-        type: 'link',
-        icon: <LuPartyPopper />,
-        to: '/otanoshimi',
-        label: 'お楽しみ会',
-        prefetchKey: 'otanoshimiTeams',
-        fetcher: async () => otanoshimiApi.list()
-      },
-      { type: 'link', icon: <FaUserGraduate />, to: '/credits', label: 'クレジット' },
+      { type: 'link', icon: <IoHome />, to: user?.is_teacher ? '/teacher' : '/', label: 'ホーム', bgColor: 'blue' },
+      { type: 'link', icon: <FaTable />, to: '/yotei', label: '行程表', bgColor: 'light_blue' },
+      { type: 'link', icon: <MdOutlineMessage />, to: '/messages', label: 'メッセージ', bgColor: 'blue' },
+      { type: 'link', icon: <IoSend />, to: '/teacher/messages', label: 'メッセージを送信', note: '先生専用', only_admin: true, bgColor: 'purple' },
+      { type: 'link', icon: <PiBagFill />, to: '/goods', label: '持ち物', bgColor: 'light_blue' },
+      { type: 'link', icon: <FaListCheck />, to: '/goods-check', label: '持ち物チェッカー', bgColor: 'blue' },
+      { type: 'link', icon: <TbTrain />, to: '/shinkansen', label: '新幹線', bgColor: 'light_blue' },
+      { type: 'link', icon: <LuPartyPopper />, to: '/otanoshimi', label: 'お楽しみ会', prefetchKey: 'otanoshimiTeams', fetcher: async () => otanoshimiApi.list(), bgColor: 'yellow' },
+      { type: 'link', icon: <FaPeopleGroup />, to: '/day2', label: '自由行動班一覧', bgColor: 'green' },
+      { type: 'link', icon: <FaBus />, to: '/bus', label: 'バス割一覧', bgColor: 'light_green' },
+      { type: 'link', icon: <FaHotel />, to: '/hotel', label: 'ホテル部屋割一覧', bgColor: 'green' },
+      { type: 'link', icon: <MdAirlineSeatReclineNormal />, to: '/shinkansen/floor', label: '新幹線座席一覧', bgColor: 'light_green' },
+      { type: 'link', icon: <FaUserGraduate />, to: '/credits', label: 'クレジット', bgColor: 'purple' },
       {
         type: 'action',
         icon: <IoReload />,
         label: 'しおりを再読み込み',
         onClick: () => {
+          if (isOffline()) {
+            window.location.reload();
+            return;
+          }
           clearShioriCache();
           window.location.reload();
-        }
+        },
+        bgColor: 'pink'
       },
-      { type: 'link', icon: <VscDebugAlt />, to: '/env-debug', label: 'デバッグ用環境表示' },
+      { type: 'link', icon: <VscDebugAlt />, to: '/env-debug', label: 'デバッグ用環境表示', bgColor: 'pink' },
       { type: 'link', icon: <IoSettingsSharp />, to: '/admin/students', label: '生徒管理画面', note: '管理者&先生専用', only_admin: true },
       { type: 'link', icon: <IoSettingsSharp />, to: '/admin/teachers', label: '先生管理画面', note: '管理者&先生専用', only_admin: true },
       { type: 'link', icon: <IoSettingsSharp />, to: '/admin/users', label: 'ユーザー管理画面', note: '管理者&先生専用', only_admin: true },
@@ -177,16 +164,38 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
 
   return (
     <div className="sticky top-0 z-40">
-      <div className={`bg-[#50141c] text-white flex flex-row items-center justify-between relative z-50`}>
-        <Link to={user?.is_teacher ? '/teacher' : '/'}>
-          <img className={`p-[10px] w-[60px] md:w-[80px] ${user ? 'cursor-pointer' : 'cursor-default'}`} src="https://www.shudo-h.ed.jp/portal_assets/images/logo.png" alt="" />
-        </Link>
-        <div className="mx-2 flex flex-col">
-          <p className="font-bold text-base md:text-lg lg:text-xl leading-tight">{'修道高校79回生'}</p>
-          <p className="text-sm md:text-base lg:text-lg leading-tight">{'修学旅行のしおり'}</p>
+      {/* オフライン時の細いバー */}
+      {(offline || serverReachable === false) && (
+        <div className="w-full bg-yellow-200 text-yellow-900 text-xs text-center py-1 border-b border-yellow-400 select-none">
+          {offline && (
+            <>
+              <p>オフラインモード：ネットワークに接続されていません。</p>
+              <p>一部の機能が制限されるおそれがあります。</p>
+            </>
+          )}
+          {!offline && serverReachable === false && (
+            <>
+              <p>サーバーに接続できません。</p>
+              <p>メンテナンス中か、サーバーに問題が発生している可能性があります。</p>
+            </>
+          )}
         </div>
+      )}
+      <div className="bg-[#50141c] text-white relative flex items-center h-[56px] md:h-[72px] z-50">
+        {/* ロゴ（左） */}
+        <div className="flex-shrink-0 flex items-center justify-center" style={{ width: '60px', minWidth: '48px' }}>
+          <Link to={user?.is_teacher ? '/teacher' : '/'}>
+            <img className={`ml-2 w-[40px] md:w-[56px] ${user ? 'cursor-pointer' : 'cursor-default'}`} src="https://www.shudo-h.ed.jp/portal_assets/images/logo.png" alt="" />
+          </Link>
+        </div>
+        {/* 中央テキスト */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center text-center pointer-events-none select-none">
+          <p className="font-bold text-sm md:text-base lg:text-lg leading-tight">{'修道高校79回生'}</p>
+          <p className="text-xs md:text-sm lg:text-base leading-tight">{'修学旅行のしおり'}</p>
+        </div>
+        {/* メニュー（右） */}
         {user && (
-          <div className="relative mx-2">
+          <div className="flex-shrink-0 flex items-center justify-center ml-auto" style={{ width: '60px', minWidth: '48px' }}>
             <button
               type="button"
               aria-label="メニュー"
@@ -222,16 +231,16 @@ const Header = ({ menuBgColor = 'bg-white' }: HeaderProps) => {
                       if (!(user.is_admin || user.is_teacher || !item.only_admin)) return <></>;
                       // 色名→Tailwindクラス変換
                       const colorMap: Record<string, { base: string; hover: string }> = {
-                        blue: { base: 'bg-blue-100 text-blue-900', hover: 'hover:bg-blue-50' },
-                        green: { base: 'bg-green-100 text-green-900', hover: 'hover:bg-green-50' },
-                        white: { base: 'bg-white text-gray-900', hover: 'hover:bg-gray-100' },
-                        red: { base: 'bg-red-100 text-red-900', hover: 'hover:bg-red-50' },
-                        yellow: { base: 'bg-yellow-100 text-yellow-900', hover: 'hover:bg-yellow-50' },
-                        purple: { base: 'bg-purple-100 text-purple-900', hover: 'hover:bg-purple-50' },
-                        light_blue: { base: 'bg-blue-50 text-blue-900', hover: 'hover:bg-blue-100' },
-                        light_green: { base: 'bg-green-50 text-green-900', hover: 'hover:bg-green-100' },
-                        pink: { base: 'bg-pink-100 text-pink-900', hover: 'hover:bg-pink-50' },
-                        light_yellow: { base: 'bg-yellow-50 text-yellow-900', hover: 'hover:bg-yellow-100' }
+                        blue: { base: 'bg-blue-100 text-blue-900', hover: 'hover:bg-white' },
+                        green: { base: 'bg-green-100 text-green-900', hover: 'hover:bg-white' },
+                        white: { base: 'bg-white text-gray-900', hover: 'hover:bg-white' },
+                        red: { base: 'bg-red-100 text-red-900', hover: 'hover:bg-white' },
+                        yellow: { base: 'bg-yellow-100 text-yellow-900', hover: 'hover:bg-white' },
+                        purple: { base: 'bg-purple-100 text-purple-900', hover: 'hover:bg-white' },
+                        light_blue: { base: 'bg-blue-50 text-blue-900', hover: 'hover:bg-white' },
+                        light_green: { base: 'bg-green-50 text-green-900', hover: 'hover:bg-white' },
+                        pink: { base: 'bg-pink-100 text-pink-900', hover: 'hover:bg-white' },
+                        light_yellow: { base: 'bg-yellow-50 text-yellow-900', hover: 'hover:bg-white' }
                       };
                       const color = item.bgColor && colorMap[item.bgColor] ? colorMap[item.bgColor] : { base: '', hover: 'hover:bg-gray-100' };
                       const itemClass = `header-menu-item text-left px-4 py-3 cursor-pointer ${color.base} ${color.hover}`;

@@ -3,16 +3,18 @@ import MDButton, { BackToHome } from '../components/MDButton';
 import { useAuth } from '../auth-context';
 
 const Maps = () => {
-  type MapId = 'tdh' | 'fpr' | 'hiroshima_sta' | undefined;
+  type MapId = 'tdh' | 'fpr' | 'hiroshima_sta' | 'metro' | 'metro_station' | undefined;
 
   const { user } = useAuth();
   const [id, setId] = useState<MapId>(undefined);
 
   const Image = (title: string, src: string, alt?: string) => {
     return (
-      <div className="m-2">
-        <p className="text-2xl font-semibold">{title}</p>
-        <img src={src} alt={alt} />
+      <div className="my-6 flex flex-col items-center w-full max-w-2xl bg-white rounded-lg shadow-md p-4 border border-gray-200">
+        <p className="text-lg md:text-2xl font-bold mb-2 text-gray-800">{title}</p>
+        <div className="w-full flex justify-center">
+          <img src={src} alt={alt} className="rounded-lg max-w-full h-auto border border-gray-300 shadow-sm" />
+        </div>
       </div>
     );
   };
@@ -22,13 +24,32 @@ const Maps = () => {
       return (
         <div className="flex flex-col items-center justify-center text-center">
           {Image('広島駅集合場所', 'hiroshima_sta.png')}
+          {Image('広島駅集合場所', 'hiroshima_sta2.png')}
+          <MDButton text="戻る" color="white" arrowLeft onClick={() => setId(undefined)} />
+        </div>
+      );
+    case 'metro':
+      return (
+        <div className="flex flex-col items-center justify-center text-center">
+          {Image('東京メトロ路線図', 'metro.png')}
+          <MDButton text="戻る" color="white" arrowLeft onClick={() => setId(undefined)} />
+        </div>
+      );
+    case 'metro_station':
+      return (
+        <div className="flex flex-col items-center justify-center text-center">
+          {Image('[ARDA/Urth] 丸ノ内線 東京駅 構内立体図', 'https://www.tokyometro.jp/station/yardmap_img/figure_yardmap_tokyo_all.jpg', 'インターネットに接続されていないので、表示できません。')}
+          {Image('[ARDA] 霞が関駅 構内立体図', 'https://www.tokyometro.jp/station/yardmap_img/figure_yardmap_kasumigaseki_all.jpg', 'インターネットに接続されていないので、表示できません。')}
+          {Image('[ARDA] 六本木駅 構内立体図', 'https://www.tokyometro.jp/station/yardmap_img/figure_yardmap_roppongi_all.jpg', 'インターネットに接続されていないので、表示できません。')}
+          {Image('[Urth] 大手町駅 構内立体図', 'https://www.tokyometro.jp/station/yardmap_img/figure_yardmap_otemachi_all.jpg', 'インターネットに接続されていないので、表示できません。')}
+          {Image('[Urth] 半蔵門線 半蔵門駅 構内立体図', 'https://www.tokyometro.jp/station/yardmap_img/figure_yardmap_hanzomon_all.jpg', 'インターネットに接続されていないので、表示できません。')}
           <MDButton text="戻る" color="white" arrowLeft onClick={() => setId(undefined)} />
         </div>
       );
     case 'tdh':
       return (
         <div className="flex flex-col items-center justify-center text-center">
-          {Image('TDH 食事会場 B1F「天空」席', 'tenku.png')}
+          {Image('TDH 食事会場 B1F「天空」席', 'tenku2.png')}
           <MDButton text="戻る" color="white" arrowLeft onClick={() => setId(undefined)} />
           {Image('TDH 食事会場 3F「スーパーダイニングリラッサ」席', 'rirassa.png')}
           <MDButton text="戻る" color="white" arrowLeft onClick={() => setId(undefined)} />
@@ -43,31 +64,40 @@ const Maps = () => {
       );
     case undefined:
       return (
-        <div className="flex flex-col items-center justify-center text-center">
-          <p>{'閲覧したいマップを選択してください'}</p>
-          <p>{"まだ作ってる途中だから雑です。m(._.)m"}</p>
-          <p
-            className="bg-blue-400 px-20 py-10 text-white m-3 cursor-pointer"
-            onClick={() => {
-              setId('hiroshima_sta');
-            }}>
-            {'広島駅'}
-          </p>
-          <p
-            className="bg-blue-400 px-20 py-10 text-white m-3 cursor-pointer"
-            onClick={() => {
-              setId('tdh');
-            }}>
-            {'東京ドームホテル'}
-          </p>
-          <p
-            className="bg-blue-400 px-20 py-10 text-white m-3 cursor-pointer"
-            onClick={() => {
-              setId('fpr');
-            }}>
-            {'フジプレミアムリゾート'}
-          </p>
-          <BackToHome user={user} />
+        <div className="flex flex-col items-center justify-center min-h-[60vh] py-8 px-2">
+          <div className="mb-6 text-center">
+            <p className="text-xl md:text-2xl font-bold text-blue-900 mb-2">閲覧したいマップを選択してください</p>
+          </div>
+          <div className="flex flex-col gap-6 w-full max-w-md mx-auto">
+            <button
+              className="bg-white border border-blue-300 hover:border-blue-500 text-blue-900 font-semibold rounded-xl shadow-md px-8 py-6 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg text-left"
+              onClick={() => setId('hiroshima_sta')}>
+              <span className="block">広島駅集合場所</span>
+            </button>
+            <button
+              className="bg-white border border-blue-300 hover:border-blue-500 text-blue-900 font-semibold rounded-xl shadow-md px-8 py-6 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg text-left"
+              onClick={() => setId('metro')}>
+              <span className="block">地下鉄メトロ路線図</span>
+            </button>
+            <button
+              className="bg-white border border-blue-300 hover:border-blue-500 text-blue-900 font-semibold rounded-xl shadow-md px-8 py-6 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg text-left"
+              onClick={() => setId('metro_station')}>
+              <span className="block">地下鉄駅構内図 (1日目)</span>
+            </button>
+            <button
+              className="bg-white border border-blue-300 hover:border-blue-500 text-blue-900 font-semibold rounded-xl shadow-md px-8 py-6 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg text-left"
+              onClick={() => setId('tdh')}>
+              <span className="block">東京ドームホテル</span>
+            </button>
+            <button
+              className="bg-white border border-blue-300 hover:border-blue-500 text-blue-900 font-semibold rounded-xl shadow-md px-8 py-6 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg text-left"
+              onClick={() => setId('fpr')}>
+              <span className="block">フジプレミアムリゾート</span>
+            </button>
+          </div>
+          <div className="mt-10">
+            <BackToHome user={user} />
+          </div>
         </div>
       );
   }

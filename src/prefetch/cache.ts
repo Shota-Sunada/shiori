@@ -10,7 +10,11 @@ export type PrefetchKey =
   | 'day2List'
   | 'boatsList'
   | 'shinkansenDay1'
-  | 'shinkansenDay4';
+  | 'shinkansenDay4'
+  | 'busListDay1'
+  | 'busListDay3'
+  | 'busListDay4'
+  | 'hotel';
 
 type CacheStore = Partial<Record<PrefetchKey, unknown>>;
 

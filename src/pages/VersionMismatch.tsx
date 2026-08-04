@@ -12,7 +12,8 @@ export default function VersionMismatch() {
   const location = useLocation();
 
   useEffect(() => {
-    // ページアクセス時にキャッシュ全削除
+    // オフライン時はキャッシュ削除しない
+    if (!navigator.onLine) return;
     clearAllAppFetchLocalStorageCache();
     let aborted = false;
     (async () => {

@@ -36,6 +36,22 @@ import { appFetch, mutate } from './apiClient';
 import { CacheKeys, CachePrefixes } from './cacheKeys';
 import { SERVER_ENDPOINT } from '../config/serverEndpoint';
 import type { COURSES_DAY1_KEY, COURSES_DAY3_KEY } from '../data/courses';
+import type { TeacherMessage } from '../interface/messages';
+// ---- Messages ----
+export const messagesApi = {
+  list: () =>
+    appFetch<TeacherMessage[]>(`${SERVER_ENDPOINT}/api/messages`, {
+      requiresAuth: true,
+      cacheKey: CacheKeys.messages.list,
+      alwaysFetch: true
+    }),
+  markAsRead: (id: number, emoji_id: number) =>
+    appFetch<{ message: string; readAt: string; userId: number; emoji_id: number }>(`${SERVER_ENDPOINT}/api/messages/${id}/read`, {
+      method: 'POST',
+      requiresAuth: true,
+      jsonBody: { emoji_id }
+    })
+};
 import type { IntRange } from 'type-fest';
 
 // ---- Students ----
@@ -180,6 +196,7 @@ export interface TeacherDTO {
   shinkansen_day4_seat: string;
   day1id: COURSES_DAY1_KEY;
   day1bus: number;
+  day2: number;
   day3id: COURSES_DAY3_KEY;
   day3bus: number;
   day4class: IntRange<1, 8>;
@@ -192,7 +209,7 @@ export const teacherApi = {
       requiresAuth: true,
       cacheKey: CacheKeys.teachers.self(id)
     }),
-  add: (payload: Omit<TeacherDTO, 'id'> & { id: number }) =>
+  add: (payload: TeacherDTO) =>
     mutate({
       url: `${SERVER_ENDPOINT}/api/teachers`,
       method: 'POST',
@@ -275,7 +292,15 @@ export interface RollCallDetailDTO {
 
 export const rollCallApi = {
   groups: () => appFetch<RollCallGroupDTO[]>(`${SERVER_ENDPOINT}/api/roll-call-groups`, { requiresAuth: true, cacheKey: CacheKeys.rollCall.groups }),
-  start: (body: { teacher_id: number; duration_minutes: number; specific_student_id?: string; group_name?: string }) =>
+  start: (body: {
+    teacher_id: number;
+    duration_minutes: number;
+    specific_student_ids?: number[];
+    group_name?: string;
+    notification_title?: string;
+    notification_body?: string;
+    notification_link?: string;
+  }) =>
     mutate<{ rollCallId: string }>({
       url: `${SERVER_ENDPOINT}/api/roll-call/start`,
       method: 'POST',
@@ -311,5 +336,22 @@ export const rollCallApi = {
       method: 'POST',
       jsonBody: { roll_call_id: rollCallId },
       invalidatePrefixes: [CachePrefixes.rollCallListForTeacher(teacherId), CachePrefixes.rollCallListAll]
+    })
+};
+
+export const notificationApi = {
+  send: (payload: { userId: string; title: string; body: string; link?: string }) =>
+    mutate({
+      url: `${SERVER_ENDPOINT}/api/notifications/send`,
+      method: 'POST',
+      jsonBody: payload,
+      requiresAuth: true
+    }),
+  sendTestToSelf: (payload: { title?: string; body?: string; link?: string } = {}) =>
+    mutate({
+      url: `${SERVER_ENDPOINT}/api/notifications/me/test`,
+      method: 'POST',
+      jsonBody: payload,
+      requiresAuth: true
     })
 };
